@@ -10,7 +10,7 @@ Unless otherwise noted, the Xeora source files are distributed under the MIT lic
 
 #### Binary Distributions
 
-Official binary distributions are available at https://github.com/xeora/v7/tree/master/Build but also you can reach updated binary files using Visual Studio Extension.
+Official binary distributions are available at http://www.xeora.org/downloads
 
 To create development environment, please visit http://www.xeora.org/tutorials to reach the installation instructions.
 
