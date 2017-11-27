@@ -1,0 +1,35 @@
+﻿{
+  "service": {
+    "address": "0.0.0.0",
+    "port": 3381,
+    "print": false
+  },
+  "application": {
+    "main": {
+      "defaultDomain": [ "Standart" ],
+      "physicalRoot": "/Users/FreaK/Projects/BeyinPilimTest/Web.Interface",
+      "debugging": true,
+      "compression": true,
+      "printAnalytics": false
+    },
+    "customMimes": [
+      {
+        "type": "application/WOW",
+        "extension": ".bin"
+      }
+    ]
+  },
+  "user": {
+    "LoggingPath": "/Users/FreaK/Projects/BeyinPilimTest/Web.Interface/XeoraLogs",
+    "ipToCountryInteractionURL": "http://api.jakpark.com/ServiceInteractionControl",
+    "connectionString": "Server=192.168.1.10; Database=BeyinPilim; Uid=root; Pwd=_jakPark2011; CharSet=utf8; Connection Timeout=300; Allow User Variables=True; SslMode=none",
+    "contactUsForm_EMail": "tuna.celik@mesajkutum.com",
+    "mail_SenderAddress": "tuna.celik@mesajkutum.com",
+    "mail_SenderName": "Tuna Çelik",
+    "mail_EMail": "tuna.celik@mesajkutum.com",
+    "mail_Password": "runneralttancizgi",
+    "mail_Server": "mail.mesajkutum.com",
+    "mail_Port": "25",
+    "mail_SSL": "False"
+  }
+}
