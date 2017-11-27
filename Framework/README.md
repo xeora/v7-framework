@@ -1,8 +1,8 @@
 # Xeora Web Development Framework
 
-Xeora is .NET Base Web Development Framework for developers who are not willing to develop applications using Microsoft ASP MVC or ASP.NET but want to use .net programming languages such as VB.NET, C# as their main development language. Xeora provides higher performance and easy to use web development framework for .NET developers. It is perfectly modular and interchangable.
+Xeora is .Net Web Development Framework for developers who are not willing to develop applications using Microsoft ASP MVC or ASP.NET but want to use .net programming languages such C# as their main development language. Xeora provides higher performance and easy to use web development framework for .NET developers. v7 is the completely rewritten version of v6 with better performance on speed and rendering. v7 version works on .NET Core, Mono Framework and .NET Framework without any platform dependency. v7 version can be dockerized. 
 
-Here is our repository for xeora web development framework source. https://github.com/xeora/v6.
+Here is our repository for xeora web development framework source. https://github.com/xeora/v7.
 
 Unless otherwise noted, the Xeora source files are distributed under the MIT license found in the LICENSE file.
 
@@ -10,9 +10,11 @@ Unless otherwise noted, the Xeora source files are distributed under the MIT lic
 
 #### Binary Distributions
 
-Official binary distributions are available at https://github.com/xeora/v6/tree/master/Build but also you can reach updated binary files using Visual Studio Extention.
+Official binary distributions are available at https://github.com/xeora/v7/tree/master/Build but also you can reach updated binary files using Visual Studio Extension.
 
 To create development environment, please visit http://www.xeora.org/tutorials to reach the installation instructions.
+
+v7 version can be dockerized. For docker images please visit https://hub.docker.com/u/xeora/
 
 ### Contributing
 
@@ -20,4 +22,4 @@ Xeora is powerful but also needs contributors to increase its perfection! We app
 
 Note that the Xeora project does not use GitHub pull requests, and that we use the issue tracker for bug reports and proposals only.
 
-For documentation you can check https://github.com/xeora/v6/blob/master/QuickGuide.txt for xeora grammer summary or http://www.xeora.org/documentation for detailed documentation.
+For documentation you can check https://github.com/xeora/v7/blob/master/QuickGuide.txt for xeora grammer summary or http://www.xeora.org/documentation for detailed documentation.
