@@ -1,0 +1,226 @@
+Security Settings in the Registry:
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Eventlog
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Eventlog\Security
+Give proper write access to the application pool user.
+
+SpecialTags:
+	$DomainContents$ << To point Current language public content path
+	$PageRenderDuration$ << output for page rendering duration
+	
+OperatorTags:
+	$SearchKey$  << VariablePool
+	$^SearchKey$  << QueryString
+	$~SearchKey$  << Form Post
+	$-SearchKey$  << Session
+	$+SearchKey$  << Cookie
+	$=SearchKey$  << Returns Value Ex: $=Something$ Output: Something
+	$#SearchKey$  << Data(Block) Variable. This can be parented $##SearchKey$ one level upper parent value searching
+
+	$*SearchKey$  << Search All. Search Order: InData(Block), VariablePool, Session, Cookie, Form Post, QueryString
+
+	$@SearchObject.SearchProperty$  << SearchObject is a serializable class, SearchProperty is Readable Property Name. 
+		SearchObject Class must be registered to VariablePool
+
+	If you search in Data(Block) then use as $@#SearchObject.SearchProperty$
+	If you search in Session then use as $@-SearchObject.SearchProperty$
+
+ControlTags:
+	All Control Tags has parenting specification;
+		$[ControlTagType][ParentControlID]:[ControlID]...
+
+		What is parenting?
+		Parented control will not rendered until its parent has been rendered...
+
+		Ex: $C[Control1]:Control2$
+		
+		    or
+
+		    $C[Control2]:Control3:{ <!-- Something --> }:Control3$
+
+		    or
+
+		    $C[Control2]:Control3:{ <!-- Something --> }:Control3:{ <!-- Something (Alternative) --> }:Control3$
+
+	All Control Tags has leveling specification;
+		$[ControlTagType]#[AccessingLevel][ParentControlID]:[ControlID]...
+
+		What is leveling?
+		Let's say that we have to loop inside each other
+
+		$C:LoopControl1:{
+			$#FirstLoopSQLField1$
+
+			$C:ControlID:{ <!-- Something --> }:ControlID$
+
+			$C:LoopControl2:{
+				$##FirstLoopSQLField1$ << if you want to use first loop SQL Field1 value, you should put one more # to access the parent's variable
+				$#SecondLoopSQLField1$			
+
+				if we have a control already on our ControlMaps.xml with some sql fields variables set for only comes from Loop 1 like;
+					<Bind>SomePluginDll?SomeClass.SomeFunction,#FirstLoopSQLField1|#FirstLoopSQLField2</Bind>
+				it will not be runnable inside of the LoopControl2 because FirstLoopSQLField1 and FirstLoopSQLField2 do not exists
+				in LoopControl 2 but you want to use this control in both loop controls
+
+				$C#1:ControlID:{ <!-- Something --> }:ControlID$
+
+				this will convert the following
+
+					<Bind>SomePluginDll?SomeClass.SomeFunction,#FirstLoopSQLField1|#FirstLoopSQLField2</Bind>
+
+				like this
+
+					<Bind>SomePluginDll?SomeClass.SomeFunction,##FirstLoopSQLField1|##FirstLoopSQLField2</Bind>
+
+			}:LoopControl2$
+		}:LoopControl1$
+
+		When you want to use leveling with parenting
+
+			$C#1[ParentControlID]:ControlID:{ <!-- Something --> }:ControlID$
+		
+	$T:TemplateID$ << Include Template with specified TemplateID
+	$L:TranslationID$ << Insert Translation result using current specified language xml
+
+	Control parsing specified in Controls.xml
+	
+	$C:ControlID$
+
+	or
+
+	$C:ControlID:{ <!-- Something --> }:ControlID$
+
+	or
+
+	$C:ControlID:{ <!-- Something --> }:ControlID:{ <!-- Something (Alternative) --> }:ControlID$	
+
+	Control Types in Controls.xml
+
+	--- Block Control Types ---
+	ConditionalStatement	<< creates conditional statement
+	DataList		<< creates loop statement
+	VariableBlock		<< creates a variable block of which variables are available only in
+
+	--- HTML Control Types ---
+	Button			<< creates server call back button
+	CheckBox		<< creates checkbox with server call back
+	ImageButton		<< creates image button with server call back
+	LinkButton		<< creates link button with server call back
+	Password		<< creates password with server call back
+	RadioButton		<< creates radio button with server call back
+	Textarea		<< creates textarea field with server call back
+	Textbox			<< creates textbox field with server call back
+
+	What is Block Control Types?
+		With this control type, you can create statement run at server side and creates output according to the block content
+		Bind will be called while it is rendering
+
+	What is HTML Control Types?
+		With this control type, you can create html output statement with the postback functionality.
+		Bind will be called when client need some interaction with server
+
+	Controls.xml Map Formats
+
+	<Control id="[ControlID]">
+		<!-- This is a MUST for all Controls -->
+		<Type>[ControlType]</Type>
+
+		<!-- If you want server call use this -->
+		<Bind>[ThemeID|AddonID]?[ControlClass].[FunctionName],SomeOperatorTags(seperated with |)</Bind>
+
+		<!-- This is for Button, ImageButton and LinkButton Type -->
+		<BlockIDsToUpdate localupdate="True|False">
+			<BlockID>[BlockID]</BlockID>
+			<BlockID>[BlockID]</BlockID>
+			<BlockID>[BlockID]</BlockID>
+		</BlockIDsToUpdate>
+
+		<!-- This is for TextBox and Password Type -->
+		<DefaultButtonID>[ControlID]</DefaultButtonID>
+
+		<!-- This is for TextBox, Password, Link, CheckBox and Radio Type -->
+		<Text>[TextBox, Password value or Button Text]</Text>
+
+		<!-- This is for Textarea Type -->
+		<Content>[Textarea Content]</Content>
+
+		<!-- This is for Image Type -->
+		<Source>[Image URL]</Source>
+
+		<!-- This is for Link Type -->
+		<Url>[Link URL]</Url>
+
+		<!-- This is for all html Types (Other than ConditionalStatement, DataList, VariableBlock) -->
+		<Attributes>
+			<Attribute key="[HTMLAttributeKey]">[AttributeValue]</Attributes>
+		</Attributes>
+	</Control>
+
+	$P:TemplateID$ << create text with Currentpage's hashcode. Ex: $P:TemplateID$  Output: /1252482/TemplateID
+
+	Immediate Executable Execution	
+
+	$F:[DomainLibID|AddonLibID]?[ControlClass].[ProcedureName]$
+
+	or
+
+	$F:[DomainLibID|AddonLibID]?[ControlClass].[ProcedureName],SomeOperatorTags(seperated with |)$
+
+	Ex: $F:AddonLib1?GlobalControls.PrintOutSums$
+
+	    or
+
+	    $F:AddonLib1?GlobalControls.PrintOut,~FormField$
+
+	    or
+
+	    $F:AddonLib1?GlobalControls.SumNumbers,~FormField|=5$
+
+	Immediate Statement calling for current user request. Do not prefer on repeating actions
+
+	$S:StatementID:{ <!-- C# Code --> }:StatementID$
+
+	or
+
+	For Caching Disabled
+	$S:StatementID:{!NOCACHE <!-- C# Code --> }:StatementID$
+	
+	Ex: $S:Statement1:{
+		int intvalue1 = 5;
+		int intvalue2 = Integer.Parse("0" + $~FormValue$);
+
+		return intvalue1 * intvalue2;
+	    }:Statement1$
+
+	Do Request in this surrounded block with HTTPRequest
+
+	$H:RequestBlockID:{ <!-- Something --> }:RequestBlockID$
+
+	or
+
+	Do not render on page create but render on client request
+	$H:RequestBlockID:{!RENDERONREQUEST <!-- Something --> }:RequestBlockID$
+
+	Create encoded javascript url for Executable Execution. This can be used in everywhere that is supporting javascript call.
+
+	$XF:{[DomainLibID|AddonLibID]?[ControlClass].[ProcedureName]}:XF$
+
+	or
+
+	$XF:{[DomainLibID|AddonLibID]?[ControlClass].[ProcedureName],SomeOperatorTags(seperated with |)}:XF$
+
+	Cache page partially. You can cache only the specific part of the page.
+
+	$PC:{ <!-- Page Content Part --> }:PC$
+
+	Where do you want to cache in the page, cover it with PC tag.
+
+	Use this for outputing Success, Warning and Error Information
+
+	$MB:{ <!-- Message Output Content --> }:MB$
+	MessageBlock can contain $#Message$ pre-defined variable to show the message output text.
+	MessageBlock can be handled using pre-defined MessageType variable such as $#MessageType$.
+
+	MessageTypes;
+		Error, Success, Warning
+
+	

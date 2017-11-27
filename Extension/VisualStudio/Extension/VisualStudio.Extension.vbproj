@@ -1,0 +1,657 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Microsoft.VSSDK.BuildTools.15.5.100\build\Microsoft.VSSDK.BuildTools.props" Condition="Exists('..\packages\Microsoft.VSSDK.BuildTools.15.5.100\build\Microsoft.VSSDK.BuildTools.props')" />
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <UseCodebase>true</UseCodebase>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>14.0</OldToolsVersion>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionExplicit>On</OptionExplicit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionCompare>Binary</OptionCompare>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
+    <ProjectGuid>{0D336612-4904-4ABB-811C-4B2758D1CA99}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>
+    </RootNamespace>
+    <AssemblyName>Xeora.Extension.VisualStudio</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
+    <IncludeDebugSymbolsInVSIXContainer>true</IncludeDebugSymbolsInVSIXContainer>
+    <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
+    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
+    <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
+    <OptionStrict>On</OptionStrict>
+    <OptionInfer>On</OptionInfer>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <NoWarn>42353,42354,42355</NoWarn>
+    <WarningsAsErrors>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</WarningsAsErrors>
+    <CopyVsixExtensionFiles>False</CopyVsixExtensionFiles>
+    <DeployExtension>False</DeployExtension>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <NoWarn>42353,42354,42355</NoWarn>
+    <WarningsAsErrors>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</WarningsAsErrors>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="Key.snk" />
+    <None Include="packages.config" />
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="IDEControl.vb" />
+    <Compile Include="ExecutableLoaderHelper.vb" />
+    <Compile Include="Globals.vb" />
+    <Compile Include="IDE\Editor\Completion\SourceBuilder\BuilderBase.vb" />
+    <Compile Include="IDE\Editor\Completion\SourceBuilder\Class.vb" />
+    <Compile Include="IDE\Editor\Completion\SourceBuilder\Executable.vb" />
+    <Compile Include="IDE\Editor\Completion\SourceBuilder\IconResource.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>IconResource.resx</DependentUpon>
+    </Compile>
+    <Compile Include="IDE\Editor\Completion\SourceBuilder\ControlTag.vb" />
+    <Compile Include="IDE\Editor\Completion\SourceBuilder\MiddleOperator.vb" />
+    <Compile Include="IDE\Editor\Completion\SourceBuilder\Type.vb" />
+    <Compile Include="IDE\Editor\Completion\SourceBuilder\Template.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Template.resx</DependentUpon>
+    </Compile>
+    <Compile Include="IDE\Editor\Completion\SourceBuilder\Translation.vb" />
+    <Compile Include="IDE\Editor\Completion\SourceBuilder\Control.vb" />
+    <Compile Include="IDE\Editor\Completion\SourceBuilder\Template.vb" />
+    <Compile Include="IDE\Editor\Completion\SourceBuilder\Special.vb" />
+    <Compile Include="IDE\Editor\Completion\ControlsCommandHandlerProvider.vb" />
+    <Compile Include="IDE\Editor\Completion\ControlsCommandHandler.vb" />
+    <Compile Include="IDE\Editor\Completion\ControlsSource.vb" />
+    <Compile Include="IDE\Editor\Completion\ControlsSourceProvider.vb" />
+    <Compile Include="IDE\Editor\EditorExtension.vb" />
+    <Content Include="ItemTemplates\ClassVB\MyClassLib.vb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Compile Include="PackageControl.vb" />
+    <Compile Include="Tools\Creators\TranslationSettings.Designer.vb">
+      <DependentUpon>TranslationSettings.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\Creators\TranslationSettings.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\Creators\LanguageSettings.Designer.vb">
+      <DependentUpon>LanguageSettings.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\Creators\LanguageSettings.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\Creators\Translation.Designer.vb">
+      <DependentUpon>Translation.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\Creators\Translation.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\Creators\Executable.Designer.vb">
+      <DependentUpon>Executable.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\Creators\Executable.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\Creators\Control.Designer.vb">
+      <DependentUpon>Control.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\Creators\Control.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\Creators\ControlAttributes.Designer.vb">
+      <DependentUpon>ControlAttributes.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\Creators\ControlAttributes.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\Creators\ControlOptions\Textbox.Designer.vb">
+      <DependentUpon>Textbox.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\Creators\ControlOptions\Textbox.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\Creators\ControlOptions\RadioButton.Designer.vb">
+      <DependentUpon>RadioButton.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\Creators\ControlOptions\RadioButton.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\Creators\ControlOptions\Password.Designer.vb">
+      <DependentUpon>Password.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\Creators\ControlOptions\Password.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\Creators\ControlOptions\LinkButton.Designer.vb">
+      <DependentUpon>LinkButton.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\Creators\ControlOptions\LinkButton.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\Creators\ControlOptions\ImageButton.Designer.vb">
+      <DependentUpon>ImageButton.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\Creators\ControlOptions\ImageButton.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\Creators\ControlOptions\Checkbox.Designer.vb">
+      <DependentUpon>Checkbox.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\Creators\ControlOptions\Checkbox.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\Creators\ControlOptions\Button.Designer.vb">
+      <DependentUpon>Button.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\Creators\ControlOptions\Button.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\Creators\ControlOptions\TextArea.Designer.vb">
+      <DependentUpon>TextArea.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\Creators\ControlOptions\TextArea.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\Creators\IntelliListbox.Designer.vb">
+      <DependentUpon>IntelliListbox.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\Creators\IntelliListbox.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Tools\DownloadProgress.Designer.vb">
+      <DependentUpon>DownloadProgress.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\DownloadProgress.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\PrepareProject\ProjectList.Designer.vb">
+      <DependentUpon>ProjectList.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\PrepareProject\ProjectList.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\PrepareProject\ProjectSettings.Designer.vb">
+      <DependentUpon>ProjectSettings.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\PrepareProject\ProjectSettings.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="IDE\Command\Command.vb" />
+    <Compile Include="XeoraPackage.vb" />
+    <Compile Include="My Project\AssemblyInfo.vb" />
+    <Compile Include="IDE\Editor\Completion\TemplateCommandHandler.vb" />
+    <Compile Include="IDE\Editor\Completion\TemplateCommandHandlerProvider.vb" />
+    <Compile Include="IDE\Editor\Completion\TemplateSource.vb" />
+    <Compile Include="IDE\Editor\Completion\TemplateSourceProvider.vb" />
+    <Compile Include="IDE\Editor\Highlighter\Syntax.vb" />
+    <Compile Include="IDE\Editor\Highlighter\SyntaxClassificationDefinition.vb" />
+    <Compile Include="IDE\Editor\Highlighter\SyntaxFormats.vb" />
+    <Compile Include="IDE\Editor\Highlighter\SyntaxProvider.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\operator.png" />
+    <None Include="Resources\middleoperator.png" />
+    <Content Include="ItemTemplates\ClassCSharp\MyClassLib.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ItemTemplates\ClassCSharp\MyTemplate.vstemplate">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ItemTemplates\ClassCSharp\__TemplateIcon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ItemTemplates\ClassVB\MyTemplate.vstemplate">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ItemTemplates\ClassVB\__TemplateIcon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ProjectTemplates\CSharpx64\MyTemplate.vstemplate">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ProjectTemplates\CSharpx64\XeoraExecutableCSharpx64.csproj">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ProjectTemplates\CSharpx64\__TemplateIcon.ico">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ProjectTemplates\CSharpx86\MyTemplate.vstemplate">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ProjectTemplates\CSharpx86\XeoraExecutableCSharpx86.csproj">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ProjectTemplates\CSharpx86\__TemplateIcon.ico">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ProjectTemplates\VBx64\MyTemplate.vstemplate">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ProjectTemplates\VBx64\XeoraExecutableVBx64.vbproj">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ProjectTemplates\VBx64\__TemplateIcon.ico">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ProjectTemplates\VBx86\MyTemplate.vstemplate">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ProjectTemplates\VBx86\XeoraExecutableVB.vbproj">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ProjectTemplates\VBx86\__TemplateIcon.ico">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\XeoraPackage.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="XeoraPackage.pkgdef">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <None Include="Resources\xmltag.png" />
+    <VSCTCompile Include="XeoraPackage.vsct">
+      <ResourceName>Menus.ctmenu</ResourceName>
+      <SubType>Designer</SubType>
+    </VSCTCompile>
+    <None Include="Resources\assembly.gif" />
+    <None Include="Resources\blockstatement.png" />
+    <None Include="Resources\button.png" />
+    <None Include="Resources\checkbox.png" />
+    <None Include="Resources\classPublic.gif" />
+    <Content Include="Resources\Command.png" />
+    <None Include="Resources\conditionalstatement.png" />
+    <None Include="Resources\control.png" />
+    <None Include="Resources\datalist.png" />
+    <None Include="Resources\domain_level_translation.png" />
+    <None Include="Resources\imagebutton.png" />
+    <None Include="Resources\linkbutton.png" />
+    <None Include="Resources\methodPublic.gif" />
+    <None Include="Resources\parent_level_translation.png" />
+    <None Include="Resources\password.png" />
+    <None Include="Resources\radiobutton.png" />
+    <None Include="Resources\singlestatement.png" />
+    <None Include="Resources\textarea.png" />
+    <None Include="Resources\textbox.png" />
+    <None Include="Resources\variableblock.png" />
+    <None Include="Resources\controltype.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="ICSharpCode.NRefactory, Version=4.4.1.9729, Culture=neutral, PublicKeyToken=efe927acf176eea2, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\3rdParty\ICSharpCode.NRefactory.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.VisualStudio.CommandBars, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.CoreUtility.15.4.27004\lib\net45\Microsoft.VisualStudio.CoreUtility.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Editor, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Imaging, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.Imaging.15.4.27004\lib\net45\Microsoft.VisualStudio.Imaging.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.Language.Intellisense.15.4.27004\lib\net45\Microsoft.VisualStudio.Language.Intellisense.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.OLE.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>..\packages\Microsoft.VisualStudio.OLE.Interop.7.10.6071\lib\Microsoft.VisualStudio.OLE.Interop.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.14.0, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.Shell.14.0.15.0.25414-Preview5\lib\Microsoft.VisualStudio.Shell.14.0.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Framework, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.Shell.Framework.15.4.27004\lib\net45\Microsoft.VisualStudio.Shell.Framework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.Shell.Immutable.10.0.15.0.25414\lib\net40\Microsoft.VisualStudio.Shell.Immutable.10.0.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.11.0, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.Shell.Immutable.11.0.15.0.25414\lib\net45\Microsoft.VisualStudio.Shell.Immutable.11.0.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.12.0, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.Shell.Immutable.12.0.15.0.25414\lib\net45\Microsoft.VisualStudio.Shell.Immutable.12.0.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.14.0, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.Shell.Immutable.14.0.15.0.25404\lib\net45\Microsoft.VisualStudio.Shell.Immutable.14.0.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>..\packages\Microsoft.VisualStudio.Shell.Interop.7.10.6071\lib\Microsoft.VisualStudio.Shell.Interop.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <HintPath>..\packages\Microsoft.VisualStudio.Shell.Interop.10.0.10.0.30319\lib\Microsoft.VisualStudio.Shell.Interop.10.0.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.11.0, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <HintPath>..\packages\Microsoft.VisualStudio.Shell.Interop.11.0.11.0.61030\lib\Microsoft.VisualStudio.Shell.Interop.11.0.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <HintPath>..\packages\Microsoft.VisualStudio.Shell.Interop.12.0.12.0.30110\lib\Microsoft.VisualStudio.Shell.Interop.12.0.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>..\packages\Microsoft.VisualStudio.Shell.Interop.8.0.8.0.50727\lib\Microsoft.VisualStudio.Shell.Interop.8.0.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.9.0, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>..\packages\Microsoft.VisualStudio.Shell.Interop.9.0.9.0.30729\lib\Microsoft.VisualStudio.Shell.Interop.9.0.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.Text.Data.15.4.27004\lib\net45\Microsoft.VisualStudio.Text.Data.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.Text.Logic.15.4.27004\lib\net45\Microsoft.VisualStudio.Text.Logic.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.Text.UI.15.4.27004\lib\net45\Microsoft.VisualStudio.Text.UI.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.Text.UI.Wpf.15.4.27004\lib\net45\Microsoft.VisualStudio.Text.UI.Wpf.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.TextManager.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>..\packages\Microsoft.VisualStudio.TextManager.Interop.7.10.6070\lib\Microsoft.VisualStudio.TextManager.Interop.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.TextManager.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>..\packages\Microsoft.VisualStudio.TextManager.Interop.8.0.8.0.50727\lib\Microsoft.VisualStudio.TextManager.Interop.8.0.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Threading, Version=15.5.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.Threading.15.5.13-beta\lib\net46\Microsoft.VisualStudio.Threading.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Utilities, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.Utilities.15.4.27004\lib\net46\Microsoft.VisualStudio.Utilities.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Validation, Version=15.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.Validation.15.3.32\lib\net45\Microsoft.VisualStudio.Validation.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="stdole, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="Xeora.Web.RegularExpression">
+      <HintPath>..\..\Xeora.RegularExpression\Strong-Named\Xeora.Web.RegularExpression.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="IDE\Editor\Completion\SourceBuilder\IconResource.resx">
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>IconResource.Designer.vb</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IDE\Editor\Completion\SourceBuilder\Template.resx">
+      <DependentUpon>Template.vb</DependentUpon>
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Template.Designer.vb</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\Creators\TranslationSettings.resx">
+      <DependentUpon>TranslationSettings.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\Creators\LanguageSettings.resx">
+      <DependentUpon>LanguageSettings.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\Creators\Translation.resx">
+      <DependentUpon>Translation.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\Creators\Executable.resx">
+      <DependentUpon>Executable.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\Creators\Control.resx">
+      <DependentUpon>Control.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\Creators\ControlAttributes.resx">
+      <DependentUpon>ControlAttributes.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\Creators\ControlOptions\Textbox.resx">
+      <DependentUpon>Textbox.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\Creators\ControlOptions\RadioButton.resx">
+      <DependentUpon>RadioButton.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\Creators\ControlOptions\Password.resx">
+      <DependentUpon>Password.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\Creators\ControlOptions\LinkButton.resx">
+      <DependentUpon>LinkButton.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\Creators\ControlOptions\ImageButton.resx">
+      <DependentUpon>ImageButton.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\Creators\ControlOptions\Checkbox.resx">
+      <DependentUpon>Checkbox.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\Creators\ControlOptions\Button.resx">
+      <DependentUpon>Button.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\Creators\ControlOptions\TextArea.resx">
+      <DependentUpon>TextArea.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\Creators\IntelliListbox.resx">
+      <DependentUpon>IntelliListbox.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\DownloadProgress.resx">
+      <DependentUpon>DownloadProgress.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\PrepareProject\ProjectList.resx">
+      <DependentUpon>ProjectList.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\PrepareProject\ProjectSettings.resx">
+      <DependentUpon>ProjectSettings.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="VSPackage.resx">
+      <MergeWithCTO>true</MergeWithCTO>
+      <ManifestResourceName>VSPackage</ManifestResourceName>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Xeora.Compiler.Interface\Xeora.Compiler.Interface.vbproj">
+      <Project>{f8714812-aae4-4830-8361-b8dec9a6bf4c}</Project>
+      <Name>Xeora.Compiler.Interface</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Xeora.Executable\Xeora.Executable.csproj">
+      <Project>{56224577-c691-44ba-8984-4f7325e3966c}</Project>
+      <Name>Xeora.Executable</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="System" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{94E38DFF-614B-4CBD-B67C-F211BB35CE8B}" />
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="EnvDTE">
+      <Guid>{80CC9F66-E7D8-4DDD-85B6-D9E6CD0E93E2}</Guid>
+      <VersionMajor>8</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="EnvDTE100">
+      <Guid>{26AD1324-4B7C-44BC-84F8-B86AED45729F}</Guid>
+      <VersionMajor>10</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="EnvDTE80">
+      <Guid>{1A31287A-4D7D-413E-8E32-3B374931BD89}</Guid>
+      <VersionMajor>8</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="EnvDTE90">
+      <Guid>{2CE2370E-D744-4936-A090-3FFFE667B0E1}</Guid>
+      <VersionMajor>9</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="stdole1">
+      <Guid>{00020430-0000-0000-C000-000000000046}</Guid>
+      <VersionMajor>2</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="VSLangProj">
+      <Guid>{49A1950E-3E35-4595-8CB9-920C64C44D67}</Guid>
+      <VersionMajor>7</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Microsoft.VSSDK.BuildTools.15.5.100\build\Microsoft.VSSDK.BuildTools.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.VSSDK.BuildTools.15.5.100\build\Microsoft.VSSDK.BuildTools.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.VSSDK.BuildTools.15.5.100\build\Microsoft.VSSDK.BuildTools.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.VSSDK.BuildTools.15.5.100\build\Microsoft.VSSDK.BuildTools.targets'))" />
+  </Target>
+  <Import Project="..\packages\Microsoft.VSSDK.BuildTools.15.5.100\build\Microsoft.VSSDK.BuildTools.targets" Condition="Exists('..\packages\Microsoft.VSSDK.BuildTools.15.5.100\build\Microsoft.VSSDK.BuildTools.targets')" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
