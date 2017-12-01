@@ -56,7 +56,7 @@ ControlTags:
 				$##FirstLoopSQLField1$ << if you want to use first loop SQL Field1 value, you should put one more # to access the parent's variable
 				$#SecondLoopSQLField1$			
 
-				if we have a control already on our ControlMaps.xml with some sql fields variables set for only comes from Loop 1 like;
+				if we have a control already on our Controls.xml with some sql fields variables set for only comes from Loop 1 like;
 					<Bind>SomePluginDll?SomeClass.SomeFunction,#FirstLoopSQLField1|#FirstLoopSQLField2</Bind>
 				it will not be runnable inside of the LoopControl2 because FirstLoopSQLField1 and FirstLoopSQLField2 do not exists
 				in LoopControl 2 but you want to use this control in both loop controls
