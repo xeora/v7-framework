@@ -1,6 +1,3 @@
-Security Settings in the Registry:
-HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Eventlog
-HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Eventlog\Security
 Give proper write access to the application pool user.
 
 SpecialTags:
