@@ -3,6 +3,9 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
+using Xeora.Web.Configuration;
 
 namespace Xeora.Web.Service
 {
@@ -16,51 +19,68 @@ namespace Xeora.Web.Service
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(this.OnUnhandledExceptions);
             // !---
 
-            Configuration.ConfigurationManager.Initialize(Directory.GetCurrentDirectory());
-
-            IPEndPoint serviceIPEndPoint =
-                new IPEndPoint(
-                    Configuration.ConfigurationManager.Current.Configuration.Service.Address,
-                    Configuration.ConfigurationManager.Current.Configuration.Service.Port
-                );
-
-            this._tcpListener = new TcpListener(serviceIPEndPoint);
+            Console.CancelKeyPress += new ConsoleCancelEventHandler(this.OnCancelKeyPressed);
         }
 
-        public void Start()
+        public int Start()
         {
             this.PrintLogo();
 
             try
             {
+                ConfigurationManager.Initialize(Directory.GetCurrentDirectory());
+
+                IPEndPoint serviceIPEndPoint =
+                    new IPEndPoint(
+                        ConfigurationManager.Current.Configuration.Service.Address,
+                        ConfigurationManager.Current.Configuration.Service.Port
+                    );
+
+                this._tcpListener = new TcpListener(serviceIPEndPoint);
                 this._tcpListener.Start(100);
 
-                IPEndPoint serviceIPEndPoint = (IPEndPoint)this._tcpListener.LocalEndpoint;
                 Basics.Console.Push("XeoraEngine is started at", serviceIPEndPoint.ToString(), false);
             }
             catch (System.Exception ex)
             {
-                Basics.Console.Push("XeoraEngine is FAILED!", ex.Message, false);
+                Basics.Console.Push("XeoraEngine is FAILED!", ex.Message, false, true);
 
-                Environment.Exit(1);
+                return 1;
             }
 
+            Task connectionHandler =
+                this.HandleConnections();
+            connectionHandler.Wait();
+
+            return 0;
+        }
+
+        private async Task HandleConnections()
+        {
             while (true)
             {
                 TcpClient remoteConnection = null;
                 try
                 {
                     remoteConnection =
-                        this._tcpListener.AcceptTcpClient();
+                        await this._tcpListener.AcceptTcpClientAsync();
 
                     IPEndPoint remoteIPEndPoint = (IPEndPoint)remoteConnection.Client.RemoteEndPoint;
                     Basics.Console.Push("Connection is accepted from", remoteIPEndPoint.ToString(), true);
+                }
+                catch (InvalidOperationException)
+                {
+                    return;
+                }
+                catch (SocketException)
+                {
+                    continue;
                 }
                 catch (System.Exception ex)
                 {
                     Basics.Console.Push("Connection isn't established", ex.Message, false);
 
-                    continue; 
+                    continue;
                 }
 
                 HttpConnection httpConnection =
@@ -87,7 +107,6 @@ namespace Xeora.Web.Service
         internal static string GetVersionText()
         {
             Version vI = Assembly.GetExecutingAssembly().GetName().Version;
-
             return string.Format("{0}.{1}.{2}", vI.Major, vI.Minor, vI.Build);
         }
 
@@ -95,6 +114,8 @@ namespace Xeora.Web.Service
         {
             if (args != null && args.ExceptionObject != null)
             {
+                Console.WriteLine();
+                Console.WriteLine();
                 Console.WriteLine("----------- !!! --- Unhandled Exception --- !!! ------------");
                 Console.WriteLine("------------------------------------------------------------");
                 if (args.ExceptionObject is System.Exception)
@@ -102,9 +123,25 @@ namespace Xeora.Web.Service
                 else
                     Console.WriteLine(args.ExceptionObject.ToString());
                 Console.WriteLine("------------------------------------------------------------");
+                Console.WriteLine();
+                Console.WriteLine();
             }
 
             Environment.Exit(500);
+        }
+
+        private bool _Terminating = false;
+        private void OnCancelKeyPressed(object source, ConsoleCancelEventArgs args)
+        {
+            if (this._Terminating)
+                return;
+            this._Terminating = true;
+
+            Basics.Console.Push("Terminating XeoraEngine...", string.Empty, false);
+
+            this._tcpListener.Stop();
+
+            args.Cancel = true;
         }
     }
 }
