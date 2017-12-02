@@ -18,17 +18,17 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
@@ -50,10 +50,15 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.4.0" />
     <PackageReference Include="System.CodeDom" Version="4.4.0" />
+    <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Xeora.Web.Basics\Xeora.Web.Basics.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Application %28copy%29.cs" />
+    <Compile Remove="AssemblyLoader.cs" />
+  </ItemGroup>
 </Project>
