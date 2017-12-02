@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -18,8 +17,6 @@ namespace Xeora.Web.Manager
             this._ExecutableName = executableName;
 
             this._AssemblyPaths = new List<string>();
-
-            AppDomain.CurrentDomain.AssemblyResolve += this.AssemblyResolve;
         }
 
         public void AddSearchPath(string assemblyPath)
@@ -31,33 +28,10 @@ namespace Xeora.Web.Manager
         public object Invoke(string httpMethodType, string[] classNames, string functionName, object[] functionParams, bool instanceExecute, string executerType) =>
             this._LibraryExecuter.Invoke(httpMethodType, classNames, functionName, functionParams, instanceExecute, executerType);
 
-        private Assembly AssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            string assemblyShortName =
-                args.Name.Substring(0, args.Name.IndexOf(','));
-
-            foreach (string path in this._AssemblyPaths)
-            {
-                string assemblyLocation =
-                    Path.Combine(path, string.Format("{0}.dll", assemblyShortName));
-
-                if (File.Exists(assemblyLocation))
-                    return Assembly.LoadFile(assemblyLocation);
-            }
-
-            foreach (Assembly domainAssembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                if (string.Compare(args.Name, domainAssembly.FullName) == 0)
-                    return domainAssembly;
-            }
-
-            return null;
-        }
-
         // Load must use the same appdomain because AppDomain logic is not supported in .NET Standard anymore
         private bool Load()
         {
-            this._LibraryExecuter = new LibraryExecuter(Loader.Current.Path, this._ExecutableName);
+            this._LibraryExecuter = new LibraryExecuter(Loader.Current.Path, this._ExecutableName, this._AssemblyPaths.ToArray());
             return !this._LibraryExecuter.MissingFileException;
         }
 

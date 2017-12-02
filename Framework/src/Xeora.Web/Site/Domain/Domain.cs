@@ -103,6 +103,8 @@ namespace Xeora.Web.Site
         public void ClearCache()
         {
             AssemblyCore.ClearCache();
+
+            this._Renderer.ClearCache();
             PartialCache.ClearCache(this.IDAccessTree);
 
             Deployment.InstanceFactory.Current.Reset();
@@ -617,6 +619,9 @@ namespace Xeora.Web.Site
 
             private void OnInstanceRequest(ref Basics.IDomain instance) =>
                 instance = this._Instance;
+
+            public void ClearCache() =>
+                Renderer._ControlsCache.Clear();
         }
     }
 }

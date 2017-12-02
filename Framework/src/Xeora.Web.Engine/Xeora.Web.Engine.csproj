@@ -21,30 +21,32 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebugType>none</DebugType>
+    <OutputPath>..\..\build\Core\x64</OutputPath>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <DebugType>none</DebugType>
+    <OutputPath>..\..\build\Core\Any</OutputPath>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\..\build\Core\Any\</OutputPath>
+    <OutputPath>bin\Debug\netcoreapp2.0</OutputPath>
     <AppendTargetFrameworkToOutputFolder>false</AppendTargetFrameworkToOutputFolder>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\..\build\Core\x64\</OutputPath>
+    <OutputPath>bin\Debug\netcoreapp2.0</OutputPath>
     <AppendTargetFrameworkToOutputFolder>false</AppendTargetFrameworkToOutputFolder>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\..\build\Core\Any\</OutputPath>
     <AppendTargetFrameworkToOutputFolder>false</AppendTargetFrameworkToOutputFolder>
