@@ -8,9 +8,9 @@ namespace Xeora.Web.Engine.Standard
         static void Main(string[] args)
         {
             WebServer webServer = new WebServer();
-            webServer.Start();
+            int exitCode = webServer.Start();
 
-            Environment.Exit(0);
+            Environment.Exit(exitCode);
         }
     }
 }
