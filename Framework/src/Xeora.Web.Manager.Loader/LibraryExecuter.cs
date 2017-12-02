@@ -3,12 +3,14 @@ using System.IO;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Reflection;
+using System.Runtime.Loader;
 
 namespace Xeora.Web.Manager
 {
-    internal class LibraryExecuter : IDisposable
+    internal class LibraryExecuter : AssemblyLoadContext, IDisposable
     {
         private string _ExecutableName;
+        private string[] _AssemblySearchPaths;
 
         private string _PostBackPath;
         private Assembly _AssemblyDll;
@@ -17,14 +19,19 @@ namespace Xeora.Web.Manager
         private ConcurrentDictionary<Type, object> _ExecutableInstances;
         private ConcurrentDictionary<string, MethodInfo[]> _AssemblyMethods;
 
-        public LibraryExecuter(string executablesPath, string executableName)
+        public LibraryExecuter(string executablesPath, string executableName, string[] assemblySearchPaths)
         {
             if (string.IsNullOrEmpty(executablesPath))
                 throw new ArgumentNullException(nameof(executablesPath));
             if (string.IsNullOrEmpty(executableName))
                 throw new ArgumentNullException(nameof(executableName));
 
+            this.Resolving += this.ResolveAssemblyAgain;
+
             this._ExecutableName = executableName;
+            this._AssemblySearchPaths = assemblySearchPaths;
+            if (this._AssemblySearchPaths == null)
+                this._AssemblySearchPaths = new string[] {};
             this._PostBackPath =
                 Path.Combine(executablesPath, string.Format("{0}.dll", this._ExecutableName));
 
@@ -35,11 +42,60 @@ namespace Xeora.Web.Manager
             this.Load();
         }
 
+        private string ResolveAssemblyLocation(string assemblyName)
+        {
+            string assemblyShortName =
+                assemblyName;
+
+            int comaIndex = assemblyShortName.IndexOf(',');
+            if (comaIndex > -1)
+                assemblyShortName = assemblyShortName.Substring(0, comaIndex);
+            
+            foreach (string path in this._AssemblySearchPaths)
+            {
+                string assemblyLocation =
+                    Path.Combine(path, string.Format("{0}.dll", assemblyShortName));
+
+                if (File.Exists(assemblyLocation))
+                    return assemblyLocation;
+            }
+
+            return string.Empty;
+        }
+
+        private Assembly ResolveAssemblyAgain(AssemblyLoadContext sender, AssemblyName assemblyName)
+        {
+            string assemblyLocation = 
+                this.ResolveAssemblyLocation(assemblyName.Name);
+
+            if (!string.IsNullOrEmpty(assemblyLocation))
+                return sender.LoadFromAssemblyPath(assemblyLocation);
+
+            return null;
+        }
+
+        protected override Assembly Load(AssemblyName assemblyName)
+        {
+            string assemblyLocation = 
+                this.ResolveAssemblyLocation(assemblyName.Name);
+
+            if (!string.IsNullOrEmpty(assemblyLocation))
+                return Assembly.LoadFrom(assemblyLocation);
+
+            foreach (Assembly domainAssembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (string.Compare(assemblyName.FullName, domainAssembly.FullName) == 0)
+                    return domainAssembly;
+            }
+
+            return null;
+        }
+
         private void Load()
         {
             try
             {
-                this._AssemblyDll = Assembly.LoadFile(this._PostBackPath);
+                this._AssemblyDll = this.LoadFromAssemblyPath(this._PostBackPath);
             }
             catch (FileNotFoundException)
             {

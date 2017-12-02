@@ -50,7 +50,7 @@ namespace Xeora.Web.Basics
             }
         }
 
-        public static void Push(string header, string message, bool applyRules)
+        public static void Push(string header, string message, bool applyRules, bool immediate = false)
         {
             if (applyRules && !Configurations.Xeora.Service.Print)
                 return;
@@ -63,8 +63,15 @@ namespace Xeora.Web.Basics
 
             header = header.PadRight(30, ' ');
 
-            Console.Instance.Queue(
-                string.Format("{0} {1} {2}", DateTime.Now.ToString(), header, message));
+            string consoleMessage = string.Format("{0} {1} {2}", DateTime.Now.ToString(), header, message);
+
+            if (immediate)
+            {
+                System.Console.WriteLine(consoleMessage);
+                return;
+            }
+
+            Console.Instance.Queue(consoleMessage);
         }
     }
 }
