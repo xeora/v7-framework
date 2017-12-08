@@ -143,8 +143,9 @@ namespace Xeora.Web.Handler
                 this._DomainControl.Domain.ContentsVirtualPath;
             string requestedFileVirtualPath =
                 this.Context.Request.Header.URL.RelativePath;
+            int dcpIndex = requestedFileVirtualPath.IndexOf(domainContentsPath);
 
-            if (requestedFileVirtualPath.IndexOf(domainContentsPath) == -1)
+            if (dcpIndex == -1)
             {
                 // This is also not a request for default DomainContents
 
@@ -152,8 +153,9 @@ namespace Xeora.Web.Handler
                 string requestedDomainWebPath = requestedFileVirtualPath;
                 string browserImplementation =
                     Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation;
-                requestedDomainWebPath =
-                    requestedDomainWebPath.Remove(requestedDomainWebPath.IndexOf(browserImplementation), browserImplementation.Length);
+                int impIndex = requestedDomainWebPath.IndexOf(browserImplementation);
+                if (impIndex > -1)
+                    requestedDomainWebPath = requestedDomainWebPath.Remove(impIndex, browserImplementation.Length);
 
                 if (requestedDomainWebPath.IndexOf(this.Context.HashCode) == 0)
                     requestedDomainWebPath = requestedDomainWebPath.Substring(this.Context.HashCode.Length + 1);
@@ -183,12 +185,12 @@ namespace Xeora.Web.Handler
             }
 
             // Provide Requested File Stream
-            if (requestedFileVirtualPath.IndexOf(domainContentsPath) > -1)
+            if (dcpIndex > -1)
             {
                 // This is a well known Domain Content file
                 // Clean Domain Contents pointer
                 requestedFileVirtualPath =
-                    requestedFileVirtualPath.Remove(0, requestedFileVirtualPath.IndexOf(domainContentsPath) + domainContentsPath.Length + 1);
+                    requestedFileVirtualPath.Remove(0, dcpIndex + domainContentsPath.Length + 1);
 
                 this.PostDomainContentFileToClient(requestedFileVirtualPath);
 
