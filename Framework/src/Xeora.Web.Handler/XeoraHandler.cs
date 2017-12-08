@@ -273,19 +273,11 @@ namespace Xeora.Web.Handler
                     Manager.AssemblyCore.InvokeBind<object>(bindInfo, Manager.ExecuterTypes.Undefined);
 
                 if (bindInvokeResult.Exception != null)
-                {
-                    messageResult =
-                        new Message(bindInvokeResult.Exception.ToString());
-                }
+                    messageResult = new Message(bindInvokeResult.Exception.ToString());
                 else if (bindInvokeResult.Result != null && bindInvokeResult.Result is Basics.ControlResult.Message)
-                {
                     messageResult = (Message)bindInvokeResult.Result;
-                }
                 else if (bindInvokeResult.Result != null && bindInvokeResult.Result is Basics.ControlResult.RedirectOrder)
-                {
-                    this.Context.AddOrUpdate("RedirectLocation",
-                        ((RedirectOrder)bindInvokeResult.Result).Location);
-                }
+                    this.Context.AddOrUpdate("RedirectLocation", ((RedirectOrder)bindInvokeResult.Result).Location);
                 else
                     methodResult = Basics.Execution.GetPrimitiveValue(bindInvokeResult.Result);
             }
