@@ -1,0 +1,53 @@
+﻿Request Session (New or Exists)
+
+Request:
+-> ACQ[SESSIONTIMEOUT][REMOTEIP]\0
+-> ACQ[SESSIONTIMEOUT][REMOTEIP][SESSIONID]\0
+
+-> ACQ\SHORT\INT\0
+-> ACQ\SHORT\INT\BYTE\CHARS{BYTEVALUELENGTH}\0
+
+Response:
+<- 1[SESSIONID][EXPIREDATE]\0
+<- 2\0 // Only one possible reason can be that is SessionCreationException
+
+<- \BYTE\BYTE\CHARS{BYTEVALUELENGTH}\LONG\0
+<- \BYTE\0
+
+Request Session Value
+
+Request:
+-> GET[KEY]\0
+
+-> GET\BYTE\CHARS{BYTEVALUELENGTH}\0
+
+Response:
+<- [KEY][VALUE]\0
+
+<- \BYTE\CHARS{BYTEVALUELENGTH}\INTEGER\BYTES{INTEGERVALUELENGTH}\0
+
+Set Session Value 
+
+Request:
+-> SET[KEY][VALUE]\0
+
+-> SET\BYTE\CHARS{BYTEVALUELENGTH}\INTEGER\BYTES{INTEGERVALUELENGTH}\0
+
+Response:
+<- 1\0 // Currently any other possible response.
+
+<- \BYTE\0
+
+Get All Registered Keys
+
+Request:
+-> KYS\0
+
+Response:
+
+<- [KEY][KEY][KEY]...\0
+
+<- \BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}...\0
+
+Close Connection
+-> \0
