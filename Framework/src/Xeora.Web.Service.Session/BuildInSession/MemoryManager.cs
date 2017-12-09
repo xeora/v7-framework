@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Net;
 using System.Timers;
 
 namespace Xeora.Web.Service.Session
 {
-    public class SessionManager
+    public class MemoryManager : IHttpSessionManager
     {
         private int _SessionTimeout = 20;
         private ConcurrentDictionary<string, Basics.Session.IHttpSession> _HttpSessionTable;
 
         private Timer _PruneTimer;
 
-        public SessionManager()
+        public MemoryManager(short sessionTimeout)
         {
-            this._SessionTimeout = Basics.Configurations.Xeora.Session.Timeout;
+            this._SessionTimeout = sessionTimeout;
             this._HttpSessionTable = new ConcurrentDictionary<string, Basics.Session.IHttpSession>();
 
             this._PruneTimer = new Timer(this._SessionTimeout * 1000);
@@ -21,22 +22,10 @@ namespace Xeora.Web.Service.Session
             this._PruneTimer.Start();
         }
 
-        private static SessionManager _Current = null;
-        public static SessionManager Current
-        {
-            get
-            {
-                if (SessionManager._Current == null)
-                    SessionManager._Current = new SessionManager();
-
-                return SessionManager._Current;
-            }
-        }
-
         private string GetSessionKey(string remoteIP, string sessionID) =>
             string.Format("{0}-{1}", remoteIP, sessionID);
 
-        public void Acquire(string remoteIP, string sessionID, out Basics.Session.IHttpSession sessionObject)
+        public void Acquire(IPAddress remoteIP, string sessionID, out Basics.Session.IHttpSession sessionObject)
         {
             if (this.Get(remoteIP, sessionID, out sessionObject))
                 return;
@@ -44,14 +33,17 @@ namespace Xeora.Web.Service.Session
             this.Create(remoteIP, out sessionObject);
         }
 
-        private bool Get(string remoteIP, string sessionID, out Basics.Session.IHttpSession sessionObject)
+        public void Complete(ref Basics.Session.IHttpSession sessionObject)
+        { }
+
+        private bool Get(IPAddress remoteIP, string sessionID, out Basics.Session.IHttpSession sessionObject)
         {
             sessionObject = null;
 
             if (string.IsNullOrEmpty(sessionID))
                 return false;
 
-            string sessionKey = this.GetSessionKey(remoteIP, sessionID);
+            string sessionKey = this.GetSessionKey(remoteIP.ToString(), sessionID);
 
             if (!this._HttpSessionTable.TryGetValue(sessionKey, out sessionObject))
                 return false;
@@ -68,13 +60,13 @@ namespace Xeora.Web.Service.Session
             return true;
         }
 
-        private void Create(string remoteIP, out Basics.Session.IHttpSession sessionObject)
+        private void Create(IPAddress remoteIP, out Basics.Session.IHttpSession sessionObject)
         {
             string sessionID = Guid.NewGuid().ToString();
             sessionID = sessionID.Replace("-", string.Empty);
             sessionID = sessionID.ToLowerInvariant();
 
-            string sessionKey = this.GetSessionKey(remoteIP, sessionID);
+            string sessionKey = this.GetSessionKey(remoteIP.ToString(), sessionID);
 
             sessionObject = new MemorySession(sessionID, this._SessionTimeout);
 

@@ -50,4 +50,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Xeora.Web.Basics\Xeora.Web.Basics.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ExternalSession\" />
+  </ItemGroup>
 </Project>

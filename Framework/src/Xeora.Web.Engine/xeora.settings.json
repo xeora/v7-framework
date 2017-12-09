@@ -4,6 +4,9 @@
     "port": 3381,
     "print": false
   },
+  "session": {
+    "serviceType": "External"
+  },
   "application": {
     "main": {
       "defaultDomain": [ "Standart" ],

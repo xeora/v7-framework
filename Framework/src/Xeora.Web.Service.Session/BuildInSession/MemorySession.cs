@@ -49,5 +49,8 @@ namespace Xeora.Web.Service.Session
 
         public void Extend() => 
             this.Expires = DateTime.Now.AddMinutes(this._ExpiresInMinute);
+
+        public void Complete()
+        { }
     }
 }
