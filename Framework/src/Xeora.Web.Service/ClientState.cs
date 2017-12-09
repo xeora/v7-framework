@@ -66,7 +66,7 @@ namespace Xeora.Web.Service
                             {
                                 Basics.Console.Push(
                                     "analytic - xeora handler",
-                                    string.Format("{0}ms", DateTime.Now.Subtract(xeoraHandlerProcessBegins).Milliseconds), false);
+                                    string.Format("{0}ms", DateTime.Now.Subtract(xeoraHandlerProcessBegins).TotalMilliseconds), false);
                             }
 
                             DateTime responseFlushBegins = DateTime.Now;
@@ -84,7 +84,7 @@ namespace Xeora.Web.Service
                             {
                                 Basics.Console.Push(
                                     "analytic - response flush",
-                                    string.Format("{0}ms", DateTime.Now.Subtract(responseFlushBegins).Milliseconds), false);
+                                    string.Format("{0}ms", DateTime.Now.Subtract(responseFlushBegins).TotalMilliseconds), false);
                             }
 
                             break;
@@ -101,7 +101,7 @@ namespace Xeora.Web.Service
                 {
                     Basics.Console.Push(
                         "analytic - whole process",
-                        string.Format("{0}ms", DateTime.Now.Subtract(wholeProcessBegins).Milliseconds), false);
+                        string.Format("{0}ms", DateTime.Now.Subtract(wholeProcessBegins).TotalMilliseconds), false);
                 }
             }
             catch (System.Exception ex)
