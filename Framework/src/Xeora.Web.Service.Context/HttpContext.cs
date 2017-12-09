@@ -26,7 +26,7 @@ namespace Xeora.Web.Service.Context
             }
 
             SessionManager.Current.Acquire(
-                this.Request.RemoteAddr.ToString(),
+                this.Request.RemoteAddr,
                 sessionID,
                 out this._Session);
 
@@ -36,9 +36,9 @@ namespace Xeora.Web.Service.Context
                     if (string.Compare(sessionID, this._Session.SessionID) == 0)
                         return null;
 
-                    string contentType = 
+                    string contentType =
                         this.Response.Header["Content-Type"];
-                    if (string.IsNullOrEmpty(contentType) || 
+                    if (string.IsNullOrEmpty(contentType) ||
                         contentType.IndexOf("text/html") == -1)
                         return null;
 
@@ -76,10 +76,9 @@ namespace Xeora.Web.Service.Context
                 string RequestFilePath =
                     this.Request.Header.URL.RelativePath;
 
-                RequestFilePath = RequestFilePath.Remove(0,
-                    RequestFilePath.IndexOf(Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation) +
-                    Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation.Length
-                );
+                int biIndex = RequestFilePath.IndexOf(Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation);
+                if (biIndex > -1)
+                    RequestFilePath = RequestFilePath.Remove(0, biIndex + Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation.Length);
 
                 System.Text.RegularExpressions.Match mR =
                     System.Text.RegularExpressions.Regex.Match(RequestFilePath, "\\d+/");
@@ -98,8 +97,10 @@ namespace Xeora.Web.Service.Context
 
         public void Dispose()
         {
-            ((HttpRequest)this.Request).Dispose();
+            SessionManager.Current.Complete(ref this._Session);
+
             ((HttpResponse)this.Response).Dispose();
+            ((HttpRequest)this.Request).Dispose();
         }
     }
 }
