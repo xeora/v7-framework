@@ -55,7 +55,7 @@ namespace Xeora.Web.Controller
                             analyticOutput = string.Format("{0} - {1}", analyticOutput, ((INamable)controller).ControlID);
                         Basics.Console.Push(
                             string.Format("analytic - {0}", controller.GetType().Name), 
-                            string.Format("{0}ms {{{1}}}", DateTime.Now.Subtract(renderBegins).Milliseconds, analyticOutput), false);
+                            string.Format("{0}ms {{{1}}}", DateTime.Now.Subtract(renderBegins).TotalMilliseconds, analyticOutput), false);
                     }
                 }
                 catch (System.Exception ex)
