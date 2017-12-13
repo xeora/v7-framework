@@ -27,17 +27,16 @@ namespace Xeora.Web.External.Service.Session
 
         private void ReadSocket()
         {
+            byte[] head = new byte[8];
             byte[] buffer = new byte[1024];
             int bR = 0;
 
-            Stream contentStream = null;
             try
             {
-                this.MakeContentStream(ref contentStream);
-
                 do
                 {
-                    bR = this._RemoteStream.Read(buffer, 0, buffer.Length);
+                    // Read Head
+                    bR += this._RemoteStream.Read(head, bR, head.Length - bR);
                     if (bR == 0)
                     {
                         // give time to fill buffer
@@ -46,19 +45,15 @@ namespace Xeora.Web.External.Service.Session
                         continue;
                     }
 
-                    if (bR == 1 && contentStream.Length == 0 && buffer[0] == 0)
+                    if (bR == 1 && buffer[0] == 0)
                         return;
 
-                    contentStream.Seek(0, SeekOrigin.End);
-                    contentStream.Write(buffer, 0, bR);
+                    if (bR < 8)
+                        continue;
 
-                    if (buffer[bR - 1] == 0)
-                    {
-                        // Process Message
-                        this._MessageHandler.Process(ref contentStream);
+                    this.Consume(head);
 
-                        this.MakeContentStream(ref contentStream);
-                    }
+                    bR = 0;
                 } while (true);
             }
             catch (System.Exception ex)
@@ -69,25 +64,46 @@ namespace Xeora.Web.External.Service.Session
 
                 Basics.Console.Push("SYSTEM ERROR", ex.Message, false);
             }
+        }
+
+        private void Consume(byte[] contentHead)
+        {
+            // 8 bytes first 5 bytes are requestID, remain 3 bytes are request length. Request length can be max 15Mb
+            long head = BitConverter.ToInt64(contentHead, 0);
+
+            long requestID = head >> 24;
+            int contentSize = (int)(head & 0xFFFFFF);
+
+            byte[] buffer = new byte[1024];
+            int bR = 0;
+
+            Stream contentStream = null;
+            try
+            {
+                contentStream = new MemoryStream();
+                do
+                {
+                    int readLength = buffer.Length;
+                    if (contentSize < readLength)
+                        readLength = contentSize;
+            
+                    bR = this._RemoteStream.Read(buffer, 0, readLength);
+
+                    contentStream.Write(buffer, 0, bR);
+
+                    contentSize -= bR;
+                } while (contentSize > 0);
+
+                byte[] messageBlock = ((MemoryStream)contentStream).ToArray();
+                this._MessageHandler.ProcessAsync(requestID, messageBlock);
+            }
             finally
             {
-                this.KillContentStream(ref contentStream);
-            }
-        }
-
-        private void MakeContentStream(ref Stream contentStream)
-        {
-            this.KillContentStream(ref contentStream);
-
-            contentStream = new MemoryStream();
-        }
-
-        private void KillContentStream(ref Stream contentStream)
-        {
-            if (contentStream != null)
-            {
-                contentStream.Close();
-                GC.SuppressFinalize(contentStream);
+                if (contentStream != null)
+                {
+                    contentStream.Close();
+                    GC.SuppressFinalize(contentStream);
+                }
             }
         }
     }

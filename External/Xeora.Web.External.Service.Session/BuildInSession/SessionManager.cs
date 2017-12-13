@@ -38,12 +38,14 @@ namespace Xeora.Web.External.Service.Session
 
         public void Acquire(int remoteIP, string sessionID, short sessionTimeout, out Basics.Session.IHttpSession sessionObject)
         {
+            if (!this.Obtain(remoteIP, sessionID, out sessionObject))
+                this.Create(remoteIP, sessionTimeout, out sessionObject);
+        }
+
+        public bool Obtain(int remoteIP, string sessionID, out Basics.Session.IHttpSession sessionObject)
+        {
             string sessionKey = this.GetSessionKey(remoteIP, sessionID);
-
-            if (this.Get(sessionKey, out sessionObject))
-                return;
-
-            this.Create(remoteIP, sessionTimeout, out sessionObject);
+            return this.Get(sessionKey, out sessionObject);
         }
 
         private bool Get(string sessionKey, out Basics.Session.IHttpSession sessionObject)
