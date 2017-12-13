@@ -35,18 +35,21 @@ namespace Xeora.Web.Configuration
             {
                 if (!this._IsVirtualRootFixed)
                 {
+                    string virtualRoot = this._VirtualRoot;
+
+                    if (string.IsNullOrEmpty(virtualRoot))
+                        virtualRoot = "/";
+
+                    virtualRoot = virtualRoot.Replace('\\', '/');
+
+                    if (virtualRoot.IndexOf('/') != 0)
+                        virtualRoot = string.Format("/{0}", virtualRoot);
+
+                    if (virtualRoot[virtualRoot.Length - 1] != '/')
+                        virtualRoot = string.Format("{0}/", virtualRoot);
+
+                    this._VirtualRoot = virtualRoot;
                     this._IsVirtualRootFixed = true;
-
-                    if (string.IsNullOrEmpty(this._VirtualRoot))
-                        this._VirtualRoot = "/";
-
-                    this._VirtualRoot = this._VirtualRoot.Replace('\\', '/');
-
-                    if (this._VirtualRoot.IndexOf('/') != 0)
-                        this._VirtualRoot = string.Format("/{0}", this._VirtualRoot);
-
-                    if (this._VirtualRoot[this._VirtualRoot.Length - 1] != '/')
-                        this._VirtualRoot = string.Format("{0}/", this._VirtualRoot);
                 }
 
                 return this._VirtualRoot;
@@ -161,18 +164,12 @@ namespace Xeora.Web.Configuration
         [JsonProperty(PropertyName = "loggingPath")]
         private string _LoggingPath { get; set; }
 
-        private bool _IsLoggingPathFixed = false;
         public string LoggingPath
         {
             get
             {
-                if (!this._IsLoggingPathFixed)
-                {
-                    this._IsLoggingPathFixed = true;
-
-                    if (string.IsNullOrEmpty(this._LoggingPath))
-                        this._LoggingPath = Path.Combine(this.PhysicalRoot, "XeoraLogs");
-                }
+                if (string.IsNullOrEmpty(this._LoggingPath))
+                    return Path.Combine(this.PhysicalRoot, "XeoraLogs");
 
                 return this._LoggingPath;
             }
