@@ -97,8 +97,6 @@ namespace Xeora.Web.Service.Context
 
         public void Dispose()
         {
-            SessionManager.Current.Complete(ref this._Session);
-
             ((HttpResponse)this.Response).Dispose();
             ((HttpRequest)this.Request).Dispose();
         }

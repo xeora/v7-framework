@@ -56,8 +56,6 @@ namespace Xeora.Web.External.Service.Session
                 {
                     remoteConnection =
                         await this._tcpListener.AcceptTcpClientAsync();
-
-                    IPEndPoint remoteIPEndPoint = (IPEndPoint)remoteConnection.Client.RemoteEndPoint;
                 }
                 catch (InvalidOperationException)
                 {

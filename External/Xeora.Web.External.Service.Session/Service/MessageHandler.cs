@@ -1,57 +1,108 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Xeora.Web.External.Service.Session
 {
     public class MessageHandler
     {
         private Stream _ResponseStream;
-        private Basics.Session.IHttpSession _HttpSession;
 
-        public MessageHandler(ref Stream responseStream)
-        {
+        public MessageHandler(ref Stream responseStream) =>
             this._ResponseStream = responseStream;
-            this._HttpSession = null;
-        }
 
-        public void Process(ref Stream requestStream)
+        public async void ProcessAsync(long requestID, byte[] requestBytes) =>
+            await Task.Run(() => this.Process(requestID, requestBytes));
+
+        private void Process(long requestID, byte[] requestBytes)
         {
-            requestStream.Seek(0, SeekOrigin.Begin);
+            Stream responseStream = null;
+            Stream requestStream = null;
 
-            BinaryReader binaryReader =
-                 new BinaryReader(requestStream);
-
-            char[] command = binaryReader.ReadChars(3);
-
-            switch (new string(command))
+            try
             {
-                case "ACQ":
-                    this.HandleACQ(ref binaryReader);
+                responseStream = new MemoryStream();
+                requestStream = new MemoryStream(requestBytes, 0, requestBytes.Length, false);
+                requestStream.Seek(0, SeekOrigin.Begin);
 
-                    break;
-                case "GET":
-                    this.HandleGET(ref binaryReader);
+                BinaryReader binaryReader =
+                     new BinaryReader(requestStream);
 
-                    break;
-                case "SET":
-                    this.HandleSET(ref binaryReader);
+                char[] command = binaryReader.ReadChars(3);
 
-                    break;
-                case "KYS":
-                    this.HandleKYS(ref binaryReader);
+                switch (new string(command))
+                {
+                    case "ACQ":
+                        this.HandleACQ(requestID, ref binaryReader, ref responseStream);
 
-                    break;
+                        break;
+                    case "GET":
+                        this.HandleGET(requestID, ref binaryReader, ref responseStream);
+
+                        break;
+                    case "SET":
+                        this.HandleSET(requestID, ref binaryReader, ref responseStream);
+
+                        break;
+                    case "KYS":
+                        this.HandleKYS(requestID, ref binaryReader, ref responseStream);
+
+                        break;
+                }
+
+                Monitor.Enter(this._ResponseStream);
+                try
+                {
+                    responseStream.Seek(0, SeekOrigin.Begin);
+                    responseStream.CopyTo(this._ResponseStream);
+                }
+                finally
+                {
+                    Monitor.Exit(this._ResponseStream);
+                }
             }
+            catch
+            {
+                // Just Handle Exception
+            }
+            finally
+            {
+                if (requestStream != null)
+                {
+                    requestStream.Close();
+                    GC.SuppressFinalize(requestStream);
+                }
 
-            // Consume Terminator
-            binaryReader.ReadByte();
+                if (responseStream != null)
+                {
+                    responseStream.Close();
+                    GC.SuppressFinalize(responseStream);
+                }
+            }
         }
 
-        private void HandleACQ(ref BinaryReader responseReader)
+        private void PutHeader(long requestID, ref Stream contentStream)
+        {
+            long contentLength = contentStream.Position;
+            contentLength -= 8; // Remove long length;
+
+            long head = requestID << 24;
+            head = head | contentLength;
+
+            byte[] headBytes = BitConverter.GetBytes(head);
+
+            contentStream.Seek(0, SeekOrigin.Begin);
+            contentStream.Write(headBytes, 0, headBytes.Length);
+
+            contentStream.Seek(0, SeekOrigin.End);
+        }
+
+        private void HandleACQ(long requestID, ref BinaryReader responseReader, ref Stream responseStream)
         {
             /*
-             * -> ACQ\SHORT\INT\0
-             * -> ACQ\SHORT\INT\BYTE\CHARS{BYTEVALUELENGTH}\0
+             * -> \LONG\ACQ\SHORT\INT
+             * -> \LONG\ACQ\SHORT\INT\BYTE\CHARS{BYTEVALUELENGTH}
              */
 
             short sessionTimeout = responseReader.ReadInt16();
@@ -62,54 +113,71 @@ namespace Xeora.Web.External.Service.Session
             if (sessionIDLength > 0)
                 sessionID = new string(responseReader.ReadChars(sessionIDLength));
 
-            BinaryWriter binaryWriter = null;
-            Stream responseStream = null;
-
             try
             {
-                SessionManager.Current.Acquire(remoteIP, sessionID, sessionTimeout, out this._HttpSession);
+                BinaryWriter binaryWriter = 
+                    new BinaryWriter(responseStream);
 
-                responseStream = new MemoryStream();
-                binaryWriter = new BinaryWriter(responseStream);
+                // Put Dummy Header
+                binaryWriter.Write((long)0);
 
-                /*
-                 * <- \BYTE\BYTE\CHARS{BYTEVALUELENGTH}\LONG\0
-                 */
+                Basics.Session.IHttpSession sessionObject;
+                try
+                {
+                    SessionManager.Current.Acquire(remoteIP, sessionID, sessionTimeout, out sessionObject);
 
-                binaryWriter.Write((byte)1);
-                binaryWriter.Write((byte)this._HttpSession.SessionID.Length);
-                binaryWriter.Write(this._HttpSession.SessionID.ToCharArray());
-                binaryWriter.Write(this._HttpSession.Expires.Ticks);
-                binaryWriter.Write((byte)0);
+                    /*
+                     * <- \LONG\BYTE\BYTE\CHARS{BYTEVALUELENGTH}\LONG
+                     */
+
+                    binaryWriter.Write((byte)1);
+                    binaryWriter.Write((byte)sessionObject.SessionID.Length);
+                    binaryWriter.Write(sessionObject.SessionID.ToCharArray());
+                    binaryWriter.Write(sessionObject.Expires.Ticks);
+                }
+                catch
+                {
+                    /*
+                     * <- \LONG\BYTE
+                     */
+
+                    binaryWriter.Write((byte)2);
+                }
+
                 binaryWriter.Flush();
 
-                responseStream.Seek(0, SeekOrigin.Begin);
-                responseStream.CopyTo(this._ResponseStream);
+                this.PutHeader(requestID, ref responseStream);
             }
             catch
             {
-                this._ResponseStream.Write(new byte[] { 2, 0 }, 0, 2);
-            }
-            finally
-            {
-                if (binaryWriter != null)
-                    binaryWriter.Close();
-
-                if (responseStream != null)
-                {
-                    responseStream.Close();
-                    GC.SuppressFinalize(responseStream);
-                }
+                return;
             }
         }
 
-        private void HandleGET(ref BinaryReader responseReader)
+        private bool GetSessionObject(ref BinaryReader responseReader, out Basics.Session.IHttpSession sessionObject)
+        {
+            sessionObject = null;
+
+            int remoteIP = responseReader.ReadInt32();
+            byte sessionIDLength = responseReader.ReadByte();
+            string sessionID = string.Empty;
+
+            if (sessionIDLength == 0)
+                return false;
+
+            sessionID = new string(responseReader.ReadChars(sessionIDLength));
+
+            return SessionManager.Current.Obtain(remoteIP, sessionID, out sessionObject);
+        }
+
+        private void HandleGET(long requestID, ref BinaryReader responseReader, ref Stream responseStream)
         {
             /*
-             * -> GET\BYTE\CHARS{BYTEVALUELENGTH}\0
+             * -> \LONG\GET\INT\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}
              */
 
-            if (this._HttpSession == null)
+            Basics.Session.IHttpSession sessionObject;
+            if (!this.GetSessionObject(ref responseReader, out sessionObject))
                 return;
 
             byte keyLength = responseReader.ReadByte();
@@ -118,19 +186,19 @@ namespace Xeora.Web.External.Service.Session
             if (string.IsNullOrEmpty(key))
                 return;
 
-            object value = this._HttpSession[key];
-
-            BinaryWriter binaryWriter = null;
-            Stream responseStream = null;
+            object value = sessionObject[key];
 
             try
             {
-                responseStream = new MemoryStream();
-                binaryWriter = new BinaryWriter(responseStream);
+                BinaryWriter binaryWriter = 
+                    new BinaryWriter(responseStream);
 
                 /*
-                 * <- \BYTE\CHARS{BYTEVALUELENGTH}\INTEGER\BYTES{INTEGERVALUELENGTH}\0
+                 * <- \LONG\BYTE\CHARS{BYTEVALUELENGTH}\INTEGER\BYTES{INTEGERVALUELENGTH}
                  */
+
+                // Put Dummy Header
+                binaryWriter.Write((long)0);
 
                 binaryWriter.Write(keyLength);
                 binaryWriter.Write(key.ToCharArray());
@@ -144,36 +212,25 @@ namespace Xeora.Web.External.Service.Session
                 }
                 else
                     binaryWriter.Write((int)0);
-                binaryWriter.Write((byte)0);
+
                 binaryWriter.Flush();
 
-                responseStream.Seek(0, SeekOrigin.Begin);
-                responseStream.CopyTo(this._ResponseStream);
+                this.PutHeader(requestID, ref responseStream);
             }
             catch
             {
                 return;
             }
-            finally
-            {
-                if (binaryWriter != null)
-                    binaryWriter.Close();
-
-                if (responseStream != null)
-                {
-                    responseStream.Close();
-                    GC.SuppressFinalize(responseStream);
-                }
-            }
         }
 
-        private void HandleSET(ref BinaryReader responseReader)
+        private void HandleSET(long requestID, ref BinaryReader responseReader, ref Stream responseStream)
         {
             /*
-             * -> SET\BYTE\CHARS{BYTEVALUELENGTH}\INTEGER\BYTES{INTEGERVALUELENGTH}\0
+             * -> \LONG\SET\INT\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}\INTEGER\BYTES{INTEGERVALUELENGTH}
              */
 
-            if (this._HttpSession == null)
+            Basics.Session.IHttpSession sessionObject;
+            if (!this.GetSessionObject(ref responseReader, out sessionObject))
                 return;
 
             byte keyLength = responseReader.ReadByte();
@@ -185,57 +242,71 @@ namespace Xeora.Web.External.Service.Session
             if (string.IsNullOrEmpty(key))
                 return;
 
-            this._HttpSession[key] = valueBytes;
-
-            /*
-             * <- \BYTE\0
-             */
-
-            this._ResponseStream.Write(new byte[] { 1, 0 }, 0, 2);
-        }
-
-        private void HandleKYS(ref BinaryReader responseReader)
-        {
-            if (this._HttpSession == null)
-                return;
-
-            BinaryWriter binaryWriter = null;
-            Stream responseStream = null;
+            sessionObject[key] = valueBytes;
 
             try
             {
-                responseStream = new MemoryStream();
-                binaryWriter = new BinaryWriter(responseStream);
+                BinaryWriter binaryWriter = 
+                    new BinaryWriter(responseStream);
 
                 /*
-                 * <- [KEY][KEY][KEY]...\0
+                 * <- \LONG\BYTE
                  */
 
-                foreach (string key in this._HttpSession.Keys)
-                {
-                    binaryWriter.Write((byte)key.Length);
-                    binaryWriter.Write(key.ToCharArray());
-                }
-                binaryWriter.Write((byte)0);
+                // Put dummy header
+                binaryWriter.Write((long)0);
+
+                binaryWriter.Write((byte)1);
                 binaryWriter.Flush();
 
-                responseStream.Seek(0, SeekOrigin.Begin);
-                responseStream.CopyTo(this._ResponseStream);
+                this.PutHeader(requestID, ref responseStream);
             }
-            catch 
+            catch
             {
-                this._ResponseStream.Write(new byte[] { 0 }, 0, 1);
+                return;
             }
-            finally
-            {
-                if (binaryWriter != null)
-                    binaryWriter.Close();
+        }
 
-                if (responseStream != null)
+        private void HandleKYS(long requestID, ref BinaryReader responseReader, ref Stream responseStream)
+        {
+            /*
+             * -> \LONG\KYS\INT\BYTE\CHARS{BYTEVALUELENGTH}
+             */
+
+            Basics.Session.IHttpSession sessionObject;
+            if (!this.GetSessionObject(ref responseReader, out sessionObject))
+                return;
+
+            try
+            {
+                BinaryWriter binaryWriter = 
+                    new BinaryWriter(responseStream);
+
+                // Put dummy header
+                binaryWriter.Write((long)0);
+
+                try
                 {
-                    responseStream.Close();
-                    GC.SuppressFinalize(responseStream);
+                    /*
+                     * <- \LONG\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}...
+                     */
+
+                    foreach (string key in sessionObject.Keys)
+                    {
+                        binaryWriter.Write((byte)key.Length);
+                        binaryWriter.Write(key.ToCharArray());
+                    }
                 }
+                catch
+                { /* Just Handle Exceptions*/ }
+
+                binaryWriter.Flush();
+
+                this.PutHeader(requestID, ref responseStream);
+            }
+            catch
+            {
+                return;
             }
         }
     }

@@ -21,13 +21,25 @@ namespace Xeora.Web.Service.Session
         {
             get
             {
+                if (string.IsNullOrEmpty(key))
+                    throw new ArgumentNullException(nameof(key));
+                
                 object value;
                 if (this._Items.TryGetValue(key, out value))
                     return value;
 
                 return null;
             }
-            set => this._Items.AddOrUpdate(key, value, (cKey, cValue) => value);
+            set
+            {
+                if (string.IsNullOrEmpty(key))
+                    throw new ArgumentNullException(nameof(key));
+
+                if (key.Length > 128)
+                    throw new OverflowException("key can not be longer than 128 characters");
+
+                this._Items.AddOrUpdate(key, value, (cKey, cValue) => value);
+            }
         }
 
         public string SessionID { get; private set; }
@@ -49,8 +61,5 @@ namespace Xeora.Web.Service.Session
 
         public void Extend() => 
             this.Expires = DateTime.Now.AddMinutes(this._ExpiresInMinute);
-
-        public void Complete()
-        { }
     }
 }

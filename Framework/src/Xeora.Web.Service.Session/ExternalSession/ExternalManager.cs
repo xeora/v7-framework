@@ -2,47 +2,59 @@
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace Xeora.Web.Service.Session
 {
     public class ExternalManager : IHttpSessionManager
     {
+        private object _ConnectionLock;
+        private TcpClient _SessionServiceClient;
+
         private IPEndPoint _ServiceEndPoint;
         private short _SessionTimeout = 20;
 
+        private RequestHandler _RequestHandler;
+        private ResponseHandler _ResponseHandler;
+
         public ExternalManager(IPEndPoint serviceEndPoint, short sessionTimeout)
         {
+            this._ConnectionLock = new object();
+            this._SessionServiceClient = null;
+
             this._ServiceEndPoint = serviceEndPoint;
             this._SessionTimeout = sessionTimeout;
         }
 
-        public void Acquire(IPAddress remoteIP, string sessionID, out Basics.Session.IHttpSession sessionObject)
+        private void MakeConnection()
         {
-            TcpClient tcpClient;
-            this.MakeConnection(out tcpClient);
-
-            this.SendAcquireRequest(ref tcpClient, remoteIP, sessionID);
-            this.ParseSessionResponse(ref tcpClient, out sessionObject);
-        }
-
-        private void MakeConnection(out TcpClient tcpClient)
-        {
+            Monitor.Enter(this._ConnectionLock);
             try
             {
-                tcpClient = new TcpClient();
-                tcpClient.Connect(this._ServiceEndPoint);
+                if (this._SessionServiceClient != null &&
+                   this._SessionServiceClient.Connected)
+                    return;
+                
+                this._SessionServiceClient = new TcpClient();
+                this._SessionServiceClient.Connect(this._ServiceEndPoint);
 
-                if (!tcpClient.Connected)
-                    throw new SocketException();
+                if (!this._SessionServiceClient.Connected)
+                    throw new ExternalCommunicationException();
             }
-            catch
+            finally
             {
-                throw new ExternalCommunicationException();
+                Monitor.Exit(this._ConnectionLock);
             }
+
+            this._RequestHandler = new RequestHandler(ref this._SessionServiceClient);
+            this._ResponseHandler = new ResponseHandler(ref this._SessionServiceClient);
+            this._ResponseHandler.HandleAsync();
         }
 
-        private void SendAcquireRequest(ref TcpClient tcpClient, IPAddress remoteIP, string sessionID)
+        public void Acquire(IPAddress remoteIP, string sessionID, out Basics.Session.IHttpSession sessionObject)
         {
+            this.MakeConnection();
+
             BinaryWriter binaryWriter = null;
             Stream requestStream = null;
 
@@ -52,8 +64,8 @@ namespace Xeora.Web.Service.Session
                 binaryWriter = new BinaryWriter(requestStream);
 
                 /*
-                 * -> ACQ\SHORT\INT\0
-                 * -> ACQ\SHORT\INT\BYTE\CHARS{BYTEVALUELENGTH}\0
+                 * -> \LONG\ACQ\SHORT\INT
+                 * -> \LONG\ACQ\SHORT\INT\BYTE\CHARS{BYTEVALUELENGTH}
                  */
 
                 binaryWriter.Write("ACQ".ToCharArray());
@@ -61,15 +73,15 @@ namespace Xeora.Web.Service.Session
                 binaryWriter.Write(remoteIP.GetAddressBytes());
                 binaryWriter.Write((byte)sessionID.Length);
                 binaryWriter.Write(sessionID.ToCharArray());
-                binaryWriter.Write((byte)0);
                 binaryWriter.Flush();
 
-                requestStream.Seek(0, SeekOrigin.Begin);
-                requestStream.CopyTo(tcpClient.GetStream());
-            }
-            catch
-            {
-                throw new ExternalCommunicationException();
+                long requestID =
+                    this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
+
+                byte[] responseBytes =
+                    this._ResponseHandler.WaitForMessage(requestID);
+
+                this.ParseResponse(responseBytes, remoteIP, out sessionObject);
             }
             finally
             {
@@ -84,49 +96,34 @@ namespace Xeora.Web.Service.Session
             }
         }
 
-        private void ParseSessionResponse(ref TcpClient tcpClient, out Basics.Session.IHttpSession sessionObject)
+        private void ParseResponse(byte[] responseBytes, IPAddress remoteIP, out Basics.Session.IHttpSession sessionObject)
         {
+            sessionObject = null;
+
+            if (responseBytes == null)
+                return;
+            
+            Stream contentStream = null;
             BinaryReader binaryReader = null;
 
-            try
-            {
-                binaryReader = new BinaryReader(tcpClient.GetStream());
+            contentStream = new MemoryStream(responseBytes, 0, responseBytes.Length, false);
+            binaryReader = new BinaryReader(contentStream);
 
-                /*
-                 * <- \BYTE\BYTE\CHARS{BYTEVALUELENGTH}\LONG\0
-                 * <- \BYTE\0
-                 */
+            /*
+             * <- \BYTE\BYTE\CHARS{BYTEVALUELENGTH}\LONG
+             * <- \BYTE
+             */
 
-                if (binaryReader.ReadByte() == 2)
-                {
-                    // Consume Terminator
-                    binaryReader.ReadByte();
+            if (binaryReader.ReadByte() == 2)
+                throw new SessionCreationException();
 
-                    throw new SessionCreationException();
-                }
+            byte sessionIDLength = binaryReader.ReadByte();
+            string sessionID =
+                new string(binaryReader.ReadChars(sessionIDLength));
+            DateTime expireDate =
+                new DateTime(binaryReader.ReadInt64());
 
-                byte sessionIDLength = binaryReader.ReadByte();
-                string sessionID = 
-                    new string(binaryReader.ReadChars(sessionIDLength));
-                DateTime expireDate =
-                    new DateTime(binaryReader.ReadInt64());
-
-                // Consume Terminator
-                binaryReader.ReadByte();
-
-                sessionObject = new ExternalSession(ref tcpClient, sessionID, expireDate);
-            }
-            catch (SessionCreationException)
-            {
-                throw;
-            }
-            catch
-            {
-                throw new ExternalCommunicationException();
-            }
+            sessionObject = new ExternalSession(ref this._RequestHandler, ref this._ResponseHandler, remoteIP, sessionID, expireDate);
         }
-
-        public void Complete(ref Basics.Session.IHttpSession sessionObject) =>
-            ((IHttpSessionService)sessionObject).Complete();
     }
 }
