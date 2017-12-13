@@ -33,9 +33,6 @@ namespace Xeora.Web.Service.Session
             this.Create(remoteIP, out sessionObject);
         }
 
-        public void Complete(ref Basics.Session.IHttpSession sessionObject)
-        { }
-
         private bool Get(IPAddress remoteIP, string sessionID, out Basics.Session.IHttpSession sessionObject)
         {
             sessionObject = null;
