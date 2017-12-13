@@ -4,6 +4,5 @@
     {
         bool IsExpired { get; }
         void Extend();
-        void Complete();
     }
 }

@@ -1,28 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Sockets;
+using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Xeora.Web.Service.Session
 {
     internal class ExternalSession : Basics.Session.IHttpSession, IHttpSessionService
     {
-        private TcpClient _RemoteClient;
+        private RequestHandler _RequestHandler;
+        private ResponseHandler _ResponseHandler;
+        private IPAddress _RemoteIP;
 
-        public ExternalSession(ref TcpClient remoteClient, string sessionID, DateTime expireDate)
+        public ExternalSession(ref RequestHandler requestHandler, ref ResponseHandler responseHandler, IPAddress remoteIP, string sessionID, DateTime expireDate)
         {
-            this._RemoteClient = remoteClient;
-            this._RemoteClient.ReceiveTimeout = 100; // 100 ms
+            this._RequestHandler = requestHandler;
+            this._ResponseHandler = responseHandler;
 
+            this._RemoteIP = remoteIP;
             this.SessionID = sessionID;
             this.Expires = expireDate;
         }
 
         public object this[string key]
         {
-            get => this.Get(key);
-            set => this.Set(key, value);
+            get
+            {
+                if (string.IsNullOrEmpty(key))
+                    throw new ArgumentNullException(nameof(key));
+                
+                return this.Get(key);
+            }
+            set
+            {
+                if (string.IsNullOrEmpty(key))
+                    throw new ArgumentNullException(nameof(key));
+
+                if (key.Length > 128)
+                    throw new OverflowException("key can not be longer than 128 characters");
+                
+                this.Set(key, value);
+            }
         }
 
         public string SessionID { get; private set; }
@@ -31,6 +49,10 @@ namespace Xeora.Web.Service.Session
 
         private object Get(string key)
         {
+            byte[] responseBytes = null;
+
+            long requestID;
+
             // Make Request
             BinaryWriter binaryWriter = null;
             Stream requestStream = null;
@@ -41,20 +63,18 @@ namespace Xeora.Web.Service.Session
                 binaryWriter = new BinaryWriter(requestStream);
 
                 /*
-                 * -> GET\BYTE\CHARS{BYTEVALUELENGTH}\0
+                 * -> GET\INT\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}
                  */
 
                 binaryWriter.Write("GET".ToCharArray());
+                binaryWriter.Write(this._RemoteIP.GetAddressBytes());
+                binaryWriter.Write((byte)this.SessionID.Length);
+                binaryWriter.Write(this.SessionID.ToCharArray());
                 binaryWriter.Write((byte)key.Length);
                 binaryWriter.Write(key.ToCharArray());
-                binaryWriter.Write((byte)0);
                 binaryWriter.Flush();
 
-                this.WriteSocketFrom(ref requestStream);
-            }
-            catch
-            {
-                throw new ExternalCommunicationException();
+                requestID = this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
             }
             finally
             {
@@ -68,17 +88,21 @@ namespace Xeora.Web.Service.Session
                 }
             }
 
+            responseBytes = this._ResponseHandler.WaitForMessage(requestID);
+            if (responseBytes == null || responseBytes.Length == 0)
+                return null;
+            
             // Parse Response
             BinaryReader binaryReader = null;
             Stream responseStream = null;
 
             try
             {
-                this.ReadSocketInto(ref responseStream);
+                responseStream = new MemoryStream(responseBytes, 0, responseBytes.Length, false);
                 binaryReader = new BinaryReader(responseStream);
 
                 /*
-                 * <- \BYTE\CHARS{BYTEVALUELENGTH}\INTEGER\BYTES{INTEGERVALUELENGTH}\0
+                 * <- \BYTE\CHARS{BYTEVALUELENGTH}\INTEGER\BYTES{INTEGERVALUELENGTH}
                  */
 
                 byte remoteKeyLength = binaryReader.ReadByte();
@@ -89,17 +113,10 @@ namespace Xeora.Web.Service.Session
                 byte[] remoteValueBytes = 
                     binaryReader.ReadBytes(remoteValueLength);
 
-                // Consume Terminator
-                binaryReader.ReadByte();
-
                 if (string.Compare(remoteKey, key) != 0)
                     return null;
 
                 return this.DeSerialize(remoteValueBytes);
-            }
-            catch
-            {
-                throw new ExternalCommunicationException();
             }
             finally
             {
@@ -115,7 +132,7 @@ namespace Xeora.Web.Service.Session
         }
 
         private void Set(string key, object value)
-        {
+        {            
             // Make Request
             BinaryWriter binaryWriter = null;
             Stream requestStream = null;
@@ -126,24 +143,32 @@ namespace Xeora.Web.Service.Session
                 binaryWriter = new BinaryWriter(requestStream);
 
                 /*
-                 * -> SET\BYTE\CHARS{BYTEVALUELENGTH}\INTEGER\BYTES{INTEGERVALUELENGTH}\0
+                 * -> SET\INT\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}\INTEGER\BYTES{INTEGERVALUELENGTH}
                  */
 
                 byte[] valueBytes = this.Serialize(value);
+                if (valueBytes.Length > 16777000)
+                    throw new OverflowException("Value is too big to store");
 
                 binaryWriter.Write("SET".ToCharArray());
+                binaryWriter.Write(this._RemoteIP.GetAddressBytes());
+                binaryWriter.Write((byte)this.SessionID.Length);
+                binaryWriter.Write(this.SessionID.ToCharArray());
                 binaryWriter.Write((byte)key.Length);
                 binaryWriter.Write(key.ToCharArray());
                 binaryWriter.Write(valueBytes.Length);
                 binaryWriter.Write(valueBytes, 0, valueBytes.Length);
-                binaryWriter.Write((byte)0);
                 binaryWriter.Flush();
 
-                this.WriteSocketFrom(ref requestStream);
-            }
-            catch
-            {
-                throw new ExternalCommunicationException();
+                long requestID =
+                    this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
+
+                byte[] responseBytes = this._ResponseHandler.WaitForMessage(requestID);
+                if (responseBytes == null || responseBytes.Length == 0)
+                    return;
+
+                if (responseBytes[0] != 1)
+                    throw new SessionValueException();
             }
             finally
             {
@@ -154,40 +179,6 @@ namespace Xeora.Web.Service.Session
                 {
                     requestStream.Close();
                     GC.SuppressFinalize(requestStream);
-                }
-            }
-
-            Stream responseStream = null;
-
-            try
-            {
-                // Consume Stream
-                this.ReadSocketInto(ref responseStream);
-
-                /*
-                 * <- \BYTE\0
-                 */
-
-                byte[] buffer = new byte[2];
-                responseStream.Read(buffer, 0, buffer.Length);
-
-                if (buffer[0] != 1)
-                    throw new SessionValueException();
-            }
-            catch (SessionValueException)
-            {
-                throw;
-            }
-            catch
-            {
-                throw new ExternalCommunicationException();
-            }
-            finally
-            {
-                if (responseStream != null)
-                {
-                    responseStream.Close();
-                    GC.SuppressFinalize(responseStream);
                 }
             }
         }
@@ -196,6 +187,9 @@ namespace Xeora.Web.Service.Session
         {
             List<string> keys = new List<string>();
 
+            byte[] responseBytes = null;
+            long requestID;
+
             // Make Request
             BinaryWriter binaryWriter = null;
             Stream requestStream = null;
@@ -206,14 +200,16 @@ namespace Xeora.Web.Service.Session
                 binaryWriter = new BinaryWriter(requestStream);
 
                 /*
-                 * -> KYS\0
+                 * -> KYS\INT\BYTE\CHARS{BYTEVALUELENGTH}
                  */
 
                 binaryWriter.Write("KYS".ToCharArray());
-                binaryWriter.Write((byte)0);
+                binaryWriter.Write(this._RemoteIP.GetAddressBytes());
+                binaryWriter.Write((byte)this.SessionID.Length);
+                binaryWriter.Write(this.SessionID.ToCharArray());
                 binaryWriter.Flush();
 
-                this.WriteSocketFrom(ref requestStream);
+                requestID = this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
             }
             catch
             {
@@ -231,17 +227,21 @@ namespace Xeora.Web.Service.Session
                 }
             }
 
+            responseBytes = this._ResponseHandler.WaitForMessage(requestID);
+            if (responseBytes == null || responseBytes.Length == 0)
+                return keys.ToArray();
+            
             // Parse Response
             BinaryReader binaryReader = null;
             Stream responseStream = null;
 
             try
             {
-                this.ReadSocketInto(ref responseStream);
+                responseStream = new MemoryStream(responseBytes, 0, responseBytes.Length, false);
                 binaryReader = new BinaryReader(responseStream);
 
                 /*
-                 * <- \BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}...\0
+                 * <- \BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}...
                  */
 
                 do
@@ -251,7 +251,7 @@ namespace Xeora.Web.Service.Session
                         break;
                     
                     keys.Add(new string(binaryReader.ReadChars(remoteKeyLength)));
-                } while (true);
+                } while (binaryReader.PeekChar() > -1);
             }
             catch
             {
@@ -270,36 +270,6 @@ namespace Xeora.Web.Service.Session
             }
 
             return keys.ToArray();
-        }
-
-        private void WriteSocketFrom(ref Stream requestStream)
-        {
-            requestStream.Seek(0, SeekOrigin.Begin);
-            requestStream.CopyTo(this._RemoteClient.GetStream());
-        }
-
-        private void ReadSocketInto(ref Stream responseStream)
-        {
-            if (responseStream == null)
-                responseStream = new MemoryStream();
-            Stream remoteStream = this._RemoteClient.GetStream();
-
-            byte[] buffer = new byte[1024];
-            int bR = 0;
-            do
-            {
-                bR = remoteStream.Read(buffer, 0, buffer.Length);
-
-                if (bR > 0)
-                {
-                    responseStream.Write(buffer, 0, bR);
-
-                    if (buffer[bR - 1] == 0)
-                        break;
-                }
-            } while (true);
-
-            responseStream.Seek(0, SeekOrigin.Begin);
         }
 
         private byte[] Serialize(object value)
@@ -356,18 +326,5 @@ namespace Xeora.Web.Service.Session
         public bool IsExpired => throw new NotImplementedException();
         public void Extend() =>
             throw new NotImplementedException();
-
-        public void Complete()
-        {
-            /*
-             * -> \0
-             */
-
-            if (this._RemoteClient.Connected)
-            {
-                this._RemoteClient.GetStream().Write(new byte[] { 0 }, 0, 1);
-                this._RemoteClient.Close();
-            }
-        }
     }
 }
