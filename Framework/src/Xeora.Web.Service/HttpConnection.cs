@@ -20,7 +20,7 @@ namespace Xeora.Web.Service
             IPAddress remoteAddr = ((IPEndPoint)this._RemoteClient.Client.RemoteEndPoint).Address;
 
             // TODO: SSL handling should be done!
-            Stream remoteStream = this._RemoteClient.GetStream();
+            NetworkStream remoteStream = this._RemoteClient.GetStream();
 
             // If reads create problems and put the loop to infinite. drop the connection.
             // that's why, 5 seconds timeout should be set to remoteStream

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using System.Net.Sockets;
 using System.Text;
 using Xeora.Web.Basics;
 
@@ -35,7 +36,7 @@ namespace Xeora.Web.Service.Context
 
         public Basics.Context.IHttpResponseHeader Header => this._Header;
 
-        private void PushHeaders(ref Stream stream)
+        private void PushHeaders(ref NetworkStream remoteStream)
         {
             this._Header.AddOrUpdate("Date", DateTime.Now.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", new CultureInfo("en-US")));
 
@@ -67,7 +68,7 @@ namespace Xeora.Web.Service.Context
             sB.AppendLine();
 
             byte[] buffer = Encoding.ASCII.GetBytes(sB.ToString());
-            stream.Write(buffer, 0, buffer.Length);
+            remoteStream.Write(buffer, 0, buffer.Length);
         }
 
         public void Write(string value, Encoding encoding)
@@ -82,7 +83,7 @@ namespace Xeora.Web.Service.Context
         public void Redirect(string URL) => this._RedirectedURL = URL;
         public bool IsRedirected => !string.IsNullOrEmpty(this._RedirectedURL);
 
-        private void Redirect(ref Stream stream)
+        private void Redirect(ref NetworkStream remoteStream)
         {
             StringBuilder sB = new StringBuilder();
 
@@ -107,22 +108,22 @@ namespace Xeora.Web.Service.Context
             sB.AppendLine();
 
             byte[] buffer = Encoding.ASCII.GetBytes(sB.ToString());
-            stream.Write(buffer, 0, buffer.Length);
+            remoteStream.Write(buffer, 0, buffer.Length);
         }
 
-        public void Flush(ref Stream stream)
+        public void Flush(ref NetworkStream remoteStream)
         {
             if (this.IsRedirected)
             {
-                this.Redirect(ref stream);
+                this.Redirect(ref remoteStream);
 
                 return;
             }
 
-            this.PushHeaders(ref stream);
+            this.PushHeaders(ref remoteStream);
 
             this._ResponseOutput.Seek(0, SeekOrigin.Begin);
-            this._ResponseOutput.CopyTo(stream);
+            this._ResponseOutput.CopyTo(remoteStream);
         }
 
         internal void Dispose()
