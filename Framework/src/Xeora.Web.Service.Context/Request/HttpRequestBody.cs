@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
@@ -10,20 +11,21 @@ namespace Xeora.Web.Service.Context
         private string _ContextID;
 
         private Basics.Context.IHttpRequestHeader _Header;
-        private byte[] _Residual;
+        private Stack<byte[]> _Residual;
         private NetworkStream _RemoteStream;
 
         private Basics.Context.IHttpRequestForm _Form;
         private Basics.Context.IHttpRequestFile _File;
-
-        private Stream _InputStream = null;
+        private Stream _ContentStream;
 
         public HttpRequestBody(string contextID, Basics.Context.IHttpRequestHeader header, byte[] residual, ref NetworkStream remoteStream)
         {
             this._ContextID = contextID;
 
             this._Header = header;
-            this._Residual = residual;
+            this._Residual = new Stack<byte[]>();
+            if (residual != null)
+                this._Residual.Push(residual);
             this._RemoteStream = remoteStream;
 
             this._Form = new HttpRequestForm();
@@ -32,48 +34,38 @@ namespace Xeora.Web.Service.Context
             this.Parse();
         }
 
-        private void AddToResidual(byte[] buffer, int offset, int count)
+        private void AddToResidual(ref Stream contentStream, SeekOrigin origin, int offset, int count)
         {
-            if (this._Residual == null)
-            {
-                this._Residual = new byte[count];
-                Array.Copy(buffer, offset, this._Residual, 0, this._Residual.Length);
+            byte[] contentBytes = new byte[count];
+            contentStream.Seek(offset, origin);
+            contentStream.Read(contentBytes, 0, contentBytes.Length);
 
-                return;
-            }
-
-            byte[] newResidual = new byte[this._Residual.Length + count];
-            Array.Copy(buffer, offset, newResidual, 0, count);
-            Array.Copy(this._Residual, 0, newResidual, count, this._Residual.Length);
-
-            this._Residual = newResidual;
+            this._Residual.Push(contentBytes);
         }
 
         private int Read(byte[] buffer, int offset, int count)
         {
             int totalRead = 0;
 
-            if (this._Residual != null)
+            while (this._Residual.Count > 0)
             {
-                totalRead = this._Residual.Length;
-                if (totalRead > count)
-                    totalRead = count;
+                byte[] residual = this._Residual.Pop();  
+                int readLength = residual.Length;
 
-                Array.Copy(this._Residual, 0, buffer, offset, totalRead);
-
-                count -= totalRead;
-                offset += totalRead;
-
-                // Truncate Residual
-                int newResidualLength = this._Residual.Length - totalRead;
-                if (newResidualLength == 0)
-                    this._Residual = null;
-                else
+                if (readLength > count)
                 {
-                    byte[] newResidual = new byte[newResidualLength];
-                    Array.Copy(this._Residual, totalRead, newResidual, 0, newResidual.Length);
-                    this._Residual = newResidual;
+                    byte[] newResidual = new byte[readLength - count];
+                    Array.Copy(residual, count, newResidual, 0, newResidual.Length);
+                    this._Residual.Push(newResidual);
+
+                    readLength = count;
                 }
+
+                Array.Copy(residual, 0, buffer, offset, readLength);
+                totalRead += readLength;
+
+                count -= readLength;
+                offset += readLength;
 
                 if (count == 0)
                     return totalRead;
@@ -156,10 +148,7 @@ namespace Xeora.Web.Service.Context
                     if (EOFIndex == -1)
                         continue;
 
-                    byte[] contentBytes = new byte[content.Length - EOFIndex];
-                    contentStream.Seek(EOFIndex, SeekOrigin.Begin);
-                    contentStream.Read(contentBytes, 0, contentBytes.Length);
-                    this.AddToResidual(contentBytes, 0, contentBytes.Length);
+                    this.AddToResidual(ref contentStream, SeekOrigin.Begin, EOFIndex, content.Length - EOFIndex);
 
                     return true;
                 } while (true);
@@ -211,10 +200,7 @@ namespace Xeora.Web.Service.Context
 
                     EOFIndex += NL;
 
-                    byte[] contentBytes = new byte[content.Length - EOFIndex];
-                    contentStream.Seek(EOFIndex, SeekOrigin.Begin);
-                    contentStream.Read(contentBytes, 0, contentBytes.Length);
-                    this.AddToResidual(contentBytes, 0, contentBytes.Length);
+                    this.AddToResidual(ref contentStream, SeekOrigin.Begin, EOFIndex, content.Length - EOFIndex);
 
                     return this.ParseContentHeader(content.Substring(0, EOFIndex));
                 } while (true);
@@ -312,7 +298,6 @@ namespace Xeora.Web.Service.Context
                             }
 
                             break;
-
                     }
                 }
             }
@@ -370,7 +355,13 @@ namespace Xeora.Web.Service.Context
 
             // if the request size smaller than 3,5 MB, use the memory.
             HttpRequestFileInfo requestFI =
-                new HttpRequestFileInfo(this._ContextID, contentHeader.ContentType, contentHeader.ContentEncoding, contentHeader.FileName, this._Header.ContentLength < 3670016);
+                new HttpRequestFileInfo(
+                    this._ContextID, 
+                    contentHeader.ContentType, 
+                    contentHeader.ContentEncoding, 
+                    contentHeader.FileName, 
+                    this._Header.ContentLength < 3670016
+                );
             if (this.ReadContentBody(ref requestFI._ContentStream))
                 ((HttpRequestFile)this._File).AddOrUpdate(contentHeader.Name, requestFI);
         }
@@ -381,8 +372,7 @@ namespace Xeora.Web.Service.Context
             string RN = "\r\n";
             string N = "\n";
 
-            byte[] buffer = new byte[131072];
-            byte[] contentBytes;
+            byte[] buffer = new byte[short.MaxValue];
 
             int totalRead = 0;
 
@@ -403,22 +393,14 @@ namespace Xeora.Web.Service.Context
                 {
                     totalRead -= SearchBoundary.Length;
 
-                    containerStream.Seek(SearchBoundary.Length * -1, SeekOrigin.Current);
-
-                    contentBytes = new byte[SearchBoundary.Length];
-                    containerStream.Read(contentBytes, 0, contentBytes.Length);
-                    this.AddToResidual(contentBytes, 0, contentBytes.Length);
+                    this.AddToResidual(ref containerStream, SeekOrigin.Current, SearchBoundary.Length * -1, SearchBoundary.Length);
 
                     containerStream.Seek(SearchBoundary.Length * -1, SeekOrigin.Current);
 
                     continue;
                 }
 
-                containerStream.Seek((bR - (EOFIndex - 2)) * -1, SeekOrigin.Current);
-
-                contentBytes = new byte[(bR - (EOFIndex - 2))];
-                containerStream.Read(contentBytes, 0, contentBytes.Length);
-                this.AddToResidual(contentBytes, 0, contentBytes.Length);
+                this.AddToResidual(ref containerStream, SeekOrigin.Current, (bR - (EOFIndex - 2)) * -1, (bR - (EOFIndex - 2)));
 
                 byte[] newLineTest = new byte[2];
                 this.Read(newLineTest, 0, newLineTest.Length);
@@ -493,23 +475,24 @@ namespace Xeora.Web.Service.Context
 
         private void CreateInputStream()
         {
-            this._InputStream = new MemoryStream();
+            this._ContentStream = new MemoryStream();
 
-            this.ReadToEndInto(ref this._InputStream);
-            this._InputStream.Seek(0, SeekOrigin.Begin);
+            this.ReadToEndInto(ref this._ContentStream);
+            this._ContentStream.Seek(0, SeekOrigin.Begin);
         }
 
         public Basics.Context.IHttpRequestForm Form => this._Form;
         public Basics.Context.IHttpRequestFile File => this._File;
+        public Stream ContentStream => this._ContentStream;
 
         internal void Dispose()
         {
             ((HttpRequestFile)this._File).Dispose();
 
-            if (this._InputStream != null)
+            if (this._ContentStream != null)
             {
-                this._InputStream.Close();
-                GC.SuppressFinalize(this._InputStream);
+                this._ContentStream.Close();
+                GC.SuppressFinalize(this._ContentStream);
             }
         }
     }
