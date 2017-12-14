@@ -495,11 +495,7 @@ namespace Xeora.Web.Service.Context
         {
             this._InputStream = new MemoryStream();
 
-            if (this._Residual != null)
-                this._InputStream.Write(this._Residual, 0, this._Residual.Length);
-
-            if (this._RemoteStream.DataAvailable)
-                this._RemoteStream.CopyTo(this._InputStream);
+            this.ReadToEndInto(ref this._InputStream);
             this._InputStream.Seek(0, SeekOrigin.Begin);
         }
 
