@@ -1,11 +1,13 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Net.Sockets;
 using System.Text;
 
 namespace Xeora.Web.Service.Context
 {
     public class HttpRequestHeader : KeyValueCollection<string, string>, Basics.Context.IHttpRequestHeader
     {
-        private Stream _RequestInput;
+        private NetworkStream _RemoteStream;
 
         private Basics.Context.HttpMethod _Method;
         private Basics.Context.IURL _URL;
@@ -20,11 +22,11 @@ namespace Xeora.Web.Service.Context
 
         private Basics.Context.IHttpCookie _Cookie;
 
-        private bool _EOF = false;
+        private byte[] _Residual = null;
 
-        public HttpRequestHeader(ref Stream requestInput)
+        public HttpRequestHeader(ref NetworkStream remoteStream)
         {
-            this._RequestInput = requestInput;
+            this._RemoteStream = remoteStream;
 
             this._Cookie = new HttpCookie();
 
@@ -33,8 +35,6 @@ namespace Xeora.Web.Service.Context
 
         private string ExtractHeader()
         {
-            this._RequestInput.Seek(0, SeekOrigin.Begin);
-
             string RNRN = "\r\n\r\n";
             string NN = "\n\n";
             int NL;
@@ -42,31 +42,47 @@ namespace Xeora.Web.Service.Context
             byte[] buffer = new byte[1024];
             string content = string.Empty;
 
-            do
+            Stream contentStream = null;
+            try
             {
-                int bR = this._RequestInput.Read(buffer, 0, buffer.Length);
-
-                if (bR == 0)
-                    break;
-
-                content += Encoding.ASCII.GetString(buffer);
-
-                NL = 4;
-                int EOFIndex = content.IndexOf(RNRN);
-                if (EOFIndex == -1)
+                contentStream = new MemoryStream();
+                do
                 {
-                    NL = 2;
-                    EOFIndex = content.IndexOf(NN);
+                    int bR = this._RemoteStream.Read(buffer, 0, buffer.Length);
+
+                    if (bR == 0)
+                        break;
+
+                    contentStream.Write(buffer, 0, buffer.Length);
+                    content += Encoding.ASCII.GetString(buffer, 0, bR);
+
+                    NL = 4;
+                    int EOFIndex = content.IndexOf(RNRN);
+                    if (EOFIndex == -1)
+                    {
+                        NL = 2;
+                        EOFIndex = content.IndexOf(NN);
+                    }
+                    if (EOFIndex == -1)
+                        continue;
+
+                    EOFIndex += NL;
+
+                    this._Residual = new byte[content.Length - EOFIndex];
+                    contentStream.Seek(EOFIndex, SeekOrigin.Begin);
+                    contentStream.Read(this._Residual, 0, this._Residual.Length);
+
+                    return content.Substring(0, EOFIndex);
+                } while (true);
+            }
+            finally
+            {
+                if (contentStream != null)
+                {
+                    contentStream.Close();
+                    GC.SuppressFinalize(contentStream);
                 }
-                if (EOFIndex == -1)
-                    continue;
-
-                EOFIndex += NL;
-
-                this._RequestInput.Seek(EOFIndex, SeekOrigin.Begin);
-
-                return content.Substring(0, EOFIndex);
-            } while (true);
+            }
 
             return string.Empty;
         }
@@ -83,11 +99,7 @@ namespace Xeora.Web.Service.Context
                 string line = sR.ReadLine();
 
                 if (string.IsNullOrEmpty(line))
-                {
-                    this._EOF = true;
-
                     break;
-                }
 
                 switch (lineNumber)
                 {
@@ -217,11 +229,9 @@ namespace Xeora.Web.Service.Context
 
         public Basics.Context.IHttpCookie Cookie => this._Cookie;
 
-        internal bool EOF => this._EOF;
+        internal byte[] Residual => this._Residual;
 
-        internal void ReplacePath(string rawURL)
-        {
+        internal void ReplacePath(string rawURL) =>
             this._URL = new URL(rawURL);
-        }
     }
 }
