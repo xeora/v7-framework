@@ -143,8 +143,8 @@ namespace Xeora.Web.Handler
                 this._DomainControl.Domain.ContentsVirtualPath;
             string requestedFileVirtualPath =
                 this.Context.Request.Header.URL.RelativePath;
+            
             int dcpIndex = requestedFileVirtualPath.IndexOf(domainContentsPath);
-
             if (dcpIndex == -1)
             {
                 // This is also not a request for default DomainContents
@@ -179,6 +179,7 @@ namespace Xeora.Web.Handler
                             this._DomainControl.OverrideDomain(childDomainIDAccessTree, childDomainLanguageID);
 
                             domainContentsPath = this._DomainControl.Domain.ContentsVirtualPath;
+                            dcpIndex = requestedFileVirtualPath.IndexOf(domainContentsPath);
                         }
                     }
                 }
