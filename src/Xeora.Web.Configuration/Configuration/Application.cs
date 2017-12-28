@@ -39,6 +39,7 @@ namespace Xeora.Web.Configuration
                 {
                     this._isBannedFilesFixed = true;
 
+                    // \\ < regex definition
                     string forbiddenDomain = string.Format("\\{0}Domains", Path.DirectorySeparatorChar);
 
                     if (Array.IndexOf(this._BannedFiles, forbiddenDomain) == -1)

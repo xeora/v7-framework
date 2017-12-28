@@ -469,9 +469,9 @@ namespace Xeora.Web.Handler
         {
             requestFilePath = requestFilePath.Replace(Configurations.Xeora.Application.Main.PhysicalRoot, string.Empty);
 
-            foreach (string FileRegEx in Configurations.Xeora.Application.BannedFiles)
+            foreach (string bannedRegEx in Configurations.Xeora.Application.BannedFiles)
             {
-                if (System.Text.RegularExpressions.Regex.IsMatch(requestFilePath, FileRegEx, System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+                if (System.Text.RegularExpressions.Regex.IsMatch(requestFilePath, bannedRegEx, System.Text.RegularExpressions.RegexOptions.IgnoreCase))
                     return true;
             }
 
