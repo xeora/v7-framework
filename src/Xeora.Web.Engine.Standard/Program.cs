@@ -7,7 +7,11 @@ namespace Xeora.Web.Engine.Standard
     {
         static void Main(string[] args)
         {
-            WebServer webServer = new WebServer();
+            string configurationFilePath = string.Empty;
+            if (args != null && args.Length > 0)
+                configurationFilePath = args[0];
+
+            WebServer webServer = new WebServer(configurationFilePath);
             int exitCode = webServer.Start();
 
             Environment.Exit(exitCode);

@@ -10,15 +10,27 @@ namespace Xeora.Web.Service
 {
     public class WebServer
     {
+        private string _ConfigurationPath;
+        private string _ConfigurationFile;
+
         private TcpListener _tcpListener;
 
-        public WebServer()
+        public WebServer(string configurationFilePath)
         {
             // Application Domain UnHandled Exception Event Handling Defination
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(this.OnUnhandledExceptions);
             // !---
 
             Console.CancelKeyPress += new ConsoleCancelEventHandler(this.OnCancelKeyPressed);
+
+            if (string.IsNullOrEmpty(configurationFilePath))
+            {
+                this._ConfigurationPath = Directory.GetCurrentDirectory();
+                return;
+            }
+
+            this._ConfigurationPath = Path.GetDirectoryName(configurationFilePath);
+            this._ConfigurationFile = Path.GetFileName(configurationFilePath);
         }
 
         public int Start()
@@ -27,7 +39,7 @@ namespace Xeora.Web.Service
 
             try
             {
-                ConfigurationManager.Initialize(Directory.GetCurrentDirectory());
+                ConfigurationManager.Initialize(this._ConfigurationPath, this._ConfigurationFile);
 
                 IPEndPoint serviceIPEndPoint =
                     new IPEndPoint(

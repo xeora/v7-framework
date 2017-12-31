@@ -7,18 +7,22 @@ namespace Xeora.Web.Configuration
     public class ConfigurationManager
     {
         private string _ConfigurationPath;
+        private string _ConfigurationFile;
         private Xeora _XeoraConfiguration;
 
-        private ConfigurationManager(string configurationPath)
+        private ConfigurationManager(string configurationPath, string configurationFile)
         {
             this._ConfigurationPath = configurationPath;
+            this._ConfigurationFile = configurationFile;
+            if (string.IsNullOrEmpty(this._ConfigurationFile))
+                this._ConfigurationFile = "xeora.settings.json";
 
             this.Load();
         }
 
         private void Load()
         {
-            string confFile = Path.Combine(this._ConfigurationPath, "xeora.settings.json");
+            string confFile = Path.Combine(this._ConfigurationPath, this._ConfigurationFile);
 
             StreamReader sR = null;
             Newtonsoft.Json.JsonReader jsonReader = null;
@@ -46,8 +50,8 @@ namespace Xeora.Web.Configuration
 
         public Xeora Configuration => this._XeoraConfiguration;
 
-        public static void Initialize(string configurationPath) =>
-            ConfigurationManager._Current = new ConfigurationManager(configurationPath);
+        public static void Initialize(string configurationPath, string configurationFile) =>
+            ConfigurationManager._Current = new ConfigurationManager(configurationPath, configurationFile);
 
         private static ConfigurationManager _Current;
         public static ConfigurationManager Current
