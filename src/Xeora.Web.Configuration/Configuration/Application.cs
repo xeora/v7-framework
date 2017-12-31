@@ -41,13 +41,24 @@ namespace Xeora.Web.Configuration
 
                     // \\ < regex definition
                     string forbiddenDomain = string.Format("\\{0}Domains", Path.DirectorySeparatorChar);
-
                     if (Array.IndexOf(this._BannedFiles, forbiddenDomain) == -1)
                     {
                         string[] fixedBannedFiles = new string[this._BannedFiles.Length + 1];
                         Array.Copy(this._BannedFiles, fixedBannedFiles, this.BannedFiles.Length);
 
                         fixedBannedFiles[fixedBannedFiles.Length - 1] = forbiddenDomain;
+
+                        this._BannedFiles = fixedBannedFiles;
+                    }
+
+                    // \\ < regex definition
+                    string forbiddenXeoraSettingsJSON = string.Format("\\{0}xeora\\.settings\\.json", Path.DirectorySeparatorChar);
+                    if (Array.IndexOf(this._BannedFiles, forbiddenXeoraSettingsJSON) == -1)
+                    {
+                        string[] fixedBannedFiles = new string[this._BannedFiles.Length + 1];
+                        Array.Copy(this._BannedFiles, fixedBannedFiles, this.BannedFiles.Length);
+
+                        fixedBannedFiles[fixedBannedFiles.Length - 1] = forbiddenXeoraSettingsJSON;
 
                         this._BannedFiles = fixedBannedFiles;
                     }
