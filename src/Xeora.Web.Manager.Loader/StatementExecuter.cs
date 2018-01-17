@@ -102,10 +102,9 @@ namespace Xeora.Web.Manager
                     MetadataReference.CreateFromFile(assembly.Location));
             }
 
-            string assemblyNameID = string.Format("X{0}", Guid.NewGuid().ToString().Replace("-", string.Empty));
             CSharpCompilation compiler = 
                 CSharpCompilation.Create(
-                    assemblyNameID,
+                    string.Format("X{0}", Guid.NewGuid().ToString().Replace("-", string.Empty)),
                     options: compilerOptions,
                     syntaxTrees: new List<SyntaxTree> { syntaxTree },
                     references: references
