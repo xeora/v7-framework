@@ -12,7 +12,7 @@ namespace Xeora.Web.Engine
                 configurationFilePath = args[0];
             
             WebServer webServer = new WebServer(configurationFilePath);
-            int exitCode = webServer.Start();
+			int exitCode = webServer.Start();
 
             Environment.Exit(exitCode);
         }

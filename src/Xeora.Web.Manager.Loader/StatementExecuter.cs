@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
-using Microsoft.CSharp;
-using System.CodeDom.Compiler;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Xeora.Web.Manager
 {
@@ -58,7 +61,7 @@ namespace Xeora.Web.Manager
         {
             if (statement == null)
                 return null;
-
+            
             Assembly assemblyResult;
             if (StatementExecuter.Current._StatementExecutables.TryGetValue(blockKey, out assemblyResult))
                 return assemblyResult;
@@ -80,41 +83,73 @@ namespace Xeora.Web.Manager
             codeBlock.AppendLine("} // class");
             codeBlock.AppendLine("} // namespace");
 
-            CSharpCodeProvider cSharpProvider =
-                new CSharpCodeProvider();
-            CodeDomProvider objCompiler =
-                CodeDomProvider.CreateProvider("CSharp");
-            CompilerParameters compilerParams =
-                new CompilerParameters();
+            SyntaxTree syntaxTree = 
+                CSharpSyntaxTree.ParseText(codeBlock.ToString());
+            CSharpCompilationOptions compilerOptions =
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
-            compilerParams.GenerateExecutable = false;
-            compilerParams.GenerateInMemory = true;
-            compilerParams.IncludeDebugInformation = false;
+            List<MetadataReference> references = new List<MetadataReference>();
 
             Assembly[] currentDomainAssemblies =
                 AppDomain.CurrentDomain.GetAssemblies();
 
             foreach (Assembly assembly in currentDomainAssemblies)
-                compilerParams.ReferencedAssemblies.Add(assembly.Location);
-
-            CompilerResults compilerResults =
-                objCompiler.CompileAssemblyFromSource(compilerParams, codeBlock.ToString());
-
-            if (compilerResults.Errors.HasErrors)
             {
-                System.Text.StringBuilder sB =
-                    new System.Text.StringBuilder();
+                if (assembly.IsDynamic)
+                    continue;
 
-                foreach (CompilerError cRE in compilerResults.Errors)
-                    sB.AppendLine(cRE.ErrorText);
-
-                throw new System.Exception(sB.ToString());
+                references.Add(
+                    MetadataReference.CreateFromFile(assembly.Location));
             }
 
-            if (!noCache)
-                StatementExecuter.Current._StatementExecutables.TryAdd(blockKey, compilerResults.CompiledAssembly);
+            string assemblyNameID = string.Format("X{0}", Guid.NewGuid().ToString().Replace("-", string.Empty));
+            CSharpCompilation compiler = 
+                CSharpCompilation.Create(
+                    assemblyNameID,
+                    options: compilerOptions,
+                    syntaxTrees: new List<SyntaxTree> { syntaxTree },
+                    references: references
+                );
+            
+            MemoryStream assemblyMS = null;
+            try
+            {
+                assemblyMS = new MemoryStream();
 
-            return compilerResults.CompiledAssembly;
+                EmitResult eR = compiler.Emit(assemblyMS);
+                if (!eR.Success)
+                {
+                    System.Text.StringBuilder sB =
+                        new System.Text.StringBuilder();
+
+                    foreach (Diagnostic diag in eR.Diagnostics)
+                        sB.AppendLine(diag.ToString());
+
+                    throw new System.Exception(sB.ToString());
+                }
+
+                assemblyMS.Seek(0, SeekOrigin.Begin);
+
+                Assembly compiledAssembly = 
+                    System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromStream(assemblyMS);
+
+                if (!noCache)
+                    StatementExecuter.Current._StatementExecutables.TryAdd(blockKey, compiledAssembly);
+
+                return compiledAssembly;
+            }
+            catch (System.Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                if (assemblyMS != null)
+                {
+                    assemblyMS.Close();
+                    GC.SuppressFinalize(assemblyMS);
+                }
+            }
         }
 
         public static void Dispose()
