@@ -233,10 +233,43 @@ namespace Xeora.Web.Manager
             return rBindInvokeResult;
         }
 
-        public static object ExecuteStatement(string[] domainIDAccessTree, string statementBlockID, string statement, bool noCache) =>
-            Application.Execute(domainIDAccessTree, statementBlockID, statement, noCache);
+        public static object ExecuteStatement(string[] domainIDAccessTree, string statementBlockID, string statement, object[] parameters, bool noCache)
+        {
+            StatementExecutable executableInfo =
+                StatementFactory.CreateExecutable(domainIDAccessTree, statementBlockID, statement, noCache);
 
-        public static void ClearCache() =>
+            if (executableInfo.Exception != null)
+                return executableInfo.Exception;
+
+            try
+            {
+                object invokedObject =
+                    Application.Prepare(executableInfo.ExecutableName).Invoke(
+                        "GET",
+                        new string[] { executableInfo.ClassName },
+                        "Execute",
+                        parameters,
+                        false,
+                        "Undefined"
+                    );
+
+                if (invokedObject is System.Exception)
+                    throw (System.Exception)invokedObject;
+
+                return invokedObject;
+            }
+            catch (System.Exception ex)
+            {
+                Helper.EventLogger.Log(ex);
+
+                return ex;
+            }
+        }
+
+        public static void ClearCache()
+        {
             Application.Dispose();
+            StatementFactory.Dispose();
+        }
     }
 }
