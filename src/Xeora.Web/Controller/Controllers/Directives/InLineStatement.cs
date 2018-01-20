@@ -1,10 +1,15 @@
-﻿using Xeora.Web.Basics;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.RegularExpressions;
+using Xeora.Web.Basics;
 
 namespace Xeora.Web.Controller.Directive
 {
     public class InLineStatement : DirectiveWithChildren, IInstanceRequires, INamable, IBoundable
     {
-        private bool _NoCache = false;
+        private bool _NoCache;
+        private string _ParametersDefinition;
         public event InstanceHandler InstanceRequested;
 
         public InLineStatement(int rawStartIndex, string rawValue, Global.ArgumentInfoCollection contentArguments) :
@@ -12,6 +17,9 @@ namespace Xeora.Web.Controller.Directive
         {
             this.ControlID = DirectiveHelper.CaptureControlID(this.Value);
             this.BoundControlID = DirectiveHelper.CaptureBoundControlID(this.Value);
+
+            this._NoCache = false;
+            this._ParametersDefinition = null;
         }
 
         public string ControlID { get; private set; }
@@ -26,6 +34,9 @@ namespace Xeora.Web.Controller.Directive
 
                 return;
             }
+
+            if (string.IsNullOrEmpty(requesterUniqueID))
+                return;
 
             IController controller = null;
             this.Mother.Pool.GetInto(requesterUniqueID, out controller);
@@ -44,22 +55,10 @@ namespace Xeora.Web.Controller.Directive
 
         private void RenderInternal(string requesterUniqueID)
         {
-            Global.ContentDescription contentDescription = 
+            Global.ContentDescription contentDescription =
                 new Global.ContentDescription(this.Value);
 
             string blockContent = contentDescription.Parts[0];
-
-            string noCacheMarker = "!NOCACHE";
-
-            if (blockContent.IndexOf(noCacheMarker) == 0)
-            {
-                this._NoCache = true;
-                blockContent = blockContent.Substring(noCacheMarker.Length);
-            }
-            blockContent = blockContent.Trim();
-
-            if (string.IsNullOrEmpty(blockContent))
-                throw new Exception.EmptyBlockException();
 
             // InLineStatement does not have any ContentArguments, That's why it copies it's parent Arguments
             if (this.Parent != null)
@@ -69,6 +68,118 @@ namespace Xeora.Web.Controller.Directive
             base.Render(requesterUniqueID);
         }
 
+        private void ExtractSubDirectives(ref string blockContent)
+        {
+            Dictionary<string, System.Func<string, string>> subDirectives =
+                new Dictionary<string, System.Func<string, string>>() {
+                    { 
+                        "!NOCACHE", 
+                        new System.Func<string, string>(
+                            (d) => 
+                            {
+                                this._NoCache = true; 
+                                return d.Replace("!NOCACHE", string.Empty);
+                            }
+                        ) 
+                    },
+                    { 
+                        "!PARAMS", 
+                        new System.Func<string, string>(
+                            (d) => 
+                            {
+                                this._ParametersDefinition = this.ParseParameters(ref d); 
+                                return d;
+                            }
+                        ) 
+                    }
+                };
+
+            // Sub Directive Test
+            if (blockContent.IndexOf('!') == 0)
+            {
+                string directives = string.Empty;
+                StringReader sR = null;
+                try
+                {
+                    sR = new StringReader(blockContent);
+                    directives = sR.ReadLine();
+
+                    blockContent = sR.ReadToEnd();
+                }
+                catch (Exception.GrammerException ex)
+                {
+                    throw ex;
+                }
+                catch (System.Exception)
+                {
+                    // Just Handle Exceptions
+                }
+                finally
+                {
+                    if (sR != null)
+                        sR.Close();
+                }
+
+                foreach (string key in subDirectives.Keys)
+                {
+                    int dIdx = directives.IndexOf(key);
+
+                    if (dIdx == -1)
+                        continue;
+
+                    directives = subDirectives[key].Invoke(directives);
+                }
+            }
+            blockContent = blockContent.Trim();
+        }
+
+        private string ParseParameters(ref string directives)
+        {
+            string paramMarker = "!PARAMS(";
+
+            int openBracketIdx = directives.IndexOf(paramMarker);
+            if (openBracketIdx == -1)
+                return null;
+
+            int closeBracketIdx = directives.LastIndexOf(")");
+            if (closeBracketIdx == -1)
+                throw new Exception.GrammerException();
+            closeBracketIdx++;
+
+            string paramDefinition = 
+                directives.Substring(openBracketIdx, closeBracketIdx - openBracketIdx);
+
+            directives = directives.Replace(paramDefinition, string.Empty);
+
+            return paramDefinition.Substring(8, paramDefinition.Length - 9);
+        }
+
+        public object[] RenderParameters()
+        {
+            if (string.IsNullOrEmpty(this._ParametersDefinition))
+                return null;
+
+            List<object> parameters = new List<object>();
+
+            string[] paramDefs = this._ParametersDefinition.Split('|');
+
+            foreach (string paramDef in paramDefs)
+            {
+                Property property =
+                    new Property(0, paramDef, this.Parent.ContentArguments);
+                property.Mother = this.Mother;
+                property.Parent = this.Parent;
+                property.InstanceRequested += (ref IDomain instance) => InstanceRequested(ref instance);
+                property.Setup();
+
+                property.Render(null);
+
+                parameters.Add(property.ObjectResult);
+            }
+
+            return parameters.ToArray();
+        }
+
         public override void Build()
         {
             base.Build();
@@ -76,8 +187,15 @@ namespace Xeora.Web.Controller.Directive
             IDomain instance = null;
             InstanceRequested(ref instance);
 
+            string renderedValue = this.RenderedValue;
+
+            this.ExtractSubDirectives(ref renderedValue);
+
+            if (string.IsNullOrEmpty(renderedValue))
+                throw new Exception.EmptyBlockException();
+
             object methodResultInfo =
-                Manager.AssemblyCore.ExecuteStatement(instance.IDAccessTree, this.ControlID, this.RenderedValue, this._NoCache);
+                Manager.AssemblyCore.ExecuteStatement(instance.IDAccessTree, this.ControlID, renderedValue, this.RenderParameters(), this._NoCache);
 
             if (methodResultInfo != null && methodResultInfo is System.Exception)
                 throw new Exception.ExecutionException(((System.Exception)methodResultInfo).Message, ((System.Exception)methodResultInfo).InnerException);

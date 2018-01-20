@@ -1,34 +1,42 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 
 namespace Xeora.Web.Manager
 {
-    internal class StatementExecuter
+    public class StatementFactory
     {
-        private ConcurrentDictionary<string, Assembly> _StatementExecutables;
+        private ConcurrentDictionary<string, string> _StatementExecutables;
+        private Regex _ParamRegEx;
+        private object _GetLock;
 
-        private StatementExecuter() =>
-            this._StatementExecutables = new ConcurrentDictionary<string, Assembly>();
+        private StatementFactory()
+        {
+            this._StatementExecutables = new ConcurrentDictionary<string, string>();
+            this._ParamRegEx = new Regex("\\$(?<ID>\\d+)", RegexOptions.Multiline | RegexOptions.Compiled);
+            this._GetLock = new object();
+        }
 
-        private static StatementExecuter _Current = null;
-        private static StatementExecuter Current
+        private static StatementFactory _Current = null;
+        private static StatementFactory Current
         {
             get
             {
-                if (StatementExecuter._Current == null)
-                    StatementExecuter._Current = new StatementExecuter();
+                if (StatementFactory._Current == null)
+                    StatementFactory._Current = new StatementFactory();
 
-                return StatementExecuter._Current;
+                return StatementFactory._Current;
             }
         }
 
-        public static object Execute(string[] domainIDAccessTree, string statementBlockID, string statement, bool noCache)
+        public static StatementExecutable CreateExecutable(string[] domainIDAccessTree, string statementBlockID, string statement, bool noCache)
         {
             try
             {
@@ -39,32 +47,54 @@ namespace Xeora.Web.Manager
                         statementBlockID.Replace('.', '_')
                     );
 
-                Assembly objAssembly = 
-                    StatementExecuter.Current.Prepare(blockKey, statement, noCache);
+                string executableName =
+                    StatementFactory.Current.Create(blockKey, statement, noCache);
 
-                if (objAssembly == null)
+                if (string.IsNullOrEmpty(executableName))
                     throw new Exception.GrammerException();
 
-                Type assemblyObject =
-                    objAssembly.CreateInstance(string.Format("Xeora.Domain.Statement.{0}", blockKey)).GetType();
-                MethodInfo MethodObject = assemblyObject.GetMethod("Execute");
-
-                return MethodObject.Invoke(assemblyObject, BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod, null, null, null);
+                return new StatementExecutable(executableName, blockKey, null);
             }
             catch (System.Exception ex)
             {
-                return ex;
+                return new StatementExecutable(string.Empty, string.Empty, ex);
             }
         }
 
-        private Assembly Prepare(string blockKey, string statement, bool noCache)
+        private string Create(string blockKey, string statement, bool noCache)
+        {
+            if (!noCache)
+            {
+                lock (this._GetLock)
+                {
+                    return this.Get(blockKey, statement, noCache);
+                }
+            }
+
+            return this.Get(blockKey, statement, noCache);
+        }
+
+        private string Get(string blockKey, string statement, bool noCache)
+        {
+            string executableName;
+
+            if (!this._StatementExecutables.TryGetValue(blockKey, out executableName))
+            {
+                executableName = string.Format("X{0}", Guid.NewGuid().ToString().Replace("-", string.Empty));
+
+                statement =
+                    this.Prepare(executableName, blockKey, statement);
+
+                this.Compile(executableName, blockKey, statement, noCache);
+            }
+
+            return executableName;
+        }
+
+        private string Prepare(string executableName, string blockKey, string statement)
         {
             if (statement == null)
                 return null;
-            
-            Assembly assemblyResult;
-            if (StatementExecuter.Current._StatementExecutables.TryGetValue(blockKey, out assemblyResult))
-                return assemblyResult;
 
             System.Text.StringBuilder codeBlock =
                 new System.Text.StringBuilder();
@@ -72,19 +102,56 @@ namespace Xeora.Web.Manager
             codeBlock.AppendLine("using System;");
             codeBlock.AppendLine("using System.Data;");
             codeBlock.AppendLine("using System.Xml;");
-            codeBlock.AppendLine("namespace Xeora.Domain.Statement");
+            codeBlock.AppendLine("using System.Reflection;");;
+            codeBlock.AppendLine("using Xeora.Web.Basics;");
+            codeBlock.AppendLine("namespace Xeora.Domain");
             codeBlock.AppendLine("{");
+            codeBlock.AppendFormat("public class {0} : IDomainExecutable", executableName);
+            codeBlock.AppendLine("{");
+            codeBlock.AppendLine("public void Initialize() {}");
+            codeBlock.AppendLine("void IDomainExecutable.Finalize() {}");
+            codeBlock.AppendLine("public URLMapping.ResolvedMapped URLResolver(string requestFilePath) => null;");
+            codeBlock.AppendLine("public void PreExecute(string executionID, ref MethodInfo mI) {}");
+            codeBlock.AppendLine("public void PostExecute(string executionID, ref object result) {}");
+            codeBlock.AppendLine("} // class");
             codeBlock.AppendFormat("public class {0}", blockKey);
             codeBlock.AppendLine("{");
-            codeBlock.AppendLine("public static object Execute()");
+            codeBlock.AppendLine("public static object Execute(params object[] p)");
             codeBlock.AppendLine("{");
-            codeBlock.AppendFormat("{0}", statement);
+
+            MatchCollection paramMatches = this._ParamRegEx.Matches(statement);
+
+            int lastIndex = 0;
+            Match paramMatch = null;
+            IEnumerator remEnum = paramMatches.GetEnumerator();
+
+            while (remEnum.MoveNext())
+            {
+                paramMatch = (Match)remEnum.Current;
+
+                if (paramMatch.Index > lastIndex)
+                {
+                    codeBlock.Append(statement.Substring(lastIndex, paramMatch.Index - lastIndex));
+                    lastIndex = paramMatch.Index;
+                }
+
+                codeBlock.AppendFormat("p[{0}]", paramMatch.Result("${ID}"));
+
+                lastIndex = (paramMatch.Index + paramMatch.Value.Length);
+            }
+            codeBlock.Append(statement.Substring(lastIndex));
+
             codeBlock.AppendLine("} // method");
             codeBlock.AppendLine("} // class");
             codeBlock.AppendLine("} // namespace");
 
-            SyntaxTree syntaxTree = 
-                CSharpSyntaxTree.ParseText(codeBlock.ToString());
+            return codeBlock.ToString();
+        }
+
+        private void Compile(string executableName, string blockKey, string codeBlock, bool noCache)
+        {
+            SyntaxTree syntaxTree =
+                CSharpSyntaxTree.ParseText(codeBlock);
             CSharpCompilationOptions compilerOptions =
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
@@ -95,27 +162,35 @@ namespace Xeora.Web.Manager
 
             foreach (Assembly assembly in currentDomainAssemblies)
             {
-                if (assembly.IsDynamic)
+                if (assembly.IsDynamic || string.IsNullOrEmpty(assembly.Location))
+                    continue;
+
+                if (assembly.Location.IndexOf(Loader.Current.Path) > -1)
                     continue;
 
                 references.Add(
                     MetadataReference.CreateFromFile(assembly.Location));
             }
 
-            CSharpCompilation compiler = 
+            CSharpCompilation compiler =
                 CSharpCompilation.Create(
-                    string.Format("X{0}", Guid.NewGuid().ToString().Replace("-", string.Empty)),
+                    executableName,
                     options: compilerOptions,
                     syntaxTrees: new List<SyntaxTree> { syntaxTree },
                     references: references
                 );
-            
-            MemoryStream assemblyMS = null;
+
+            Stream assemblyFS = null;
             try
             {
-                assemblyMS = new MemoryStream();
+                assemblyFS = 
+                    new FileStream(
+                        Path.Combine(Loader.Current.Path, string.Format("{0}.dll", executableName)), 
+                        FileMode.Create, 
+                        FileAccess.ReadWrite
+                    );
 
-                EmitResult eR = compiler.Emit(assemblyMS);
+                EmitResult eR = compiler.Emit(assemblyFS);
                 if (!eR.Success)
                 {
                     System.Text.StringBuilder sB =
@@ -126,16 +201,6 @@ namespace Xeora.Web.Manager
 
                     throw new System.Exception(sB.ToString());
                 }
-
-                assemblyMS.Seek(0, SeekOrigin.Begin);
-
-                Assembly compiledAssembly = 
-                    System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromStream(assemblyMS);
-
-                if (!noCache)
-                    StatementExecuter.Current._StatementExecutables.TryAdd(blockKey, compiledAssembly);
-
-                return compiledAssembly;
             }
             catch (System.Exception ex)
             {
@@ -143,20 +208,20 @@ namespace Xeora.Web.Manager
             }
             finally
             {
-                if (assemblyMS != null)
-                {
-                    assemblyMS.Close();
-                    GC.SuppressFinalize(assemblyMS);
-                }
+                if (assemblyFS != null)
+                    assemblyFS.Close();
             }
+
+            if (!noCache)
+                this._StatementExecutables.TryAdd(blockKey, executableName);
         }
 
         public static void Dispose()
         {
-            foreach (string key in StatementExecuter.Current._StatementExecutables.Keys)
+            foreach (string key in StatementFactory.Current._StatementExecutables.Keys)
             {
-                Assembly dummy;
-                StatementExecuter.Current._StatementExecutables.TryRemove(key, out dummy);
+                string dummy;
+                StatementFactory.Current._StatementExecutables.TryRemove(key, out dummy);
             }
         }
     }

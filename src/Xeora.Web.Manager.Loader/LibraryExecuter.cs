@@ -12,7 +12,7 @@ namespace Xeora.Web.Manager
         private string _ExecutableName;
         private string[] _AssemblySearchPaths;
 
-        private string _PostBackPath;
+        private string _ExecutablePath;
         private Assembly _AssemblyDll;
         private Type[] _XeoraControls = null;
 
@@ -32,7 +32,7 @@ namespace Xeora.Web.Manager
             this._AssemblySearchPaths = assemblySearchPaths;
             if (this._AssemblySearchPaths == null)
                 this._AssemblySearchPaths = new string[] {};
-            this._PostBackPath =
+            this._ExecutablePath =
                 Path.Combine(executablesPath, string.Format("{0}.dll", this._ExecutableName));
 
             this._ExecutableInstances = new ConcurrentDictionary<Type, object>();
@@ -42,10 +42,10 @@ namespace Xeora.Web.Manager
             this.Load();
         }
 
-        private string ResolveAssemblyLocation(string assemblyName)
+        private string ResolveAssemblyLocation(AssemblyName assemblyName)
         {
             string assemblyShortName =
-                assemblyName;
+                assemblyName.Name;
 
             int comaIndex = assemblyShortName.IndexOf(',');
             if (comaIndex > -1)
@@ -63,11 +63,31 @@ namespace Xeora.Web.Manager
             return string.Empty;
         }
 
+        private Assembly SearchInAppDomain(AssemblyName assemblyName)
+        {
+            Assembly[] currentDomainAssemblies =
+                AppDomain.CurrentDomain.GetAssemblies();
+
+            foreach (Assembly assembly in currentDomainAssemblies)
+            {
+                if (string.Compare(assembly.FullName, assemblyName.FullName) == 0)
+                    return assembly;
+            }
+
+            return null;
+        }
+
         private Assembly ResolveAssemblyAgain(AssemblyLoadContext sender, AssemblyName assemblyName)
         {
-            string assemblyLocation = 
-                this.ResolveAssemblyLocation(assemblyName.Name);
+            Assembly assemblyResult =
+                this.SearchInAppDomain(assemblyName);
 
+            if (assemblyResult != null)
+                return assemblyResult;
+            
+            string assemblyLocation = 
+                this.ResolveAssemblyLocation(assemblyName);
+            
             if (!string.IsNullOrEmpty(assemblyLocation))
                 return sender.LoadFromAssemblyPath(assemblyLocation);
 
@@ -76,17 +96,17 @@ namespace Xeora.Web.Manager
 
         protected override Assembly Load(AssemblyName assemblyName)
         {
+            Assembly assemblyResult =
+                this.SearchInAppDomain(assemblyName);
+
+            if (assemblyResult != null)
+                return assemblyResult;
+
             string assemblyLocation = 
-                this.ResolveAssemblyLocation(assemblyName.Name);
+                this.ResolveAssemblyLocation(assemblyName);
 
             if (!string.IsNullOrEmpty(assemblyLocation))
                 return Assembly.LoadFrom(assemblyLocation);
-
-            foreach (Assembly domainAssembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                if (string.Compare(assemblyName.FullName, domainAssembly.FullName) == 0)
-                    return domainAssembly;
-            }
 
             return null;
         }
@@ -95,7 +115,7 @@ namespace Xeora.Web.Manager
         {
             try
             {
-                this._AssemblyDll = this.LoadFromAssemblyPath(this._PostBackPath);
+                this._AssemblyDll = this.LoadFromAssemblyPath(this._ExecutablePath);
             }
             catch (FileNotFoundException)
             {

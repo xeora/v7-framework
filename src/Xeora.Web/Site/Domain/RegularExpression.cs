@@ -7,11 +7,43 @@ namespace Xeora.Web.Site
         private RegularExpression()
         {
             // CAPTURE REGULAR EXPRESSIONS
-            //\$  ( ( ([#]+|[\^\-\+\*\~])?(\w+) | @[#\-]*(\w+\.)[\w+\.]+ ) \$ | [\.\w\-]+\:\{ | \w(\#\d+(\+)?)?(\[[\.\w\-]+\])?\: ( [\/\.\w\-]+\$ | [\.\w\-]+\:\{ | [\.\w\-]+\?[\.\w\-]+   (\,   (   (\|)?    ( [#\.\^\-\+\*\~]*\w+  |  \=[\S]+  |  @[#\-]*(\w+\.)[\w+\.]+ )?   )*  )?  \$ )) | \}\:[\.\w\-]+\:\{ | \}\:[\.\w\-]+ \$           [\w\.\,\-\+]
-            string captureRegEx = "\\$((([#]+|[\\^\\-\\+\\*\\~])?(\\w+)|@[#\\-]*(\\w+\\.)[\\w+\\.]+)\\$|[\\.\\w\\-]+\\:\\{|\\w(\\#\\d+(\\+)?)?(\\[[\\.\\w\\-]+\\])?\\:([\\/\\.\\w\\-]+\\$|[\\.\\w\\-]+\\:\\{|[\\.\\w\\-]+\\?[\\.\\w\\-]+(\\,((\\|)?([#\\.\\^\\-\\+\\*\\~]*([\\w+][^\\$]*)|\\=([\\S+][^\\$]*)|@[#\\-]*(\\w+\\.)[\\w+\\.]+)?)*)?\\$))|\\}\\:[\\.\\w\\-]+\\:\\{|\\}\\:[\\.\\w\\-]+\\$";
-            string bracketedRegExOpening = "\\$((?<ItemID>\\w+)|(?<DirectiveType>\\w)(\\#\\d+(\\+)?)?(\\[[\\.\\w\\-]+\\])?\\:(?<ItemID>[\\.\\w\\-]+))\\:\\{";
-            string bracketedRegExSeparator = "\\}:(?<ItemID>[\\.\\w\\-]+)\\:\\{";
-            string bracketedRegExClosing = "\\}:(?<ItemID>[\\.\\w\\-]+)\\$";
+            string characterGroup = "0-9_a-zA-Z";
+            string variableRegEx = "([#]+|[\\^\\-\\+\\*\\~])?([" + characterGroup + "]+)|\\=([\\S+][^\\$\\|]*)|@([#]+|[\\-])?([" + characterGroup + "]+\\.)[\\." + characterGroup + "]+";
+            string tagIDRegEx = "[\\.\\-" + characterGroup + "]+";
+            string tagIDWithSlashRegEx = "[\\/\\.\\-" + characterGroup + "]+"; // for template capturing
+            string directivePointerRegEx = "[A-Z]";
+            string levelingRegEx = "\\#\\d+(\\+)?";
+            string parentingRegEx = "\\[" + tagIDRegEx + "\\]";
+            string procedureRegEx = tagIDRegEx + "\\?" + tagIDRegEx + "(\\,((\\|)?(" + variableRegEx + ")?)*)?";
+
+            string captureRegEx =
+                "\\$" +
+                "(" +
+                    "(" + variableRegEx + ")\\$" + // Capture Variable
+                    "|" +
+                    tagIDRegEx + "\\:\\{" + // Capture Special Tag
+                    "|" +
+                    directivePointerRegEx + "(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:" + // Capture Directive with Leveling and Parenting
+                    "(" +
+                        tagIDWithSlashRegEx + "\\$" + // Capture Control without content
+                        "|" +
+                        tagIDRegEx + "\\:\\{" + // Capture Control with content (opening)
+                        "|" +
+                        procedureRegEx + "\\$" + // Capture Procedure
+                    ")" + 
+                ")|(" + 
+                    "(" +
+                        "\\}\\:" + tagIDRegEx +
+                        "(" +
+                            "\\:\\{" + // Capture Control with Content (seperator)
+                            "|" +
+                            "\\$" + // Capture Control with Content (closing)
+                        ")" +
+                    ")" +
+                ")"; 
+            string bracketedRegExOpening = "\\$((?<ItemID>" + tagIDRegEx + ")|(?<DirectiveType>" + directivePointerRegEx + ")(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:(?<ItemID>" + tagIDRegEx + "))\\:\\{";
+            string bracketedRegExSeparator = "\\}:(?<ItemID>" + tagIDRegEx + ")\\:\\{";
+            string bracketedRegExClosing = "\\}:(?<ItemID>" + tagIDRegEx + ")\\$";
             // !---
 
             this.MainCapturePattern =
@@ -22,7 +54,8 @@ namespace Xeora.Web.Site
                 new Regex(bracketedRegExSeparator, RegexOptions.Multiline | RegexOptions.Compiled);
             this.BracketedControllerClosePattern =
                 new Regex(bracketedRegExClosing, RegexOptions.Multiline | RegexOptions.Compiled);
-
+            this.VariableCapturePattern =
+                new Regex(variableRegEx, RegexOptions.Multiline | RegexOptions.Compiled);
         }
 
         private static RegularExpression _Current = null;
@@ -41,5 +74,6 @@ namespace Xeora.Web.Site
         public Regex BracketedControllerOpenPattern { get; private set; }
         public Regex BracketedControllerSeparatorPattern { get; private set; }
         public Regex BracketedControllerClosePattern { get; private set; }
+        public Regex VariableCapturePattern { get; private set; }
     }
 }

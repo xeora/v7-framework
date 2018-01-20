@@ -214,9 +214,9 @@ namespace Xeora.Web.Site
 
             private void OnParseRequest(string rawValue, ref ControllerCollection childrenContainer, Global.ArgumentInfoCollection contentArguments)
             {
-                MatchCollection MainPatternMatches = RegularExpression.Current.MainCapturePattern.Matches(rawValue);
+                MatchCollection mainPatternMatches = RegularExpression.Current.MainCapturePattern.Matches(rawValue);
 
-                if (MainPatternMatches.Count == 0)
+                if (mainPatternMatches.Count == 0)
                     childrenContainer.Add(new Renderless(0, rawValue, contentArguments));
                 else
                 {
@@ -231,7 +231,7 @@ namespace Xeora.Web.Site
                     // For Closing Brackets
                     Match bracketCloseExamMatch;
 
-                    IEnumerator remEnum = MainPatternMatches.GetEnumerator();
+                    IEnumerator remEnum = mainPatternMatches.GetEnumerator();
 
                     while (remEnum.MoveNext())
                     {

@@ -48,6 +48,9 @@ namespace Xeora.Web.Controller.Directive.Control
                 return;
             }
 
+            if (string.IsNullOrEmpty(requesterUniqueID))
+                return;
+            
             IController controller = null;
             this.Mother.Pool.GetInto(requesterUniqueID, out controller);
 

@@ -65,9 +65,6 @@ namespace Xeora.Web.Manager
             return application;
         }
 
-        public static object Execute(string[] domainIDAccessTree, string statementBlockID, string statement, bool noCache) =>
-            StatementExecuter.Execute(domainIDAccessTree, statementBlockID, statement, noCache);
-
         public static void Dispose()
         {
             foreach(string key in Application._ApplicationCache.Keys)
@@ -76,8 +73,6 @@ namespace Xeora.Web.Manager
                 if (Application._ApplicationCache.TryRemove(key, out application))
                     application._LibraryExecuter.Dispose();
             }
-
-            StatementExecuter.Dispose();
         }
     }
 }
