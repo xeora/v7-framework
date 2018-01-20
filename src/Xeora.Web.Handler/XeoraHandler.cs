@@ -108,7 +108,8 @@ namespace Xeora.Web.Handler
             }
             finally
             {
-                this._DomainControl.Dispose();
+                if (this._DomainControl != null)
+                    this._DomainControl.Dispose();
 
                 // If Redirection has been assigned, handle it
                 if (this.Context["RedirectLocation"] != null)

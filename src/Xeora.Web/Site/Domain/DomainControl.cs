@@ -614,7 +614,8 @@ namespace Xeora.Web.Site
 
         public void Dispose()
         {
-            this.Domain.Dispose();
+            if (this.Domain != null)
+                this.Domain.Dispose();
             GC.SuppressFinalize(this);
         }
     }
