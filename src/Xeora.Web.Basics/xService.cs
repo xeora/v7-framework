@@ -31,6 +31,14 @@ namespace Xeora.Web.Basics
             public long Total { get; private set; }
         }
 
+        /// <summary>
+        /// Authenticates to the Xeora xService
+        /// </summary>
+        /// <returns>The result of xService</returns>
+        /// <param name="xServiceURL">xService URL</param>
+        /// <param name="authenticationFunction">Authentication function</param>
+        /// <param name="parameters">Parameters</param>
+        /// <param name="isAuthenticationDone">If set to <c>true</c> is authentication done</param>
         public static object AuthenticateToxService(string xServiceURL, string authenticationFunction, Parameters parameters, ref bool isAuthenticationDone)
         {
             object methodResult = 
@@ -48,9 +56,24 @@ namespace Xeora.Web.Basics
             return methodResult;
         }
 
-        public static object CallxService(string xServiceURL, string function, Parameters parameters) =>
-            xService.CallxService(xServiceURL, function, parameters, 60000);
+        /// <summary>
+        /// Calls the Xeora xService. Default timeout is 60 seconds
+        /// </summary>
+        /// <returns>The result of xService</returns>
+        /// <param name="xServiceURL">xService URL</param>
+        /// <param name="functionName">Function name</param>
+        /// <param name="parameters">Parameters</param>
+        public static object CallxService(string xServiceURL, string functionName, Parameters parameters) =>
+            xService.CallxService(xServiceURL, functionName, parameters, 60000);
 
+        /// <summary>
+        /// Calls the Xeora xService with timeout
+        /// </summary>
+        /// <returns>The result of xService</returns>
+        /// <param name="xServiceURL">xService URL</param>
+        /// <param name="functionName">Function name</param>
+        /// <param name="parameters">Parameters</param>
+        /// <param name="responseTimeout">Response timeout</param>
         public static object CallxService(string xServiceURL, string functionName, Parameters parameters, int responseTimeout)
         {
             HttpWebRequest httpWebRequest;

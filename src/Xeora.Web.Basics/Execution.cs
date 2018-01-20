@@ -8,13 +8,30 @@ namespace Xeora.Web.Basics
     [CLSCompliant(true)]
     public class Execution
     {
-        public static object CrossCall(string executableName, string className, string procedureName, params object[] parameterValues) =>
-            Execution.CrossCall(Helpers.CurrentDomainInstance.IDAccessTree, executableName, className, procedureName, parameterValues);
+        /// <summary>
+        /// Calls the side Xeora executable
+        /// </summary>
+        /// <returns>Call result</returns>
+        /// <param name="executableName">Xeora executable name</param>
+        /// <param name="className">Class name</param>
+        /// <param name="procedureName">Procedure name.</param>
+        /// <param name="parameterValues">Parameters</param>
+        public static Basics.Execution.BindInvokeResult<T> CrossCall<T>(string executableName, string className, string procedureName, params object[] parameterValues) =>
+            Execution.CrossCall<T>(Helpers.CurrentDomainInstance.IDAccessTree, executableName, className, procedureName, parameterValues);
 
-        public static object CrossCall(string[] domainIDAccessTree, string executableName, string className, string procedureName, params object[] parameterValues)
+        /// <summary>
+        /// Calls the side Xeora executable, side Domain or sub domain executable
+        /// </summary>
+        /// <returns>Call result</returns>
+        /// <param name="domainIDAccessTree">DomainID Access tree</param>
+        /// <param name="executableName">Xeora executable name</param>
+        /// <param name="className">Class name</param>
+        /// <param name="procedureName">Procedure name</param>
+        /// <param name="parameterValues">Parameters</param>
+        public static Basics.Execution.BindInvokeResult<T> CrossCall<T>(string[] domainIDAccessTree, string executableName, string className, string procedureName, params object[] parameterValues)
         {
             Assembly webManagerAsm = Assembly.Load("Xeora.Web");
-            Type objAssembly = 
+            Type assemblyCoreType = 
                 webManagerAsm.GetType("Xeora.Web.Manager.AssemblyCore", false, true);
 
             BindInfo bindInfo = null;
@@ -55,14 +72,20 @@ namespace Xeora.Web.Basics
 
             try
             {
-                object resultObject = 
-                    objAssembly.InvokeMember("InvokeBind", BindingFlags.InvokeMethod, null, null, new object[] { bindInfo });
+                MethodInfo invokeBindMethod =
+                    assemblyCoreType.GetMethod("InvokeBind", new Type[] { typeof(BindInfo) });
+                invokeBindMethod = invokeBindMethod.MakeGenericMethod(typeof(T));
 
-                return ((BindInvokeResult<object>)resultObject).Result;
+                return 
+                    (Execution.BindInvokeResult<T>)invokeBindMethod.Invoke(null, new object[] { bindInfo });
             }
             catch (Exception ex)
             {
-                return new Exception("CrossCall Execution Error!", ex);
+                Execution.BindInvokeResult<T> rBindInvokeResult =
+                    new Execution.BindInvokeResult<T>(bindInfo);
+                rBindInvokeResult.Exception = new Exception("CrossCall Execution Error!", ex);
+
+                return rBindInvokeResult;
             }
         }
 
@@ -99,6 +122,10 @@ namespace Xeora.Web.Basics
                 this.InstanceExecution = false;
             }
 
+            /// <summary>
+            /// Gets or sets the request http method
+            /// </summary>
+            /// <value>The request http method</value>
             public string RequestHttpMethod
             {
                 get
@@ -118,15 +145,53 @@ namespace Xeora.Web.Basics
                 set { this._RequestHttpMethod = value; }
             }
 
+            /// <summary>
+            /// Gets the name of the xeora executable
+            /// </summary>
+            /// <value>The name of the xeora executable</value>
             public string ExecutableName { get; private set; }
+
+            /// <summary>
+            /// Gets the class tree from top to bottom
+            /// </summary>
+            /// <value>The class tree</value>
             public string[] ClassNames { get; private set; }
+
+            /// <summary>
+            /// Gets the name of the procedure
+            /// </summary>
+            /// <value>The name of the procedure</value>
             public string ProcedureName { get; private set; }
+
+            /// <summary>
+            /// Gets the procedure parameter names
+            /// </summary>
+            /// <value>The procedure parameter names</value>
             public ProcedureParameter[] ProcedureParams { get; private set; }
+
+            /// <summary>
+            /// Gets the procedure parameter values
+            /// </summary>
+            /// <value>The procedure parameter values</value>
             public object[] ProcedureParamValues { get; private set; }
 
+            /// <summary>
+            /// Gets a value indicating whether this <see cref="T:Xeora.Web.Basics.Execution.BindInfo"/> is ready
+            /// </summary>
+            /// <value><c>true</c> if is ready; otherwise, <c>false</c></value>
             public bool IsReady { get; private set; }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether this <see cref="T:Xeora.Web.Basics.Execution.BindInfo"/>
+            /// instance execution. If the class requires instance creation, make it <c>true</c>
+            /// </summary>
+            /// <value><c>true</c> if instance execution; otherwise, <c>false</c></value>
             public bool InstanceExecution { get; set; }
 
+            /// <summary>
+            /// Overrides and reorganizes the procedure parameter names
+            /// </summary>
+            /// <param name="procedureParams">Procedure parameter names</param>
             public void OverrideProcedureParameters(string[] procedureParams)
             {
                 this.ProcedureParams = null;
@@ -145,6 +210,10 @@ namespace Xeora.Web.Basics
             }
 
             public delegate void ProcedureParser(ref ProcedureParameter procedureParameter);
+            /// <summary>
+            /// Prepares the procedure parameter values
+            /// </summary>
+            /// <param name="procedureParser">Procedure parser</param>
             public void PrepareProcedureParameters(ProcedureParser procedureParser)
             {
                 if (procedureParser != null)
@@ -165,6 +234,11 @@ namespace Xeora.Web.Basics
                 }
             }
 
+            /// <summary>
+            /// Make the BindInfo from string
+            /// </summary>
+            /// <returns>The BindInfo</returns>
+            /// <param name="bind">Bind string</param>
             public static BindInfo Make(string bind)
             {
                 if (!string.IsNullOrEmpty(bind))
@@ -227,6 +301,10 @@ namespace Xeora.Web.Basics
                 return rString.ToString();
             }
 
+            /// <summary>
+            /// Returns a <see cref="T:System.String"/> that represents the current <see cref="T:Xeora.Web.Basics.Execution.BindInfo"/>
+            /// </summary>
+            /// <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:Xeora.Web.Basics.Execution.BindInfo"/></returns>
             public override string ToString()
             {
                 string rString =
@@ -243,6 +321,10 @@ namespace Xeora.Web.Basics
                 return rString;
             }
 
+            /// <summary>
+            /// Clone to the specified bindInfo
+            /// </summary>
+            /// <param name="bindInfo">BindInfo object that keeps cloned data</param>
             public void Clone(out BindInfo bindInfo)
             {
                 bindInfo = new BindInfo(this.ExecutableName, this.ClassNames, this.ProcedureName, null);
@@ -293,8 +375,22 @@ namespace Xeora.Web.Basics
                     }
                 }
 
+                /// <summary>
+                /// Gets the key of the parameter without operator
+                /// </summary>
+                /// <value>Parameter key</value>
                 public string Key { get; private set; }
+
+                /// <summary>
+                /// Gets or sets the value of the parameter
+                /// </summary>
+                /// <value>Parameter value</value>
                 public object Value { get; set; }
+
+                /// <summary>
+                /// Gets the key of the parameter with operator
+                /// </summary>
+                /// <value>Parameter query</value>
                 public string Query { get; private set; }
             }
         }

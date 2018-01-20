@@ -6,9 +6,18 @@ namespace Xeora.Web.Basics
     [Serializable()]
     public class URLQueryDictionary : Dictionary<string, string>
     {
+        /// <summary>
+        /// Resolves the query string items of current request
+        /// </summary>
+        /// <returns>The query string items</returns>
         public static URLQueryDictionary ResolveQueryItems() =>
             URLQueryDictionary.ResolveQueryItems(Helpers.Context.Request.Header.URL.QueryString);
 
+        /// <summary>
+        /// Resolves the query string items
+        /// </summary>
+        /// <returns>The query string items</returns>
+        /// <param name="queryString">Query string</param>
         public static URLQueryDictionary ResolveQueryItems(string queryString)
         {
             URLQueryDictionary urlQueryDictionary = new URLQueryDictionary();
@@ -32,6 +41,11 @@ namespace Xeora.Web.Basics
             return urlQueryDictionary;
         }
 
+        /// <summary>
+        /// Make the query string dictionary using keyvalue pairs
+        /// </summary>
+        /// <returns>The query string dictionary</returns>
+        /// <param name="queryStrings">Query strings</param>
         public static URLQueryDictionary Make(params KeyValuePair<string, string>[] queryStrings)
         {
             URLQueryDictionary urlQueryDictionary = new URLQueryDictionary();
@@ -50,6 +64,10 @@ namespace Xeora.Web.Basics
             return urlQueryDictionary;
         }
 
+        /// <summary>
+        /// Returns a <see cref="T:System.String"/> that represents the current <see cref="T:Xeora.Web.Basics.URLQueryDictionary"/> key values
+        /// </summary>
+        /// <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:Xeora.Web.Basics.URLQueryDictionary"/> key values</returns>
         public override string ToString()
         {
             System.Text.StringBuilder rSB = new System.Text.StringBuilder();

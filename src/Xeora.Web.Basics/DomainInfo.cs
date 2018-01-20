@@ -18,9 +18,28 @@ namespace Xeora.Web.Basics
             this.Children = new DomainInfoCollection();
         }
 
+        /// <summary>
+        /// Gets the type of the domain deployment
+        /// </summary>
+        /// <value>The type of the domain deployment</value>
         public DeploymentTypes DeploymentType { get; private set; }
+
+        /// <summary>
+        /// Gets the domain identifier
+        /// </summary>
+        /// <value>The domain identifier</value>
         public string ID { get; private set; }
+
+        /// <summary>
+        /// Gets the available languages for the domain
+        /// </summary>
+        /// <value>The available languages</value>
         public LanguageInfo[] Languages { get; private set; }
+
+        /// <summary>
+        /// Gets the children domains
+        /// </summary>
+        /// <value>The children domain collection</value>
         public DomainInfoCollection Children { get; private set; }
 
         public class LanguageInfo
@@ -31,7 +50,16 @@ namespace Xeora.Web.Basics
                 this.Name = name;
             }
 
+            /// <summary>
+            /// Gets the language identifier
+            /// </summary>
+            /// <value>The language identifier</value>
             public string ID { get; private set; }
+
+            /// <summary>
+            /// Gets the language human readable name
+            /// </summary>
+            /// <value>The language human readable name</value>
             public string Name { get; private set; }
         }
 

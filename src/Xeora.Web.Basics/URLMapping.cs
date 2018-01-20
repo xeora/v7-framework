@@ -16,10 +16,28 @@ namespace Xeora.Web.Basics
             this.Items.AddRange(mapItems);
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="T:Xeora.Web.Basics.URLMapping"/> is active
+        /// </summary>
+        /// <value><c>true</c> if is active; otherwise, <c>false</c></value>
         public bool IsActive { get; set; }
+
+        /// <summary>
+        /// Gets or sets the resolver bind info
+        /// </summary>
+        /// <value>The resolver bind info</value>
         public Execution.BindInfo ResolverBindInfo { get; set; }
+
+        /// <summary>
+        /// Gets the query items
+        /// </summary>
+        /// <value>Query items</value>
         public URLMappingItem.URLMappingItemCollection Items { get; private set; }
 
+        /// <summary>
+        /// Gets the current URLMapping definition instance
+        /// </summary>
+        /// <value>The current URLMapping definition instance</value>
         public static URLMapping Current
         {
             get
@@ -42,6 +60,11 @@ namespace Xeora.Web.Basics
             }
         }
 
+        /// <summary>
+        /// Resolves the URL according to the URLMapping definitions
+        /// </summary>
+        /// <returns>The URL resolution</returns>
+        /// <param name="requestFilePath">Request file path</param>
         public ResolvedMapped ResolveMappedURL(string requestFilePath)
         {
             ResolvedMapped rResolvedMapped = null;
@@ -95,9 +118,29 @@ namespace Xeora.Web.Basics
                 this.RequestMap = string.Empty;
             }
 
+            /// <summary>
+            /// Gets or sets a value indicating whether this <see cref="T:Xeora.Web.Basics.URLMapping.URLMappingItem"/>
+            /// is overridable. If it is, sub domain URLMappingItem can override.
+            /// </summary>
+            /// <value><c>true</c> if overridable; otherwise, <c>false</c></value>
             public bool Overridable { get; set; }
+
+            /// <summary>
+            /// Gets or sets the priority of URLMappingItem on URL resolution
+            /// </summary>
+            /// <value>The priority</value>
             public int Priority { get; set; }
+
+            /// <summary>
+            /// Gets or sets the url map to resolve the request. It supports RegEx.
+            /// </summary>
+            /// <value>The url resolver RegEx</value>
             public string RequestMap { get; set; }
+
+            /// <summary>
+            /// Gets or sets the resolve info of Xeora service
+            /// </summary>
+            /// <value>The resolve info</value>
             public ResolveInfos ResolveInfo { get; set; }
 
             public class URLMappingItemCollection : List<URLMappingItem>
@@ -142,8 +185,22 @@ namespace Xeora.Web.Basics
                 this.URLQueryDictionary = new URLQueryDictionary();
             }
 
+            /// <summary>
+            /// Gets a value indicating whether this <see cref="T:Xeora.Web.Basics.URLMapping.ResolvedMapped"/> is resolved
+            /// </summary>
+            /// <value><c>true</c> if is resolved; otherwise, <c>false</c></value>
             public bool IsResolved { get; private set; }
+
+            /// <summary>
+            /// Gets the Xeora service path info
+            /// </summary>
+            /// <value>The service path info</value>
             public ServicePathInfo ServicePathInfo { get; private set; }
+
+            /// <summary>
+            /// Gets the URL Query string dictionary
+            /// </summary>
+            /// <value>The URL Query string dictionary</value>
             public URLQueryDictionary URLQueryDictionary { get; private set; }
         }
 

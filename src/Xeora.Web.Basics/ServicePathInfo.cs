@@ -15,11 +15,29 @@ namespace Xeora.Web.Basics
             this.ServiceID = serviceID;
         }
 
+        /// <summary>
+        /// Gets a value indicating whether this <see cref="T:Xeora.Web.Basics.ServicePathInfo"/> is mapped
+        /// </summary>
+        /// <value><c>true</c> if is mapped; otherwise, <c>false</c></value>
         public bool IsMapped { get; private set; }
+
+        /// <summary>
+        /// Gets the path tree
+        /// </summary>
+        /// <value>The path tree of service info</value>
         public LinkedList<string> PathTree { get; private set; }
+
+        /// <summary>
+        /// Gets the service identifier
+        /// </summary>
+        /// <value>The service identifier</value>
         public string ServiceID { get; private set; }
 
         private string _FullPath = null;
+        /// <summary>
+        /// Gets the full path including service identifier
+        /// </summary>
+        /// <value>The full path</value>
         public string FullPath
         {
             get
@@ -41,6 +59,12 @@ namespace Xeora.Web.Basics
             }
         }
 
+        /// <summary>
+        /// Parse the specified fullPath into <see cref="T:Xeora.Web.Basics.ServicePathInfo"/>
+        /// </summary>
+        /// <returns>The ServicePathInfo object</returns>
+        /// <param name="fullPath">Full path</param>
+        /// <param name="isMapped">If set to <c>true</c> is marked as mapped</param>
         public static ServicePathInfo Parse(string fullPath, bool isMapped)
         {
             string[] requestPaths = fullPath.Split('/');

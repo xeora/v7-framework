@@ -255,6 +255,11 @@ namespace Xeora.Web.Basics
             throw new Exception("ResolveMime should never reach here!");
         }
 
+        /// <summary>
+        /// Gets the MIME according to the file extension
+        /// </summary>
+        /// <returns>MIME type</returns>
+        /// <param name="fileExtension">File extension</param>
         public static string GetMime(string fileExtension)
         {
             if (!string.IsNullOrEmpty(fileExtension) && !fileExtension.StartsWith("."))
@@ -263,8 +268,12 @@ namespace Xeora.Web.Basics
             return MimeType.ResolveMime(MimeLookups.Type, fileExtension);
         }
 
+        /// <summary>
+        /// Gets the file extension according to the MIME type
+        /// </summary>
+        /// <returns>The file extension</returns>
+        /// <param name="mimeType">MIME type</param>
         public static string GetExtension(string mimeType) =>
             MimeType.ResolveMime(MimeLookups.Extention, mimeType);
     }
-
 }

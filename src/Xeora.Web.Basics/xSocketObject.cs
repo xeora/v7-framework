@@ -13,8 +13,22 @@ namespace Xeora.Web.Basics
             this.Parameters = new ParameterCollection(parameters);
         }
 
+        /// <summary>
+        /// Gets the context request
+        /// </summary>
+        /// <value>The context request</value>
         public Context.IHttpRequest Request { get; private set; }
+
+        /// <summary>
+        /// Gets the context response
+        /// </summary>
+        /// <value>The context response</value>
         public Context.IHttpResponse Response { get; private set; }
+
+        /// <summary>
+        /// Gets the parameters defined in Configurations.xml
+        /// </summary>
+        /// <value>The parameters</value>
         public ParameterCollection Parameters { get; private set; }
 
         [Serializable()]

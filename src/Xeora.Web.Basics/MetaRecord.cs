@@ -25,6 +25,11 @@
             property
         }
 
+        /// <summary>
+        /// Gets the html name of meta tag
+        /// </summary>
+        /// <returns>The html name of meta tag</returns>
+        /// <param name="tag">MetaTag</param>
         public static string GetTagHtmlName(Tags tag)
         {
             switch (tag)
@@ -58,6 +63,11 @@
             return string.Empty;
         }
 
+        /// <summary>
+        /// Queries the tag space to find which meta tag space it belongs to
+        /// </summary>
+        /// <returns>The tag space</returns>
+        /// <param name="tag">MetaTag</param>
         public static TagSpaces QueryTagSpace(Tags tag)
         {
             switch (tag)
@@ -74,6 +84,11 @@
             }
         }
 
+        /// <summary>
+        /// Queries the tag space to find which meta tag space it belongs to according to meta name input
+        /// </summary>
+        /// <returns>The tag space</returns>
+        /// <param name="name">MetaName</param>
         public static TagSpaces QueryTagSpace(ref string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -98,6 +113,10 @@
             return default(TagSpaces);
         }
 
+        /// <summary>
+        /// Gets the meta records instance
+        /// </summary>
+        /// <value>The instance of meta records</value>
         public static IMetaRecordCollection Records => Helpers.HandlerInstance.DomainControl.MetaRecord;
     }
 }
