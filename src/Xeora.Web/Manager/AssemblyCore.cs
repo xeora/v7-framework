@@ -233,10 +233,10 @@ namespace Xeora.Web.Manager
             return rBindInvokeResult;
         }
 
-        public static object ExecuteStatement(string[] domainIDAccessTree, string statementBlockID, string statement, object[] parameters, bool noCache)
+        public static object ExecuteStatement(string[] domainIDAccessTree, string statementBlockID, string statement, object[] parameters, bool cache)
         {
             StatementExecutable executableInfo =
-                StatementFactory.CreateExecutable(domainIDAccessTree, statementBlockID, statement, noCache);
+                StatementFactory.CreateExecutable(domainIDAccessTree, statementBlockID, statement, cache);
 
             if (executableInfo.Exception != null)
                 return executableInfo.Exception;

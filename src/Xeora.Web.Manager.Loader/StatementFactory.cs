@@ -36,7 +36,7 @@ namespace Xeora.Web.Manager
             }
         }
 
-        public static StatementExecutable CreateExecutable(string[] domainIDAccessTree, string statementBlockID, string statement, bool noCache)
+        public static StatementExecutable CreateExecutable(string[] domainIDAccessTree, string statementBlockID, string statement, bool cache)
         {
             try
             {
@@ -48,7 +48,7 @@ namespace Xeora.Web.Manager
                     );
 
                 string executableName =
-                    StatementFactory.Current.Create(blockKey, statement, noCache);
+                    StatementFactory.Current.Get(blockKey, statement, cache);
 
                 if (string.IsNullOrEmpty(executableName))
                     throw new Exception.GrammerException();
@@ -61,32 +61,31 @@ namespace Xeora.Web.Manager
             }
         }
 
-        private string Create(string blockKey, string statement, bool noCache)
+        private string Get(string blockKey, string statement, bool cache)
         {
-            if (!noCache)
-            {
-                lock (this._GetLock)
-                {
-                    return this.Get(blockKey, statement, noCache);
-                }
-            }
+            if (!cache)
+                return this.Create(blockKey, statement, cache);
 
-            return this.Get(blockKey, statement, noCache);
+            lock (this._GetLock)
+            {
+                string executableName;
+
+                if (!this._StatementExecutables.TryGetValue(blockKey, out executableName))
+                    executableName = this.Create(blockKey, statement, cache);
+
+                return executableName;
+            }
         }
 
-        private string Get(string blockKey, string statement, bool noCache)
+        private string Create(string blockKey, string statement, bool cache)
         {
-            string executableName;
+            string executableName = 
+                string.Format("X{0}", Guid.NewGuid().ToString().Replace("-", string.Empty));
 
-            if (!this._StatementExecutables.TryGetValue(blockKey, out executableName))
-            {
-                executableName = string.Format("X{0}", Guid.NewGuid().ToString().Replace("-", string.Empty));
+            statement =
+                this.Prepare(executableName, blockKey, statement);
 
-                statement =
-                    this.Prepare(executableName, blockKey, statement);
-
-                this.Compile(executableName, blockKey, statement, noCache);
-            }
+            this.Compile(executableName, blockKey, statement, cache);
 
             return executableName;
         }
@@ -148,7 +147,7 @@ namespace Xeora.Web.Manager
             return codeBlock.ToString();
         }
 
-        private void Compile(string executableName, string blockKey, string codeBlock, bool noCache)
+        private void Compile(string executableName, string blockKey, string codeBlock, bool cache)
         {
             SyntaxTree syntaxTree =
                 CSharpSyntaxTree.ParseText(codeBlock);
@@ -212,7 +211,7 @@ namespace Xeora.Web.Manager
                     assemblyFS.Close();
             }
 
-            if (!noCache)
+            if (cache)
                 this._StatementExecutables.TryAdd(blockKey, executableName);
         }
 

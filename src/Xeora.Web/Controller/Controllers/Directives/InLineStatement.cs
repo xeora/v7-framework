@@ -1,14 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Text.RegularExpressions;
 using Xeora.Web.Basics;
 
 namespace Xeora.Web.Controller.Directive
 {
     public class InLineStatement : DirectiveWithChildren, IInstanceRequires, INamable, IBoundable
     {
-        private bool _NoCache;
+        private bool _Cache;
         private string _ParametersDefinition;
         public event InstanceHandler InstanceRequested;
 
@@ -18,7 +16,7 @@ namespace Xeora.Web.Controller.Directive
             this.ControlID = DirectiveHelper.CaptureControlID(this.Value);
             this.BoundControlID = DirectiveHelper.CaptureBoundControlID(this.Value);
 
-            this._NoCache = false;
+            this._Cache = true;
             this._ParametersDefinition = null;
         }
 
@@ -77,7 +75,7 @@ namespace Xeora.Web.Controller.Directive
                         new System.Func<string, string>(
                             (d) => 
                             {
-                                this._NoCache = true; 
+                                this._Cache = false; 
                                 return d.Replace("!NOCACHE", string.Empty);
                             }
                         ) 
@@ -195,7 +193,7 @@ namespace Xeora.Web.Controller.Directive
                 throw new Exception.EmptyBlockException();
 
             object methodResultInfo =
-                Manager.AssemblyCore.ExecuteStatement(instance.IDAccessTree, this.ControlID, renderedValue, this.RenderParameters(), this._NoCache);
+                Manager.AssemblyCore.ExecuteStatement(instance.IDAccessTree, this.ControlID, renderedValue, this.RenderParameters(), this._Cache);
 
             if (methodResultInfo != null && methodResultInfo is System.Exception)
                 throw new Exception.ExecutionException(((System.Exception)methodResultInfo).Message, ((System.Exception)methodResultInfo).InnerException);
