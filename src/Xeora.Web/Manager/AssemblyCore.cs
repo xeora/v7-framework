@@ -210,12 +210,12 @@ namespace Xeora.Web.Manager
             {
                 object invokedObject = 
                     Application.Prepare(bind.ExecutableName).Invoke(
-                        bind.RequestHttpMethod,
+                        bind.HttpMethod,
                         bind.ClassNames,
                         bind.ProcedureName,
                         bind.ProcedureParamValues,
                         bind.InstanceExecution,
-                        executerType.ToString()
+                        executerType
                     );
 
                 if (invokedObject is System.Exception)
@@ -236,7 +236,7 @@ namespace Xeora.Web.Manager
         public static object ExecuteStatement(string[] domainIDAccessTree, string statementBlockID, string statement, object[] parameters, bool cache)
         {
             StatementExecutable executableInfo =
-                StatementFactory.CreateExecutable(domainIDAccessTree, statementBlockID, statement, cache);
+                StatementFactory.CreateExecutable(domainIDAccessTree, statementBlockID, statement, (parameters != null && parameters.Length > 0), cache);
 
             if (executableInfo.Exception != null)
                 return executableInfo.Exception;
@@ -245,12 +245,12 @@ namespace Xeora.Web.Manager
             {
                 object invokedObject =
                     Application.Prepare(executableInfo.ExecutableName).Invoke(
-                        "GET",
+                        Basics.Context.HttpMethod.GET,
                         new string[] { executableInfo.ClassName },
                         "Execute",
                         parameters,
                         false,
-                        "Undefined"
+                        ExecuterTypes.Undefined
                     );
 
                 if (invokedObject is System.Exception)

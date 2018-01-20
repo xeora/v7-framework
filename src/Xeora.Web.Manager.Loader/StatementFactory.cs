@@ -36,8 +36,10 @@ namespace Xeora.Web.Manager
             }
         }
 
-        public static StatementExecutable CreateExecutable(string[] domainIDAccessTree, string statementBlockID, string statement, bool cache)
+        public static StatementExecutable CreateExecutable(string[] domainIDAccessTree, string statementBlockID, string statement, bool parametric, bool cache)
         {
+            Loader.Initialize();
+
             try
             {
                 string blockKey =
@@ -48,7 +50,7 @@ namespace Xeora.Web.Manager
                     );
 
                 string executableName =
-                    StatementFactory.Current.Get(blockKey, statement, cache);
+                    StatementFactory.Current.Get(blockKey, statement, parametric, cache);
 
                 if (string.IsNullOrEmpty(executableName))
                     throw new Exception.GrammerException();
@@ -61,36 +63,36 @@ namespace Xeora.Web.Manager
             }
         }
 
-        private string Get(string blockKey, string statement, bool cache)
+        private string Get(string blockKey, string statement, bool parametric, bool cache)
         {
             if (!cache)
-                return this.Create(blockKey, statement, cache);
+                return this.Create(blockKey, statement, parametric, cache);
 
             lock (this._GetLock)
             {
                 string executableName;
 
                 if (!this._StatementExecutables.TryGetValue(blockKey, out executableName))
-                    executableName = this.Create(blockKey, statement, cache);
+                    executableName = this.Create(blockKey, statement, parametric, cache);
 
                 return executableName;
             }
         }
 
-        private string Create(string blockKey, string statement, bool cache)
+        private string Create(string blockKey, string statement, bool parametric, bool cache)
         {
             string executableName = 
                 string.Format("X{0}", Guid.NewGuid().ToString().Replace("-", string.Empty));
 
             statement =
-                this.Prepare(executableName, blockKey, statement);
+                this.Prepare(executableName, blockKey, statement, parametric);
 
             this.Compile(executableName, blockKey, statement, cache);
 
             return executableName;
         }
 
-        private string Prepare(string executableName, string blockKey, string statement)
+        private string Prepare(string executableName, string blockKey, string statement, bool parametric)
         {
             if (statement == null)
                 return null;
@@ -103,46 +105,45 @@ namespace Xeora.Web.Manager
             codeBlock.AppendLine("using System.Xml;");
             codeBlock.AppendLine("using System.Reflection;");;
             codeBlock.AppendLine("using Xeora.Web.Basics;");
-            codeBlock.AppendLine("namespace Xeora.Domain");
-            codeBlock.AppendLine("{");
-            codeBlock.AppendFormat("public class {0} : IDomainExecutable", executableName);
-            codeBlock.AppendLine("{");
+            codeBlock.AppendLine("namespace Xeora.Domain {");
+
+            codeBlock.AppendFormat("public class {0} : IDomainExecutable {{", executableName);
             codeBlock.AppendLine("public void Initialize() {}");
             codeBlock.AppendLine("void IDomainExecutable.Finalize() {}");
             codeBlock.AppendLine("public URLMapping.ResolvedMapped URLResolver(string requestFilePath) => null;");
             codeBlock.AppendLine("public void PreExecute(string executionID, ref MethodInfo mI) {}");
             codeBlock.AppendLine("public void PostExecute(string executionID, ref object result) {}");
-            codeBlock.AppendLine("} // class");
-            codeBlock.AppendFormat("public class {0}", blockKey);
-            codeBlock.AppendLine("{");
-            codeBlock.AppendLine("public static object Execute(params object[] p)");
-            codeBlock.AppendLine("{");
+            codeBlock.AppendLine("} /* class */");
 
-            MatchCollection paramMatches = this._ParamRegEx.Matches(statement);
-
+            codeBlock.AppendFormat("public class {0} {{", blockKey);
+            codeBlock.AppendFormat("public static object Execute({0}) {{", (parametric ? "params object[] p" : string.Empty));
             int lastIndex = 0;
-            Match paramMatch = null;
-            IEnumerator remEnum = paramMatches.GetEnumerator();
-
-            while (remEnum.MoveNext())
+            if (parametric)
             {
-                paramMatch = (Match)remEnum.Current;
+                MatchCollection paramMatches = this._ParamRegEx.Matches(statement);
+                Match paramMatch = null;
+                IEnumerator remEnum = paramMatches.GetEnumerator();
 
-                if (paramMatch.Index > lastIndex)
+                while (remEnum.MoveNext())
                 {
-                    codeBlock.Append(statement.Substring(lastIndex, paramMatch.Index - lastIndex));
-                    lastIndex = paramMatch.Index;
+                    paramMatch = (Match)remEnum.Current;
+
+                    if (paramMatch.Index > lastIndex)
+                    {
+                        codeBlock.Append(statement.Substring(lastIndex, paramMatch.Index - lastIndex));
+                        lastIndex = paramMatch.Index;
+                    }
+
+                    codeBlock.AppendFormat("p[{0}]", paramMatch.Result("${ID}"));
+
+                    lastIndex = (paramMatch.Index + paramMatch.Value.Length);
                 }
-
-                codeBlock.AppendFormat("p[{0}]", paramMatch.Result("${ID}"));
-
-                lastIndex = (paramMatch.Index + paramMatch.Value.Length);
             }
             codeBlock.Append(statement.Substring(lastIndex));
+            codeBlock.AppendLine("} /* method */");
+            codeBlock.AppendLine("} /* class */");
 
-            codeBlock.AppendLine("} // method");
-            codeBlock.AppendLine("} // class");
-            codeBlock.AppendLine("} // namespace");
+            codeBlock.AppendLine("} /* namespace */");
 
             return codeBlock.ToString();
         }

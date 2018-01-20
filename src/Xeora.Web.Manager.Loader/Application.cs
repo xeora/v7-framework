@@ -25,8 +25,8 @@ namespace Xeora.Web.Manager
                 this._AssemblyPaths.Add(assemblyPath);
         }
 
-        public object Invoke(string httpMethodType, string[] classNames, string functionName, object[] functionParams, bool instanceExecute, string executerType) =>
-            this._LibraryExecuter.Invoke(httpMethodType, classNames, functionName, functionParams, instanceExecute, executerType);
+        public object Invoke(Basics.Context.HttpMethod httpMethod, string[] classNames, string functionName, object[] functionParams, bool instanceExecute, ExecuterTypes executerType) =>
+            this._LibraryExecuter.Invoke(httpMethod, classNames, functionName, functionParams, instanceExecute, executerType);
 
         // Load must use the same appdomain because AppDomain logic is not supported in .NET Standard anymore
         private bool Load()

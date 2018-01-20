@@ -2,21 +2,13 @@
 {
     public class HttpMethodAttribute : System.Attribute
     {
-        public enum Methods
-        {
-            GET,
-            POST,
-            PUT,
-            DELETE
-        }
-
-        public HttpMethodAttribute() : this(Methods.GET, string.Empty)
+        public HttpMethodAttribute() : this(Context.HttpMethod.GET, string.Empty)
         { }
 
-        public HttpMethodAttribute(Methods method) : this(method, string.Empty)
+        public HttpMethodAttribute(Context.HttpMethod method) : this(method, string.Empty)
         { }
 
-        public HttpMethodAttribute(Methods method, string bindProcedureName)
+        public HttpMethodAttribute(Context.HttpMethod method, string bindProcedureName)
         {
             this.Method = method;
 
@@ -25,7 +17,7 @@
             this.BindProcedureName = bindProcedureName;
         }
 
-        public Methods Method { get; private set; }
+        public Context.HttpMethod Method { get; private set; }
         public string BindProcedureName { get; private set; }
     }
 }

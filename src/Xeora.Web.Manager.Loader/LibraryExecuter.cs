@@ -31,7 +31,7 @@ namespace Xeora.Web.Manager
             this._ExecutableName = executableName;
             this._AssemblySearchPaths = assemblySearchPaths;
             if (this._AssemblySearchPaths == null)
-                this._AssemblySearchPaths = new string[] {};
+                this._AssemblySearchPaths = new string[] { };
             this._ExecutablePath =
                 Path.Combine(executablesPath, string.Format("{0}.dll", this._ExecutableName));
 
@@ -50,7 +50,7 @@ namespace Xeora.Web.Manager
             int comaIndex = assemblyShortName.IndexOf(',');
             if (comaIndex > -1)
                 assemblyShortName = assemblyShortName.Substring(0, comaIndex);
-            
+
             foreach (string path in this._AssemblySearchPaths)
             {
                 string assemblyLocation =
@@ -84,10 +84,10 @@ namespace Xeora.Web.Manager
 
             if (assemblyResult != null)
                 return assemblyResult;
-            
-            string assemblyLocation = 
+
+            string assemblyLocation =
                 this.ResolveAssemblyLocation(assemblyName);
-            
+
             if (!string.IsNullOrEmpty(assemblyLocation))
                 return sender.LoadFromAssemblyPath(assemblyLocation);
 
@@ -102,7 +102,7 @@ namespace Xeora.Web.Manager
             if (assemblyResult != null)
                 return assemblyResult;
 
-            string assemblyLocation = 
+            string assemblyLocation =
                 this.ResolveAssemblyLocation(assemblyName);
 
             if (!string.IsNullOrEmpty(assemblyLocation))
@@ -323,7 +323,7 @@ namespace Xeora.Web.Manager
             }
             catch (System.Exception)
             {
-                if (functionParam is string && 
+                if (functionParam is string &&
                     string.IsNullOrEmpty((string)functionParam))
                 {
                     functionParam = null;
@@ -334,10 +334,10 @@ namespace Xeora.Web.Manager
             return false;
         }
 
-        private MethodInfo GetAssemblyMethod(ref Type assemblyObject, string httpMethodType, string functionName, ref object[] functionParams, string executerType)
+        private MethodInfo GetAssemblyMethod(ref Type assemblyObject, Basics.Context.HttpMethod httpMethod, string functionName, ref object[] functionParams, ExecuterTypes executerType)
         {
-            MethodInfoFinder mIF = 
-                new MethodInfoFinder(httpMethodType, functionName);
+            MethodInfoFinder mIF =
+                new MethodInfoFinder(httpMethod, functionName);
             string searchKey =
                 string.Format("{0}.{1}", assemblyObject.FullName, mIF.Identifier);
 
@@ -350,119 +350,148 @@ namespace Xeora.Web.Manager
                 this._AssemblyMethods.AddOrUpdate(searchKey, possibleMethodInfos, (cKey, cValue) => possibleMethodInfos);
             }
 
-            MethodInfo workingMethodInfo;
-            object[] functionParamsReBuild;
+            MethodInfo methodInfoResult =
+                this.FindBestMatch(possibleMethodInfos, ref functionParams, executerType);
+
+            if (methodInfoResult != null)
+                return methodInfoResult;
+
+            if (assemblyObject.BaseType == null)
+                return null;
+            
+            Type baseType = assemblyObject.BaseType;
+            MethodInfo assemblyMethod =
+                this.GetAssemblyMethod(ref baseType, httpMethod, functionName, ref functionParams, executerType);
+
+            if (assemblyMethod != null)
+                assemblyObject = baseType;
+
+            return assemblyMethod;
+        }
+
+        private MethodInfo FindBestMatch(MethodInfo[] possibleMethodInfos, ref object[] functionParams, ExecuterTypes executerType)
+        {
+            MethodInfo worstMatchedMI = null;
 
             for (int mC = 0; mC < possibleMethodInfos.Length; mC++)
             {
-                workingMethodInfo = possibleMethodInfos[mC];
-                functionParamsReBuild = (object[])functionParams.Clone();
+                MethodInfo methodInfo = 
+                    possibleMethodInfos[mC];
 
                 bool isXeoraControl =
-                    this.CheckFunctionResultTypeIsXeoraControl(workingMethodInfo.ReturnType);
-                ParameterInfo[] mParams = workingMethodInfo.GetParameters();
+                    this.CheckFunctionResultTypeIsXeoraControl(methodInfo.ReturnType);
 
                 switch (executerType)
                 {
-                    case "Control":
-                        if (!object.ReferenceEquals(workingMethodInfo.ReturnType, typeof(object)) && !isXeoraControl)
+                    case ExecuterTypes.Control:
+                        if (!object.ReferenceEquals(methodInfo.ReturnType, typeof(object)) && !isXeoraControl)
                             continue;
 
                         break;
-                    case "Other":
+                    case ExecuterTypes.Other:
                         if (isXeoraControl)
                         {
-                            switch (workingMethodInfo.ReturnType.Name)
-                            {
-                                case "RedirectOrder":
-                                case "Message":
-                                    // These are exceptional controls
-                                    break;
-                                default:
-                                    continue;
-                            }
-                        }
-
-                        break;
-                }
-
-                if (mParams.Length == 0 && functionParamsReBuild.Length == 0)
-                {
-                    functionParams = functionParamsReBuild;
-                    return workingMethodInfo;
-                }
-
-                if (mParams.Length > 0 && mParams.Length <= functionParamsReBuild.Length)
-                {
-                    bool matchComplete = false;
-                    bool[] isExactMatch = new bool[mParams.Length];
-
-                    for (int pC = 0; pC < mParams.Length; pC++)
-                    {
-                        if (pC != mParams.Length - 1)
-                        {
-                            isExactMatch[pC] = this.FixFunctionParameter(mParams[pC].ParameterType, ref functionParamsReBuild[pC]);
+                            // These are exceptional controls
+                            if (methodInfo.ReturnType == typeof(Basics.ControlResult.RedirectOrder) ||
+                                methodInfo.ReturnType == typeof(Basics.ControlResult.Message))
+                                break;
 
                             continue;
                         }
 
-                        bool checkIsParamArrayDefined =
-                            Attribute.IsDefined(mParams[pC], typeof(ParamArrayAttribute));
-
-                        if (!checkIsParamArrayDefined)
-                        {
-                            isExactMatch[pC] = this.FixFunctionParameter(mParams[pC].ParameterType, ref functionParamsReBuild[pC]);
-
-                            if (mParams.Length == functionParamsReBuild.Length && Array.IndexOf(isExactMatch, false) == -1)
-                                matchComplete = true;
-
-                            break;
-                        }
-
-                        Array paramArrayValues =
-                            Array.CreateInstance(mParams[pC].ParameterType.GetElementType(), (functionParamsReBuild.Length - mParams.Length) + 1);
-
-                        for (int pavC = pC; pavC < functionParamsReBuild.Length; pavC++)
-                        {
-                            this.FixFunctionParameter(mParams[pC].ParameterType.GetElementType(), ref functionParamsReBuild[pavC]);
-
-                            paramArrayValues.SetValue(functionParamsReBuild[pavC], pavC - (mParams.Length - 1));
-                        }
-
-                        Array.Resize(ref functionParamsReBuild, mParams.Length);
-                        functionParamsReBuild[pC] = paramArrayValues;
-
-                        isExactMatch[pC] = true;
-                        matchComplete = true;
-
                         break;
-                    }
-
-                    if (matchComplete && Array.IndexOf(isExactMatch, false) == -1)
-                    {
-                        functionParams = functionParamsReBuild;
-                        return workingMethodInfo;
-                    }
                 }
-            }
 
-            if (assemblyObject.BaseType != null)
-            {
-                Type baseType = assemblyObject.BaseType;
-                MethodInfo assemblyMethod =
-                    this.GetAssemblyMethod(ref baseType, httpMethodType, functionName, ref functionParams, executerType);
+                ParameterInfo[] methodParams = 
+                    methodInfo.GetParameters();
 
-                if (assemblyMethod != null)
+                switch (this.ExamParameters(methodParams, ref functionParams))
                 {
-                    assemblyObject = assemblyObject.BaseType;
-                    return assemblyMethod;
+                    case 0:
+                        return methodInfo;
+                    case 1:
+                        worstMatchedMI = methodInfo;
+                        break;
                 }
             }
 
-            return null;
+            return worstMatchedMI;
         }
 
-        private System.Exception GetMethodException(string httpMethodType, string[] classNames, string functionName, object[] functionParams)
+        /// <summary>
+        /// Exams the parameters.
+        /// If returns -1, there is no match.
+        /// If returns 0, it is the exact match.
+        /// If returns 1, there can be better match.
+        /// </summary>
+        /// <returns>Match weight</returns>
+        /// <param name="methodParams">Method parameters</param>
+        /// <param name="functionParams">Pushed parameters</param>
+        private int ExamParameters(ParameterInfo[] methodParams, ref object[] functionParams)
+        {
+            if (methodParams.Length == 0)
+            {
+                if (functionParams.Length == 0)
+                    return 0;
+
+                return -1;
+            }
+
+            if (methodParams.Length > functionParams.Length)
+                return -1;
+
+            object[] functionParamsReBuild =
+                (object[])functionParams.Clone();
+
+            for (int pC = 0; pC < methodParams.Length; pC++)
+            {
+                if (pC != methodParams.Length - 1)
+                {
+                    if (this.FixFunctionParameter(methodParams[pC].ParameterType, ref functionParamsReBuild[pC]))
+                        continue;
+
+                    return -1;
+                }
+
+                bool checkIsParamArrayDefined =
+                    Attribute.IsDefined(methodParams[pC], typeof(ParamArrayAttribute));
+
+                if (!checkIsParamArrayDefined)
+                {
+                    if (methodParams.Length != functionParamsReBuild.Length)
+                        return -1;
+                    
+                    if (this.FixFunctionParameter(methodParams[pC].ParameterType, ref functionParamsReBuild[pC]))
+                    {
+                        functionParams = functionParamsReBuild;
+                        return 0;
+                    }
+
+                    return -1;
+                }
+
+                Type paramArrayType = methodParams[pC].ParameterType.GetElementType();
+                Array paramArrayValues =
+                    Array.CreateInstance(paramArrayType, (functionParamsReBuild.Length - methodParams.Length) + 1);
+
+                for (int pavC = 0; pC < functionParamsReBuild.Length; pavC++, pC++)
+                {
+                    this.FixFunctionParameter(paramArrayType, ref functionParamsReBuild[pC]);
+
+                    paramArrayValues.SetValue(functionParamsReBuild[pC], pavC);
+                }
+
+                Array.Resize(ref functionParamsReBuild, methodParams.Length);
+                functionParamsReBuild[methodParams.Length - 1] = paramArrayValues;
+
+                functionParams = functionParamsReBuild;
+                return 1;
+            }
+
+            return -1;
+        }
+
+        private System.Exception GetMethodException(Basics.Context.HttpMethod httpMethod, string[] classNames, string functionName, object[] functionParams)
         {
             System.Text.StringBuilder sB = new System.Text.StringBuilder();
 
@@ -480,7 +509,7 @@ namespace Xeora.Web.Manager
                 sB.AppendFormat(", {0}", Param.GetType().ToString());
             }
             sB.AppendLine();
-            sB.AppendFormat("HttpMethod: {0}", httpMethodType);
+            sB.AppendFormat("HttpMethod: {0}", httpMethod);
             sB.AppendLine();
 
             return new TargetException(sB.ToString());
@@ -513,7 +542,7 @@ namespace Xeora.Web.Manager
             return assemblyMethod.Invoke(instanceObject, BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod, null, functionParams, System.Threading.Thread.CurrentThread.CurrentCulture);
         }
 
-        public object Invoke(string httpMethodType, string[] classNames, string functionName, object[] functionParams, bool instanceExecute, string executerType)
+        public object Invoke(Basics.Context.HttpMethod httpMethod, string[] classNames, string functionName, object[] functionParams, bool instanceExecute, ExecuterTypes executerType)
         {
             if (string.IsNullOrEmpty(functionName))
                 throw new ArgumentNullException(nameof(functionName));
@@ -538,10 +567,10 @@ namespace Xeora.Web.Manager
                     assemblyObject = executeObject.GetType();
 
                 MethodInfo assemblyMethod =
-                    this.GetAssemblyMethod(ref assemblyObject, httpMethodType, functionName, ref functionParams, executerType);
+                    this.GetAssemblyMethod(ref assemblyObject, httpMethod, functionName, ref functionParams, executerType);
 
                 if (assemblyMethod == null)
-                    return this.GetMethodException(httpMethodType, classNames, functionName, functionParams);
+                    return this.GetMethodException(httpMethod, classNames, functionName, functionParams);
 
                 this.InvokePreExecution(executeObject, executionID, assemblyMethod);
 

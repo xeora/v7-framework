@@ -17,7 +17,7 @@ namespace Xeora.Web.Basics
         /// <param name="procedureName">Procedure name</param>
         /// <param name="parameterValues">Parameters values</param>
         /// <typeparam name="T">Expected result Type</typeparam>
-        public static Basics.Execution.BindInvokeResult<T> CrossCall<T>(string executableName, string className, string procedureName, params object[] parameterValues) =>
+        public static BindInvokeResult<T> CrossCall<T>(string executableName, string className, string procedureName, params object[] parameterValues) =>
             Execution.CrossCall<T>(Helpers.CurrentDomainInstance.IDAccessTree, executableName, className, procedureName, parameterValues);
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Xeora.Web.Basics
         /// <param name="procedureName">Procedure name</param>
         /// <param name="parameterValues">Parameters values</param>
         /// <typeparam name="T">Expected result Type</typeparam>
-        public static Basics.Execution.BindInvokeResult<T> CrossCall<T>(string[] domainIDAccessTree, string executableName, string className, string procedureName, params object[] parameterValues)
+        public static BindInvokeResult<T> CrossCall<T>(string[] domainIDAccessTree, string executableName, string className, string procedureName, params object[] parameterValues)
         {
             Assembly webManagerAsm = Assembly.Load("Xeora.Web");
             Type assemblyCoreType =
@@ -103,10 +103,9 @@ namespace Xeora.Web.Basics
         [Serializable()]
         public class BindInfo
         {
-            private string _RequestHttpMethod;
-
-            private BindInfo(string executableName, string[] classNames, string procedureName, string[] procedureParams)
+            private BindInfo(Context.HttpMethod httpMethod, string executableName, string[] classNames, string procedureName, string[] procedureParams)
             {
+                this.HttpMethod = httpMethod;
                 this.ExecutableName = executableName;
                 this.ClassNames = classNames;
                 this.ProcedureName = procedureName;
@@ -128,24 +127,7 @@ namespace Xeora.Web.Basics
             /// Gets or sets the request http method
             /// </summary>
             /// <value>The request http method</value>
-            public string RequestHttpMethod
-            {
-                get
-                {
-                    if (string.IsNullOrEmpty(this._RequestHttpMethod))
-                    {
-                        Context.IHttpContext context = Helpers.Context;
-
-                        if (context != null)
-                            this._RequestHttpMethod = context.Request.Header.Method.ToString();
-                        else
-                            this._RequestHttpMethod = "GET";
-                    }
-
-                    return this._RequestHttpMethod;
-                }
-                set { this._RequestHttpMethod = value; }
-            }
+            public Context.HttpMethod HttpMethod { get; private set; }
 
             /// <summary>
             /// Gets the name of the xeora executable
@@ -276,7 +258,7 @@ namespace Xeora.Web.Basics
                             if (splittedBindInfo2.Length > 1)
                                 procedureParams = string.Join(",", splittedBindInfo2, 1, splittedBindInfo2.Length - 1).Split('|');
 
-                            return new BindInfo(executableName, classNames, procedureName, procedureParams);
+                            return new BindInfo(Helpers.Context.Request.Header.Method, executableName, classNames, procedureName, procedureParams);
                         }
                     }
                     catch (Exception)
@@ -329,7 +311,7 @@ namespace Xeora.Web.Basics
             /// <param name="bindInfo">BindInfo object that keeps cloned data</param>
             public void Clone(out BindInfo bindInfo)
             {
-                bindInfo = new BindInfo(this.ExecutableName, this.ClassNames, this.ProcedureName, null);
+                bindInfo = new BindInfo(this.HttpMethod, this.ExecutableName, this.ClassNames, this.ProcedureName, null);
 
                 if (this.ProcedureParams != null)
                 {
