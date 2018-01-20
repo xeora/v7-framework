@@ -14,31 +14,33 @@ namespace Xeora.Web.Basics
         /// <returns>Call result</returns>
         /// <param name="executableName">Xeora executable name</param>
         /// <param name="className">Class name</param>
-        /// <param name="procedureName">Procedure name.</param>
-        /// <param name="parameterValues">Parameters</param>
+        /// <param name="procedureName">Procedure name</param>
+        /// <param name="parameterValues">Parameters values</param>
+        /// <typeparam name="T">Expected result Type</typeparam>
         public static Basics.Execution.BindInvokeResult<T> CrossCall<T>(string executableName, string className, string procedureName, params object[] parameterValues) =>
             Execution.CrossCall<T>(Helpers.CurrentDomainInstance.IDAccessTree, executableName, className, procedureName, parameterValues);
 
         /// <summary>
-        /// Calls the side Xeora executable, side Domain or sub domain executable
+        /// Calls the side Xeora executable , side Domain or sub domain executable
         /// </summary>
         /// <returns>Call result</returns>
         /// <param name="domainIDAccessTree">DomainID Access tree</param>
         /// <param name="executableName">Xeora executable name</param>
         /// <param name="className">Class name</param>
         /// <param name="procedureName">Procedure name</param>
-        /// <param name="parameterValues">Parameters</param>
+        /// <param name="parameterValues">Parameters values</param>
+        /// <typeparam name="T">Expected result Type</typeparam>
         public static Basics.Execution.BindInvokeResult<T> CrossCall<T>(string[] domainIDAccessTree, string executableName, string className, string procedureName, params object[] parameterValues)
         {
             Assembly webManagerAsm = Assembly.Load("Xeora.Web");
-            Type assemblyCoreType = 
+            Type assemblyCoreType =
                 webManagerAsm.GetType("Xeora.Web.Manager.AssemblyCore", false, true);
 
             BindInfo bindInfo = null;
-            Dictionary<string, object> parametersValueMap = 
+            Dictionary<string, object> parametersValueMap =
                 new Dictionary<string, object>();
 
-            if (parameterValues == null || 
+            if (parameterValues == null ||
                 parameterValues.Length == 0)
                 bindInfo = BindInfo.Make(string.Format("{0}?{1}.{2}", executableName, className, procedureName));
             else
@@ -52,13 +54,13 @@ namespace Xeora.Web.Basics
                     parametersValueMap[paramName] = parameterValues[pC];
                     parametersStructure[pC] = paramName;
                 }
-                bindInfo = 
+                bindInfo =
                     BindInfo.Make(
                         string.Format(
-                            "{0}?{1}.{2},{3}", 
-                            executableName, 
+                            "{0}?{1}.{2},{3}",
+                            executableName,
                             className,
-                            procedureName, 
+                            procedureName,
                             string.Join("|", parametersStructure)
                         )
                     );
@@ -76,7 +78,7 @@ namespace Xeora.Web.Basics
                     assemblyCoreType.GetMethod("InvokeBind", new Type[] { typeof(BindInfo) });
                 invokeBindMethod = invokeBindMethod.MakeGenericMethod(typeof(T));
 
-                return 
+                return
                     (Execution.BindInvokeResult<T>)invokeBindMethod.Invoke(null, new object[] { bindInfo });
             }
             catch (Exception ex)
@@ -91,7 +93,7 @@ namespace Xeora.Web.Basics
 
         public static string GetPrimitiveValue(object methodResult)
         {
-            if (methodResult != null && 
+            if (methodResult != null &&
                 (methodResult.GetType().IsPrimitive || methodResult is string))
                 return (string)methodResult;
 
