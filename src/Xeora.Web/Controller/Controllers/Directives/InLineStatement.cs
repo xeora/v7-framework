@@ -70,25 +70,25 @@ namespace Xeora.Web.Controller.Directive
         {
             Dictionary<string, System.Func<string, string>> subDirectives =
                 new Dictionary<string, System.Func<string, string>>() {
-                    { 
-                        "!NOCACHE", 
+                    {
+                        "!NOCACHE",
                         new System.Func<string, string>(
-                            (d) => 
+                            (d) =>
                             {
-                                this._Cache = false; 
+                                this._Cache = false;
                                 return d.Replace("!NOCACHE", string.Empty);
                             }
-                        ) 
+                        )
                     },
-                    { 
-                        "!PARAMS", 
+                    {
+                        "!PARAMS",
                         new System.Func<string, string>(
-                            (d) => 
+                            (d) =>
                             {
-                                this._ParametersDefinition = this.ParseParameters(ref d); 
+                                this._ParametersDefinition = this.ParseParameters(ref d);
                                 return d;
                             }
-                        ) 
+                        )
                     }
                 };
 
@@ -144,7 +144,7 @@ namespace Xeora.Web.Controller.Directive
                 throw new Exception.GrammerException();
             closeBracketIdx++;
 
-            string paramDefinition = 
+            string paramDefinition =
                 directives.Substring(openBracketIdx, closeBracketIdx - openBracketIdx);
 
             directives = directives.Replace(paramDefinition, string.Empty);
@@ -189,7 +189,7 @@ namespace Xeora.Web.Controller.Directive
 
             this.ExtractSubDirectives(ref renderedValue);
 
-            if (string.IsNullOrEmpty(renderedValue))
+            if (!this._Cache && string.IsNullOrEmpty(renderedValue))
                 throw new Exception.EmptyBlockException();
 
             object methodResultInfo =
