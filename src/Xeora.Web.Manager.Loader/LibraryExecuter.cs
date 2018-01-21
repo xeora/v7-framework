@@ -14,7 +14,7 @@ namespace Xeora.Web.Manager
 
         private string _ExecutablePath;
         private Assembly _AssemblyDll;
-        private Type[] _XeoraControls = null;
+        private Dictionary<Type, bool> _XeoraControlTypes;
 
         private ConcurrentDictionary<Type, object> _ExecutableInstances;
         private ConcurrentDictionary<string, MethodInfo[]> _AssemblyMethods;
@@ -131,6 +131,8 @@ namespace Xeora.Web.Manager
 
         private void PrepareXeoraControlTypes()
         {
+            this._XeoraControlTypes = new Dictionary<Type, bool>();
+
             try
             {
                 Assembly[] loadedAssemblies =
@@ -143,15 +145,11 @@ namespace Xeora.Web.Manager
                 {
                     if (string.Compare(assembly.GetName().Name, "Xeora.Web.Basics") == 0)
                     {
-                        List<Type> XeoraControlTypes = new List<Type>();
-
-                        foreach (Type Type in assembly.GetTypes())
+                        foreach (Type type in assembly.GetTypes())
                         {
-                            if (string.Compare(Type.Namespace, "Xeora.Web.Basics.ControlResult") == 0)
-                                XeoraControlTypes.Add(Type);
+                            if (string.Compare(type.Namespace, "Xeora.Web.Basics.ControlResult") == 0)
+                                this._XeoraControlTypes[type] = true;
                         }
-
-                        this._XeoraControls = XeoraControlTypes.ToArray();
 
                         break;
                     }
@@ -278,14 +276,8 @@ namespace Xeora.Web.Manager
 
         private bool CheckFunctionResultTypeIsXeoraControl(Type methodReturnType)
         {
-            if (this._XeoraControls != null && methodReturnType != null)
-            {
-                foreach (Type xeoraType in this._XeoraControls)
-                {
-                    if (object.ReferenceEquals(xeoraType, methodReturnType))
-                        return true;
-                }
-            }
+            if (methodReturnType != null && this._XeoraControlTypes.ContainsKey(methodReturnType))
+                return true;
 
             return false;
         }
