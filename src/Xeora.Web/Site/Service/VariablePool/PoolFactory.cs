@@ -67,8 +67,6 @@ namespace Xeora.Web.Site.Service
 
                 if (!PoolFactory._Instance.TryAdd(sessionID, variablePool))
                     this.ProvideVariablePool(sessionID, ref variablePool);
-
-                return;
             }
         }
 

@@ -56,7 +56,7 @@ namespace Xeora.Web.Handler
             HandlerContainer handlerContainer =
                 new HandlerContainer(ref handler);
 
-            this._Handlers.AddOrUpdate(handler.HandlerID, handlerContainer, (cHandlerID, cHandlerContainer) => handlerContainer);
+            this._Handlers.TryAdd(handler.HandlerID, handlerContainer);
         }
 
         public void Mark(string handlerID)
