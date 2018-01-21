@@ -254,20 +254,23 @@ namespace Xeora.Web.Manager
                 return new System.Exception("Calling Assembly is not a XeoraCube Executable!");
 
             object executeObject = null;
-            if (!this._ExecutableInstances.TryGetValue(examInterface, out executeObject))
+            lock (this._ExecutableInstances)
             {
-                try
+                if (!this._ExecutableInstances.TryGetValue(examInterface, out executeObject))
                 {
-                    executeObject = Activator.CreateInstance(examInterface);
+                    try
+                    {
+                        executeObject = Activator.CreateInstance(examInterface);
 
-                    if (executeObject != null)
-                        this._ExecutableInstances.AddOrUpdate(examInterface, executeObject, (cType, cObject) => executeObject);
+                        if (executeObject != null)
+                            this._ExecutableInstances.TryAdd(examInterface, executeObject);
 
-                    executeObject.GetType().GetMethod("Initialize").Invoke(executeObject, null);
-                }
-                catch (System.Exception ex)
-                {
-                    return new System.Exception("Unable to create an instance of XeoraCube Executable!", ex);
+                        executeObject.GetType().GetMethod("Initialize").Invoke(executeObject, null);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        return new System.Exception("Unable to create an instance of XeoraCube Executable!", ex);
+                    }
                 }
             }
 
@@ -339,7 +342,7 @@ namespace Xeora.Web.Manager
                 possibleMethodInfos =
                     Array.FindAll<MethodInfo>(assemblyObject.GetMethods(), new Predicate<MethodInfo>(mIF.Find));
 
-                this._AssemblyMethods.AddOrUpdate(searchKey, possibleMethodInfos, (cKey, cValue) => possibleMethodInfos);
+                this._AssemblyMethods.TryAdd(searchKey, possibleMethodInfos);
             }
 
             MethodInfo methodInfoResult =
@@ -513,18 +516,21 @@ namespace Xeora.Web.Manager
                 return assemblyMethod.Invoke(assemblyObject, BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod, null, functionParams, System.Threading.Thread.CurrentThread.CurrentCulture);
 
             object instanceObject = null;
-            if (!this._ExecutableInstances.TryGetValue(assemblyObject, out instanceObject))
+            lock (this._ExecutableInstances)
             {
-                try
+                if (!this._ExecutableInstances.TryGetValue(assemblyObject, out instanceObject))
                 {
-                    instanceObject = Activator.CreateInstance(assemblyObject);
+                    try
+                    {
+                        instanceObject = Activator.CreateInstance(assemblyObject);
 
-                    if (instanceObject != null)
-                        this._ExecutableInstances.AddOrUpdate(assemblyObject, instanceObject, (cType, cObject) => instanceObject);
-                }
-                catch (System.Exception ex)
-                {
-                    return new System.Exception("Unable to create an instance of XeoraCube Executable Class!", ex);
+                        if (instanceObject != null)
+                            this._ExecutableInstances.TryAdd(assemblyObject, instanceObject);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        return new System.Exception("Unable to create an instance of XeoraCube Executable Class!", ex);
+                    }
                 }
             }
 
