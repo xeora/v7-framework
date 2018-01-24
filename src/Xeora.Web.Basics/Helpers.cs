@@ -1,8 +1,8 @@
 using System;
-using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
 using Xeora.Web.Basics.Context;
+using Xeora.Web.Basics.Execution;
 
 namespace Xeora.Web.Basics
 {
@@ -21,14 +21,32 @@ namespace Xeora.Web.Basics
         /// Creates the Xeora URL with variable pool accessibilities
         /// </summary>
         /// <returns>Xeora URL</returns>
+        /// <param name="serviceFullPath">Valid Xeora Service Full Path</param>
+        /// <param name="queryStringDictionary">Query string dictionary</param>
+        public static string CreateURL(string serviceFullPath, QueryStringDictionary queryStringDictionary = null) =>
+            Helpers.CreateURL(true, serviceFullPath, queryStringDictionary);
+
+        /// <summary>
+        /// Creates the Xeora URL with variable pool accessibilities
+        /// </summary>
+        /// <returns>Xeora URL</returns>
         /// <param name="useSameVariablePool">If set to <c>true</c> uses same variable pool with the current request</param>
         /// <param name="serviceFullPath">Valid Xeora Service Full Path</param>
         /// <param name="queryStrings">Query string definitions (if any)</param>
-        public static string CreateURL(bool useSameVariablePool, string serviceFullPath, params KeyValuePair<string, string>[] queryStrings)
+        public static string CreateURL(bool useSameVariablePool, string serviceFullPath, params KeyValuePair<string, string>[] queryStrings) =>
+            Helpers.CreateURL(useSameVariablePool, serviceFullPath, QueryStringDictionary.Make(queryStrings));
+
+        /// <summary>
+        /// Creates the Xeora URL with variable pool accessibilities
+        /// </summary>
+        /// <returns>Xeora URL</returns>
+        /// <param name="useSameVariablePool">If set to <c>true</c> uses same variable pool with the current request</param>
+        /// <param name="serviceFullPath">Valid Xeora Service Full Path</param>
+        /// <param name="queryStringDictionary">Query string dictionary</param>
+        public static string CreateURL(bool useSameVariablePool, string serviceFullPath, QueryStringDictionary queryStringDictionary = null)
         {
             string rString = null;
 
-            URLQueryDictionary urlQueryDictionary = URLQueryDictionary.Make(queryStrings);
             string applicationRoot =
                 Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation;
 
@@ -37,8 +55,8 @@ namespace Xeora.Web.Basics
             else
                 rString = string.Format("{0}{1}/{2}", applicationRoot, Helpers.Context.HashCode, serviceFullPath);
 
-            if (urlQueryDictionary.Count > 0)
-                rString = string.Concat(rString, "?", urlQueryDictionary.ToString());
+            if (queryStringDictionary != null && queryStringDictionary.Count > 0)
+                rString = string.Concat(rString, "?", queryStringDictionary.ToString());
 
             return rString;
         }
@@ -48,31 +66,31 @@ namespace Xeora.Web.Basics
         /// </summary>
         /// <returns>The service path info</returns>
         /// <param name="requestFilePath">Request file path</param>
-        public static ServicePathInfo ResolveServicePathInfoFromURL(string requestFilePath)
+        public static ServiceDefinition ResolveServiceDefinitionFromURL(string requestFilePath)
         {
             if (string.IsNullOrEmpty(requestFilePath))
                 return null;
 
-            URLMapping urlMappingInstance = URLMapping.Current;
+            Mapping.URL urlInstance = Mapping.URL.Current;
 
-            if (urlMappingInstance != null &&
-                urlMappingInstance.IsActive)
+            if (urlInstance != null &&
+                urlInstance.Active)
             {
-                URLMapping.URLMappingItem[] urlMappingItems =
-                    urlMappingInstance.Items.ToArray();
+                Mapping.MappingItem[] mappingItems =
+                           urlInstance.Items.ToArray();
                 System.Text.RegularExpressions.Match rqMatch = null;
 
-                foreach (URLMapping.URLMappingItem urlMapItem in urlMappingItems)
+                foreach (Mapping.MappingItem mapItem in mappingItems)
                 {
                     rqMatch =
                         System.Text.RegularExpressions.Regex.Match(
                             requestFilePath,
-                            urlMapItem.RequestMap,
+                            mapItem.RequestMap,
                             System.Text.RegularExpressions.RegexOptions.IgnoreCase
                         );
 
                     if (rqMatch.Success)
-                        return urlMapItem.ResolveInfo.ServicePathInfo;
+                        return mapItem.ResolveEntry.ServiceDefinition;
                 }
             }
 
@@ -107,9 +125,9 @@ namespace Xeora.Web.Basics
                 requestFilePath = requestFilePath.Substring(0, requestFilePath.IndexOf('?'));
 
             if (string.IsNullOrEmpty(requestFilePath))
-                return ServicePathInfo.Parse(Helpers.CurrentDomainInstance.Settings.Configurations.DefaultPage, false);
+                return ServiceDefinition.Parse(Helpers.CurrentDomainInstance.Settings.Configurations.DefaultPage, false);
 
-            return ServicePathInfo.Parse(requestFilePath, false);
+            return ServiceDefinition.Parse(requestFilePath, false);
         }
 
         /// <summary>
@@ -117,7 +135,7 @@ namespace Xeora.Web.Basics
         /// </summary>
         /// <returns>The new domain instance</returns>
         /// <param name="domainIDAccessTree">DomainID Access tree</param>
-        public static IDomain CreateNewDomainInstance(string[] domainIDAccessTree) =>
+        public static Domain.IDomain CreateNewDomainInstance(string[] domainIDAccessTree) =>
             Helpers.CreateNewDomainInstance(domainIDAccessTree, null);
 
         /// <summary>
@@ -126,8 +144,8 @@ namespace Xeora.Web.Basics
         /// <returns>The new domain instance</returns>
         /// <param name="domainIDAccessTree">DomainID Access tree</param>
         /// <param name="domainLanguageID">Domain language identifier</param>
-        public static IDomain CreateNewDomainInstance(string[] domainIDAccessTree, string domainLanguageID) =>
-            (IDomain)Activator.CreateInstance(TypeCache.Instance.Domain, new object[] { domainIDAccessTree, domainLanguageID });
+        public static Domain.IDomain CreateNewDomainInstance(string[] domainIDAccessTree, string domainLanguageID) =>
+            (Domain.IDomain)Activator.CreateInstance(TypeCache.Instance.Domain, new object[] { domainIDAccessTree, domainLanguageID });
 
         /// <summary>
         /// Gets the current thread handler identifier
@@ -176,28 +194,13 @@ namespace Xeora.Web.Basics
         /// Gets the current domain instance
         /// </summary>
         /// <value>The current domain instance</value>
-        public static IDomain CurrentDomainInstance => Helpers.HandlerInstance.DomainControl.Domain;
-
-        /// <summary>
-        /// Provides the domain contents file stream
-        /// </summary>
-        /// <param name="fileName">File path and name to read</param>
-        /// <param name="outputStream">Output stream</param>
-        public static void ProvideDomainContentsFileStream(string fileName, out Stream outputStream) =>
-            Helpers.HandlerInstance.DomainControl.ProvideFileStream(fileName, out outputStream);
-
-        /// <summary>
-        /// Pushs the language identifier to change the language of the current domain instance of the request
-        /// </summary>
-        /// <param name="languageID">Domain language identifier</param>
-        public static void PushLanguageChange(string languageID) =>
-            Helpers.HandlerInstance.DomainControl.PushLanguageChange(languageID);
+        public static Domain.IDomain CurrentDomainInstance => Helpers.HandlerInstance.DomainControl.Domain;
 
         /// <summary>
         /// Gets the available domains of Xeora Projects
         /// </summary>
         /// <value>Xeora project domains</value>
-        public static DomainInfo.DomainInfoCollection Domains =>
+        public static Domain.Info.DomainCollection Domains =>
             Helpers.HandlerInstance.DomainControl.GetAvailableDomains();
 
         private static Service.IScheduledTaskEngine _ScheduledTasks = null;
@@ -230,5 +233,73 @@ namespace Xeora.Web.Basics
         /// <value>Variable pool instance for xService.</value>
         public static Service.VariablePoolOperation VariablePoolForxService =>
             new Service.VariablePoolOperation("000000000000000000000000", "00000001");
+
+        /// <summary>
+        /// Calls the side Xeora executable belongs to the current domain, to the side domain, or to the sub domains
+        /// </summary>
+        /// <returns>Call result</returns>
+        /// <param name="executable">Xeora executable name</param>
+        /// <param name="classes">Class name</param>
+        /// <param name="procedure">Procedure name</param>
+        /// <param name="parameterValues">Parameters values</param>
+        /// <typeparam name="T">Expected result Type</typeparam>
+        public static InvokeResult<T> CrossCall<T>(string executable, string[] classes, string procedure, params object[] parameterValues)
+        {
+            Assembly webManagerAsm = Assembly.Load("Xeora.Web");
+            Type assemblyCoreType =
+                webManagerAsm.GetType("Xeora.Web.Manager.AssemblyCore", false, true);
+
+            Bind bind = null;
+            Dictionary<string, object> parametersValueMap =
+                new Dictionary<string, object>();
+
+            if (parameterValues == null ||
+                parameterValues.Length == 0)
+                bind = Bind.Make(string.Format("{0}?{1}.{2}", executable, string.Join(".", classes), procedure));
+            else
+            {
+                string[] parametersStructure = new string[parameterValues.Length];
+
+                for (int pC = 0; pC < parameterValues.Length; pC++)
+                {
+                    string paramName = string.Format("PARAM{0}", pC);
+
+                    parametersValueMap[paramName] = parameterValues[pC];
+                    parametersStructure[pC] = paramName;
+                }
+                bind =
+                    Bind.Make(
+                        string.Format(
+                            "{0}?{1}.{2},{3}",
+                            executable,
+                            string.Join(".", classes),
+                            procedure,
+                            string.Join("|", parametersStructure)
+                        )
+                    );
+            }
+
+            bind.Parameters.Prepare(
+                (ProcedureParameter param) => parametersValueMap[param.Key] 
+            );
+
+            try
+            {
+                MethodInfo invokeBindMethod =
+                    assemblyCoreType.GetMethod("InvokeBind", new Type[] { typeof(Bind) });
+                invokeBindMethod = invokeBindMethod.MakeGenericMethod(typeof(T));
+
+                return
+                    (InvokeResult<T>)invokeBindMethod.Invoke(null, new object[] { bind });
+            }
+            catch (Exception ex)
+            {
+                InvokeResult<T> rInvokeResult =
+                    new InvokeResult<T>(bind);
+                rInvokeResult.Exception = new Exception("CrossCall Execution Error!", ex);
+
+                return rInvokeResult;
+            }
+        }
     }
 }

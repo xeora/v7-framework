@@ -103,14 +103,15 @@ namespace Xeora.Web.Manager
             codeBlock.AppendLine("using System;");
             codeBlock.AppendLine("using System.Data;");
             codeBlock.AppendLine("using System.Xml;");
-            codeBlock.AppendLine("using System.Reflection;");;
+            codeBlock.AppendLine("using System.Reflection;");
             codeBlock.AppendLine("using Xeora.Web.Basics;");
+            codeBlock.AppendLine("using Xeora.Web.Basics.Mapping;");
             codeBlock.AppendLine("namespace Xeora.Domain {");
 
             codeBlock.AppendFormat("public class {0} : IDomainExecutable {{", executableName);
             codeBlock.AppendLine("public void Initialize() {}");
-            codeBlock.AppendLine("void IDomainExecutable.Finalize() {}");
-            codeBlock.AppendLine("public URLMapping.ResolvedMapped URLResolver(string requestFilePath) => null;");
+            codeBlock.AppendLine("public void Terminate() {}");
+            codeBlock.AppendLine("public ResolutionResult ResolveURL(string requestFilePath) => null;");
             codeBlock.AppendLine("public void PreExecute(string executionID, ref MethodInfo mI) {}");
             codeBlock.AppendLine("public void PostExecute(string executionID, ref object result) {}");
             codeBlock.AppendLine("} /* class */");

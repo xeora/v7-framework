@@ -4,15 +4,15 @@ using System.Xml.XPath;
 
 namespace Xeora.Web.Site.Setting
 {
-    public class Services : Basics.IServices
+    public class Services : Basics.Domain.IServices
     {
         private XPathNavigator _XPathNavigator;
 
         public Services(ref XPathNavigator configurationNavigator) =>
             this._XPathNavigator = configurationNavigator.Clone();
 
-        private Basics.IServiceItemCollection _ServiceItems = null;
-        public Basics.IServiceItemCollection ServiceItems
+        private Basics.Domain.IServiceItemCollection _ServiceItems = null;
+        public Basics.Domain.IServiceItemCollection ServiceItems
         {
             get
             {
@@ -23,7 +23,7 @@ namespace Xeora.Web.Site.Setting
             }
         }
 
-        private Basics.IServiceItemCollection ReadServiceOptions()
+        private Basics.Domain.IServiceItemCollection ReadServiceOptions()
         {
             ServiceItemCollection rCollection = new ServiceItemCollection();
 
@@ -44,7 +44,7 @@ namespace Xeora.Web.Site.Setting
                 xPathIter = this._XPathNavigator.Select("//Services/Item");
 
                 ServiceItem tServiceItem;
-                Basics.ServiceTypes type = Basics.ServiceTypes.Template;
+                Basics.Domain.ServiceTypes type = Basics.Domain.ServiceTypes.Template;
                 bool overridable = false, authentication = false, standAlone = false;
 
                 while (xPathIter.MoveNext())
@@ -53,7 +53,7 @@ namespace Xeora.Web.Site.Setting
                         new ServiceItem(
                             xPathIter.Current.GetAttribute("id", xPathIter.Current.BaseURI));
 
-                    Enum.TryParse<Basics.ServiceTypes>(
+                    Enum.TryParse<Basics.Domain.ServiceTypes>(
                         xPathIter.Current.GetAttribute("type", xPathIter.Current.BaseURI), out type);
                     tServiceItem.ServiceType = type;
 
@@ -77,13 +77,13 @@ namespace Xeora.Web.Site.Setting
                         xPathIter.Current.GetAttribute("mime", xPathIter.Current.BaseURI);
                     switch (tServiceItem.ServiceType)
                     {
-                        case Basics.ServiceTypes.xSocket:
+                        case Basics.Domain.ServiceTypes.xSocket:
                             tServiceItem.MimeType = mimeType;
                             if (string.IsNullOrEmpty(mimeType))
                                 tServiceItem.MimeType = "application/octet-stream";
 
                             break;
-                        case Basics.ServiceTypes.xService:
+                        case Basics.Domain.ServiceTypes.xService:
                             tServiceItem.MimeType = "text/xml; charset=utf-8";
 
                             break;

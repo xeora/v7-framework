@@ -7,7 +7,6 @@ using System.Collections.Concurrent;
 
 namespace Xeora.Web.Basics.Service
 {
-    [CLSCompliant(true)]
     public sealed class VariablePoolOperation
     {
         private static IVariablePool _Cache = null;
@@ -112,7 +111,7 @@ namespace Xeora.Web.Basics.Service
         {
             VariablePoolPreCache.CleanCachedVariables(this._SessionKeyID, name);
 
-            byte[] serializedValue = new byte[] { };
+            byte[] serializedValue;
             Stream forStream = null;
             try
             {
@@ -125,7 +124,7 @@ namespace Xeora.Web.Basics.Service
             }
             catch (Exception)
             {
-                // Just Handle Exceptions
+                serializedValue = new byte[] { };
             }
             finally
             {
@@ -163,12 +162,10 @@ namespace Xeora.Web.Basics.Service
 
         private byte[] SerializeNameValuePairs(ConcurrentDictionary<string, object> nameValuePairs)
         {
-            SerializableDictionary serializableDictionary = new SerializableDictionary();
-
-            byte[] serializedValue = new byte[] { };
-
             if (nameValuePairs == null)
-                return serializedValue;
+                return new byte[] { };
+
+            SerializableDictionary serializableDictionary = new SerializableDictionary();
 
             Stream forStream = null;
             foreach (string variableName in nameValuePairs.Keys)
@@ -184,7 +181,7 @@ namespace Xeora.Web.Basics.Service
                         BinaryFormatter binFormater = new BinaryFormatter();
                         binFormater.Serialize(forStream, variableValue);
 
-                        serializedValue = ((MemoryStream)forStream).ToArray();
+                        byte[] serializedValue = ((MemoryStream)forStream).ToArray();
 
                         serializableDictionary.Add(new SerializableDictionary.SerializableKeyValuePair(variableName, serializedValue));
                     }
@@ -290,7 +287,7 @@ namespace Xeora.Web.Basics.Service
             }
         }
 
-        [CLSCompliant(true), Serializable()]
+        [Serializable()]
         public class SerializableDictionary : List<SerializableDictionary.SerializableKeyValuePair>
         {
             [Serializable()]

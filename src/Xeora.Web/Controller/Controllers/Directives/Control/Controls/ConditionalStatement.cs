@@ -1,4 +1,4 @@
-﻿using Xeora.Web.Basics;
+﻿using Xeora.Web.Basics.Domain;
 
 namespace Xeora.Web.Controller.Directive.Control
 {
@@ -46,33 +46,31 @@ namespace Xeora.Web.Controller.Directive.Control
             } while (leveledController != null);
 
             // Execution preparation should be done at the same level with it's parent. Because of that, send parent as parameters
-            this.Bind.PrepareProcedureParameters(
-                new Basics.Execution.BindInfo.ProcedureParser(
-                    (ref Basics.Execution.BindInfo.ProcedureParameter procedureParameter) =>
-                    {
-                        Property property = new Property(0, procedureParameter.Query, (leveledController.Parent == null ? null : leveledController.Parent.ContentArguments));
-                        property.Mother = leveledController.Mother;
-                        property.Parent = leveledController.Parent;
-                        property.InstanceRequested += (ref IDomain instance) => InstanceRequested(ref instance);
-                        property.Setup();
+            this.Bind.Parameters.Prepare(
+                (parameter) =>
+                {
+                    Property property = new Property(0, parameter.Query, (leveledController.Parent == null ? null : leveledController.Parent.ContentArguments));
+                    property.Mother = leveledController.Mother;
+                    property.Parent = leveledController.Parent;
+                    property.InstanceRequested += (ref IDomain instance) => InstanceRequested?.Invoke(ref instance);
+                    property.Setup();
 
-                        property.Render(requesterUniqueID);
+                    property.Render(requesterUniqueID);
 
-                        procedureParameter.Value = property.ObjectResult;
-                    }
-                )
+                    return property.ObjectResult;
+                }
             );
 
-            Basics.Execution.BindInvokeResult<Basics.ControlResult.Conditional> bindInvokeResult =
+            Basics.Execution.InvokeResult<Basics.ControlResult.Conditional> invokeResult =
                 Manager.AssemblyCore.InvokeBind<Basics.ControlResult.Conditional>(this.Bind, Manager.ExecuterTypes.Control);
 
-            if (bindInvokeResult.Exception != null)
-                throw new Exception.ExecutionException(bindInvokeResult.Exception.Message, bindInvokeResult.Exception.InnerException);
+            if (invokeResult.Exception != null)
+                throw new Exception.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);
             // ----
 
-            if (bindInvokeResult.Result != null)
+            if (invokeResult.Result != null)
             {
-                switch (bindInvokeResult.Result.Result)
+                switch (invokeResult.Result.Result)
                 {
                     case Basics.ControlResult.Conditional.Conditions.True:
                         if (!string.IsNullOrEmpty(contentTrue))

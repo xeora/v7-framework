@@ -7,9 +7,9 @@ using System.Xml;
 
 namespace Xeora.Web.Site.Setting
 {
-    public class xService : Basics.IxService
+    public class xService : Basics.Domain.IxService
     {
-        public string CreatexServiceAuthentication(params DictionaryEntry[] items)
+        public string CreateAuthentication(params DictionaryEntry[] items)
         {
             if (items != null)
             {
@@ -35,7 +35,7 @@ namespace Xeora.Web.Site.Setting
             if (sessionInfo == null)
                 return null;
 
-            int TimeoutMinute = 
+            int TimeoutMinute =
                 Basics.Configurations.Xeora.Session.Timeout;
             object rObject = null;
 
@@ -52,11 +52,11 @@ namespace Xeora.Web.Site.Setting
             return rObject;
         }
 
-        public string RenderxService(string executeIn, string serviceID)
+        public string Render(string executeIn, string serviceID)
         {
             // call = Calling Function Providing in Query String
-            Basics.Execution.BindInfo bindInfo =
-                Basics.Execution.BindInfo.Make(
+            Basics.Execution.Bind bind =
+                Basics.Execution.Bind.Make(
                     string.Format(
                         "{0}?{1}.{2},~xParams",
                         executeIn,
@@ -65,30 +65,31 @@ namespace Xeora.Web.Site.Setting
                     )
                 );
 
-            bindInfo.PrepareProcedureParameters(
-                new Basics.Execution.BindInfo.ProcedureParser(
-                    (ref Basics.Execution.BindInfo.ProcedureParameter procedureParameter) =>
+            bind.Parameters.Prepare(
+                (parameter) =>
+                {
+                    Basics.X.ServiceParameterCollection serviceParameterCol =
+                        new Basics.X.ServiceParameterCollection();
+
+                    try
                     {
-                        try
-                        {
-                            procedureParameter.Value =
-                                new Basics.xService.Parameters(
-                                    Basics.Helpers.Context.Request.Body.Form[procedureParameter.Key]);
-                        }
-                        catch (System.Exception)
-                        {
-                            procedureParameter.Value =
-                                new Basics.xService.Parameters();
-                        }
-                    }));
+                        serviceParameterCol.ParseXML(
+                            Basics.Helpers.Context.Request.Body.Form[parameter.Key]);                            
+                    }
+                    catch (System.Exception)
+                    { }
 
-            Basics.Execution.BindInvokeResult<object> bindInvokeResult =
-                Manager.AssemblyCore.InvokeBind<object>(bindInfo, Manager.ExecuterTypes.Undefined);
+                    return serviceParameterCol;
+                }
+            );
 
-            return this.GeneratexServiceXML(bindInvokeResult.Result);
+            Basics.Execution.InvokeResult<object> invokeResult =
+                Manager.AssemblyCore.InvokeBind<object>(bind, Manager.ExecuterTypes.Undefined);
+
+            return this.GenerateXML(invokeResult.Result);
         }
 
-        public string GeneratexServiceXML(object result)
+        public string GenerateXML(object result)
         {
             StringWriter xmlStream = new StringWriter();
             XmlTextWriter xmlWriter = new XmlTextWriter(xmlStream);
@@ -132,7 +133,7 @@ namespace Xeora.Web.Site.Setting
                 }
                 else if (result is Basics.ControlResult.VariableBlock)
                 {
-                    Basics.ControlResult.VariableBlock variableBlockResult = 
+                    Basics.ControlResult.VariableBlock variableBlockResult =
                         (Basics.ControlResult.VariableBlock)result;
 
                     xmlWriter.WriteAttributeString("type", result.GetType().Name);

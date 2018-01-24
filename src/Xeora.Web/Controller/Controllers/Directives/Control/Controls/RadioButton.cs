@@ -40,7 +40,7 @@ namespace Xeora.Web.Controller.Directive.Control
                 string.Format("<label for=\"{0}\">{1}</label>", radioButtonID, this.Text);
 
             // Render Bind Parameters
-            this.Bind = ControllerHelper.RenderBindInfo(this.Bind, this, this.ContentArguments, requesterUniqueID);
+            this.Bind = ControllerHelper.RenderBind(this.Bind, this, this.ContentArguments, requesterUniqueID);
 
             // Define OnClick Server event for Button
             if (this.Bind != null)

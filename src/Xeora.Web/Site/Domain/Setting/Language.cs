@@ -1,36 +1,41 @@
 ﻿using System;
 using System.IO;
 using System.Xml.XPath;
+using Xeora.Web.Basics.Domain;
 
 namespace Xeora.Web.Site.Setting
 {
-    public class Language : Basics.ILanguage
+    public class Language : ILanguageDefinition, ILanguage
     {
         private StringReader _XPathStream = null;
         private XPathNavigator _XPathNavigator;
 
-        public Language(string languageXMLContent)
+        internal Language(string xmlContent, bool @default)
         {
-            if (languageXMLContent == null || languageXMLContent.Trim().Length == 0)
-                throw new System.Exception(Global.SystemMessages.TRANSLATIONCONTENT + "!");
+            if (xmlContent == null || xmlContent.Trim().Length == 0)
+                throw new System.Exception(Global.SystemMessages.LANGUAGECONTENT + "!");
 
             try
             {
                 // Performance Optimization
-                this._XPathStream = new StringReader(languageXMLContent);
+                this._XPathStream = new StringReader(xmlContent);
                 XPathDocument xPathDoc = new XPathDocument(this._XPathStream);
 
                 this._XPathNavigator = xPathDoc.CreateNavigator();
                 // !--
 
-                XPathNodeIterator xPathIter = 
+                XPathNodeIterator xPathIter =
                     this._XPathNavigator.Select("/language");
 
-                if (xPathIter.MoveNext())
-                {
-                    this.ID = xPathIter.Current.GetAttribute("code", xPathIter.Current.NamespaceURI);
-                    this.Name = xPathIter.Current.GetAttribute("name", xPathIter.Current.NamespaceURI);
-                }
+                if (!xPathIter.MoveNext())
+                    throw new Exception.LanguageFileException();
+
+                this.Default = @default;
+                this.Info =
+                    new Basics.Domain.Info.Language(
+                        xPathIter.Current.GetAttribute("code", xPathIter.Current.NamespaceURI),
+                        xPathIter.Current.GetAttribute("name", xPathIter.Current.NamespaceURI)
+                    );
             }
             catch (System.Exception)
             {
@@ -40,16 +45,14 @@ namespace Xeora.Web.Site.Setting
             }
         }
 
-        public string ID { get; private set; }
-        public string Name { get; private set; }
-        public Basics.DomainInfo.LanguageInfo Info => 
-            new Basics.DomainInfo.LanguageInfo(this.ID, this.Name);
+        public bool Default { get; private set; }
+        public Basics.Domain.Info.Language Info { get; private set; }
 
         public string Get(string translationID)
         {
             try
             {
-                XPathNodeIterator xPathIter = 
+                XPathNodeIterator xPathIter =
                     this._XPathNavigator.Select(string.Format("//translation[@id='{0}']", translationID));
 
                 if (xPathIter.MoveNext())

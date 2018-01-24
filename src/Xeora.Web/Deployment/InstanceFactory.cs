@@ -21,21 +21,18 @@ namespace Xeora.Web.Deployment
             }
         }
 
-        public DomainDeployment GetOrCreate(string[] domainIDAccessTree) =>
-            this.GetOrCreate(domainIDAccessTree, null);
-
-        public DomainDeployment GetOrCreate(string[] domainIDAccessTree, string languageID)
+        public DomainDeployment GetOrCreate(string[] domainIDAccessTree)
         {
             string instancenKey = 
-                string.Format("{0}_{1}", string.Join<string>("-", domainIDAccessTree), languageID);
+                string.Join<string>("-", domainIDAccessTree);
 
             DomainDeployment domainDeployment = null;
             if (!this._Instances.TryGetValue(instancenKey, out domainDeployment))
             {
-                domainDeployment = new DomainDeployment(domainIDAccessTree, languageID);
+                domainDeployment = new DomainDeployment(domainIDAccessTree);
 
                 if (!this._Instances.TryAdd(instancenKey, domainDeployment))
-                    return this.GetOrCreate(domainIDAccessTree, languageID);
+                    return this.GetOrCreate(domainIDAccessTree);
             }
 
             return domainDeployment;

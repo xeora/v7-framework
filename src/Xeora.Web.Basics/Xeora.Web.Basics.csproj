@@ -4,16 +4,16 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Platforms>AnyCPU;x64;x86</Platforms>
     <PackageId>Xeora.Web.Basics</PackageId>
-    <Version>7.0.6545</Version>
+    <Version>7.1.6545</Version>
     <Description>XeoraCube - Web Development Framework Basics</Description>
     <Product>XeoraCube - Web Development Framework Basics</Product>
-    <Copyright>Copyright © Tuna Celik 2003 - 2017</Copyright>
+    <Copyright>Copyright © Tuna Celik 2003 - 2018</Copyright>
     <Authors>Tuna Celik</Authors>
     <Company>JakPark Solutions</Company>
     <RepositoryUrl>https://github.com/xeora/v7</RepositoryUrl>
     <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
-    <AssemblyVersion>7.0.*</AssemblyVersion>
-    <FileVersion>7.0</FileVersion>
+    <AssemblyVersion>7.1.*</AssemblyVersion>
+    <FileVersion>7.1</FileVersion>
     <Deterministic>False</Deterministic>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
@@ -48,4 +48,15 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Domain\" />
+    <Folder Include="Domain\Info\" />
+    <Folder Include="Context\" />
+    <Folder Include="Configuration\" />
+    <Folder Include="Application\" />
+    <Folder Include="Session\" />
+    <Folder Include="Enum\" />
+    <Folder Include="Execution\" />
+    <Folder Include="Mapping\" />
+  </ItemGroup>
 </Project>

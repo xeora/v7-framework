@@ -44,8 +44,8 @@ namespace Xeora.Web.Controller.Directive.Control
                     case "bind":
                         if (settings[key] != null)
                         {
-                            Basics.Execution.BindInfo bindInfo;
-                            ((Basics.Execution.BindInfo)settings[key]).Clone(out bindInfo);
+                            Basics.Execution.Bind bindInfo;
+                            ((Basics.Execution.Bind)settings[key]).Clone(out bindInfo);
 
                             this.Bind = bindInfo;
                         }
@@ -117,7 +117,7 @@ namespace Xeora.Web.Controller.Directive.Control
 
         public ControlTypes Type { get; private set; }
         public SecurityInfo Security { get; private set; }
-        public Basics.Execution.BindInfo Bind { get; private set; }
+        public Basics.Execution.Bind Bind { get; private set; }
         public AttributeInfoCollection Attributes { get; private set; }
 
         public ControlSettings Clone()
@@ -133,7 +133,7 @@ namespace Xeora.Web.Controller.Directive.Control
 
             if (this.Bind != null)
             {
-                Basics.Execution.BindInfo bind;
+                Basics.Execution.Bind bind;
                 this.Bind.Clone(out bind);
                 settings.Bind = bind;
             }

@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 
 namespace Xeora.Web.Basics
 {
-    public class OverrideBinder : SerializationBinder
+    internal class OverrideBinder : SerializationBinder
     {
         private static ConcurrentDictionary<string, Assembly> _AssemblyCache = 
             new ConcurrentDictionary<string, Assembly>();

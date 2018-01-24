@@ -56,11 +56,11 @@ namespace Xeora.Web.Controller.Directive.Control
 
         private static ControlSettings GetControlSettings(string controlID, ControlResolveHandler controlResolveRequested)
         {
-            Basics.IDomain workingInstance = null;
+            Basics.Domain.IDomain workingInstance = null;
             do
             {
                 ControlSettings controlSettings = null;
-                controlResolveRequested(controlID, ref workingInstance, out controlSettings);
+                controlResolveRequested?.Invoke(controlID, ref workingInstance, out controlSettings);
 
                 if (controlSettings != null)
                     return controlSettings;

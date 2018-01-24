@@ -38,7 +38,7 @@ namespace Xeora.Web.Controller.Directive.Control
                 this.Attributes.Remove("value");
 
             // Render Bind Parameters
-            this.Bind = ControllerHelper.RenderBindInfo(this.Bind, this, this.ContentArguments, requesterUniqueID);
+            this.Bind = ControllerHelper.RenderBind(this.Bind, this, this.ContentArguments, requesterUniqueID);
 
             // Define onKeyDown Server event for Button
             string xeoraCall = string.Empty;

@@ -192,28 +192,28 @@ namespace Xeora.Web.Manager
         }
 
         // This function is for external call out side of the project DO NOT DISABLE IT
-        public static Basics.Execution.BindInvokeResult<T> InvokeBind<T>(Basics.Execution.BindInfo bind) =>
+        public static Basics.Execution.InvokeResult<T> InvokeBind<T>(Basics.Execution.Bind bind) =>
             AssemblyCore.InvokeBind<T>(bind, ExecuterTypes.Undefined);
 
-        public static Basics.Execution.BindInvokeResult<T> InvokeBind<T>(Basics.Execution.BindInfo bind, ExecuterTypes executerType)
+        public static Basics.Execution.InvokeResult<T> InvokeBind<T>(Basics.Execution.Bind bind, ExecuterTypes executerType)
         {
             if (bind == null)
                 throw new NoNullAllowedException("Requires bind!");
             // Check if BindInfo Parameters has been parsed!
-            if (!bind.IsReady)
+            if (!bind.Ready)
                 throw new System.Exception("Bind Parameters shoud be parsed first!");
 
-            Basics.Execution.BindInvokeResult<T> rBindInvokeResult =
-                new Basics.Execution.BindInvokeResult<T>(bind);
+            Basics.Execution.InvokeResult<T> rInvokeResult =
+                new Basics.Execution.InvokeResult<T>(bind);
 
             try
             {
                 object invokedObject = 
-                    Application.Prepare(bind.ExecutableName).Invoke(
+                    Application.Prepare(bind.Executable).Invoke(
                         bind.HttpMethod,
-                        bind.ClassNames,
-                        bind.ProcedureName,
-                        bind.ProcedureParamValues,
+                        bind.Classes,
+                        bind.Procedure,
+                        bind.Parameters.Values,
                         bind.InstanceExecution,
                         executerType
                     );
@@ -221,16 +221,16 @@ namespace Xeora.Web.Manager
                 if (invokedObject is System.Exception)
                     throw (System.Exception)invokedObject;
 
-                rBindInvokeResult.Result = (T)invokedObject;
+                rInvokeResult.Result = (T)invokedObject;
             }
             catch (System.Exception ex)
             {
                 Helper.EventLogger.Log(ex);
 
-                rBindInvokeResult.Exception = ex;
+                rInvokeResult.Exception = ex;
             }
 
-            return rBindInvokeResult;
+            return rInvokeResult;
         }
 
         public static object ExecuteStatement(string[] domainIDAccessTree, string statementBlockID, string statement, object[] parameters, bool cache)
@@ -264,6 +264,15 @@ namespace Xeora.Web.Manager
 
                 return ex;
             }
+        }
+
+        public static string GetPrimitiveValue(object methodResult)
+        {
+            if (methodResult != null &&
+                (methodResult.GetType().IsPrimitive || methodResult is string))
+                return (string)methodResult;
+
+            return null;
         }
 
         public static void ClearCache()

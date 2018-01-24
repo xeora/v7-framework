@@ -7,12 +7,12 @@
     <Product>XeoraCube - Web Development Framework Managers</Product>
     <Company>JakPark Solutions</Company>
     <Authors>Tuna Celik</Authors>
-    <Version>7.0.0</Version>
-    <AssemblyVersion>7.0.*</AssemblyVersion>
+    <Version>7.1.0</Version>
+    <AssemblyVersion>7.1.*</AssemblyVersion>
     <FileVersion>7.0</FileVersion>
     <Deterministic>False</Deterministic>
     <Description>XeoraCube - Web Development Framework Managers</Description>
-    <Copyright>Copyright © Tuna Celik 2003 - 2017</Copyright>
+    <Copyright>Copyright © Tuna Celik 2003 - 2018</Copyright>
     <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
     <RepositoryUrl>https://github.com/xeora/v7</RepositoryUrl>
     <RootNamespace>Xeora.Web</RootNamespace>

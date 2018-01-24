@@ -18,7 +18,7 @@ namespace Xeora.Web.Basics
         }
 
         private bool _Flushing = false;
-        async private void Flush()
+        private async void Flush()
         {
             if (this._Flushing)
                 return;

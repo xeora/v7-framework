@@ -7,6 +7,7 @@ using System.Threading;
 using Xeora.Web.Basics;
 using Xeora.Web.Basics.Context;
 using Xeora.Web.Basics.ControlResult;
+using Xeora.Web.Basics.X;
 using Xeora.Web.Controller.Directive;
 using Xeora.Web.Site;
 
@@ -97,7 +98,7 @@ namespace Xeora.Web.Handler
                 if (Configurations.Xeora.Application.Main.Compression && acceptEncodings != null)
                     this._SupportCompression = (acceptEncodings.IndexOf("gzip") > -1);
 
-                if (this._DomainControl.ServicePathInfo == null)
+                if (this._DomainControl.ServiceDefinition == null)
                     this.HandleStaticFile(); // Static File that has the same level of Application folder or Domain Content File
                 else
                     this.HandleServiceRequest(); // Service Request (Template, xService, xSocket)
@@ -108,9 +109,6 @@ namespace Xeora.Web.Handler
             }
             finally
             {
-                if (this._DomainControl != null)
-                    this._DomainControl.Dispose();
-
                 // If Redirection has been assigned, handle it
                 if (this.Context["RedirectLocation"] != null)
                 {
@@ -127,7 +125,7 @@ namespace Xeora.Web.Handler
                     else
                     {
                         byte[] redirectBytes =
-                            System.Text.Encoding.UTF8.GetBytes(string.Format("rl:{0}", (string)this.Context["RedirectLocation"]));
+                            Encoding.UTF8.GetBytes(string.Format("rl:{0}", (string)this.Context["RedirectLocation"]));
 
                         this.Context.Response.Header.AddOrUpdate("Content-Type", "text/html");
                         this.Context.Response.Header.AddOrUpdate("Content-Encoding", "identity");
@@ -219,20 +217,20 @@ namespace Xeora.Web.Handler
         private void HandleServiceRequest()
         {
             if (this._DomainControl.IsAuthenticationRequired)
-                this.RedirectToAuthenticationPage(this._DomainControl.ServicePathInfo.FullPath);
+                this.RedirectToAuthenticationPage(this._DomainControl.ServiceDefinition.FullPath);
             else
             {
                 switch (this._DomainControl.ServiceType)
                 {
-                    case ServiceTypes.Template:
+                    case Basics.Domain.ServiceTypes.Template:
                         this.HandleTemplateRequest();
 
                         break;
-                    case ServiceTypes.xService:
+                    case Basics.Domain.ServiceTypes.xService:
                         this.CreateServiceResult(null);
 
                         break;
-                    case ServiceTypes.xSocket:
+                    case Basics.Domain.ServiceTypes.xSocket:
                         this.HandlexSocketRequest();
 
                         break;
@@ -252,36 +250,34 @@ namespace Xeora.Web.Handler
                 !string.IsNullOrEmpty(bindInformation))
             {
                 // Decode Encoded Call Function to Readable
-                Basics.Execution.BindInfo bindInfo =
-                    Basics.Execution.BindInfo.Make(
+                Basics.Execution.Bind bind =
+                    Basics.Execution.Bind.Make(
                         Manager.AssemblyCore.DecodeFunction(bindInformation));
 
-                bindInfo.PrepareProcedureParameters(
-                    new Basics.Execution.BindInfo.ProcedureParser(
-                        (ref Basics.Execution.BindInfo.ProcedureParameter procedureParameter) =>
-                        {
-                            Property property = new Property(0, procedureParameter.Query, null);
-                            property.InstanceRequested += (ref IDomain instance) => instance = this._DomainControl.Domain;
-                            property.Setup();
+                bind.Parameters.Prepare(
+                    (parameter) =>
+                    {
+                        Property property = new Property(0, parameter.Query, null);
+                        property.InstanceRequested += (ref Basics.Domain.IDomain instance) => instance = this._DomainControl.Domain;
+                        property.Setup();
 
-                            property.Render(null);
+                        property.Render(null);
 
-                            procedureParameter.Value = property.ObjectResult;
-                        }
-                    )
+                        return property.ObjectResult;
+                    }
                 );
 
-                Basics.Execution.BindInvokeResult<object> bindInvokeResult =
-                    Manager.AssemblyCore.InvokeBind<object>(bindInfo, Manager.ExecuterTypes.Undefined);
+                Basics.Execution.InvokeResult<object> invokeResult =
+                    Manager.AssemblyCore.InvokeBind<object>(bind, Manager.ExecuterTypes.Undefined);
 
-                if (bindInvokeResult.Exception != null)
-                    messageResult = new Message(bindInvokeResult.Exception.ToString());
-                else if (bindInvokeResult.Result != null && bindInvokeResult.Result is Basics.ControlResult.Message)
-                    messageResult = (Message)bindInvokeResult.Result;
-                else if (bindInvokeResult.Result != null && bindInvokeResult.Result is Basics.ControlResult.RedirectOrder)
-                    this.Context.AddOrUpdate("RedirectLocation", ((RedirectOrder)bindInvokeResult.Result).Location);
+                if (invokeResult.Exception != null)
+                    messageResult = new Message(invokeResult.Exception.ToString());
+                else if (invokeResult.Result != null && invokeResult.Result is Message)
+                    messageResult = (Message)invokeResult.Result;
+                else if (invokeResult.Result != null && invokeResult.Result is RedirectOrder)
+                    this.Context.AddOrUpdate("RedirectLocation", ((RedirectOrder)invokeResult.Result).Location);
                 else
-                    methodResult = Basics.Execution.GetPrimitiveValue(bindInvokeResult.Result);
+                    methodResult = Manager.AssemblyCore.GetPrimitiveValue(invokeResult.Result);
             }
 
             if (string.IsNullOrEmpty((string)this.Context["RedirectLocation"]))
@@ -323,49 +319,45 @@ namespace Xeora.Web.Handler
             this.Context.Response.Header.AddOrUpdate("Content-Encoding", "identity");
 
             // Decode Encoded Call Function to Readable
-            Basics.Execution.BindInfo bindInfo =
+            Basics.Execution.Bind bind =
                 this._DomainControl.GetxSocketBind();
 
-            bindInfo.PrepareProcedureParameters(
-                new Basics.Execution.BindInfo.ProcedureParser(
-                    (ref Basics.Execution.BindInfo.ProcedureParameter procedureParameter) =>
-                    {
-                        Property property = new Property(0, procedureParameter.Query, null);
-                        property.InstanceRequested += (ref IDomain instance) => instance = this._DomainControl.Domain;
-                        property.Setup();
+            bind.Parameters.Prepare(
+                (parameter) =>
+                {
+                    Property property = new Property(0, parameter.Query, null);
+                    property.InstanceRequested += (ref Basics.Domain.IDomain instance) => instance = this._DomainControl.Domain;
+                    property.Setup();
 
-                        property.Render(null);
+                    property.Render(null);
 
-                        procedureParameter.Value = property.ObjectResult;
-                    }
-                )
+                    return property.ObjectResult;
+                }
             );
 
             List<KeyValuePair<string, object>> keyValueList = new List<KeyValuePair<string, object>>();
-            foreach (Basics.Execution.BindInfo.ProcedureParameter item in bindInfo.ProcedureParams)
+            foreach (Basics.Execution.ProcedureParameter item in bind.Parameters)
                 keyValueList.Add(new KeyValuePair<string, object>(item.Key, item.Value));
 
             IHttpContext context = this.Context;
-            xSocketObject xSocketObject =
-                new xSocketObject(ref context, keyValueList.ToArray());
+            SocketObject xSocketObject =
+                new SocketObject(ref context, keyValueList.ToArray());
 
-            bindInfo.OverrideProcedureParameters(new string[] { "xso" });
-            bindInfo.PrepareProcedureParameters(
-                new Basics.Execution.BindInfo.ProcedureParser(
-                    (ref Basics.Execution.BindInfo.ProcedureParameter procedureParameter) => procedureParameter.Value = xSocketObject
-                )
+            bind.Parameters.Override(new string[] { "xso" });
+            bind.Parameters.Prepare(
+                (parameter) => xSocketObject
             );
 
-            Basics.Execution.BindInvokeResult<object> bindInvokeResult =
-                Manager.AssemblyCore.InvokeBind<object>(bindInfo, Manager.ExecuterTypes.Undefined);
+            Basics.Execution.InvokeResult<object> invokeResult =
+                Manager.AssemblyCore.InvokeBind<object>(bind, Manager.ExecuterTypes.Undefined);
 
-            if (bindInvokeResult.Exception != null)
-                throw new Exception.ServiceSocketException(bindInvokeResult.Exception.ToString());
+            if (invokeResult.Exception != null)
+                throw new Exception.ServiceSocketException(invokeResult.Exception.ToString());
 
-            if (bindInvokeResult.Result is Message)
+            if (invokeResult.Result is Message)
             {
                 Message MessageResult =
-                    (Message)bindInvokeResult.Result;
+                    (Message)invokeResult.Result;
 
                 if (MessageResult.Type == Message.Types.Error)
                     throw new Exception.ServiceSocketException(MessageResult.Content);
@@ -621,7 +613,7 @@ namespace Xeora.Web.Handler
         private void PostDomainContentFileToClient(string requestedFilePathInDomainContents)
         {
             Stream requestFileStream = null;
-            this._DomainControl.ProvideFileStream(requestedFilePathInDomainContents, out requestFileStream);
+            this._DomainControl.Domain.ProvideFileStream(requestedFilePathInDomainContents, out requestFileStream);
 
             try
             {
@@ -690,7 +682,7 @@ namespace Xeora.Web.Handler
         {
             switch (this._DomainControl.ServiceType)
             {
-                case ServiceTypes.Template:
+                case Basics.Domain.ServiceTypes.Template:
                     // Get AuthenticationPage 
                     KeyValuePair<string, string> referrerURLQueryString;
                     string authenticationPage =
@@ -709,7 +701,7 @@ namespace Xeora.Web.Handler
                         Helpers.CreateURL(true, authenticationPage, referrerURLQueryString));
 
                     break;
-                case ServiceTypes.xService:
+                case Basics.Domain.ServiceTypes.xService:
                     this.CreateServiceResult(null);
 
                     break;
@@ -986,7 +978,7 @@ namespace Xeora.Web.Handler
                     "<form method=\"post\" action=\"{0}{1}/{2}?{3}\" enctype=\"multipart/form-data\" style=\"margin: 0px; padding: 0px;\">",
                     Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation,
                     this.Context.HashCode,
-                    this._DomainControl.ServicePathInfo.FullPath,
+                    this._DomainControl.ServiceDefinition.FullPath,
                     this.Context.Request.Header.URL.QueryString
                 )
             );

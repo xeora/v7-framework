@@ -3,7 +3,7 @@ using System.Xml.XPath;
 
 namespace Xeora.Web.Site.Setting
 {
-    public class Configurations : Basics.IConfigurations
+    public class Configurations : Basics.Domain.IConfigurations
     {
         private XPathNavigator _XPathNavigator;
 

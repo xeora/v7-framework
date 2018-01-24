@@ -2,9 +2,9 @@
 
 namespace Xeora.Web.Site.Setting
 {
-    public class ServiceItemCollection : List<ServiceItem>, Basics.IServiceItemCollection
+    public class ServiceItemCollection : List<ServiceItem>, Basics.Domain.IServiceItemCollection
     {
-        public Basics.IServiceItem GetServiceItem(string ID)
+        public Basics.Domain.IServiceItem GetServiceItem(string ID)
         {
             foreach (ServiceItem sI in this)
             {
@@ -15,7 +15,7 @@ namespace Xeora.Web.Site.Setting
             return null;
         }
 
-        public Basics.IServiceItemCollection GetServiceItems(Basics.ServiceTypes serviceType)
+        public Basics.Domain.IServiceItemCollection GetServiceItems(Basics.Domain.ServiceTypes serviceType)
         {
             ServiceItemCollection rCollection = new ServiceItemCollection();
 

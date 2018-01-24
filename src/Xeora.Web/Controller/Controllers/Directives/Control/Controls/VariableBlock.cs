@@ -1,4 +1,4 @@
-﻿using Xeora.Web.Basics;
+﻿using Xeora.Web.Basics.Domain;
 
 namespace Xeora.Web.Controller.Directive.Control
 {
@@ -38,37 +38,35 @@ namespace Xeora.Web.Controller.Directive.Control
             } while (leveledController != null);
 
             // Execution preparation should be done at the same level with it's parent. Because of that, send parent as parameters
-            this.Bind.PrepareProcedureParameters(
-                new Basics.Execution.BindInfo.ProcedureParser(
-                    (ref Basics.Execution.BindInfo.ProcedureParameter procedureParameter) =>
-                    {
-                        Property property = new Property(0, procedureParameter.Query, (leveledController.Parent == null ? null : leveledController.Parent.ContentArguments));
-                        property.Mother = leveledController.Mother;
-                        property.Parent = leveledController.Parent;
-                        property.InstanceRequested += (ref IDomain instance) => InstanceRequested(ref instance);
-                        property.Setup();
+            this.Bind.Parameters.Prepare(
+                (parameter) =>
+                {
+                    Property property = new Property(0, parameter.Query, (leveledController.Parent == null ? null : leveledController.Parent.ContentArguments));
+                    property.Mother = leveledController.Mother;
+                    property.Parent = leveledController.Parent;
+                    property.InstanceRequested += (ref IDomain instance) => InstanceRequested?.Invoke(ref instance);
+                    property.Setup();
 
-                        property.Render(requesterUniqueID);
+                    property.Render(requesterUniqueID);
 
-                        procedureParameter.Value = property.ObjectResult;
-                    }
-                )
+                    return property.ObjectResult;
+                }
             );
 
-            Basics.Execution.BindInvokeResult<Basics.ControlResult.VariableBlock> bindInvokeResult =
+            Basics.Execution.InvokeResult<Basics.ControlResult.VariableBlock> invokeResult =
                 Manager.AssemblyCore.InvokeBind<Basics.ControlResult.VariableBlock>(this.Bind, Manager.ExecuterTypes.Control);
 
-            if (bindInvokeResult.Exception != null)
-                throw new Exception.ExecutionException(bindInvokeResult.Exception.Message, bindInvokeResult.Exception.InnerException);
+            if (invokeResult.Exception != null)
+                throw new Exception.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);
             // ----
 
             if (!this.Leveling.ExecutionOnly)
                 this.ContentArguments.Replace(leveledController.ContentArguments);
 
-            if (bindInvokeResult.Result != null)
+            if (invokeResult.Result != null)
             {
-                foreach (string key in bindInvokeResult.Result.Keys)
-                    this.ContentArguments.AppendKeyWithValue(key, bindInvokeResult.Result[key]);
+                foreach (string key in invokeResult.Result.Keys)
+                    this.ContentArguments.AppendKeyWithValue(key, invokeResult.Result[key]);
             }
 
             // Just parse the children to be accessable in search

@@ -13,13 +13,12 @@ using Xeora.Web.Manager;
 
 namespace Xeora.Web.Site
 {
-    public class Domain : Basics.IDomain
+    public class Domain : Basics.Domain.IDomain
     {
         private Renderer _Renderer = null;
-        private Deployment.DomainDeployment _Deployment = null;
 
-        private LanguageHolder _LanguageHolder;
-        private XPathNavigator _ControlsXPathNavigator;
+        private Deployment.DomainDeployment _Deployment = null;
+        private LanguagesHolder _LanguagesHolder = null;
 
         public Domain(string[] domainIDAccessTree) :
             this(domainIDAccessTree, null)
@@ -30,18 +29,12 @@ namespace Xeora.Web.Site
 
         private void BuildDomain(string[] domainIDAccessTree, string languageID)
         {
-            if (this._xPathStream != null)
-            {
-                this._xPathStream.Close();
-                this._ControlsXPathNavigator = null;
-            }
-
             if (domainIDAccessTree == null)
                 domainIDAccessTree = Basics.Configurations.Xeora.Application.Main.DefaultDomain;
 
             try
             {
-                this._Deployment = Deployment.InstanceFactory.Current.GetOrCreate(domainIDAccessTree, languageID);
+                this._Deployment = Deployment.InstanceFactory.Current.GetOrCreate(domainIDAccessTree);
             }
             catch (Exception.DomainNotExistsException)
             {
@@ -51,7 +44,7 @@ namespace Xeora.Web.Site
                     string.Join("\\", Basics.Configurations.Xeora.Application.Main.DefaultDomain)) != 0)
                     this._Deployment =
                         Deployment.InstanceFactory.Current.GetOrCreate(
-                            Basics.Configurations.Xeora.Application.Main.DefaultDomain, languageID);
+                            Basics.Configurations.Xeora.Application.Main.DefaultDomain);
                 else
                     throw;
             }
@@ -60,15 +53,16 @@ namespace Xeora.Web.Site
                 throw;
             }
 
-            this._LanguageHolder = new LanguageHolder(this, this._Deployment.Language);
-
             if (domainIDAccessTree.Length > 1)
             {
                 string[] ParentDomainIDAccessTree = new string[domainIDAccessTree.Length - 1];
                 Array.Copy(domainIDAccessTree, 0, ParentDomainIDAccessTree, 0, ParentDomainIDAccessTree.Length);
 
-                this.Parent = new Domain(ParentDomainIDAccessTree, this._Deployment.LanguageID);
+                this.Parent = new Domain(ParentDomainIDAccessTree);
             }
+
+            this._LanguagesHolder = new LanguagesHolder(this, this._Deployment.Languages);
+            this._LanguagesHolder.Use(languageID);
 
             if (this._Renderer == null)
                 this._Renderer = new Renderer();
@@ -76,29 +70,38 @@ namespace Xeora.Web.Site
             this._Renderer.Inject(this);
         }
 
-        public string[] IDAccessTree => this._Deployment.DomainIDAccessTree;
-        public Basics.DomainInfo.DeploymentTypes DeploymentType => this._Deployment.DeploymentType;
+        public void SetLanguageChangedListener(Action<Basics.Domain.ILanguage> languageChangedListener) =>
+            this._LanguagesHolder.LanguageChangedListener = languageChangedListener;
 
-        public Basics.IDomain Parent { get; private set; }
-        public Basics.DomainInfo.DomainInfoCollection Children => this._Deployment.Children;
+        public string[] IDAccessTree => this._Deployment.DomainIDAccessTree;
+        public Basics.Domain.Info.DeploymentTypes DeploymentType => this._Deployment.DeploymentType;
+
+        public Basics.Domain.IDomain Parent { get; private set; }
+        public Basics.Domain.Info.DomainCollection Children => this._Deployment.Children;
 
         public string ContentsVirtualPath =>
             string.Format(
                 "{0}{1}_{2}",
                 Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation,
                 string.Join<string>("-", this._Deployment.DomainIDAccessTree),
-                this._Deployment.Language.ID
+                this._LanguagesHolder.Current.Info.ID
             );
 
-        public Basics.ISettings Settings => this._Deployment.Settings;
-        public Basics.ILanguage Language => this._LanguageHolder;
-        public Basics.IxService xService => this._Deployment.xService;
+        public Basics.Domain.ISettings Settings => this._Deployment.Settings;
+        public Basics.Domain.ILanguages Languages => this._LanguagesHolder;
+        public Basics.Domain.IxService xService => this._Deployment.xService;
 
-        public void ProvideFileStream(string requestedFilePath, out Stream outputStream) =>
-            this._Deployment.ProvideFileStream(requestedFilePath, out outputStream);
+        public void ProvideFileStream(string requestedFilePath, out Stream outputStream)
+        {
+            this._Deployment.ProvideContentFileStream(
+                this.Languages.Current.Info.ID,
+                requestedFilePath,
+                out outputStream
+            );
 
-        public void PushLanguageChange(string languageID) =>
-            this.BuildDomain(this._Deployment.DomainIDAccessTree, languageID);
+            if (outputStream == null && this.Parent != null)
+                this.Parent.ProvideFileStream(requestedFilePath, out outputStream);
+        }
 
         public void ClearCache()
         {
@@ -110,92 +113,21 @@ namespace Xeora.Web.Site
             Deployment.InstanceFactory.Current.Reset();
         }
 
-        public string Render(Basics.ServicePathInfo servicePathInfo, Basics.ControlResult.Message messageResult, string updateBlockControlID = null) =>
-            this._Renderer.Start(servicePathInfo, messageResult, updateBlockControlID);
+        public string Render(Basics.ServiceDefinition serviceDefinition, Basics.ControlResult.Message messageResult, string updateBlockControlID = null) =>
+            this._Renderer.Start(serviceDefinition, messageResult, updateBlockControlID);
 
         public string Render(string xeoraContent, Basics.ControlResult.Message messageResult, string updateBlockControlID = null) =>
             this._Renderer.Start(xeoraContent, messageResult, updateBlockControlID);
 
-        private StringReader _xPathStream = null;
-        private XPathNavigator ControlsXPathNavigator
-        {
-            get
-            {
-                if (this._ControlsXPathNavigator != null)
-                    return this._ControlsXPathNavigator;
-
-                XPathDocument xPathDoc = null;
-                string ControlMapContent =
-                    this._Deployment.ProvideControlsContent();
-
-                if (this._xPathStream != null)
-                {
-                    this._xPathStream.Close();
-                    GC.SuppressFinalize(this._xPathStream);
-                }
-
-                this._xPathStream = new StringReader(ControlMapContent);
-                xPathDoc = new XPathDocument(this._xPathStream);
-
-                this._ControlsXPathNavigator = xPathDoc.CreateNavigator();
-
-                return this._ControlsXPathNavigator;
-            }
-        }
-
-        public void Dispose()
-        {
-            if (this._xPathStream != null)
-            {
-                this._xPathStream.Close();
-                GC.SuppressFinalize(this._xPathStream);
-            }
-            GC.SuppressFinalize(this);
-        }
-
-        private class LanguageHolder : Basics.ILanguage
-        {
-            private Basics.IDomain _Owner;
-            private Basics.ILanguage _Language;
-
-            public LanguageHolder(Basics.IDomain owner, Basics.ILanguage language)
-            {
-                this._Owner = owner;
-                this._Language = language;
-            }
-
-            public string ID => this._Language.ID;
-            public string Name => this._Language.Name;
-            public Basics.DomainInfo.LanguageInfo Info => this._Language.Info;
-
-            public string Get(string translationID)
-            {
-                try
-                {
-                    return this._Language.Get(translationID);
-                }
-                catch (Exception.TranslationNotFoundException)
-                {
-                    if (this._Owner.Parent != null)
-                        return this._Owner.Parent.Language.Get(translationID);
-                }
-
-                return null;
-            }
-
-            public void Dispose()
-            { /* Dispose will be handled by InstanceFactory. No need to handle here! */ }
-        }
-
         private class Renderer
         {
-            private Basics.IDomain _Instance = null;
+            private Basics.Domain.IDomain _Instance = null;
 
-            public void Inject(Basics.IDomain instance) =>
+            public void Inject(Basics.Domain.IDomain instance) =>
                 this._Instance = instance;
 
-            public string Start(Basics.ServicePathInfo servicePathInfo, Basics.ControlResult.Message messageResult, string updateBlockControlID = null) =>
-                this.Start(string.Format("$T:{0}$", servicePathInfo.FullPath), messageResult, updateBlockControlID);
+            public string Start(Basics.ServiceDefinition serviceDefinition, Basics.ControlResult.Message messageResult, string updateBlockControlID = null) =>
+                this.Start(string.Format("$T:{0}$", serviceDefinition.FullPath), messageResult, updateBlockControlID);
 
             public string Start(string xeoraContent, Basics.ControlResult.Message messageResult, string updateBlockControlID = null)
             {
@@ -444,12 +376,12 @@ namespace Xeora.Web.Site
                 }
             }
 
-            private void OnDeploymentAccessRequest(ref Basics.IDomain workingInstance, ref Deployment.DomainDeployment domainDeployment) =>
+            private void OnDeploymentAccessRequest(ref Basics.Domain.IDomain workingInstance, ref Deployment.DomainDeployment domainDeployment) =>
                 domainDeployment = ((Domain)workingInstance)._Deployment;
 
             private static ConcurrentDictionary<string, ControlSettings> _ControlsCache =
                 new ConcurrentDictionary<string, ControlSettings>();
-            private void OnControlResolveRequest(string controlID, ref Basics.IDomain workingInstance, out ControlSettings settings)
+            private void OnControlResolveRequest(string controlID, ref Basics.Domain.IDomain workingInstance, out ControlSettings settings)
             {
                 settings = null;
 
@@ -475,14 +407,8 @@ namespace Xeora.Web.Site
                         return;
                     }
 
-                    XPathNavigator controlsXPathNavigator =
-                        ((Domain)workingInstance).ControlsXPathNavigator;
-
-                    if (controlsXPathNavigator == null)
-                        return;
-
                     XPathNavigator xPathControlNav =
-                        controlsXPathNavigator.SelectSingleNode(string.Format("/Controls/Control[@id='{0}']", controlID));
+                        ((Domain)workingInstance)._Deployment.Controls.Select(controlID);
 
                     if (xPathControlNav == null || !xPathControlNav.MoveToFirstChild())
                     {
@@ -504,7 +430,7 @@ namespace Xeora.Web.Site
 
                                 break;
                             case "bind":
-                                controlSettingsDict.Add("bind", Basics.Execution.BindInfo.Make(xPathControlNav.Value));
+                                controlSettingsDict.Add("bind", Basics.Execution.Bind.Make(xPathControlNav.Value));
 
                                 break;
                             case "attributes":
@@ -545,7 +471,7 @@ namespace Xeora.Web.Site
 
                                                 break;
                                             case "bind":
-                                                Security.Bind = Basics.Execution.BindInfo.Make(childReader_sec.Value);
+                                                Security.Bind = Basics.Execution.Bind.Make(childReader_sec.Value);
 
                                                 break;
                                             case "disabled":
@@ -617,7 +543,7 @@ namespace Xeora.Web.Site
                 } while (workingInstance != null);
             }
 
-            private void OnInstanceRequest(ref Basics.IDomain instance) =>
+            private void OnInstanceRequest(ref Basics.Domain.IDomain instance) =>
                 instance = this._Instance;
 
             public void ClearCache() =>

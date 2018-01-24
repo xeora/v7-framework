@@ -30,7 +30,7 @@ namespace Xeora.Web.Controller.Directive.Control
 
         public ControlTypes Type { get; private set; }
         public SecurityInfo Security { get; private set; }
-        public Basics.Execution.BindInfo Bind { get; protected set; }
+        public Basics.Execution.Bind Bind { get; protected set; }
         public AttributeInfoCollection Attributes { get; private set; }
 
         protected abstract void RenderControl(string requesterUniqueID);

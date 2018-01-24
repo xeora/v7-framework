@@ -140,8 +140,8 @@ namespace Xeora.Web.Controller.Directive
 
         private void RenderDomainContents()
         {
-            IDomain instance = null;
-            InstanceRequested(ref instance);
+            Basics.Domain.IDomain instance = null;
+            InstanceRequested?.Invoke(ref instance);
 
             this.RenderedValue = instance.ContentsVirtualPath;
             this.ObjectResult = (object)this.RenderedValue;

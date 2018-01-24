@@ -7,9 +7,10 @@ using System.Text.RegularExpressions;
 
 namespace Xeora.Web.Site
 {
-    public class DomainControl : Basics.IDomainControl, IDisposable
+    public class DomainControl : Basics.IDomainControl
     {
         private Basics.Context.IHttpContext _Context;
+        private Basics.Domain.IDomain _Domain;
 
         private string[] _AuthenticationKeys;
         private string _ExecuteIn;
@@ -26,7 +27,7 @@ namespace Xeora.Web.Site
         {
             this.Domain = null;
 
-            this.ServicePathInfo = null;
+            this.ServiceDefinition = null;
             this.ServiceMimeType = string.Empty;
             this.ServiceResult = string.Empty;
 
@@ -51,9 +52,6 @@ namespace Xeora.Web.Site
 
             this.SelectDomain(languageID);
 
-            if (this.Domain != null)
-                this.SiteTitle = this.Domain.Language.Get("SITETITLE");
-
             this.MetaRecord = new MetaRecord();
         }
 
@@ -61,10 +59,36 @@ namespace Xeora.Web.Site
         public string SiteIconURL { get; set; }
         public Basics.IMetaRecordCollection MetaRecord { get; private set; }
 
-        public Basics.IDomain Domain { get; private set; }
+        public Basics.Domain.IDomain Domain
+        {
+            get => this._Domain;
+            private set
+            {
+                this._Domain = value;
 
-        public Basics.ServicePathInfo ServicePathInfo { get; private set; }
-        public Basics.ServiceTypes ServiceType { get; private set; }
+                if (this._Domain != null)
+                {
+                    ((Domain)this.Domain).SetLanguageChangedListener((language) =>
+                    {
+                        Basics.Context.IHttpCookieInfo languageCookie =
+                            this._Context.Request.Header.Cookie[this._CookieSearchKeyForLanguage];
+
+                        if (languageCookie == null)
+                            languageCookie = this._Context.Response.Header.Cookie.CreateNewCookie(this._CookieSearchKeyForLanguage);
+
+                        languageCookie.Value = language.Info.ID;
+                        languageCookie.Expires = DateTime.Now.AddDays(30);
+
+                        this._Context.Response.Header.Cookie.AddOrUpdate(languageCookie);
+                    });
+
+                    this.SiteTitle = this.Domain.Languages.Current.Get("SITETITLE");
+                }
+            }
+        }
+
+        public Basics.ServiceDefinition ServiceDefinition { get; private set; }
+        public Basics.Domain.ServiceTypes ServiceType { get; private set; }
         public string ServiceMimeType { get; private set; }
         public string ServiceResult { get; private set; }
 
@@ -84,38 +108,32 @@ namespace Xeora.Web.Site
                     new Domain(Basics.Configurations.Xeora.Application.Main.DefaultDomain, languageID);
                 this.PrepareService(this._Context.Request.Header.URL, false);
 
-                if (this.ServicePathInfo != null)
+                if (this.ServiceDefinition != null)
                     return;
-
-                this.Domain.Dispose();
 
                 return;
             }
 
             // First search the request on top domains
-            foreach (Basics.DomainInfo dI in this.GetAvailableDomains())
+            foreach (Basics.Domain.Info.Domain dI in this.GetAvailableDomains())
             {
                 this.Domain =
                     new Domain(new string[] { dI.ID }, languageID);
                 this.PrepareService(this._Context.Request.Header.URL, false);
 
-                if (this.ServicePathInfo != null)
+                if (this.ServiceDefinition != null)
                     return;
-
-                this.Domain.Dispose();
             }
 
             // If no results, start again by including children
-            foreach (Basics.DomainInfo dI in this.GetAvailableDomains())
+            foreach (Basics.Domain.Info.Domain dI in this.GetAvailableDomains())
             {
                 this.Domain =
                     new Domain(new string[] { dI.ID }, languageID);
                 this.PrepareService(this._Context.Request.Header.URL, true);
 
-                if (this.ServicePathInfo != null)
+                if (this.ServiceDefinition != null)
                     return;
-
-                this.Domain.Dispose();
             }
         }
 
@@ -139,20 +157,20 @@ namespace Xeora.Web.Site
 
         private void PrepareService(Basics.Context.IURL url, bool activateChildrenSearch)
         {
-            Basics.IDomain workingInstance = this.Domain;
+            Basics.Domain.IDomain workingInstance = this.Domain;
 
-            this.ServicePathInfo =
+            this.ServiceDefinition =
                 this.TryResolveURL(ref workingInstance, url);
-            if (this.ServicePathInfo == null)
+            if (this.ServiceDefinition == null)
                 return;
 
-            Basics.IServiceItem serviceItem =
-                workingInstance.Settings.Services.ServiceItems.GetServiceItem(this.ServicePathInfo.FullPath);
+            Basics.Domain.IServiceItem serviceItem =
+                workingInstance.Settings.Services.ServiceItems.GetServiceItem(this.ServiceDefinition.FullPath);
 
             if (serviceItem != null)
             {
-                Basics.IDomain cachedInstance = workingInstance;
-                Basics.IServiceItem cachedServiceItem = serviceItem;
+                Basics.Domain.IDomain cachedInstance = workingInstance;
+                Basics.Domain.IServiceItem cachedServiceItem = serviceItem;
 
                 while (cachedServiceItem.Overridable)
                 {
@@ -164,7 +182,7 @@ namespace Xeora.Web.Site
 
                     cachedInstance = workingInstance;
                     cachedServiceItem =
-                        workingInstance.Settings.Services.ServiceItems.GetServiceItem(this.ServicePathInfo.FullPath);
+                        workingInstance.Settings.Services.ServiceItems.GetServiceItem(this.ServiceDefinition.FullPath);
 
                     if (serviceItem.ServiceType != cachedServiceItem.ServiceType)
                         break;
@@ -194,9 +212,9 @@ namespace Xeora.Web.Site
 
                 switch (cachedServiceItem.ServiceType)
                 {
-                    case Basics.ServiceTypes.Template:
+                    case Basics.Domain.ServiceTypes.Template:
                         // Overrides that page does not need authentication even it has been marked as authentication required in Configuration definition
-                        if (string.Compare(this.ServicePathInfo.FullPath, cachedInstance.Settings.Configurations.AuthenticationPage, true) == 0)
+                        if (string.Compare(this.ServiceDefinition.FullPath, cachedInstance.Settings.Configurations.AuthenticationPage, true) == 0)
                             this.IsAuthenticationRequired = false;
                         else
                         {
@@ -215,11 +233,11 @@ namespace Xeora.Web.Site
                         }
 
                         break;
-                    case Basics.ServiceTypes.xService:
+                    case Basics.Domain.ServiceTypes.xService:
                         this.IsAuthenticationRequired = serviceItem.Authentication;
 
                         break;
-                    case Basics.ServiceTypes.xSocket:
+                    case Basics.Domain.ServiceTypes.xSocket:
                         this.IsAuthenticationRequired = serviceItem.Authentication;
 
                         break;
@@ -233,10 +251,10 @@ namespace Xeora.Web.Site
             }
             else
             {
-                // If ServiceItem is null but ServicePathInfo is not, then there should be a map match
+                // If ServiceItem is null but ServiceDefinition is not, then there should be a map match
                 // with the a service on other domain. So start the whole process with the rewritten url
 
-                if (this.ServicePathInfo != null && this.ServicePathInfo.IsMapped)
+                if (this.ServiceDefinition != null && this.ServiceDefinition.Mapped)
                 {
                     this.Build();
 
@@ -244,7 +262,7 @@ namespace Xeora.Web.Site
                 }
 
                 if (!activateChildrenSearch)
-                    this.ServicePathInfo = null;
+                    this.ServiceDefinition = null;
                 else
                 {
                     // Search SubDomains For Match
@@ -262,43 +280,43 @@ namespace Xeora.Web.Site
 
                     // Nothing Found in Anywhere
                     //[Shared].Helpers.Context.Response.StatusCode = 404
-                    this.ServicePathInfo = null;
+                    this.ServiceDefinition = null;
                 }
             }
         }
 
-        private Basics.ServicePathInfo TryResolveURL(ref Basics.IDomain workingInstance, Basics.Context.IURL url)
+        private Basics.ServiceDefinition TryResolveURL(ref Basics.Domain.IDomain workingInstance, Basics.Context.IURL url)
         {
-            if (workingInstance.Settings.URLMappings.IsActive)
+            if (workingInstance.Settings.Mappings.Active)
             {
                 // First Try Dynamic Resolve
-                Basics.URLMapping.ResolvedMapped resolvedMapped =
-                    this.QueryURLResolver(ref workingInstance, url.RelativePath);
+                Basics.Mapping.ResolutionResult resolutionResult =
+                    this.ResolveURL(ref workingInstance, url.RelativePath);
 
-                if (resolvedMapped == null || !resolvedMapped.IsResolved)
+                if (resolutionResult == null || !resolutionResult.Resolved)
                 {
                     // No Result So Check Static Definitions
-                    foreach (Basics.URLMapping.URLMappingItem urlMapItem in workingInstance.Settings.URLMappings.Items)
+                    foreach (Basics.Mapping.MappingItem mapItem in workingInstance.Settings.Mappings.Items)
                     {
                         Match rqMatch =
-                            Regex.Match(url.RelativePath, urlMapItem.RequestMap, RegexOptions.IgnoreCase);
+                            Regex.Match(url.RelativePath, mapItem.RequestMap, RegexOptions.IgnoreCase);
 
                         if (rqMatch.Success)
                         {
-                            resolvedMapped = new Basics.URLMapping.ResolvedMapped(true, urlMapItem.ResolveInfo.ServicePathInfo);
+                            resolutionResult = new Basics.Mapping.ResolutionResult(true, mapItem.ResolveEntry.ServiceDefinition);
 
                             string medItemValue = null;
-                            foreach (Basics.URLMapping.ResolveInfos.MappedItem medItem in urlMapItem.ResolveInfo.MappedItems)
+                            foreach (Basics.Mapping.ResolveItem resolveItem in mapItem.ResolveEntry.ResolveItems)
                             {
                                 medItemValue = string.Empty;
 
-                                if (!string.IsNullOrEmpty(medItem.ID))
-                                    medItemValue = rqMatch.Groups[medItem.ID].Value;
+                                if (!string.IsNullOrEmpty(resolveItem.ID))
+                                    medItemValue = rqMatch.Groups[resolveItem.ID].Value;
                                 else
-                                    medItemValue = this._Context.Request.QueryString[medItem.QueryStringKey];
+                                    medItemValue = this._Context.Request.QueryString[resolveItem.QueryStringKey];
 
-                                resolvedMapped.URLQueryDictionary[medItem.QueryStringKey] =
-                                    (string.IsNullOrEmpty(medItemValue) ? medItem.DefaultValue : medItemValue);
+                                resolutionResult.QueryString[resolveItem.QueryStringKey] =
+                                    (string.IsNullOrEmpty(medItemValue) ? resolveItem.DefaultValue : medItemValue);
                             }
 
                             break;
@@ -306,11 +324,11 @@ namespace Xeora.Web.Site
                     }
                 }
 
-                if (resolvedMapped != null && resolvedMapped.IsResolved)
+                if (resolutionResult != null && resolutionResult.Resolved)
                 {
-                    this.RectifyRequestPath(resolvedMapped);
+                    this.RectifyRequestPath(resolutionResult);
 
-                    return resolvedMapped.ServicePathInfo;
+                    return resolutionResult.ServiceDefinition;
                 }
             }
 
@@ -328,22 +346,22 @@ namespace Xeora.Web.Site
 
                 if (!string.IsNullOrEmpty(requestFilePath))
                 {
-                    Basics.ServicePathInfo rServicePathInfo =
-                        Basics.ServicePathInfo.Parse(requestFilePath, false);
+                    Basics.ServiceDefinition rServiceDefinition =
+                        Basics.ServiceDefinition.Parse(requestFilePath, false);
 
-                    if (string.IsNullOrEmpty(rServicePathInfo.ServiceID))
+                    if (string.IsNullOrEmpty(rServiceDefinition.ServiceID))
                         return null;
 
-                    return rServicePathInfo;
+                    return rServiceDefinition;
                 }
 
-                return Basics.ServicePathInfo.Parse(workingInstance.Settings.Configurations.DefaultPage, false);
+                return Basics.ServiceDefinition.Parse(workingInstance.Settings.Configurations.DefaultPage, false);
             }
 
             return null;
         }
 
-        private Basics.IDomain SearchChildrenThatOverrides(ref Basics.IDomain workingInstance, ref Basics.Context.IURL url)
+        private Basics.Domain.IDomain SearchChildrenThatOverrides(ref Basics.Domain.IDomain workingInstance, ref Basics.Context.IURL url)
         {
             if (workingInstance == null)
                 return null;
@@ -351,23 +369,23 @@ namespace Xeora.Web.Site
             List<string> childDomainIDAccessTree = new List<string>();
             childDomainIDAccessTree.AddRange(workingInstance.IDAccessTree);
 
-            foreach (Basics.DomainInfo childDI in workingInstance.Children)
+            foreach (Basics.Domain.Info.Domain childDI in workingInstance.Children)
             {
                 childDomainIDAccessTree.Add(childDI.ID);
 
-                Basics.IDomain rDomainInstance =
-                    new Domain(childDomainIDAccessTree.ToArray(), this.Domain.Language.ID);
+                Basics.Domain.IDomain rDomainInstance =
+                    new Domain(childDomainIDAccessTree.ToArray(), this.Domain.Languages.Current.Info.ID);
 
-                Basics.ServicePathInfo servicePathInfo =
+                Basics.ServiceDefinition serviceDefinition =
                     this.TryResolveURL(ref rDomainInstance, url);
-                if (servicePathInfo == null)
+                if (serviceDefinition == null)
                 {
                     childDomainIDAccessTree.RemoveAt(childDomainIDAccessTree.Count - 1);
 
                     continue;
                 }
 
-                if (rDomainInstance.Settings.Services.ServiceItems.GetServiceItem(servicePathInfo.FullPath) == null)
+                if (rDomainInstance.Settings.Services.ServiceItems.GetServiceItem(serviceDefinition.FullPath) == null)
                 {
                     if (rDomainInstance.Children.Count > 0)
                     {
@@ -377,7 +395,7 @@ namespace Xeora.Web.Site
                             return rDomainInstance;
                     }
 
-                    if (servicePathInfo.IsMapped)
+                    if (serviceDefinition.Mapped)
                     {
                         url = this._Context.Request.Header.URL;
 
@@ -387,22 +405,21 @@ namespace Xeora.Web.Site
                 else
                     return rDomainInstance;
 
-                rDomainInstance.Dispose();
                 childDomainIDAccessTree.RemoveAt(childDomainIDAccessTree.Count - 1);
             }
 
             return null;
         }
 
-        private void RectifyRequestPath(Basics.URLMapping.ResolvedMapped resolvedMapped)
+        private void RectifyRequestPath(Basics.Mapping.ResolutionResult resolutionResult)
         {
             string requestURL = string.Format(
                 "{0}{1}",
                 Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation,
-                resolvedMapped.ServicePathInfo.FullPath
+                resolutionResult.ServiceDefinition.FullPath
             );
-            if (resolvedMapped.URLQueryDictionary.Count > 0)
-                requestURL = string.Concat(requestURL, "?", resolvedMapped.URLQueryDictionary.ToString());
+            if (resolutionResult.QueryString.Count > 0)
+                requestURL = string.Concat(requestURL, "?", resolutionResult.QueryString.ToString());
 
             // Let the server understand what this URL is about...
             this._Context.Request.RewritePath(requestURL);
@@ -418,22 +435,22 @@ namespace Xeora.Web.Site
                     string.Format("Xeora.Web._sps_v{0}.js", this.XeoraJSVersion));
         }
 
-        public Basics.Execution.BindInfo GetxSocketBind()
+        public Basics.Execution.Bind GetxSocketBind()
         {
-            Basics.Execution.BindInfo rBindInfo = null;
+            Basics.Execution.Bind rBind = null;
 
-            if (this.ServiceType == Basics.ServiceTypes.xSocket &&
+            if (this.ServiceType == Basics.Domain.ServiceTypes.xSocket &&
                 !string.IsNullOrEmpty(this._ExecuteIn))
-                rBindInfo = Basics.Execution.BindInfo.Make(this._ExecuteIn);
+                rBind = Basics.Execution.Bind.Make(this._ExecuteIn);
 
-            return rBindInfo;
+            return rBind;
         }
 
         public void RenderService(Basics.ControlResult.Message messageResult, string updateBlockControlID)
         {
-            if (this.ServicePathInfo == null)
+            if (this.ServiceDefinition == null)
             {
-                string systemMessage = this.Domain.Language.Get("TEMPLATE_IDMUSTBESET");
+                string systemMessage = this.Domain.Languages.Current.Get("TEMPLATE_IDMUSTBESET");
 
                 if (string.IsNullOrEmpty(systemMessage))
                     systemMessage = Global.SystemMessages.TEMPLATE_IDMUSTBESET;
@@ -443,23 +460,24 @@ namespace Xeora.Web.Site
 
             switch (this.ServiceType)
             {
-                case Basics.ServiceTypes.Template:
-                    this.ServiceResult = this.Domain.Render(this.ServicePathInfo, messageResult, updateBlockControlID);
+                case Basics.Domain.ServiceTypes.Template:
+                    this.ServiceResult = this.Domain.Render(this.ServiceDefinition, messageResult, updateBlockControlID);
 
                     break;
-                case Basics.ServiceTypes.xService:
+                case Basics.Domain.ServiceTypes.xService:
                     if (this.IsAuthenticationRequired)
                     {
-                        Basics.xService.Parameters PostedExecuteParameters =
-                            new Basics.xService.Parameters(this._Context.Request.Body.Form["xParams"]);
+                        Basics.X.ServiceParameterCollection serviceParameterCol =
+                            new Basics.X.ServiceParameterCollection();
+                        serviceParameterCol.ParseXML(this._Context.Request.Body.Form["xParams"]);
 
-                        if (PostedExecuteParameters.PublicKey != null)
+                        if (serviceParameterCol.PublicKey != null)
                         {
                             this.IsAuthenticationRequired = false;
 
                             foreach (string AuthKey in this._AuthenticationKeys)
                             {
-                                if (this.Domain.xService.ReadSessionVariable(PostedExecuteParameters.PublicKey, AuthKey) == null)
+                                if (this.Domain.xService.ReadSessionVariable(serviceParameterCol.PublicKey, AuthKey) == null)
                                 {
                                     this.IsAuthenticationRequired = true;
 
@@ -470,88 +488,53 @@ namespace Xeora.Web.Site
                     }
 
                     if (!this.IsAuthenticationRequired)
-                        this.ServiceResult = this.Domain.xService.RenderxService(this._ExecuteIn, this.ServicePathInfo.ServiceID);
+                        this.ServiceResult = this.Domain.xService.Render(this._ExecuteIn, this.ServiceDefinition.ServiceID);
                     else
                     {
                         object MethodResult = new SecurityException(Global.SystemMessages.XSERVICE_AUTH);
 
-                        this.ServiceResult = this.Domain.xService.GeneratexServiceXML(MethodResult);
+                        this.ServiceResult = this.Domain.xService.GenerateXML(MethodResult);
                     }
 
                     break;
             }
         }
 
-        public void ProvideFileStream(string requestedFilePath, out Stream outputStream)
+        public Basics.Mapping.ResolutionResult ResolveURL(string requestFilePath)
         {
-            Domain workingInstance = (Domain)this.Domain;
-            do
-            {
-                workingInstance.ProvideFileStream(requestedFilePath, out outputStream);
-
-                if (outputStream == null)
-                    workingInstance = (Domain)workingInstance.Parent;
-            } while (workingInstance != null && outputStream == null);
+            Basics.Domain.IDomain dummy = null;
+            return this.ResolveURL(ref dummy, requestFilePath);
         }
 
-        public void PushLanguageChange(string languageID)
-        {
-            // Make the language Persist
-            Basics.Context.IHttpCookieInfo languageCookie =
-                this._Context.Request.Header.Cookie[this._CookieSearchKeyForLanguage];
-
-            if (languageCookie == null)
-                languageCookie = this._Context.Response.Header.Cookie.CreateNewCookie(this._CookieSearchKeyForLanguage);
-
-            languageCookie.Value = languageID;
-            languageCookie.Expires = DateTime.Now.AddDays(30);
-
-            this._Context.Response.Header.Cookie.AddOrUpdate(languageCookie);
-            //!---
-
-            ((Domain)this.Domain).PushLanguageChange(languageID);
-        }
-
-        public Basics.URLMapping.ResolvedMapped QueryURLResolver(string requestFilePath)
-        {
-            Basics.IDomain dummy = null;
-            return this.QueryURLResolver(ref dummy, requestFilePath);
-        }
-
-        private Basics.URLMapping.ResolvedMapped QueryURLResolver(ref Basics.IDomain workingInstance, string requestFilePath)
+        private Basics.Mapping.ResolutionResult ResolveURL(ref Basics.Domain.IDomain workingInstance, string requestFilePath)
         {
             if (workingInstance == null)
                 workingInstance = this.Domain;
 
             if (workingInstance != null &&
-                workingInstance.Settings.URLMappings.IsActive &&
-                !string.IsNullOrEmpty(workingInstance.Settings.URLMappings.ResolverExecutable))
+                workingInstance.Settings.Mappings.Active &&
+                !string.IsNullOrEmpty(workingInstance.Settings.Mappings.ResolverExecutable))
             {
-                Basics.Execution.BindInfo resolverBindInfo =
-                    Basics.Execution.BindInfo.Make(string.Format("{0}?URLResolver,rfp", workingInstance.Settings.URLMappings.ResolverExecutable));
-                resolverBindInfo.PrepareProcedureParameters(
-                     new Basics.Execution.BindInfo.ProcedureParser(
-                         (ref Basics.Execution.BindInfo.ProcedureParameter procedureParameter) =>
-                         {
-                             procedureParameter.Value = requestFilePath;
-                         }
-                     )
+                Basics.Execution.Bind resolverBind =
+                    Basics.Execution.Bind.Make(string.Format("{0}?ResolveURL,rfp", workingInstance.Settings.Mappings.ResolverExecutable));
+                resolverBind.Parameters.Prepare(
+                     (parameter) => requestFilePath
                  );
-                resolverBindInfo.InstanceExecution = true;
+                resolverBind.InstanceExecution = true;
 
-                Basics.Execution.BindInvokeResult<Basics.URLMapping.ResolvedMapped> ResolverBindInvokeResult =
-                    Manager.AssemblyCore.InvokeBind<Basics.URLMapping.ResolvedMapped>(resolverBindInfo, Manager.ExecuterTypes.Undefined);
+                Basics.Execution.InvokeResult<Basics.Mapping.ResolutionResult> resolverInvokeResult =
+                    Manager.AssemblyCore.InvokeBind<Basics.Mapping.ResolutionResult>(resolverBind, Manager.ExecuterTypes.Undefined);
 
-                if (ResolverBindInvokeResult.Exception == null)
-                    return ResolverBindInvokeResult.Result;
+                if (resolverInvokeResult.Exception == null)
+                    return resolverInvokeResult.Result;
             }
 
             return null;
         }
 
         // Cache for performance consideration
-        private static Basics.DomainInfo.DomainInfoCollection _AvailableDomains = null;
-        public Basics.DomainInfo.DomainInfoCollection GetAvailableDomains()
+        private static Basics.Domain.Info.DomainCollection _AvailableDomains = null;
+        public Basics.Domain.Info.DomainCollection GetAvailableDomains()
         {
             DirectoryInfo domainDI = new DirectoryInfo(
                 Path.GetFullPath(
@@ -583,21 +566,24 @@ namespace Xeora.Web.Site
                 return DomainControl._AvailableDomains;
             }
 
-            Basics.DomainInfo.DomainInfoCollection rDomainInfoCollection =
-                new Basics.DomainInfo.DomainInfoCollection();
+            Basics.Domain.Info.DomainCollection rDomainInfoCollection =
+                new Basics.Domain.Info.DomainCollection();
 
             foreach (DirectoryInfo dI in domainDI.GetDirectories())
             {
                 try
                 {
-                    Basics.DomainInfo.LanguageInfo[] languages =
-                        Deployment.DomainDeployment.AvailableLanguageInfos(new string[] { dI.Name });
-
                     Deployment.DomainDeployment domainDeployment =
-                        Deployment.InstanceFactory.Current.GetOrCreate(new string[] { dI.Name }, languages[0].ID);
+                        Deployment.InstanceFactory.Current.GetOrCreate(new string[] { dI.Name });
 
-                    Basics.DomainInfo domainInfo =
-                        new Basics.DomainInfo(domainDeployment.DeploymentType, dI.Name, languages);
+                    List<Basics.Domain.Info.Language> languages =
+                        new List<Basics.Domain.Info.Language>();
+
+                    foreach (string languageID in domainDeployment.Languages)
+                        languages.Add(domainDeployment.Languages[languageID].Info);
+
+                    Basics.Domain.Info.Domain domainInfo =
+                        new Basics.Domain.Info.Domain(domainDeployment.DeploymentType, dI.Name, languages.ToArray());
                     domainInfo.Children.AddRange(domainDeployment.Children);
 
                     rDomainInfoCollection.Add(domainInfo);
@@ -610,13 +596,6 @@ namespace Xeora.Web.Site
             DomainControl._AvailableDomains = rDomainInfoCollection;
 
             return DomainControl._AvailableDomains;
-        }
-
-        public void Dispose()
-        {
-            if (this.Domain != null)
-                this.Domain.Dispose();
-            GC.SuppressFinalize(this);
         }
     }
 }

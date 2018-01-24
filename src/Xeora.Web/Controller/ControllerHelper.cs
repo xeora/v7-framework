@@ -14,31 +14,31 @@ namespace Xeora.Web.Controller
             return controller.RenderedValue;
         }
 
-        public static Basics.Execution.BindInfo RenderBindInfo(Basics.Execution.BindInfo bindInfo, IController parent, Global.ArgumentInfoCollection contentArguments, string requesterUniqueID)
+        public static Basics.Execution.Bind RenderBind(Basics.Execution.Bind bind, IController parent, Global.ArgumentInfoCollection contentArguments, string requesterUniqueID)
         {
-            if (bindInfo == null)
+            if (bind == null)
                 return null;
 
-            if (bindInfo.ProcedureParams == null)
-                return bindInfo;
+            if (bind.Parameters.Count == 0)
+                return bind;
 
-            string[] procedureParams = new string[bindInfo.ProcedureParams.Length];
+            string[] parameters = new string[bind.Parameters.Count];
 
             // Render Params One By One (this render process is mainly controls with bind which fired when a control get interaction with user)
             // The aim is rendering static values comes from dinamic ones like =$#SomeID$
-            for (int pC = 0; pC < bindInfo.ProcedureParams.Length; pC++)
+            for (int pC = 0; pC < bind.Parameters.Count; pC++)
             {
-                procedureParams[pC] = ControllerHelper.RenderSingleContent(
-                    bindInfo.ProcedureParams[pC].Query,
+                parameters[pC] = ControllerHelper.RenderSingleContent(
+                    bind.Parameters[pC].Query,
                     parent,
                     contentArguments,
                     requesterUniqueID
                 );
             }
 
-            bindInfo.OverrideProcedureParameters(procedureParams);
+            bind.Parameters.Override(parameters);
 
-            return bindInfo;
+            return bind;
         }
 
         public static IController CreateSingleController(string rawValue, IController parent, Global.ArgumentInfoCollection contentArguments)

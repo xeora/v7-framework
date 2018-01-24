@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security;
-using Xeora.Web.Basics;
+using Xeora.Web.Basics.Domain;
 using Xeora.Web.Deployment;
 using Xeora.Web.Global;
 
@@ -26,13 +26,13 @@ namespace Xeora.Web.Controller.Directive
             // UpdateBlock can be located under a template included in another template
 
             IDomain instance = null;
-            InstanceRequested(ref instance);
+            InstanceRequested?.Invoke(ref instance);
 
             IDomain workingInstance = instance;
 
             if (!this.CheckIsAuthenticated(ref instance, ref workingInstance))
             {
-                string systemMessage = instance.Language.Get("TEMPLATE_AUTH");
+                string systemMessage = instance.Languages.Current.Get("TEMPLATE_AUTH");
 
                 if (string.IsNullOrEmpty(systemMessage))
                     systemMessage = SystemMessages.TEMPLATE_AUTH;
@@ -48,7 +48,7 @@ namespace Xeora.Web.Controller.Directive
         public override IController Find(string controlID)
         {
             IDomain instance = null;
-            InstanceRequested(ref instance);
+            InstanceRequested?.Invoke(ref instance);
 
             IDomain workingInstance = instance;
 
@@ -153,7 +153,7 @@ namespace Xeora.Web.Controller.Directive
 
             foreach (string authKey in serviceItem.AuthenticationKeys)
             {
-                if (Helpers.Context.Session[authKey] == null)
+                if (Basics.Helpers.Context.Session[authKey] == null)
                 {
                     localAuthenticationNotAccepted = true;
 
@@ -175,11 +175,11 @@ namespace Xeora.Web.Controller.Directive
             List<string> childDomainIDAccessTree = new List<string>();
             childDomainIDAccessTree.AddRange(workingInstance.IDAccessTree);
 
-            foreach (DomainInfo childDI in workingInstance.Children)
+            foreach (Basics.Domain.Info.Domain childDI in workingInstance.Children)
             {
                 childDomainIDAccessTree.Add(childDI.ID);
 
-                IDomain rDomainInstance = new Site.Domain(childDomainIDAccessTree.ToArray(), originalInstance.Language.ID);
+                IDomain rDomainInstance = new Site.Domain(childDomainIDAccessTree.ToArray(), originalInstance.Languages.Current.Info.ID);
                 IServiceItem serviceItem =
                     rDomainInstance.Settings.Services.ServiceItems.GetServiceItem(this.ControlID);
 
@@ -197,7 +197,6 @@ namespace Xeora.Web.Controller.Directive
                 else
                     return rDomainInstance;
 
-                rDomainInstance.Dispose();
                 childDomainIDAccessTree.RemoveAt(childDomainIDAccessTree.Count - 1);
             }
 
@@ -211,7 +210,7 @@ namespace Xeora.Web.Controller.Directive
                 this.ContentArguments.Replace(this.Parent.ContentArguments);
 
             DomainDeployment domainDeployment = null;
-            DeploymentAccessRequested(ref workingInstance, ref domainDeployment);
+            DeploymentAccessRequested?.Invoke(ref workingInstance, ref domainDeployment);
 
             if (domainDeployment == null)
                 throw new System.Exception("Domain Deployment access is failed!");

@@ -68,7 +68,7 @@ namespace Xeora.Web.Controller.Directive.Control
             }
 
             // Render Bind Parameters
-            this.Bind = ControllerHelper.RenderBindInfo(this.Bind, this, this.ContentArguments, requesterUniqueID);
+            this.Bind = ControllerHelper.RenderBind(this.Bind, this, this.ContentArguments, requesterUniqueID);
 
             // Define OnClick Server event for Button
             if (this.Bind != null)

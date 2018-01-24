@@ -45,7 +45,7 @@
             }
         }
 
-        public Basics.Execution.BindInfo Bind { get; set; }
+        public Basics.Execution.Bind Bind { get; set; }
         public DisabledClass Disabled { get; private set; }
 
         public void Clone(out SecurityInfo security)
@@ -58,9 +58,9 @@
 
             if (this.Bind != null)
             {
-                Basics.Execution.BindInfo bindInfo;
-                this.Bind.Clone(out bindInfo);
-                security.Bind = bindInfo;
+                Basics.Execution.Bind bind;
+                this.Bind.Clone(out bind);
+                security.Bind = bind;
             }
 
             security.Disabled = this.Disabled;

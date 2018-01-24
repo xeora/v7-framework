@@ -57,7 +57,7 @@ namespace Xeora.Web.Service.Context
                 sB.AppendLine();
             }
 
-            this._Header.Cookie.AddOrUpdate(SessionCookieRequested());
+            this._Header.Cookie.AddOrUpdate(SessionCookieRequested?.Invoke());
 
             foreach (string key in this._Header.Cookie.Keys)
             {
@@ -97,7 +97,7 @@ namespace Xeora.Web.Service.Context
 
             sB.AppendLine("Connection: close");
 
-            this._Header.Cookie.AddOrUpdate(SessionCookieRequested());
+            this._Header.Cookie.AddOrUpdate(SessionCookieRequested?.Invoke());
 
             // put cookies because it may contain sessionid
             foreach (string key in this._Header.Cookie.Keys)

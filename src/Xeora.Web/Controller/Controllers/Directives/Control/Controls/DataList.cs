@@ -2,7 +2,7 @@
 using System.Data;
 using System.Globalization;
 using System.Text;
-using Xeora.Web.Basics;
+using Xeora.Web.Basics.Domain;
 
 namespace Xeora.Web.Controller.Directive.Control
 {
@@ -23,7 +23,7 @@ namespace Xeora.Web.Controller.Directive.Control
                 new Global.ContentDescription(this.Value);
 
             // Reset Variables
-            Helpers.VariablePool.Set(this.ControlID, null);
+            Basics.Helpers.VariablePool.Set(this.ControlID, null);
 
             // Call Related Function and Exam It
             IController leveledController = this;
@@ -43,43 +43,41 @@ namespace Xeora.Web.Controller.Directive.Control
             } while (leveledController != null);
 
             // Execution preparation should be done at the same level with it's parent. Because of that, send parent as parameters
-            this.Bind.PrepareProcedureParameters(
-                new Basics.Execution.BindInfo.ProcedureParser(
-                    (ref Basics.Execution.BindInfo.ProcedureParameter procedureParameter) =>
-                    {
-                        Property property = new Property(0, procedureParameter.Query, (leveledController.Parent == null ? null : leveledController.Parent.ContentArguments));
-                        property.Mother = leveledController.Mother;
-                        property.Parent = leveledController.Parent;
-                        property.InstanceRequested += (ref IDomain instance) => InstanceRequested(ref instance);
-                        property.Setup();
+            this.Bind.Parameters.Prepare(
+                (parameter) =>
+                {
+                    Property property = new Property(0, parameter.Query, (leveledController.Parent == null ? null : leveledController.Parent.ContentArguments));
+                    property.Mother = leveledController.Mother;
+                    property.Parent = leveledController.Parent;
+                    property.InstanceRequested += (ref IDomain instance) => InstanceRequested?.Invoke(ref instance);
+                    property.Setup();
 
-                        property.Render(requesterUniqueID);
+                    property.Render(requesterUniqueID);
 
-                        procedureParameter.Value = property.ObjectResult;
-                    }
-                )
+                    return property.ObjectResult;
+                }
             );
 
-            Basics.Execution.BindInvokeResult<Basics.ControlResult.IDataSource> bindInvokeResult =
+            Basics.Execution.InvokeResult<Basics.ControlResult.IDataSource> invokeResult =
                 Manager.AssemblyCore.InvokeBind<Basics.ControlResult.IDataSource>(this.Bind, Manager.ExecuterTypes.Control);
 
-            if (bindInvokeResult.Exception != null)
-                throw new Exception.ExecutionException(bindInvokeResult.Exception.Message, bindInvokeResult.Exception.InnerException);
+            if (invokeResult.Exception != null)
+                throw new Exception.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);
 
-            Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, 0, 0));
+            Basics.Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, 0, 0));
 
-            switch (bindInvokeResult.Result.Type)
+            switch (invokeResult.Result.Type)
             {
                 case Basics.ControlResult.DataSourceTypes.DirectDataAccess:
-                    this.RenderDirectDataAccess(requesterUniqueID, bindInvokeResult, contentDescription);
+                    this.RenderDirectDataAccess(requesterUniqueID, invokeResult, contentDescription);
 
                     break;
                 case Basics.ControlResult.DataSourceTypes.ObjectFeed:
-                    this.RenderObjectFeed(requesterUniqueID, bindInvokeResult, contentDescription);
+                    this.RenderObjectFeed(requesterUniqueID, invokeResult, contentDescription);
 
                     break;
                 case Basics.ControlResult.DataSourceTypes.PartialDataTable:
-                    this.RenderPartialDataTable(requesterUniqueID, bindInvokeResult, contentDescription);
+                    this.RenderPartialDataTable(requesterUniqueID, invokeResult, contentDescription);
 
                     break;
             }
@@ -93,22 +91,22 @@ namespace Xeora.Web.Controller.Directive.Control
             // Just override to bypass the base builder.
         }
 
-        private void RenderPartialDataTable(string requesterUniqueID, Basics.Execution.BindInvokeResult<Basics.ControlResult.IDataSource> bindInvokeResult, Global.ContentDescription contentDescription)
+        private void RenderPartialDataTable(string requesterUniqueID, Basics.Execution.InvokeResult<Basics.ControlResult.IDataSource> invokeResult, Global.ContentDescription contentDescription)
         {
             DataTable repeaterList =
-                (DataTable)bindInvokeResult.Result.GetResult();
+                (DataTable)invokeResult.Result.GetResult();
 
             Global.ArgumentInfoCollection dataListArgs =
                 new Global.ArgumentInfoCollection();
 
-            if (bindInvokeResult.Result.Message != null)
+            if (invokeResult.Result.Message != null)
             {
                 if (!contentDescription.HasMessageTemplate)
-                    this.RenderedValue = bindInvokeResult.Result.Message.Content;
+                    this.RenderedValue = invokeResult.Result.Message.Content;
                 else
                 {
-                    dataListArgs.AppendKeyWithValue("MessageType", bindInvokeResult.Result.Message.Type);
-                    dataListArgs.AppendKeyWithValue("Message", bindInvokeResult.Result.Message.Content);
+                    dataListArgs.AppendKeyWithValue("MessageType", invokeResult.Result.Message.Type);
+                    dataListArgs.AppendKeyWithValue("Message", invokeResult.Result.Message.Content);
 
                     this.RenderedValue =
                         ControllerHelper.RenderSingleContent(
@@ -118,7 +116,7 @@ namespace Xeora.Web.Controller.Directive.Control
                 return;
             }
 
-            Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, bindInvokeResult.Result.Count, bindInvokeResult.Result.Total));
+            Basics.Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, invokeResult.Result.Count, invokeResult.Result.Total));
 
             CultureInfo compareCulture = new CultureInfo("en-US");
 
@@ -170,24 +168,24 @@ namespace Xeora.Web.Controller.Directive.Control
             this.RenderedValue = renderedContent.ToString();
         }
 
-        private void RenderDirectDataAccess(string requesterUniqueID, Basics.Execution.BindInvokeResult<Basics.ControlResult.IDataSource> bindInvokeResult, Global.ContentDescription contentDescription)
+        private void RenderDirectDataAccess(string requesterUniqueID, Basics.Execution.InvokeResult<Basics.ControlResult.IDataSource> invokeResult, Global.ContentDescription contentDescription)
         {
             IDbCommand dbCommand =
-                (IDbCommand)bindInvokeResult.Result.GetResult();
+                (IDbCommand)invokeResult.Result.GetResult();
 
             Global.ArgumentInfoCollection dataListArgs =
                 new Global.ArgumentInfoCollection();
 
             if (dbCommand == null)
             {
-                if (bindInvokeResult.Result.Message != null)
+                if (invokeResult.Result.Message != null)
                 {
                     if (!contentDescription.HasMessageTemplate)
-                        this.RenderedValue = bindInvokeResult.Result.Message.Content;
+                        this.RenderedValue = invokeResult.Result.Message.Content;
                     else
                     {
-                        dataListArgs.AppendKeyWithValue("MessageType", bindInvokeResult.Result.Message.Type);
-                        dataListArgs.AppendKeyWithValue("Message", bindInvokeResult.Result.Message.Content);
+                        dataListArgs.AppendKeyWithValue("MessageType", invokeResult.Result.Message.Type);
+                        dataListArgs.AppendKeyWithValue("Message", invokeResult.Result.Message.Content);
 
                         this.RenderedValue =
                             ControllerHelper.RenderSingleContent(
@@ -216,14 +214,14 @@ namespace Xeora.Web.Controller.Directive.Control
 
                 if (!dbReader.Read())
                 {
-                    if (bindInvokeResult.Result.Message != null)
+                    if (invokeResult.Result.Message != null)
                     {
                         if (!contentDescription.HasMessageTemplate)
-                            this.RenderedValue = bindInvokeResult.Result.Message.Content;
+                            this.RenderedValue = invokeResult.Result.Message.Content;
                         else
                         {
-                            dataListArgs.AppendKeyWithValue("MessageType", bindInvokeResult.Result.Message.Type);
-                            dataListArgs.AppendKeyWithValue("Message", bindInvokeResult.Result.Message.Content);
+                            dataListArgs.AppendKeyWithValue("MessageType", invokeResult.Result.Message.Type);
+                            dataListArgs.AppendKeyWithValue("Message", invokeResult.Result.Message.Content);
 
                             this.RenderedValue =
                                 ControllerHelper.RenderSingleContent(
@@ -261,22 +259,22 @@ namespace Xeora.Web.Controller.Directive.Control
                     rC += 1;
                 } while (dbReader.Read());
 
-                Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, rC, rC));
+                Basics.Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, rC, rC));
                 this.RenderedValue = renderedContent.ToString();
             }
             catch (System.Exception ex)
             {
-                Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, 0, 0));
+                Basics.Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, 0, 0));
 
-                if (bindInvokeResult.Result.Message == null)
+                if (invokeResult.Result.Message == null)
                     throw new Exception.DirectDataAccessException(ex);
 
                 if (!contentDescription.HasMessageTemplate)
-                    this.RenderedValue = bindInvokeResult.Result.Message.Content;
+                    this.RenderedValue = invokeResult.Result.Message.Content;
                 else
                 {
-                    dataListArgs.AppendKeyWithValue("MessageType", bindInvokeResult.Result.Message.Type);
-                    dataListArgs.AppendKeyWithValue("Message", bindInvokeResult.Result.Message.Content);
+                    dataListArgs.AppendKeyWithValue("MessageType", invokeResult.Result.Message.Type);
+                    dataListArgs.AppendKeyWithValue("Message", invokeResult.Result.Message.Content);
 
                     this.RenderedValue =
                         ControllerHelper.RenderSingleContent(
@@ -305,24 +303,24 @@ namespace Xeora.Web.Controller.Directive.Control
             }
         }
 
-        private void RenderObjectFeed(string requesterUniqueID, Basics.Execution.BindInvokeResult<Basics.ControlResult.IDataSource> bindInvokeResult, Global.ContentDescription contentDescription)
+        private void RenderObjectFeed(string requesterUniqueID, Basics.Execution.InvokeResult<Basics.ControlResult.IDataSource> invokeResult, Global.ContentDescription contentDescription)
         {
             object[] objectList =
-                (object[])bindInvokeResult.Result.GetResult();
+                (object[])invokeResult.Result.GetResult();
 
             Global.ArgumentInfoCollection dataListArgs =
                 new Global.ArgumentInfoCollection();
 
-            if (bindInvokeResult.Result.Message != null)
+            if (invokeResult.Result.Message != null)
             {
-                Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, 0, 0));
+                Basics.Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, 0, 0));
 
                 if (!contentDescription.HasMessageTemplate)
-                    this.RenderedValue = bindInvokeResult.Result.Message.Content;
+                    this.RenderedValue = invokeResult.Result.Message.Content;
                 else
                 {
-                    dataListArgs.AppendKeyWithValue("MessageType", bindInvokeResult.Result.Message.Type);
-                    dataListArgs.AppendKeyWithValue("Message", bindInvokeResult.Result.Message.Content);
+                    dataListArgs.AppendKeyWithValue("MessageType", invokeResult.Result.Message.Type);
+                    dataListArgs.AppendKeyWithValue("Message", invokeResult.Result.Message.Content);
 
                     this.RenderedValue =
                         ControllerHelper.RenderSingleContent(
@@ -332,7 +330,7 @@ namespace Xeora.Web.Controller.Directive.Control
                 return;
             }
 
-            Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, bindInvokeResult.Result.Count, bindInvokeResult.Result.Total));
+            Basics.Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, invokeResult.Result.Count, invokeResult.Result.Total));
 
             StringBuilder renderedContent = new StringBuilder();
             int contentIndex = 0, rC = 0;

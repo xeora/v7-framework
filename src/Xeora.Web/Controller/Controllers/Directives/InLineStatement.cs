@@ -167,7 +167,7 @@ namespace Xeora.Web.Controller.Directive
                     new Property(0, paramDef, this.Parent.ContentArguments);
                 property.Mother = this.Mother;
                 property.Parent = this.Parent;
-                property.InstanceRequested += (ref IDomain instance) => InstanceRequested(ref instance);
+                property.InstanceRequested += (ref Basics.Domain.IDomain instance) => InstanceRequested?.Invoke(ref instance);
                 property.Setup();
 
                 property.Render(null);
@@ -182,8 +182,8 @@ namespace Xeora.Web.Controller.Directive
         {
             base.Build();
 
-            IDomain instance = null;
-            InstanceRequested(ref instance);
+            Basics.Domain.IDomain instance = null;
+            InstanceRequested?.Invoke(ref instance);
 
             string renderedValue = this.RenderedValue;
 
@@ -205,7 +205,7 @@ namespace Xeora.Web.Controller.Directive
                 if (methodResultInfo is Basics.ControlResult.RedirectOrder)
                     Helpers.Context.AddOrUpdate("RedirectLocation", ((Basics.ControlResult.RedirectOrder)methodResultInfo).Location);
                 else
-                    renderResult = Basics.Execution.GetPrimitiveValue(methodResultInfo);
+                    renderResult = Manager.AssemblyCore.GetPrimitiveValue(methodResultInfo);
 
                 this.RenderedValue = renderResult;
 

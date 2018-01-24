@@ -68,44 +68,42 @@ namespace Xeora.Web.Controller.Directive
                 level -= 1;
             } while (leveledController != null);
 
-            Basics.Execution.BindInfo bindInfo =
-                Basics.Execution.BindInfo.Make(string.Join(":", controlValueSplitted, 1, controlValueSplitted.Length - 1));
+            Basics.Execution.Bind bind =
+                Basics.Execution.Bind.Make(string.Join(":", controlValueSplitted, 1, controlValueSplitted.Length - 1));
 
             // Execution preparation should be done at the same level with it's parent. Because of that, send parent as parameters
-            bindInfo.PrepareProcedureParameters(
-                new Basics.Execution.BindInfo.ProcedureParser(
-                    (ref Basics.Execution.BindInfo.ProcedureParameter procedureParameter) =>
-                    {
-                        Property property = new Property(0, procedureParameter.Query, (leveledController.Parent == null ? null : leveledController.Parent.ContentArguments));
-                        property.Mother = leveledController.Mother;
-                        property.Parent = leveledController.Parent;
-                        property.InstanceRequested += (ref IDomain instance) => InstanceRequested(ref instance);
-                        property.Setup();
+            bind.Parameters.Prepare(
+                (parameter) =>
+                {
+                    Property property = new Property(0, parameter.Query, (leveledController.Parent == null ? null : leveledController.Parent.ContentArguments));
+                    property.Mother = leveledController.Mother;
+                    property.Parent = leveledController.Parent;
+                    property.InstanceRequested += (ref Basics.Domain.IDomain instance) => InstanceRequested?.Invoke(ref instance);
+                    property.Setup();
 
-                        property.Render(requesterUniqueID);
+                    property.Render(requesterUniqueID);
 
-                        procedureParameter.Value = property.ObjectResult;
-                    }
-                )
+                    return property.ObjectResult;
+                }
             );
 
-            Basics.Execution.BindInvokeResult<object> bindInvokeResult =
-                Manager.AssemblyCore.InvokeBind<object>(bindInfo, Manager.ExecuterTypes.Other);
+            Basics.Execution.InvokeResult<object> invokeResult =
+                Manager.AssemblyCore.InvokeBind<object>(bind, Manager.ExecuterTypes.Other);
 
-            if (bindInvokeResult.Exception != null)
-                throw new Exception.ExecutionException(bindInvokeResult.Exception.Message, bindInvokeResult.Exception.InnerException);
+            if (invokeResult.Exception != null)
+                throw new Exception.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);
 
-            if (bindInvokeResult.Result != null && bindInvokeResult.Result is Basics.ControlResult.RedirectOrder)
+            if (invokeResult.Result != null && invokeResult.Result is Basics.ControlResult.RedirectOrder)
             {
                 Helpers.Context.AddOrUpdate("RedirectLocation",
-                    ((Basics.ControlResult.RedirectOrder)bindInvokeResult.Result).Location);
+                    ((Basics.ControlResult.RedirectOrder)invokeResult.Result).Location);
 
                 this.RenderedValue = string.Empty;
 
                 return;
             }
 
-            this.RenderedValue = Basics.Execution.GetPrimitiveValue(bindInvokeResult.Result);
+            this.RenderedValue = Manager.AssemblyCore.GetPrimitiveValue(invokeResult.Result);
         }
     }
 }

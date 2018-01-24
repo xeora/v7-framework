@@ -1,27 +1,25 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Security;
 
 namespace Xeora.Web.Deployment
 {
     public class DomainDeployment : DeploymentBase, IDisposable
     {
-        private string _IntegrityCheckID;
-        private bool _IntegrityCheckRequires;
+        private static ConcurrentDictionary<string, bool> _IntegrityCheckResults =
+            new ConcurrentDictionary<string, bool>();
 
-        private Basics.ISettings _Settings = null;
-        private Basics.ILanguage _Language = null;
-        private Basics.IxService _xService = null;
-        private Basics.DomainInfo.DomainInfoCollection _Children = null;
+        private Basics.Domain.ISettings _Settings = null;
+        private Basics.Domain.ILanguages _Languages = null;
+        private Basics.Domain.IControls _Controls = null;
+        private Basics.Domain.IxService _xService = null;
+        private Basics.Domain.Info.DomainCollection _Children = null;
 
-        private DomainDeployment(string[] domainIDAccessTree) : base(domainIDAccessTree, null)
-        { }
-
-        public DomainDeployment(string[] domainIDAccessTree, string languageID) :
-            base(domainIDAccessTree, languageID)
+        public DomainDeployment(string[] domainIDAccessTree)
+            : base(domainIDAccessTree)
         {
-            this._IntegrityCheckID =
+            string integrityCheckID =
                 string.Format(
                     "ByPass{0}_{1}_{2}",
                     Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation.Replace('/', '_'),
@@ -29,17 +27,21 @@ namespace Xeora.Web.Deployment
                     this.DeploymentType
                 );
 
-            this._IntegrityCheckRequires = false;
-            if (Basics.Helpers.Context.Application[this._IntegrityCheckID] != null)
-                this._IntegrityCheckRequires = (bool)Basics.Helpers.Context.Application[this._IntegrityCheckID];
+            bool integrityCheckRequires;
+            if (!DomainDeployment._IntegrityCheckResults.TryGetValue(integrityCheckID, out integrityCheckRequires))
+                integrityCheckRequires = true;
 
-            this.Synchronise();
+            this.Synchronise(integrityCheckRequires);
+            if (integrityCheckRequires)
+                this.IntegrityCheck();
+
+            DomainDeployment._IntegrityCheckResults.TryAdd(integrityCheckID, false);
         }
 
-        private void Synchronise()
+        private void Synchronise(bool integrityCheckRequires)
         {
-            if (this.DeploymentType == Basics.DomainInfo.DeploymentTypes.Development &&
-                !this._IntegrityCheckRequires &&
+            if (this.DeploymentType == Basics.Domain.Info.DeploymentTypes.Development &&
+                !integrityCheckRequires &&
                 (
                     !Directory.Exists(this.LanguagesRegistration) ||
                     !Directory.Exists(this.TemplatesRegistration)
@@ -49,47 +51,46 @@ namespace Xeora.Web.Deployment
 
             this._Settings = new Site.Setting.Settings(this.ProvideConfigurationContent());
 
-            if (string.IsNullOrEmpty(this.LanguageID))
-                base.LanguageID = this._Settings.Configurations.DefaultLanguage;
+            // Setup Languages
+            string[] languageIDs = this.GetLanguageIDs();
+            if (languageIDs.Length == 0)
+                throw new Exception.LanguageFileException();
 
-            try
+            this._Languages = new Site.Setting.Languages();
+
+            foreach (string languageID in languageIDs)
             {
-                this._Language = 
+                ((Site.Setting.Languages)this._Languages).Add(
                     new Site.Setting.Language(
-                        this.ProvideLanguageContent(this.LanguageID));
+                        this.ProvideLanguageContent(languageID),
+                        string.Compare(languageID, this._Settings.Configurations.DefaultLanguage) == 0
+                    )
+                );
             }
-            catch (System.Exception)
-            {
-                base.LanguageID = this._Settings.Configurations.DefaultLanguage;
+            // !---
 
-                this._Language = 
-                    new Site.Setting.Language(
-                        this.ProvideLanguageContent(this.LanguageID));
-            }
-
+            this._Controls = new Site.Setting.Controls(this.ProvideControlsContent());
             this._xService = new Site.Setting.xService();
 
             // Compile Children Domains
-            this._Children = 
-                new Basics.DomainInfo.DomainInfoCollection();
+            this._Children =
+                new Basics.Domain.Info.DomainCollection();
             this.CompileChildrenDomains(ref this._Children);
+        }
 
-            if (!this._IntegrityCheckRequires)
+        private void IntegrityCheck()
+        {
+            switch (this.DeploymentType)
             {
-                switch (this.DeploymentType)
-                {
-                    case Basics.DomainInfo.DeploymentTypes.Development:
-                        this.CheckDebugIntegrity();
+                case Basics.Domain.Info.DeploymentTypes.Development:
+                    this.CheckDebugIntegrity();
 
-                        break;
-                    case Basics.DomainInfo.DeploymentTypes.Release:
-                        this.CheckReleaseIntegrity();
+                    break;
+                case Basics.Domain.Info.DeploymentTypes.Release:
+                    this.CheckReleaseIntegrity();
 
-                        break;
-                }
+                    break;
             }
-
-            Basics.Helpers.Context.Application[this._IntegrityCheckID] = true;
         }
 
         private void CheckDebugIntegrity()
@@ -112,7 +113,7 @@ namespace Xeora.Web.Deployment
 
             if (!File.Exists(configurationXML))
             {
-                systemMessage = this._Language.Get("CONFIGURATIONNOTFOUND");
+                systemMessage = this._Languages.Current.Get("CONFIGURATIONNOTFOUND");
 
                 if (string.IsNullOrEmpty(systemMessage))
                     systemMessage = Global.SystemMessages.ESSENTIAL_CONFIGURATIONNOTFOUND;
@@ -122,7 +123,7 @@ namespace Xeora.Web.Deployment
 
             if (!File.Exists(controlsXML))
             {
-                systemMessage = this._Language.Get("CONTROLSXMLNOTFOUND");
+                systemMessage = this._Languages.Current.Get("CONTROLSXMLNOTFOUND");
 
                 if (string.IsNullOrEmpty(systemMessage))
                     systemMessage = Global.SystemMessages.ESSENTIAL_CONTROLSXMLNOTFOUND;
@@ -137,14 +138,14 @@ namespace Xeora.Web.Deployment
             // -- Control Those System Essential Files are Exists! --
             string systemMessage = null;
 
-            XeoraDomainDecompiler.XeoraFileInfo controlsXMLFileInfo =
-                this.Decompiler.GetFileInfo(this.TemplatesRegistration, "Controls.xml");
-            XeoraDomainDecompiler.XeoraFileInfo configurationFileInfo =
-                this.Decompiler.GetFileInfo(this.TemplatesRegistration, "Configuration.xml");
+            DomainFileEntry controlsXMLFileEntry =
+                this.Decompiler.GetFileEntry(this.TemplatesRegistration, "Controls.xml");
+            DomainFileEntry configurationFileEntry =
+                this.Decompiler.GetFileEntry(this.TemplatesRegistration, "Configuration.xml");
 
-            if (configurationFileInfo.Index == -1)
+            if (configurationFileEntry.Index == -1)
             {
-                systemMessage = this._Language.Get("CONFIGURATIONNOTFOUND");
+                systemMessage = this._Languages.Current.Get("CONFIGURATIONNOTFOUND");
 
                 if (string.IsNullOrEmpty(systemMessage))
                     systemMessage = Global.SystemMessages.ESSENTIAL_CONFIGURATIONNOTFOUND;
@@ -152,9 +153,9 @@ namespace Xeora.Web.Deployment
                 throw new Exception.DeploymentException(systemMessage + "!");
             }
 
-            if (controlsXMLFileInfo.Index == -1)
+            if (controlsXMLFileEntry.Index == -1)
             {
-                systemMessage = this._Language.Get("CONTROLSXMLNOTFOUND");
+                systemMessage = this._Languages.Current.Get("CONTROLSXMLNOTFOUND");
 
                 if (string.IsNullOrEmpty(systemMessage))
                     systemMessage = Global.SystemMessages.ESSENTIAL_CONTROLSXMLNOTFOUND;
@@ -164,27 +165,34 @@ namespace Xeora.Web.Deployment
             // !--
         }
 
-        private void CompileChildrenDomains(ref Basics.DomainInfo.DomainInfoCollection childrenToFill)
+        private void CompileChildrenDomains(ref Basics.Domain.Info.DomainCollection childrenToFill)
         {
-            DirectoryInfo childrenDI = new DirectoryInfo(this.ChildrenRootPath);
+            DirectoryInfo childrenDI = 
+                new DirectoryInfo(this.ChildrenRootPath);
 
             if (childrenDI.Exists)
             {
                 foreach (DirectoryInfo childDI in childrenDI.GetDirectories())
                 {
-                    string[] childAccessTree = 
+                    string[] childAccessTree =
                         new string[this.DomainIDAccessTree.Length + 1];
                     Array.Copy(this.DomainIDAccessTree, 0, childAccessTree, 0, this.DomainIDAccessTree.Length);
                     childAccessTree[childAccessTree.Length - 1] = childDI.Name;
 
                     DomainDeployment childDomainDeployment = 
-                        InstanceFactory.Current.GetOrCreate(childAccessTree, this._Language.ID);
+                        new DomainDeployment(childAccessTree);
 
-                    Basics.DomainInfo domainInfo =
-                        new Basics.DomainInfo(
-                            childDomainDeployment.DeploymentType, 
-                            childDI.Name, 
-                            DomainDeployment.AvailableLanguageInfos(ref childDomainDeployment)
+                    List<Basics.Domain.Info.Language> languages = 
+                        new List<Basics.Domain.Info.Language>();
+
+                    foreach (string languageID in childDomainDeployment.Languages)
+                        languages.Add(childDomainDeployment.Languages[languageID].Info);
+
+                    Basics.Domain.Info.Domain domainInfo =
+                        new Basics.Domain.Info.Domain(
+                            childDomainDeployment.DeploymentType,
+                            childDI.Name,
+                            languages.ToArray()
                         );
                     domainInfo.Children.AddRange(childDomainDeployment.Children);
 
@@ -195,17 +203,18 @@ namespace Xeora.Web.Deployment
             }
         }
 
-        public override Basics.ISettings Settings => this._Settings;
-        public override Basics.ILanguage Language => this._Language;
-        public override Basics.IxService xService => this._xService;
-        public override Basics.DomainInfo.DomainInfoCollection Children => this._Children;
+        public override Basics.Domain.ISettings Settings => this._Settings;
+        public override Basics.Domain.ILanguages Languages => this._Languages;
+        public override Basics.Domain.IControls Controls => this._Controls;
+        public override Basics.Domain.IxService xService => this._xService;
+        public override Basics.Domain.Info.DomainCollection Children => this._Children;
 
         public override string ProvideTemplateContent(string serviceFullPath)
         {
             // -- Check is template file is exists
             if (!this.CheckTemplateExists(serviceFullPath))
             {
-                string systemMessage = this._Language.Get("TEMPLATE_NOFOUND");
+                string systemMessage = this._Languages.Current.Get("TEMPLATE_NOFOUND");
 
                 if (string.IsNullOrEmpty(systemMessage))
                     systemMessage = Global.SystemMessages.TEMPLATE_NOFOUND;
@@ -217,125 +226,42 @@ namespace Xeora.Web.Deployment
             return base.ProvideTemplateContent(serviceFullPath);
         }
 
-        public override void ProvideFileStream(string requestedFilePath, out Stream outputStream)
+        public string[] GetLanguageIDs()
         {
-            outputStream = null;
-
-            if (string.IsNullOrEmpty(requestedFilePath))
-                return;
-
-            requestedFilePath = requestedFilePath.Replace('/', Path.DirectorySeparatorChar);
-            if (requestedFilePath[0] == Path.DirectorySeparatorChar)
-                requestedFilePath = requestedFilePath.Substring(1);
+            List<string> rLanguageIDs =
+                new List<string>();
 
             switch (this.DeploymentType)
             {
-                case Basics.DomainInfo.DeploymentTypes.Development:
-                    string requestedFileFullPath =
-                        Path.Combine(this.DomainContentsRegistration(), requestedFilePath);
-
-                    if (File.Exists(requestedFileFullPath))
+                case Basics.Domain.Info.DeploymentTypes.Development:
+                    if (Directory.Exists(this.LanguagesRegistration))
                     {
-                        try
-                        {
-                            outputStream = new FileStream(requestedFileFullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-
-                            return;
-                        }
-                        catch (System.Exception)
-                        {
-                            outputStream = null;
-                        }
-                    }
-
-                    break;
-                case Basics.DomainInfo.DeploymentTypes.Release:
-                    XeoraDomainDecompiler.XeoraFileInfo xeoraFileInfo =
-                        this.Decompiler.GetFileInfo(
-                            Path.Combine(
-                                this.DomainContentsRegistration(),
-                                requestedFilePath.Replace(Path.GetFileName(requestedFilePath), string.Empty)
-                            ),
-                            Path.GetFileName(requestedFilePath)
-                        );
-
-                    if (xeoraFileInfo.Index > -1)
-                    {
-                        outputStream = new MemoryStream();
-
-                        XeoraDomainDecompiler.RequestResults RequestResult =
-                            this.Decompiler.ReadFile(xeoraFileInfo.Index, xeoraFileInfo.CompressedLength, ref outputStream);
-
-                        if (RequestResult == XeoraDomainDecompiler.RequestResults.PasswordError)
-                            throw new Exception.DeploymentException(Global.SystemMessages.PASSWORD_WRONG, new SecurityException());
-                    }
-
-                    break;
-            }
-        }
-
-        public static Basics.DomainInfo.LanguageInfo[] AvailableLanguageInfos(string[] domainIDAccessTree)
-        {
-            DomainDeployment workingDomainDeployment =
-                InstanceFactory.Current.GetOrCreate(domainIDAccessTree);
-
-            return DomainDeployment.AvailableLanguageInfos(ref workingDomainDeployment);
-        }
-
-        public static Basics.DomainInfo.LanguageInfo[] AvailableLanguageInfos(ref DomainDeployment workingDomainDeployment)
-        {
-            List<Basics.DomainInfo.LanguageInfo> rLanguageInfos = 
-                new List<Basics.DomainInfo.LanguageInfo>();
-
-            DomainDeployment domainDeployment = null;
-
-            switch (workingDomainDeployment.DeploymentType)
-            {
-                case Basics.DomainInfo.DeploymentTypes.Release:
-                    Dictionary<string, XeoraDomainDecompiler.XeoraFileInfo> fileListDictionary =
-                        workingDomainDeployment.Decompiler.FilesList;
-
-                    foreach (string key in fileListDictionary.Keys)
-                    {
-                        if (key.IndexOf(
-                            XeoraDomainDecompiler.XeoraFileInfo.CreateSearchKey(workingDomainDeployment.LanguagesRegistration, string.Empty)) == 0)
-                        {
-                            XeoraDomainDecompiler.XeoraFileInfo xeoraFileInfo = fileListDictionary[key];
-
-                            domainDeployment = InstanceFactory.Current.GetOrCreate(
-                                workingDomainDeployment.DomainIDAccessTree,
-                                Path.GetFileNameWithoutExtension(xeoraFileInfo.FileName)
-                            );
-
-                            rLanguageInfos.Add(domainDeployment.Language.Info);
-
-                            domainDeployment.Dispose();
-                        }
-                    }
-
-                    break;
-                case Basics.DomainInfo.DeploymentTypes.Development:
-                    if (Directory.Exists(workingDomainDeployment.LanguagesRegistration))
-                    {
-                        DirectoryInfo languagesDI = new DirectoryInfo(workingDomainDeployment.LanguagesRegistration);
+                        DirectoryInfo languagesDI = new DirectoryInfo(this.LanguagesRegistration);
 
                         foreach (FileInfo tFI in languagesDI.GetFiles())
+                            rLanguageIDs.Add(Path.GetFileNameWithoutExtension(tFI.Name));
+                    }
+
+                    break;
+                case Basics.Domain.Info.DeploymentTypes.Release:
+                    Dictionary<string, DomainFileEntry> fileEntryDictionary =
+                        this.Decompiler.FilesList;
+
+                    foreach (string key in fileEntryDictionary.Keys)
+                    {
+                        if (key.IndexOf(
+                                DomainFileEntry.CreateSearchKey(this.LanguagesRegistration, string.Empty)) == 0)
                         {
-                            domainDeployment = InstanceFactory.Current.GetOrCreate(
-                                workingDomainDeployment.DomainIDAccessTree,
-                                Path.GetFileNameWithoutExtension(tFI.Name)
-                            );
+                            DomainFileEntry fileEntry = fileEntryDictionary[key];
 
-                            rLanguageInfos.Add(domainDeployment.Language.Info);
-
-                            domainDeployment.Dispose();
+                            rLanguageIDs.Add(Path.GetFileNameWithoutExtension(fileEntry.FileName));
                         }
                     }
 
                     break;
             }
 
-            return rLanguageInfos.ToArray();
+            return rLanguageIDs.ToArray();
         }
 
         public static void ExtractApplication(string[] domainIDAccessTree, string extractLocation)
@@ -369,8 +295,10 @@ namespace Xeora.Web.Deployment
         {
             if (this._Settings != null)
                 this._Settings.Dispose();
-            if (this._Language != null)
-                this._Language.Dispose();
+            if (this._Languages != null)
+                this._Languages.Dispose();
+            if (this._Controls != null)
+                this._Controls.Dispose();
             GC.SuppressFinalize(this);
         }
     }

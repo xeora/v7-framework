@@ -596,7 +596,7 @@ namespace Xeora.Web.Manager
             {
                 try
                 {
-                    executeObject.GetType().GetMethod("Finalize").Invoke(executeObject, null);
+                    executeObject.GetType().GetMethod("Terminate").Invoke(executeObject, null);
                 }
                 catch (System.Exception)
                 {

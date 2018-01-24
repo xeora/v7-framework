@@ -17,8 +17,8 @@ namespace Xeora.Web.Controller.Directive
 
         public override void Render(string requesterUniqueID)
         {
-            Basics.IDomain instance = null;
-            InstanceRequested(ref instance);
+            Basics.Domain.IDomain instance = null;
+            InstanceRequested?.Invoke(ref instance);
 
             this._IDAccessTree = instance.IDAccessTree;
             this._CacheID =
@@ -129,7 +129,7 @@ namespace Xeora.Web.Controller.Directive
                 this.Date = DateTime.Now;
             }
 
-            public static string ProvideUniqueCacheID(PartialCache partialCache, ref Basics.IDomain instance)
+            public static string ProvideUniqueCacheID(PartialCache partialCache, ref Basics.Domain.IDomain instance)
             {
                 if (partialCache == null)
                     throw new NullReferenceException("PartialCache Parameter must not be null!");
@@ -155,10 +155,10 @@ namespace Xeora.Web.Controller.Directive
                 if (matchMI.Success)
                     int.TryParse(matchMI.Result("${PositionID}"), out positionID);
 
-                if (string.IsNullOrEmpty(instance.Language.ID) || string.IsNullOrEmpty(serviceFullPath) || positionID == -1)
+                if (string.IsNullOrEmpty(instance.Languages.Current.Info.ID) || string.IsNullOrEmpty(serviceFullPath) || positionID == -1)
                     throw new Exception.ParseException();
 
-                return string.Format("{0}_{1}_{2}", instance.Language.ID, serviceFullPath, positionID);
+                return string.Format("{0}_{1}_{2}", instance.Languages.Current.Info.ID, serviceFullPath, positionID);
             }
 
             public string CacheID { get; private set; }

@@ -94,7 +94,7 @@ namespace Xeora.Web.Service.Session
                     contentStream.Write(buffer, 0, bR);
 
                     contentSize -= bR;
-                };
+                }
 
                 byte[] messageBlock = ((MemoryStream)contentStream).ToArray();
                 this._ResponseResults.TryAdd(requestID, messageBlock);

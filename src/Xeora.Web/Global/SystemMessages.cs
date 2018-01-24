@@ -12,7 +12,8 @@
         public const string ESSENTIAL_CONTROLSXMLNOTFOUND = "ControlsXML file is not found";
 
         public const string CONFIGURATIONCONTENT = "Configuration Content value can not be null";
-        public const string TRANSLATIONCONTENT = "Translation Content value can not be null";
+        public const string CONTROLSCONTENT = "Controls Content value can not be null";
+        public const string LANGUAGECONTENT = "Language Content value can not be null";
 
         public const string TEMPLATE_AUTH = "This Template Requires Authentication";
         public const string TEMPLATE_NOFOUND = "{0} Named Template file is not found";

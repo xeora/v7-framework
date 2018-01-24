@@ -50,6 +50,6 @@ namespace Xeora.Web.Controller.Directive
         }
 
         public void RequestParsing(string rawValue, ref ControllerCollection childrenContainer, ArgumentInfoCollection contentArguments) =>
-            ParseRequested(rawValue, ref childrenContainer, contentArguments);
+            ParseRequested?.Invoke(rawValue, ref childrenContainer, contentArguments);
     }
 }

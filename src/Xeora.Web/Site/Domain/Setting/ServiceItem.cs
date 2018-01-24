@@ -1,12 +1,12 @@
 ﻿namespace Xeora.Web.Site.Setting
 {
-    public class ServiceItem : Basics.IServiceItem
+    public class ServiceItem : Basics.Domain.IServiceItem
     {
         public ServiceItem(string ID)
         {
             this.ID = ID;
             this.MimeType = "text/html; charset=utf-8";
-            this.ServiceType = Basics.ServiceTypes.Template;
+            this.ServiceType = Basics.Domain.ServiceTypes.Template;
             this.ExecuteIn = string.Empty;
             this.Authentication = false;
             this.AuthenticationKeys = new string[] { };
@@ -20,7 +20,7 @@
         public string[] AuthenticationKeys { get; set; }
         public bool StandAlone { get; set; }
         public bool Overridable { get; set; }
-        public Basics.ServiceTypes ServiceType { get; set; }
+        public Basics.Domain.ServiceTypes ServiceType { get; set; }
         public string ExecuteIn { get; set; }
     }
 }

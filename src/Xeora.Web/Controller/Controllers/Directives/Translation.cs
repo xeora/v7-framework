@@ -1,4 +1,4 @@
-﻿using Xeora.Web.Basics;
+﻿using Xeora.Web.Basics.Domain;
 using Xeora.Web.Global;
 
 namespace Xeora.Web.Controller.Directive
@@ -19,19 +19,9 @@ namespace Xeora.Web.Controller.Directive
             string translationID = this.Value.Split(':')[1];
 
             IDomain instance = null;
-            InstanceRequested(ref instance);
+            InstanceRequested?.Invoke(ref instance);
 
-            IDomain examingInstance = instance;
-            string translationText = string.Empty;
-            do
-            {
-                translationText = examingInstance.Language.Get(translationID);
-
-                if (string.IsNullOrEmpty(translationText))
-                    examingInstance = examingInstance.Parent;
-            } while (examingInstance != null && string.IsNullOrEmpty(translationText));
-
-            this.RenderedValue = translationText;
+            this.RenderedValue = instance.Languages.Current.Get(translationID);
         }
     }
 }

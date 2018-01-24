@@ -4,7 +4,7 @@ using System.Xml.XPath;
 
 namespace Xeora.Web.Site.Setting
 {
-    public class Settings : Basics.ISettings
+    public class Settings : Basics.Domain.ISettings
     {
         private StringReader _XPathStream = null;
         private XPathNavigator _XPathNavigator;
@@ -32,12 +32,12 @@ namespace Xeora.Web.Site.Setting
 
             this.Configurations = new Configurations(ref this._XPathNavigator);
             this.Services = new Services(ref this._XPathNavigator);
-            this.URLMappings = new URLMapping(ref this._XPathNavigator);
+            this.Mappings = new Mappings(ref this._XPathNavigator);
         }
 
-        public Basics.IConfigurations Configurations { get; private set; }
-        public Basics.IServices Services { get; private set; }
-        public Basics.IURLMappings URLMappings { get; private set; }
+        public Basics.Domain.IConfigurations Configurations { get; private set; }
+        public Basics.Domain.IServices Services { get; private set; }
+        public Basics.Domain.IURL Mappings { get; private set; }
 
         public void Dispose()
         {
