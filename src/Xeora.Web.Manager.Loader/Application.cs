@@ -39,7 +39,10 @@ namespace Xeora.Web.Manager
             new ConcurrentDictionary<string, Application>();
         public static Application Prepare(string executableName)
         {
-            Loader.Initialize();
+            Loader.Initialize(() => {
+                Application.Dispose();
+                StatementFactory.Dispose();
+            });
 
             string applicationKey =
                 string.Format("KEY-{0}_{1}", Loader.Current.Path, executableName);

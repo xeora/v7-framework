@@ -14,8 +14,12 @@ namespace Xeora.Web.Manager
         private bool _LoadRequested;
         private FileSystemWatcher _FileSystemWatcher = null;
 
-        private Loader()
+        private Action _ReloadedHandler;
+
+        private Loader(Action reloadedHandler)
         {
+            this._ReloadedHandler = reloadedHandler;
+
             this._CacheRootLocation =
                 System.IO.Path.Combine(
                     Basics.Configurations.Xeora.Application.Main.TemporaryRoot,
@@ -53,7 +57,7 @@ namespace Xeora.Web.Manager
 
         public static Loader Current => 
             Loader._Instance;
-        public static void Initialize()
+        public static void Initialize(Action reloadedHandler)
         {
             Monitor.Enter(Loader._LoaderLock);
             try
@@ -69,7 +73,7 @@ namespace Xeora.Web.Manager
                     return;
                 }
 
-                Loader._Instance = new Loader();
+                Loader._Instance = new Loader(reloadedHandler);
             }
             finally
             {
@@ -103,6 +107,8 @@ namespace Xeora.Web.Manager
                 this.LoadDomainExecutables(this._DomainRootLocation);
 
                 Basics.Console.Push(string.Empty, "Application is loaded successfully!", false);
+
+                this._ReloadedHandler?.Invoke();
             }
             catch (System.Exception)
             {

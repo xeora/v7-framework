@@ -38,7 +38,10 @@ namespace Xeora.Web.Manager
 
         public static StatementExecutable CreateExecutable(string[] domainIDAccessTree, string statementBlockID, string statement, bool parametric, bool cache)
         {
-            Loader.Initialize();
+            Loader.Initialize(() => {
+                Application.Dispose();
+                StatementFactory.Dispose();
+            });
 
             try
             {
@@ -163,7 +166,7 @@ namespace Xeora.Web.Manager
 
             foreach (Assembly assembly in currentDomainAssemblies)
             {
-                if (assembly.IsDynamic || string.IsNullOrEmpty(assembly.Location))
+                if (assembly.IsDynamic || string.IsNullOrEmpty(assembly.Location) || !File.Exists(assembly.Location))
                     continue;
 
                 if (assembly.Location.IndexOf(Loader.Current.Path) > -1)
