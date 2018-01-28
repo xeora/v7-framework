@@ -286,11 +286,11 @@ namespace Xeora.Web.Basics
             try
             {
                 MethodInfo invokeBindMethod =
-                    assemblyCoreType.GetMethod("InvokeBind", new Type[] { typeof(Bind) });
+                    assemblyCoreType.GetMethod("InvokeBind", new Type[] { typeof(HttpMethod), typeof(Bind) });
                 invokeBindMethod = invokeBindMethod.MakeGenericMethod(typeof(T));
 
                 return
-                    (InvokeResult<T>)invokeBindMethod.Invoke(null, new object[] { bind });
+                    (InvokeResult<T>)invokeBindMethod.Invoke(null, new object[] { Helpers.Context.Request.Header.Method, bind });
             }
             catch (Exception ex)
             {

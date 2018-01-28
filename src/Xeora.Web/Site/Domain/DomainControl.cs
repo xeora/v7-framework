@@ -523,7 +523,7 @@ namespace Xeora.Web.Site
                 resolverBind.InstanceExecution = true;
 
                 Basics.Execution.InvokeResult<Basics.Mapping.ResolutionResult> resolverInvokeResult =
-                    Manager.AssemblyCore.InvokeBind<Basics.Mapping.ResolutionResult>(resolverBind, Manager.ExecuterTypes.Undefined);
+                    Manager.AssemblyCore.InvokeBind<Basics.Mapping.ResolutionResult>(Basics.Helpers.Context.Request.Header.Method, resolverBind, Manager.ExecuterTypes.Undefined);
 
                 if (resolverInvokeResult.Exception == null)
                     return resolverInvokeResult.Result;

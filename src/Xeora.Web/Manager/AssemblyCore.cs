@@ -192,10 +192,10 @@ namespace Xeora.Web.Manager
         }
 
         // This function is for external call out side of the project DO NOT DISABLE IT
-        public static Basics.Execution.InvokeResult<T> InvokeBind<T>(Basics.Execution.Bind bind) =>
-            AssemblyCore.InvokeBind<T>(bind, ExecuterTypes.Undefined);
+        public static Basics.Execution.InvokeResult<T> InvokeBind<T>(Basics.Context.HttpMethod httpMethod, Basics.Execution.Bind bind) =>
+            AssemblyCore.InvokeBind<T>(httpMethod, bind, ExecuterTypes.Undefined);
 
-        public static Basics.Execution.InvokeResult<T> InvokeBind<T>(Basics.Execution.Bind bind, ExecuterTypes executerType)
+        public static Basics.Execution.InvokeResult<T> InvokeBind<T>(Basics.Context.HttpMethod httpMethod, Basics.Execution.Bind bind, ExecuterTypes executerType)
         {
             if (bind == null)
                 throw new NoNullAllowedException("Requires bind!");
@@ -210,7 +210,7 @@ namespace Xeora.Web.Manager
             {
                 object invokedObject = 
                     Application.Prepare(bind.Executable).Invoke(
-                        bind.HttpMethod,
+                        httpMethod,
                         bind.Classes,
                         bind.Procedure,
                         bind.Parameters.Values,

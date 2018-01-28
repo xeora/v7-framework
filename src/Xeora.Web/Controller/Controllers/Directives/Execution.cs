@@ -88,7 +88,7 @@ namespace Xeora.Web.Controller.Directive
             );
 
             Basics.Execution.InvokeResult<object> invokeResult =
-                Manager.AssemblyCore.InvokeBind<object>(bind, Manager.ExecuterTypes.Other);
+                Manager.AssemblyCore.InvokeBind<object>(Basics.Helpers.Context.Request.Header.Method, bind, Manager.ExecuterTypes.Other);
 
             if (invokeResult.Exception != null)
                 throw new Exception.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);

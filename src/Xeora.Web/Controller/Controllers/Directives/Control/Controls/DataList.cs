@@ -59,7 +59,7 @@ namespace Xeora.Web.Controller.Directive.Control
             );
 
             Basics.Execution.InvokeResult<Basics.ControlResult.IDataSource> invokeResult =
-                Manager.AssemblyCore.InvokeBind<Basics.ControlResult.IDataSource>(this.Bind, Manager.ExecuterTypes.Control);
+                Manager.AssemblyCore.InvokeBind<Basics.ControlResult.IDataSource>(Basics.Helpers.Context.Request.Header.Method, this.Bind, Manager.ExecuterTypes.Control);
 
             if (invokeResult.Exception != null)
                 throw new Exception.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);

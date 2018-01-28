@@ -5,21 +5,14 @@ namespace Xeora.Web.Basics.Execution
     [Serializable()]
     public class Bind
     {
-        private Bind(Context.HttpMethod httpMethod, string executable, string[] classes, string procedure, string[] parameters)
+        private Bind(string executable, string[] classes, string procedure, string[] parameters)
         {
-            this.HttpMethod = httpMethod;
             this.Executable = executable;
             this.Classes = classes;
             this.Procedure = procedure;
             this.Parameters = new ProcedureParameterCollection(parameters);
             this.InstanceExecution = false;
         }
-
-        /// <summary>
-        /// Gets or sets the request http method
-        /// </summary>
-        /// <value>The request http method</value>
-        public Context.HttpMethod HttpMethod { get; private set; }
 
         /// <summary>
         /// Gets the name of the xeora executable
@@ -65,49 +58,40 @@ namespace Xeora.Web.Basics.Execution
         /// <param name="bind">Bind string</param>
         public static Bind Make(string bind)
         {
-            if (!string.IsNullOrEmpty(bind))
+            if (string.IsNullOrEmpty(bind))
+                return null;
+
+            string[] splittedBind1 = bind.Split('?');
+
+            if (splittedBind1.Length != 2)
+                return null;
+
+            string executable = splittedBind1[0];
+            string[] splittedBind2 = splittedBind1[1].Split(',');
+
+            string[] classes = null;
+            string procedure = null;
+
+            string[] classProcSearch = splittedBind2[0].Split('.');
+
+            if (classProcSearch.Length == 1)
             {
-                try
-                {
-                    string[] splittedBind1 = bind.Split('?');
+                classes = null;
+                procedure = classProcSearch[0];
+            }
+            else
+            {
+                classes = new string[classProcSearch.Length - 1];
+                Array.Copy(classProcSearch, 0, classes, 0, classes.Length);
 
-                    if (splittedBind1.Length == 2)
-                    {
-                        string executable = splittedBind1[0];
-                        string[] splittedBind2 = splittedBind1[1].Split(',');
-
-                        string[] classes = null;
-                        string procedure = null;
-
-                        string[] classProcSearch = splittedBind2[0].Split('.');
-
-                        if (classProcSearch.Length == 1)
-                        {
-                            classes = null;
-                            procedure = classProcSearch[0];
-                        }
-                        else
-                        {
-                            classes = new string[classProcSearch.Length - 1];
-                            Array.Copy(classProcSearch, 0, classes, 0, classes.Length);
-
-                            procedure = classProcSearch[classProcSearch.Length - 1];
-                        }
-
-                        string[] parameters = null;
-                        if (splittedBind2.Length > 1)
-                            parameters = string.Join(",", splittedBind2, 1, splittedBind2.Length - 1).Split('|');
-
-                        return new Bind(Helpers.Context.Request.Header.Method, executable, classes, procedure, parameters);
-                    }
-                }
-                catch (Exception)
-                {
-                    // Just Handle Exceptions
-                }
+                procedure = classProcSearch[classProcSearch.Length - 1];
             }
 
-            return null;
+            string[] parameters = null;
+            if (splittedBind2.Length > 1)
+                parameters = string.Join(",", splittedBind2, 1, splittedBind2.Length - 1).Split('|');
+
+            return new Bind(executable, classes, procedure, parameters);
         }
 
         /// <summary>
@@ -116,7 +100,7 @@ namespace Xeora.Web.Basics.Execution
         /// <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:Xeora.Web.Basics.Execution.Bind"/></returns>
         public override string ToString()
         {
-            return 
+            return
                 string.Format("{0}?{1}{2}{3}{4}",
                     this.Executable,
                     string.Join(".", this.Classes),
@@ -131,6 +115,6 @@ namespace Xeora.Web.Basics.Execution
         /// </summary>
         /// <param name="bind">Bind object that keeps cloned data</param>
         public void Clone(out Bind bind) =>
-            bind = new Bind(this.HttpMethod, this.Executable, this.Classes, this.Procedure, this.Parameters.Queries);
+            bind = new Bind(this.Executable, this.Classes, this.Procedure, this.Parameters.Queries);
     }
 }
