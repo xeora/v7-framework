@@ -573,18 +573,18 @@ namespace Xeora.Web.Site
             {
                 try
                 {
-                    Deployment.DomainDeployment domainDeployment =
+                    Deployment.Domain deployment =
                         Deployment.InstanceFactory.Current.GetOrCreate(new string[] { dI.Name });
 
                     List<Basics.Domain.Info.Language> languages =
                         new List<Basics.Domain.Info.Language>();
 
-                    foreach (string languageID in domainDeployment.Languages)
-                        languages.Add(domainDeployment.Languages[languageID].Info);
+                    foreach (string languageID in deployment.Languages)
+                        languages.Add(deployment.Languages[languageID].Info);
 
                     Basics.Domain.Info.Domain domainInfo =
-                        new Basics.Domain.Info.Domain(domainDeployment.DeploymentType, dI.Name, languages.ToArray());
-                    domainInfo.Children.AddRange(domainDeployment.Children);
+                        new Basics.Domain.Info.Domain(deployment.DeploymentType, dI.Name, languages.ToArray());
+                    domainInfo.Children.AddRange(deployment.Children);
 
                     rDomainInfoCollection.Add(domainInfo);
                 }

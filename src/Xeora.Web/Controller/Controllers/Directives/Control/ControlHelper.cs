@@ -23,7 +23,7 @@ namespace Xeora.Web.Controller.Directive.Control
                 ControlHelper.GetControlSettings(controlID, controlResolveHandler);
 
             if (controlSettings == null)
-                return new Unknown(rawStartIndex, rawValue, contentArguments, new ControlSettings(null));
+                return new Unknown(rawStartIndex, rawValue, contentArguments, new ControlSettings());
 
             switch (controlSettings.Type)
             {

@@ -1,15 +1,13 @@
-﻿using System.Collections.Generic;
-
-namespace Xeora.Web.Controller.Directive.Control
+﻿namespace Xeora.Web.Controller.Directive.Control
 {
     public class ControlSettings
     {
-        public ControlSettings(Dictionary<string, object> settings)
+        public ControlSettings()
         {
             this.Type = ControlTypes.Unknown;
-            this.Security = new SecurityInfo();
+            this.Security = new SecurityDefinition();
             this.Bind = null;
-            this.Attributes = new AttributeInfoCollection();
+            this.Attributes = new AttributeDefinitionCollection();
 
             // Set default values
             this.UpdateLocalBlock = true;
@@ -19,115 +17,29 @@ namespace Xeora.Web.Controller.Directive.Control
             this.URL = string.Empty;
             this.Content = string.Empty;
             this.Source = string.Empty;
-
-            if (settings == null)
-                return;
-
-            foreach (string key in settings.Keys)
-            {
-                switch (key)
-                {
-                    case "type":
-                        this.Type = (ControlTypes)settings[key];
-
-                        break;
-                    case "security":
-                        if (settings[key] != null)
-                        {
-                            SecurityInfo securityInfo;
-                            ((SecurityInfo)settings[key]).Clone(out securityInfo);
-
-                            this.Security = securityInfo;
-                        }
-
-                        break;
-                    case "bind":
-                        if (settings[key] != null)
-                        {
-                            Basics.Execution.Bind bindInfo;
-                            ((Basics.Execution.Bind)settings[key]).Clone(out bindInfo);
-
-                            this.Bind = bindInfo;
-                        }
-
-                        break;
-                    case "attributes":
-                        if (settings[key] != null)
-                            this.Attributes.AddRange(((AttributeInfoCollection)settings[key]).ToArray());
-
-                        break;
-                    case "blockidstoupdate.localupdate":
-                        if (settings[key] != null)
-                            this.UpdateLocalBlock = (bool)settings[key];
-                        else
-                            this.UpdateLocalBlock = true;
-
-                        break;
-                    case "blockidstoupdate":
-                        if (settings[key] != null)
-                            this.BlockIDsToUpdate = (string[])settings[key];
-
-                        break;
-                    case "defaultbuttonid":
-                        if (settings[key] != null)
-                            this.DefaultButtonID = (string)settings[key];
-                        else
-                            this.DefaultButtonID = string.Empty;
-
-                        break;
-                    case "text":
-                        if (settings[key] != null)
-                            this.Text = (string)settings[key];
-                        else
-                            this.Text = string.Empty;
-
-                        break;
-                    case "url":
-                        if (settings[key] != null)
-                            this.URL = (string)settings[key];
-                        else
-                            this.URL = string.Empty;
-
-                        break;
-                    case "content":
-                        if (settings[key] != null)
-                            this.Content = (string)settings[key];
-                        else
-                            this.Content = string.Empty;
-
-                        break;
-                    case "source":
-                        if (settings[key] != null)
-                            this.Source = (string)settings[key];
-                        else
-                            this.Source = string.Empty;
-
-                        break;
-                }
-            }
         }
 
-        public bool UpdateLocalBlock { get; private set; }
-        public string[] BlockIDsToUpdate { get; private set; }
-        public string DefaultButtonID { get; private set; }
-        public string Text { get; private set; }
-        public string URL { get; private set; }
-        public string Content { get; private set; }
-        public string Source { get; private set; }
+        public bool UpdateLocalBlock { get; set; }
+        public string[] BlockIDsToUpdate { get; set; }
+        public string DefaultButtonID { get; set; }
+        public string Text { get; set; }
+        public string URL { get; set; }
+        public string Content { get; set; }
+        public string Source { get; set; }
 
-        public ControlTypes Type { get; private set; }
-        public SecurityInfo Security { get; private set; }
-        public Basics.Execution.Bind Bind { get; private set; }
-        public AttributeInfoCollection Attributes { get; private set; }
+        public ControlTypes Type { get; set; }
+        public SecurityDefinition Security { get; set; }
+        public Basics.Execution.Bind Bind { get; set; }
+        public AttributeDefinitionCollection Attributes { get; set; }
 
         public ControlSettings Clone()
         {
             ControlSettings settings =
-                new ControlSettings(null);
+                new ControlSettings();
 
             settings.Type = this.Type;
 
-            SecurityInfo security;
+            SecurityDefinition security;
             this.Security.Clone(out security);
             settings.Security = security;
 

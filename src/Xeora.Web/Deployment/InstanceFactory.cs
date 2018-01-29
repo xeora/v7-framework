@@ -4,10 +4,10 @@ namespace Xeora.Web.Deployment
 {
     public sealed class InstanceFactory
     {
-        private ConcurrentDictionary<string, DomainDeployment> _Instances;
+        private ConcurrentDictionary<string, Domain> _Instances;
 
         public InstanceFactory() =>
-            this._Instances = new ConcurrentDictionary<string, DomainDeployment>();
+            this._Instances = new ConcurrentDictionary<string, Domain>();
 
         private static InstanceFactory _Current = null;
         public static InstanceFactory Current
@@ -21,37 +21,38 @@ namespace Xeora.Web.Deployment
             }
         }
 
-        public DomainDeployment GetOrCreate(string[] domainIDAccessTree)
+        public Domain GetOrCreate(string[] domainIDAccessTree)
         {
             string instancenKey = 
                 string.Join<string>("-", domainIDAccessTree);
 
-            DomainDeployment domainDeployment = null;
-            if (!this._Instances.TryGetValue(instancenKey, out domainDeployment))
+            Domain domain = null;
+            if (!this._Instances.TryGetValue(instancenKey, out domain))
             {
-                domainDeployment = new DomainDeployment(domainIDAccessTree);
+                domain = new Domain(domainIDAccessTree);
 
-                if (!this._Instances.TryAdd(instancenKey, domainDeployment))
+                if (!this._Instances.TryAdd(instancenKey, domain))
                     return this.GetOrCreate(domainIDAccessTree);
-            }
+            } 
+            else
+                domain.Reload();
 
-            return domainDeployment;
+            return domain;
         }
 
         public void Reset()
         {
             foreach (string key in this._Instances.Keys)
             {
-                DomainDeployment domainDeployment = null;
+                Domain domain = null;
 
-                this._Instances.TryRemove(key, out domainDeployment);
+                this._Instances.TryRemove(key, out domain);
 
-                if (domainDeployment != null)
-                    domainDeployment.Dispose();
+                if (domain != null)
+                    domain.Dispose();
             }
         }
 
-        ~InstanceFactory() =>
-            this.Reset();
+        ~InstanceFactory() => this.Reset();
     }
 }

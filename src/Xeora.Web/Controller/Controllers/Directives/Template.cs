@@ -209,13 +209,13 @@ namespace Xeora.Web.Controller.Directive
             if (this.Parent != null)
                 this.ContentArguments.Replace(this.Parent.ContentArguments);
 
-            DomainDeployment domainDeployment = null;
-            DeploymentAccessRequested?.Invoke(ref workingInstance, ref domainDeployment);
+            Domain deployment = null;
+            DeploymentAccessRequested?.Invoke(ref workingInstance, ref deployment);
 
-            if (domainDeployment == null)
+            if (deployment == null)
                 throw new System.Exception("Domain Deployment access is failed!");
 
-            return domainDeployment.ProvideTemplateContent(this.ControlID);
+            return deployment.ProvideTemplateContent(this.ControlID);
         }
 
         private void RenderInternal(ref IDomain workingInstance, string requesterUniqueID)
