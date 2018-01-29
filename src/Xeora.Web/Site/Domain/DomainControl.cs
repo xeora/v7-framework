@@ -449,14 +449,7 @@ namespace Xeora.Web.Site
         public void RenderService(Basics.ControlResult.Message messageResult, string updateBlockControlID)
         {
             if (this.ServiceDefinition == null)
-            {
-                string systemMessage = this.Domain.Languages.Current.Get("TEMPLATE_IDMUSTBESET");
-
-                if (string.IsNullOrEmpty(systemMessage))
-                    systemMessage = Global.SystemMessages.TEMPLATE_IDMUSTBESET;
-
-                throw new System.Exception(systemMessage + "!");
-            }
+                throw new System.Exception(Global.SystemMessages.TEMPLATE_IDMUSTBESET + "!");
 
             switch (this.ServiceType)
             {

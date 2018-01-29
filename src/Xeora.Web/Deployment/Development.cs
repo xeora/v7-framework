@@ -81,7 +81,7 @@ namespace Xeora.Web.Deployment
             }
             catch (FileNotFoundException)
             {
-                throw new Exception.DeploymentException(string.Format(Global.SystemMessages.TEMPLATE_NOFOUND + "!", serviceFullPath));
+                throw new Exception.DeploymentException(string.Format(Global.SystemMessages.TEMPLATE_NOTFOUND + "!", serviceFullPath));
             }
         }
 

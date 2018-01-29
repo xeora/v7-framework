@@ -32,12 +32,7 @@ namespace Xeora.Web.Controller.Directive
 
             if (!this.CheckIsAuthenticated(ref instance, ref workingInstance))
             {
-                string systemMessage = instance.Languages.Current.Get("TEMPLATE_AUTH");
-
-                if (string.IsNullOrEmpty(systemMessage))
-                    systemMessage = SystemMessages.TEMPLATE_AUTH;
-
-                this.RenderedValue = "<div style='width:100%; font-weight:bolder; color:#CC0000; text-align:center'>" + systemMessage + "!</div>";
+                this.RenderedValue = "<div style='width:100%; font-weight:bolder; color:#CC0000; text-align:center'>" + SystemMessages.TEMPLATE_AUTH + "!</div>";
 
                 return;
             }

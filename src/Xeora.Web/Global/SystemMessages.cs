@@ -16,7 +16,7 @@
         public const string LANGUAGECONTENT = "Language Content value can not be null";
 
         public const string TEMPLATE_AUTH = "This Template Requires Authentication";
-        public const string TEMPLATE_NOFOUND = "{0} Named Template file is not found";
+        public const string TEMPLATE_NOTFOUND = "{0} Named Template file is not found";
         public const string TEMPLATE_IDMUSTBESET = "ServiceID must be set";
 
         public const string XSERVICE_AUTH = "This xService Requires Authentication";
