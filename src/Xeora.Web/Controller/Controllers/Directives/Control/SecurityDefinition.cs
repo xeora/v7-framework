@@ -1,27 +1,27 @@
 ﻿namespace Xeora.Web.Controller.Directive.Control
 {
-    public class SecurityInfo
+    public class SecurityDefinition
     {
-        private bool _SecuritySet;
+        private bool _Set;
         private string _FriendlyName;
 
-        public SecurityInfo()
+        public SecurityDefinition()
         {
-            this._SecuritySet = false;
+            this._Set = false;
             this.RegisteredGroup = string.Empty;
             this._FriendlyName = string.Empty;
             this.Bind = null;
-            this.Disabled = new DisabledClass();
+            this.Disabled = new DisabledDefinition();
         }
 
-        public bool SecuritySet
+        public bool Set
         {
-            get { return this._SecuritySet; }
+            get { return this._Set; }
             set
             {
-                this._SecuritySet = value;
+                this._Set = value;
 
-                if (this._SecuritySet)
+                if (this._Set)
                 {
                     if (string.IsNullOrEmpty(this._FriendlyName))
                         this._FriendlyName = "Unknown";
@@ -41,18 +41,18 @@
                 if (string.IsNullOrEmpty(this._FriendlyName))
                     this._FriendlyName = "Unknown";
 
-                this._SecuritySet = true;
+                this._Set = true;
             }
         }
 
         public Basics.Execution.Bind Bind { get; set; }
-        public DisabledClass Disabled { get; private set; }
+        public DisabledDefinition Disabled { get; private set; }
 
-        public void Clone(out SecurityInfo security)
+        public void Clone(out SecurityDefinition security)
         {
-            security = new SecurityInfo();
+            security = new SecurityDefinition();
 
-            security._SecuritySet = this._SecuritySet;
+            security._Set = this._Set;
             security.RegisteredGroup = this.RegisteredGroup;
             security._FriendlyName = this._FriendlyName;
 
@@ -66,23 +66,23 @@
             security.Disabled = this.Disabled;
         }
 
-        public class DisabledClass
+        public class DisabledDefinition
         {
-            public enum DisabledTypes
+            public enum Types
             {
                 Inherited,
                 Dynamic
             }
 
-            public DisabledClass()
+            public DisabledDefinition()
             {
-                this.IsSet = false;
-                this.Type = DisabledTypes.Inherited;
+                this.Set = false;
+                this.Type = Types.Inherited;
                 this.Value = string.Empty;
             }
 
-            public bool IsSet { get; set; }
-            public DisabledTypes Type { get; set; }
+            public bool Set { get; set; }
+            public Types Type { get; set; }
             public string Value { get; set; }
         }
     }

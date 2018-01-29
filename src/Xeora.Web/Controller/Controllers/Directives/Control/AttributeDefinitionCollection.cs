@@ -4,16 +4,16 @@ using System.Text;
 
 namespace Xeora.Web.Controller.Directive.Control
 {
-    public class AttributeInfoCollection : List<AttributeInfo>
+    public class AttributeDefinitionCollection : List<AttributeDefinition>
     {
         public void Add(string key, string value)
         {
-            base.Add(new AttributeInfo(key, value));
+            base.Add(new AttributeDefinition(key, value));
         }
 
         public void Remove(string key)
         {
-            foreach (AttributeInfo item in this)
+            foreach (AttributeDefinition item in this)
             {
                 if (string.Compare(key, item.Key, true) == 0)
                 {
@@ -28,7 +28,7 @@ namespace Xeora.Web.Controller.Directive.Control
         {
             get
             {
-                foreach (AttributeInfo aI in this)
+                foreach (AttributeDefinition aI in this)
                 {
                     if (string.Compare(key, aI.Key, true) == 0)
                         return aI.Value;
@@ -43,7 +43,7 @@ namespace Xeora.Web.Controller.Directive.Control
             }
         }
 
-        public new AttributeInfo this[int index]
+        public new AttributeDefinition this[int index]
         {
             get { return base[index]; }
             set
@@ -58,7 +58,7 @@ namespace Xeora.Web.Controller.Directive.Control
             StringBuilder rSB = new StringBuilder();
             CultureInfo compareCulture = new CultureInfo("en-US");
 
-            foreach (AttributeInfo aI in this)
+            foreach (AttributeDefinition aI in this)
             {
                 if (compareCulture.CompareInfo.Compare(aI.Key, "key", CompareOptions.IgnoreCase) != 0)
                 {

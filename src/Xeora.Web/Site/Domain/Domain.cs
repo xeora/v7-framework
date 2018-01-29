@@ -17,7 +17,7 @@ namespace Xeora.Web.Site
     {
         private Renderer _Renderer = null;
 
-        private Deployment.DomainDeployment _Deployment = null;
+        private Deployment.Domain _Deployment = null;
         private LanguagesHolder _LanguagesHolder = null;
 
         public Domain(string[] domainIDAccessTree) :
@@ -376,8 +376,8 @@ namespace Xeora.Web.Site
                 }
             }
 
-            private void OnDeploymentAccessRequest(ref Basics.Domain.IDomain workingInstance, ref Deployment.DomainDeployment domainDeployment) =>
-                domainDeployment = ((Domain)workingInstance)._Deployment;
+            private void OnDeploymentAccessRequest(ref Basics.Domain.IDomain workingInstance, ref Deployment.Domain deployment) =>
+                deployment = ((Domain)workingInstance)._Deployment;
 
             private static ConcurrentDictionary<string, ControlSettings> _ControlsCache =
                 new ConcurrentDictionary<string, ControlSettings>();
@@ -394,18 +394,23 @@ namespace Xeora.Web.Site
                 do
                 {
                     ControlSettings localSettings;
+                    Basics.Domain.Info.DeploymentTypes deploymentType = 
+                        ((Domain)workingInstance)._Deployment.DeploymentType;
 
                     string currentDomainIDAccessTreeString =
                         string.Join<string>("-", workingInstance.IDAccessTree);
                     string cacheSearchKey =
                         string.Format("{0}_{1}", currentDomainIDAccessTreeString, controlID);
 
-                    if (Renderer._ControlsCache.TryGetValue(cacheSearchKey, out localSettings))
+                    if (deploymentType == Basics.Domain.Info.DeploymentTypes.Release && 
+                        Renderer._ControlsCache.TryGetValue(cacheSearchKey, out localSettings))
                     {
                         settings = localSettings.Clone();
 
                         return;
                     }
+
+                    localSettings = new ControlSettings();
 
                     XPathNavigator xPathControlNav =
                         ((Domain)workingInstance)._Deployment.Controls.Select(controlID);
@@ -417,20 +422,17 @@ namespace Xeora.Web.Site
                         continue;
                     }
 
-                    Dictionary<string, object> controlSettingsDict =
-                        new Dictionary<string, object>();
                     CultureInfo compareCulture = new CultureInfo("en-US");
-
                     do
                     {
                         switch (xPathControlNav.Name.ToLower(compareCulture))
                         {
                             case "type":
-                                controlSettingsDict.Add("type", ControlHelper.ParseControlType(xPathControlNav.Value));
+                                localSettings.Type = ControlHelper.ParseControlType(xPathControlNav.Value);
 
                                 break;
                             case "bind":
-                                controlSettingsDict.Add("bind", Basics.Execution.Bind.Make(xPathControlNav.Value));
+                                localSettings.Bind = Basics.Execution.Bind.Make(xPathControlNav.Value);
 
                                 break;
                             case "attributes":
@@ -438,16 +440,13 @@ namespace Xeora.Web.Site
 
                                 if (childReader_attr.MoveToFirstChild())
                                 {
-                                    AttributeInfoCollection AttributesCol =
-                                        new AttributeInfoCollection();
                                     do
                                     {
-                                        AttributesCol.Add(
+                                        localSettings.Attributes.Add(
                                             childReader_attr.GetAttribute("key", childReader_attr.BaseURI).ToLower(),
                                             childReader_attr.Value
                                         );
                                     } while (childReader_attr.MoveToNext());
-                                    controlSettingsDict.Add("attributes", AttributesCol);
                                 }
 
                                 break;
@@ -456,39 +455,36 @@ namespace Xeora.Web.Site
 
                                 if (childReader_sec.MoveToFirstChild())
                                 {
-                                    SecurityInfo Security =
-                                        new SecurityInfo();
                                     do
                                     {
                                         switch (childReader_sec.Name.ToLower(compareCulture))
                                         {
                                             case "registeredgroup":
-                                                Security.RegisteredGroup = childReader_sec.Value;
+                                                localSettings.Security.RegisteredGroup = childReader_sec.Value;
 
                                                 break;
                                             case "friendlyname":
-                                                Security.FriendlyName = childReader_sec.Value;
+                                                localSettings.Security.FriendlyName = childReader_sec.Value;
 
                                                 break;
                                             case "bind":
-                                                Security.Bind = Basics.Execution.Bind.Make(childReader_sec.Value);
+                                                localSettings.Security.Bind = Basics.Execution.Bind.Make(childReader_sec.Value);
 
                                                 break;
                                             case "disabled":
-                                                Security.Disabled.IsSet = true;
-                                                SecurityInfo.DisabledClass.DisabledTypes secType;
+                                                localSettings.Security.Disabled.Set = true;
 
-                                                if (!Enum.TryParse<SecurityInfo.DisabledClass.DisabledTypes>(
+                                                SecurityDefinition.DisabledDefinition.Types secType;
+                                                if (!Enum.TryParse<SecurityDefinition.DisabledDefinition.Types>(
                                                         childReader_sec.GetAttribute("type", childReader_sec.NamespaceURI), out secType))
-                                                    secType = SecurityInfo.DisabledClass.DisabledTypes.Inherited;
+                                                    secType = SecurityDefinition.DisabledDefinition.Types.Inherited;
 
-                                                Security.Disabled.Type = secType;
-                                                Security.Disabled.Value = childReader_sec.Value;
+                                                localSettings.Security.Disabled.Type = secType;
+                                                localSettings.Security.Disabled.Value = childReader_sec.Value;
 
                                                 break;
                                         }
                                     } while (childReader_sec.MoveToNext());
-                                    controlSettingsDict.Add("security", Security);
                                 }
 
                                 break;
@@ -496,7 +492,7 @@ namespace Xeora.Web.Site
                                 bool updateLocalBlock;
                                 if (!bool.TryParse(xPathControlNav.GetAttribute("localupdate", xPathControlNav.BaseURI), out updateLocalBlock))
                                     updateLocalBlock = true;
-                                controlSettingsDict.Add("blockidstoupdate.localupdate", updateLocalBlock);
+                                localSettings.UpdateLocalBlock = updateLocalBlock;
 
                                 XPathNavigator childReader_blck = xPathControlNav.Clone();
 
@@ -507,34 +503,33 @@ namespace Xeora.Web.Site
                                     {
                                         blockIDsToUpdate.Add(childReader_blck.Value);
                                     } while (childReader_blck.MoveToNext());
-                                    controlSettingsDict.Add("blockidstoupdate", blockIDsToUpdate);
+                                    localSettings.BlockIDsToUpdate = blockIDsToUpdate.ToArray();
                                 }
 
                                 break;
                             case "defaultbuttonid":
-                                controlSettingsDict.Add("defaultbuttonid", xPathControlNav.Value);
+                                localSettings.DefaultButtonID = xPathControlNav.Value;
 
                                 break;
                             case "text":
-                                controlSettingsDict.Add("text", xPathControlNav.Value);
+                                localSettings.Text = xPathControlNav.Value;
 
                                 break;
                             case "url":
-                                controlSettingsDict.Add("url", xPathControlNav.Value);
+                                localSettings.URL = xPathControlNav.Value;
 
                                 break;
                             case "content":
-                                controlSettingsDict.Add("content", xPathControlNav.Value);
+                                localSettings.Content = xPathControlNav.Value;
 
                                 break;
                             case "source":
-                                controlSettingsDict.Add("source", xPathControlNav.Value);
+                                localSettings.Source = xPathControlNav.Value;
 
                                 break;
                         }
                     } while (xPathControlNav.MoveToNext());
 
-                    localSettings = new ControlSettings(controlSettingsDict);
                     Renderer._ControlsCache.TryAdd(cacheSearchKey, localSettings);
 
                     settings = localSettings.Clone();

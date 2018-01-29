@@ -63,7 +63,7 @@ namespace Xeora.Web.Controller.Directive.Control
             {
                 this.URL = "#_action1";
 
-                if (this.Security.Disabled.IsSet && this.Security.Disabled.Type == SecurityInfo.DisabledClass.DisabledTypes.Dynamic)
+                if (this.Security.Disabled.Set && this.Security.Disabled.Type == SecurityDefinition.DisabledDefinition.Types.Dynamic)
                     this.Text = this.Security.Disabled.Value;
             }
 
@@ -114,17 +114,17 @@ namespace Xeora.Web.Controller.Directive.Control
             // Render Attributes
             for (int aC = 0; aC < this.Attributes.Count; aC++)
             {
-                AttributeInfo item = this.Attributes[aC];
+                AttributeDefinition item = this.Attributes[aC];
 
                 this.Attributes[aC] =
-                    new AttributeInfo(
+                        new AttributeDefinition(
                         item.Key,
                         ControllerHelper.RenderSingleContent(item.Value, this, this.ContentArguments, requesterUniqueID)
                     );
             }
             // !--
 
-            if (this.Security.Disabled.IsSet && this.Security.Disabled.Type == SecurityInfo.DisabledClass.DisabledTypes.Dynamic)
+            if (this.Security.Disabled.Set && this.Security.Disabled.Type == SecurityDefinition.DisabledDefinition.Types.Dynamic)
                 this.RenderedValue = this.Security.Disabled.Value;
             else
             {

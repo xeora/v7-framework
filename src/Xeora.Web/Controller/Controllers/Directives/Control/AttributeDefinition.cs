@@ -1,8 +1,8 @@
 ﻿namespace Xeora.Web.Controller.Directive.Control
 {
-    public class AttributeInfo
+    public class AttributeDefinition
     {
-        public AttributeInfo(string key, string value)
+        public AttributeDefinition(string key, string value)
         {
             this.Key = key;
             this.Value = value;

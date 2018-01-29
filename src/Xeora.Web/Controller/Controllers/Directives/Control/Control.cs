@@ -29,9 +29,9 @@ namespace Xeora.Web.Controller.Directive.Control
         public ControlSettings Settings { get; private set; }
 
         public ControlTypes Type { get; private set; }
-        public SecurityInfo Security { get; private set; }
+        public SecurityDefinition Security { get; private set; }
         public Basics.Execution.Bind Bind { get; protected set; }
-        public AttributeInfoCollection Attributes { get; private set; }
+        public AttributeDefinitionCollection Attributes { get; private set; }
 
         protected abstract void RenderControl(string requesterUniqueID);
         public abstract IControl Clone();

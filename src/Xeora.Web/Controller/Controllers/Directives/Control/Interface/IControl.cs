@@ -6,9 +6,9 @@
         ControlSettings Settings { get; }
 
         ControlTypes Type { get; }
-        SecurityInfo Security { get; }
+        SecurityDefinition Security { get; }
         Basics.Execution.Bind Bind { get; }
-        AttributeInfoCollection Attributes { get; }
+        AttributeDefinitionCollection Attributes { get; }
 
         IControl Clone();
     }

@@ -46,11 +46,11 @@ namespace Xeora.Web.Controller.Directive.Control
                 if (this.IsUpdateBlockController)
                 {
                     xeoraCall = string.Format(
-                        "__XeoraJS.update('{1}', '{0}')", 
+                        "__XeoraJS.update('{1}', '{0}')",
                         Manager.AssemblyCore.EncodeFunction(
-                            Helpers.Context.HashCode, 
+                            Helpers.Context.HashCode,
                             this.Bind.ToString()
-                        ), 
+                        ),
                         string.Join(",", this.BlockIDsToUpdate)
                     );
                 }
@@ -75,24 +75,24 @@ namespace Xeora.Web.Controller.Directive.Control
                             this.Attributes["onclick"], xeoraCall
                         );
                 }
-                    
+
             }
             // !--
 
             // Render Attributes
             for (int aC = 0; aC < this.Attributes.Count; aC++)
             {
-                AttributeInfo item = this.Attributes[aC];
+                AttributeDefinition item = this.Attributes[aC];
 
                 this.Attributes[aC] =
-                    new AttributeInfo(
+                    new AttributeDefinition(
                         item.Key,
                         ControllerHelper.RenderSingleContent(item.Value, this, this.ContentArguments, requesterUniqueID)
                     );
             }
             // !--
 
-            if (this.Security.Disabled.IsSet && this.Security.Disabled.Type == SecurityInfo.DisabledClass.DisabledTypes.Dynamic)
+            if (this.Security.Disabled.Set && this.Security.Disabled.Type == SecurityDefinition.DisabledDefinition.Types.Dynamic)
                 this.RenderedValue = this.Security.Disabled.Value;
             else
             {
