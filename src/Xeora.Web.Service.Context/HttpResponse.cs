@@ -7,7 +7,7 @@ using Xeora.Web.Basics;
 
 namespace Xeora.Web.Service.Context
 {
-    public delegate Basics.Context.IHttpCookieInfo SessionCookieRequestedHandler();
+    public delegate Basics.Context.IHttpCookieInfo SessionCookieRequestedHandler(bool skip);
     public class HttpResponse : Basics.Context.IHttpResponse
     {
         private string _ContextID;
@@ -57,7 +57,10 @@ namespace Xeora.Web.Service.Context
                 sB.AppendLine();
             }
 
-            this._Header.Cookie.AddOrUpdate(SessionCookieRequested?.Invoke());
+            string contentType = 
+                this._Header["Content-Type"];
+            bool skip = (string.IsNullOrEmpty(contentType) || contentType.IndexOf("text/html") == -1);
+            this._Header.Cookie.AddOrUpdate(SessionCookieRequested?.Invoke(skip));
 
             foreach (string key in this._Header.Cookie.Keys)
             {
@@ -97,7 +100,7 @@ namespace Xeora.Web.Service.Context
 
             sB.AppendLine("Connection: close");
 
-            this._Header.Cookie.AddOrUpdate(SessionCookieRequested?.Invoke());
+            this._Header.Cookie.AddOrUpdate(SessionCookieRequested?.Invoke(false));
 
             // put cookies because it may contain sessionid
             foreach (string key in this._Header.Cookie.Keys)

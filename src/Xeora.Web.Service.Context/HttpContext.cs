@@ -31,15 +31,12 @@ namespace Xeora.Web.Service.Context
                 out this._Session);
 
             ((HttpResponse)this.Response).SessionCookieRequested +=
-                () =>
+                (skip) =>
                 {
-                    if (string.Compare(sessionID, this._Session.SessionID) == 0)
+                    if (skip)
                         return null;
 
-                    string contentType =
-                        this.Response.Header["Content-Type"];
-                    if (string.IsNullOrEmpty(contentType) ||
-                        contentType.IndexOf("text/html") == -1)
+                    if (string.Compare(sessionID, this._Session.SessionID) == 0)
                         return null;
 
                     if (this._Session.Keys.Length == 0)
