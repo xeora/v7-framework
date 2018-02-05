@@ -58,7 +58,7 @@ namespace Xeora.Web.Service
 
                 ((HttpResponse)this._Context.Response).Flush(ref this._RemoteStream);
 
-                Handler.HandlerManager.Current.Mark(xeoraHandler.HandlerID);
+                Handler.HandlerManager.Current.UnMark(xeoraHandler.HandlerID);
 
                 if (Configurations.Xeora.Application.Main.PrintAnalytics)
                 {
