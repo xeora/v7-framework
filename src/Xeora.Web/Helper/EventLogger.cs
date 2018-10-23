@@ -22,15 +22,24 @@ namespace Xeora.Web.Helper
             this._LogCache = new SortedDictionary<long, LogObject>();
         }
 
-        private static EventLogger _Instance = null;
-        private static EventLogger Instance
+        private static object _Lock = new object();
+        private static EventLogger _Current = null;
+        private static EventLogger Current
         {
             get
             {
-                if (EventLogger._Instance == null)
-                    EventLogger._Instance = new EventLogger();
+                Monitor.Enter(EventLogger._Lock);
+                try
+                {
+                    if (EventLogger._Current == null)
+                        EventLogger._Current = new EventLogger();
+                }
+                finally
+                {
+                    Monitor.Exit(EventLogger._Lock);
+                }
 
-                return EventLogger._Instance;
+                return EventLogger._Current;
             }
         }
 
@@ -44,7 +53,7 @@ namespace Xeora.Web.Helper
         {
             try
             {
-                EventLogger.Instance.WriteToCache(new LogObject(content));
+                EventLogger.Current.WriteToCache(new LogObject(content));
             }
             catch (System.Exception ex)
             {
@@ -64,26 +73,26 @@ namespace Xeora.Web.Helper
 
         public static void SetFlushCycle(int minute)
         {
-            EventLogger.Instance._FlushCycle = minute;
+            EventLogger.Current._FlushCycle = minute;
 
-            if (EventLogger.Instance._FlushTimer != null)
+            if (EventLogger.Current._FlushTimer != null)
             {
-                EventLogger.Instance._FlushTimer.Dispose();
-                EventLogger.Instance._FlushTimer =
+                EventLogger.Current._FlushTimer.Dispose();
+                EventLogger.Current._FlushTimer =
                     new Timer(
-                        new TimerCallback(EventLogger.Instance.FlushInternal),
+                        new TimerCallback(EventLogger.Current.FlushInternal),
                         null,
-                        (EventLogger.Instance._FlushCycle * 60000),
+                        (EventLogger.Current._FlushCycle * 60000),
                         0
                     );
             }
         }
 
         public static void SetFlushCacheLimit(int cacheLimit) =>
-            EventLogger.Instance._LogCacheLimit = cacheLimit;
+            EventLogger.Current._LogCacheLimit = cacheLimit;
 
         public static void Flush() =>
-            EventLogger.Instance.FlushInternal(null);
+            EventLogger.Current.FlushInternal(null);
 
         private void WriteToCache(LogObject logObject)
         {

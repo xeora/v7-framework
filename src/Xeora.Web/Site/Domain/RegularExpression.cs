@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace Xeora.Web.Site
 {
@@ -58,13 +59,22 @@ namespace Xeora.Web.Site
                 new Regex(variableRegEx, RegexOptions.Multiline | RegexOptions.Compiled);
         }
 
+        private static object _Lock = new object();
         private static RegularExpression _Current = null;
         public static RegularExpression Current
         {
             get
             {
-                if (RegularExpression._Current == null)
-                    RegularExpression._Current = new RegularExpression();
+                Monitor.Enter(RegularExpression._Lock);
+                try
+                {
+                    if (RegularExpression._Current == null)
+                        RegularExpression._Current = new RegularExpression();
+                }
+                finally
+                {
+                    Monitor.Exit(RegularExpression._Lock);
+                }
 
                 return RegularExpression._Current;
             }

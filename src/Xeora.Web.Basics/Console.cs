@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Xeora.Web.Basics
@@ -38,15 +39,24 @@ namespace Xeora.Web.Basics
             });
         }
 
-        private static Console _Instance = null;
-        private static Console Instance
+        private static object _Lock = new object();
+        private static Console _Current = null;
+        private static Console Current
         {
             get
             {
-                if (Console._Instance == null)
-                    Console._Instance = new Console();
+                Monitor.Enter(Console._Lock);
+                try
+                {
+                    if (Console._Current == null)
+                        Console._Current = new Console();
+                }
+                finally
+                {
+                    Monitor.Exit(Console._Lock);
+                }
 
-                return Console._Instance;
+                return Console._Current;
             }
         }
 
@@ -78,7 +88,7 @@ namespace Xeora.Web.Basics
                 return;
             }
 
-            Console.Instance.Queue(consoleMessage);
+            Console.Current.Queue(consoleMessage);
         }
     }
 }

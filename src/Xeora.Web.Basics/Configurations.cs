@@ -15,7 +15,7 @@ namespace Xeora.Web.Basics
             {
                 if (Configurations._xeora == null)
                     Configurations._xeora =
-                        (Configuration.IXeora)TypeCache.Instance.RemoteInvoke.InvokeMember("XeoraSettings", BindingFlags.Public | BindingFlags.Static | BindingFlags.GetProperty, null, null, null);
+                        (Configuration.IXeora)TypeCache.Current.RemoteInvoke.InvokeMember("XeoraSettings", BindingFlags.Public | BindingFlags.Static | BindingFlags.GetProperty, null, null, null);
 
                 return Configurations._xeora;
             }

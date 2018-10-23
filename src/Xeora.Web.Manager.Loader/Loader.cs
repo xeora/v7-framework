@@ -7,7 +7,7 @@ namespace Xeora.Web.Manager
     internal class Loader
     {
         private static object _LoaderLock = new object();
-        private static Loader _Instance = null;
+        private static Loader _Current = null;
 
         private string _CacheRootLocation;
         private string _DomainRootLocation;
@@ -56,24 +56,24 @@ namespace Xeora.Web.Manager
             System.IO.Path.Combine(this._CacheRootLocation, this.ID);
 
         public static Loader Current => 
-            Loader._Instance;
+            Loader._Current;
         public static void Initialize(Action reloadedHandler)
         {
             Monitor.Enter(Loader._LoaderLock);
             try
             {
-                if (Loader._Instance != null)
+                if (Loader._Current != null)
                 {
-                    if (Loader._Instance._LoadRequested)
+                    if (Loader._Current._LoadRequested)
                     {
-                        Loader._Instance.LoadApplication();
-                        Loader._Instance._LoadRequested = false;
+                        Loader._Current.LoadApplication();
+                        Loader._Current._LoadRequested = false;
                     }
 
                     return;
                 }
 
-                Loader._Instance = new Loader(reloadedHandler);
+                Loader._Current = new Loader(reloadedHandler);
             }
             finally
             {
@@ -86,10 +86,10 @@ namespace Xeora.Web.Manager
             if (!Monitor.TryEnter(Loader._LoaderLock))
                 return;
 
-            if (Loader._Instance == null)
+            if (Loader._Current == null)
                 return;
 
-            Loader._Instance._LoadRequested = true;
+            Loader._Current._LoadRequested = true;
 
             Monitor.Exit(Loader._LoaderLock);
         }

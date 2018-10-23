@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using Xeora.Web.Basics.Context;
 using Xeora.Web.Basics.Execution;
+using System.Threading;
 
 namespace Xeora.Web.Basics
 {
@@ -145,7 +146,7 @@ namespace Xeora.Web.Basics
         /// <param name="domainIDAccessTree">DomainID Access tree</param>
         /// <param name="domainLanguageID">Domain language identifier</param>
         public static Domain.IDomain CreateNewDomainInstance(string[] domainIDAccessTree, string domainLanguageID) =>
-            (Domain.IDomain)Activator.CreateInstance(TypeCache.Instance.Domain, new object[] { domainIDAccessTree, domainLanguageID });
+            (Domain.IDomain)Activator.CreateInstance(TypeCache.Current.Domain, new object[] { domainIDAccessTree, domainLanguageID });
 
         /// <summary>
         /// Gets the current thread handler identifier
@@ -162,7 +163,7 @@ namespace Xeora.Web.Basics
             AppDomain.CurrentDomain.SetData(string.Format("HandlerID_{0}", System.Threading.Thread.CurrentThread.ManagedThreadId), handlerID);
 
         internal static IHandler HandlerInstance =>
-            (IHandler)TypeCache.Instance.RemoteInvoke.InvokeMember("GetHandler", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { Helpers.CurrentHandlerID });
+            (IHandler)TypeCache.Current.RemoteInvoke.InvokeMember("GetHandler", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { Helpers.CurrentHandlerID });
 
         /// <summary>
         /// Gets the Http Context
@@ -203,6 +204,7 @@ namespace Xeora.Web.Basics
         public static Domain.Info.DomainCollection Domains =>
             Helpers.HandlerInstance.DomainControl.GetAvailableDomains();
 
+        private static object _ScheduledTasksLock = new object();
         private static Service.IScheduledTaskEngine _ScheduledTasks = null;
         /// <summary>
         /// Gets Task Scheduler Engine
@@ -212,9 +214,17 @@ namespace Xeora.Web.Basics
         {
             get
             {
-                if (Helpers._ScheduledTasks == null)
-                    Helpers._ScheduledTasks =
-                       (Service.IScheduledTaskEngine)TypeCache.Instance.RemoteInvoke.InvokeMember("GetScheduledTaskEngine", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, null);
+                Monitor.Enter(Helpers._ScheduledTasksLock);
+                try
+                {
+                    if (Helpers._ScheduledTasks == null)
+                        Helpers._ScheduledTasks =
+                           (Service.IScheduledTaskEngine)TypeCache.Current.RemoteInvoke.InvokeMember("GetScheduledTaskEngine", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, null);
+                }
+                finally
+                {
+                    Monitor.Exit(Helpers._ScheduledTasksLock);
+                }
 
                 return Helpers._ScheduledTasks;
             }

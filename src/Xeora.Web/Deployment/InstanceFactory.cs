@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Threading;
 
 namespace Xeora.Web.Deployment
 {
@@ -9,13 +10,22 @@ namespace Xeora.Web.Deployment
         public InstanceFactory() =>
             this._Instances = new ConcurrentDictionary<string, Domain>();
 
+        private static object _Lock = new object();
         private static InstanceFactory _Current = null;
         public static InstanceFactory Current
         {
             get
             {
-                if (InstanceFactory._Current == null)
-                    InstanceFactory._Current = new InstanceFactory();
+                Monitor.Enter(InstanceFactory._Lock);
+                try
+                {
+                    if (InstanceFactory._Current == null)
+                        InstanceFactory._Current = new InstanceFactory();
+                }
+                finally
+                {
+                    Monitor.Exit(InstanceFactory._Lock);
+                }
 
                 return InstanceFactory._Current;
             }

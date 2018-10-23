@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace Xeora.Web.Controller.Directive
 {
@@ -68,13 +69,22 @@ namespace Xeora.Web.Controller.Directive
                 this._PartialCaches = new ConcurrentDictionary<string[], ConcurrentDictionary<string, CacheObject>>();
             }
 
+            private static object _Lock = new object();
             private static CachePool _Current = null;
             public static CachePool Current
             {
                 get
                 {
-                    if (CachePool._Current == null)
-                        CachePool._Current = new CachePool();
+                    Monitor.Enter(CachePool._Lock);
+                    try
+                    {
+                        if (CachePool._Current == null)
+                            CachePool._Current = new CachePool();
+                    }
+                    finally
+                    {
+                        Monitor.Exit(CachePool._Lock);
+                    }
 
                     return CachePool._Current;
                 }

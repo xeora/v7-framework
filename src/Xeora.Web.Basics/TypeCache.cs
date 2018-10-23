@@ -1,20 +1,30 @@
 using System;
 using System.Reflection;
 using System.Collections.Concurrent;
+using System.Threading;
 
 namespace Xeora.Web.Basics
 {
     internal class TypeCache
     {
-        private static TypeCache _Instance = null;
-        public static TypeCache Instance
+        private static object _Lock = new object();
+        private static TypeCache _Current = null;
+        public static TypeCache Current
         {
             get
             {
-                if (TypeCache._Instance == null)
-                    TypeCache._Instance = new TypeCache();
+                Monitor.Enter(TypeCache._Lock);
+                try
+                {
+                    if (TypeCache._Current == null)
+                        TypeCache._Current = new TypeCache();
+                }
+                finally
+                {
+                    Monitor.Exit(TypeCache._Lock);
+                }
 
-                return TypeCache._Instance;
+                return TypeCache._Current;
             }
         }
 

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
@@ -24,13 +25,22 @@ namespace Xeora.Web.Manager
             this._GetLock = new object();
         }
 
+        private static object _Lock = new object();
         private static StatementFactory _Current = null;
         private static StatementFactory Current
         {
             get
             {
-                if (StatementFactory._Current == null)
-                    StatementFactory._Current = new StatementFactory();
+                Monitor.Enter(StatementFactory._Lock);
+                try
+                {
+                    if (StatementFactory._Current == null)
+                        StatementFactory._Current = new StatementFactory();
+                }
+                finally
+                {
+                    Monitor.Exit(StatementFactory._Lock);
+                }
 
                 return StatementFactory._Current;
             }

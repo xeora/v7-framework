@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Threading;
 using Xeora.Web.Basics.Context;
 using Xeora.Web.Site.Service;
 
@@ -11,13 +12,22 @@ namespace Xeora.Web.Handler
         private HandlerManager() =>
             this._Handlers = new ConcurrentDictionary<string, HandlerContainer>();
 
+        private static object _Lock = new object();
         private static HandlerManager _Current = null;
         public static HandlerManager Current
         {
             get
             {
-                if (HandlerManager._Current == null)
-                    HandlerManager._Current = new HandlerManager();
+                Monitor.Enter(HandlerManager._Lock);
+                try
+                {
+                    if (HandlerManager._Current == null)
+                        HandlerManager._Current = new HandlerManager();
+                }
+                finally
+                {
+                    Monitor.Exit(HandlerManager._Lock);
+                }
 
                 return HandlerManager._Current;
             }
@@ -56,7 +66,8 @@ namespace Xeora.Web.Handler
             HandlerContainer handlerContainer =
                 new HandlerContainer(ref handler);
 
-            this._Handlers.TryAdd(handler.HandlerID, handlerContainer);
+            if (!this._Handlers.TryAdd(handler.HandlerID, handlerContainer))
+                this.Add(ref handler);
         }
 
         public void Mark(string handlerID)
