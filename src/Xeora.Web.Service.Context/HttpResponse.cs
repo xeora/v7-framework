@@ -14,7 +14,6 @@ namespace Xeora.Web.Service.Context
         private string _TempLocation;
         private Stream _ResponseOutput;
 
-        private Basics.Context.IHttpResponseHeader _Header;
         private string _RedirectedURL = string.Empty;
 
         public event SessionCookieRequestedHandler SessionCookieRequested;
@@ -31,40 +30,40 @@ namespace Xeora.Web.Service.Context
             this._ResponseOutput = 
                 new FileStream(this._TempLocation, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
 
-            this._Header = new HttpResponseHeader();
+            this.Header = new HttpResponseHeader();
         }
 
-        public Basics.Context.IHttpResponseHeader Header => this._Header;
+        public Basics.Context.IHttpResponseHeader Header { get; private set; }
 
         private void PushHeaders(ref NetworkStream remoteStream)
         {
-            this._Header.AddOrUpdate("Date", DateTime.Now.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", new CultureInfo("en-US")));
+            this.Header.AddOrUpdate("Date", DateTime.Now.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", new CultureInfo("en-US")));
 
-            if (string.IsNullOrWhiteSpace(this._Header["Content-Type"]))
-                this._Header.AddOrUpdate("Content-Type", "text/html");
+            if (string.IsNullOrWhiteSpace(this.Header["Content-Type"]))
+                this.Header.AddOrUpdate("Content-Type", "text/html");
 
-            if (string.IsNullOrWhiteSpace(this._Header["Content-Length"]))
-                this._Header.AddOrUpdate("Content-Length", this._ResponseOutput.Length.ToString());
+            if (string.IsNullOrWhiteSpace(this.Header["Content-Length"]))
+                this.Header.AddOrUpdate("Content-Length", this._ResponseOutput.Length.ToString());
 
             StringBuilder sB = new StringBuilder();
 
-            sB.AppendFormat("HTTP/1.1 {0} {1}", this._Header.Status.Code, this._Header.Status.Message);
+            sB.AppendFormat("HTTP/1.1 {0} {1}", this.Header.Status.Code, this.Header.Status.Message);
             sB.AppendLine();
 
-            foreach (string key in this._Header.Keys)
+            foreach (string key in this.Header.Keys)
             {
-                sB.AppendFormat("{0}: {1}", key, this._Header[key]);
+                sB.AppendFormat("{0}: {1}", key, this.Header[key]);
                 sB.AppendLine();
             }
 
             string contentType = 
-                this._Header["Content-Type"];
+                this.Header["Content-Type"];
             bool skip = (string.IsNullOrEmpty(contentType) || contentType.IndexOf("text/html") == -1);
-            this._Header.Cookie.AddOrUpdate(SessionCookieRequested?.Invoke(skip));
+            this.Header.Cookie.AddOrUpdate(SessionCookieRequested?.Invoke(skip));
 
-            foreach (string key in this._Header.Cookie.Keys)
+            foreach (string key in this.Header.Cookie.Keys)
             {
-                sB.AppendFormat("Set-Cookie: {0}", this._Header.Cookie[key].ToString());
+                sB.AppendFormat("Set-Cookie: {0}", this.Header.Cookie[key].ToString());
                 sB.AppendLine();
             }
 
@@ -100,12 +99,12 @@ namespace Xeora.Web.Service.Context
 
             sB.AppendLine("Connection: close");
 
-            this._Header.Cookie.AddOrUpdate(SessionCookieRequested?.Invoke(false));
+            this.Header.Cookie.AddOrUpdate(SessionCookieRequested?.Invoke(false));
 
             // put cookies because it may contain sessionid
-            foreach (string key in this._Header.Cookie.Keys)
+            foreach (string key in this.Header.Cookie.Keys)
             {
-                sB.AppendFormat("Set-Cookie: {0}", this._Header.Cookie[key].ToString());
+                sB.AppendFormat("Set-Cookie: {0}", this.Header.Cookie[key].ToString());
                 sB.AppendLine();
             }
             sB.AppendLine();

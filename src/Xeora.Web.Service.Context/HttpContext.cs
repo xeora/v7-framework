@@ -26,7 +26,6 @@ namespace Xeora.Web.Service.Context
             }
 
             SessionManager.Current.Acquire(
-                this.Request.RemoteAddr,
                 sessionID,
                 out this._Session);
 

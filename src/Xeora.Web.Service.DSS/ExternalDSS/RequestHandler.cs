@@ -2,18 +2,18 @@
 using System.Net.Sockets;
 using System.Threading;
 
-namespace Xeora.Web.Service.Session
+namespace Xeora.Web.Service.DSS
 {
     public class RequestHandler
     {
-        private TcpClient _SessionServiceClient;
+        private TcpClient _DSSServiceClient;
 
         private long _LastRequestID = 0;
         private object _StreamLock;
 
-        public RequestHandler(ref TcpClient sessionServiceClient)
+        public RequestHandler(ref TcpClient dssServiceClient)
         {
-            this._SessionServiceClient = sessionServiceClient;
+            this._DSSServiceClient = dssServiceClient;
 
             this._LastRequestID = 0;
             this._StreamLock = new object();
@@ -47,7 +47,7 @@ namespace Xeora.Web.Service.Session
                 long requestID = 
                     this.PrepareRequest(ref requestBytes);
 
-                this._SessionServiceClient.GetStream().Write(requestBytes, 0, requestBytes.Length);
+                this._DSSServiceClient.GetStream().Write(requestBytes, 0, requestBytes.Length);
 
                 return requestID;
             }

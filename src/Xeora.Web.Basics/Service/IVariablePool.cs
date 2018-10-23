@@ -4,16 +4,12 @@ namespace Xeora.Web.Basics.Service
 {
     public interface IVariablePool
     {
-        DateTime LastAccess { get; }
         string SessionID { get; }
+        string KeyID { get; }
 
-        void KeepAlive(string KeyID);
+        byte[] Get(string name);
+        void Set(string name, byte[] serializedValue);
 
-        byte[] Get(string keyID, string name);
-        void Set(string keyID, string name, byte[] serializedValue);
-        void Delete(string keyID);
-
-        void Cleanup();
         void CopyInto(ref IVariablePool variablePool);
     }
 }

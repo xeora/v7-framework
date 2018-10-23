@@ -65,10 +65,7 @@ namespace Xeora.Web.Service
                     Basics.Console.Push(
                         "analytic - response flush",
                         string.Format("{0}ms", DateTime.Now.Subtract(responseFlushBegins).TotalMilliseconds), false);
-                }
 
-                if (Configurations.Xeora.Application.Main.PrintAnalytics)
-                {
                     Basics.Console.Push(
                         "analytic - whole process",
                         string.Format("{0}ms", DateTime.Now.Subtract(wholeProcessBegins).TotalMilliseconds), false);

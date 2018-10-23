@@ -4,26 +4,24 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace Xeora.Web.Service.Session
+namespace Xeora.Web.Service.DSS
 {
-    public class ExternalManager : IHttpSessionManager
+    public class ExternalManager : IDSSManager
     {
         private object _ConnectionLock;
-        private TcpClient _SessionServiceClient;
+        private TcpClient _DSSServiceClient;
 
         private IPEndPoint _ServiceEndPoint;
-        private short _SessionTimeout = 20;
 
         private RequestHandler _RequestHandler;
         private ResponseHandler _ResponseHandler;
 
-        public ExternalManager(IPEndPoint serviceEndPoint, short sessionTimeout)
+        public ExternalManager(IPEndPoint serviceEndPoint)
         {
             this._ConnectionLock = new object();
-            this._SessionServiceClient = null;
+            this._DSSServiceClient = null;
 
             this._ServiceEndPoint = serviceEndPoint;
-            this._SessionTimeout = sessionTimeout;
         }
 
         private void MakeConnection()
@@ -31,14 +29,14 @@ namespace Xeora.Web.Service.Session
             Monitor.Enter(this._ConnectionLock);
             try
             {
-                if (this._SessionServiceClient != null &&
-                   this._SessionServiceClient.Connected)
+                if (this._DSSServiceClient != null &&
+                   this._DSSServiceClient.Connected)
                     return;
                 
-                this._SessionServiceClient = new TcpClient();
-                this._SessionServiceClient.Connect(this._ServiceEndPoint);
+                this._DSSServiceClient = new TcpClient();
+                this._DSSServiceClient.Connect(this._ServiceEndPoint);
 
-                if (!this._SessionServiceClient.Connected)
+                if (!this._DSSServiceClient.Connected)
                     throw new ExternalCommunicationException();
             }
             finally
@@ -46,12 +44,12 @@ namespace Xeora.Web.Service.Session
                 Monitor.Exit(this._ConnectionLock);
             }
 
-            this._RequestHandler = new RequestHandler(ref this._SessionServiceClient);
-            this._ResponseHandler = new ResponseHandler(ref this._SessionServiceClient);
+            this._RequestHandler = new RequestHandler(ref this._DSSServiceClient);
+            this._ResponseHandler = new ResponseHandler(ref this._DSSServiceClient);
             this._ResponseHandler.HandleAsync();
         }
 
-        public void Acquire(IPAddress remoteIP, string sessionID, out Basics.Session.IHttpSession sessionObject)
+        public void Reserve(string uniqueID, int reservationTimeout, out Basics.DSS.IDSS reservationObject)
         {
             this.MakeConnection();
 
@@ -64,15 +62,14 @@ namespace Xeora.Web.Service.Session
                 binaryWriter = new BinaryWriter(requestStream);
 
                 /*
-                 * -> \LONG\ACQ\SHORT\INT
-                 * -> \LONG\ACQ\SHORT\INT\BYTE\CHARS{BYTEVALUELENGTH}
+                 * -> \LONG\ACQ\SHORT
+                 * -> \LONG\ACQ\SHORT\BYTE\CHARS{BYTEVALUELENGTH}
                  */
 
                 binaryWriter.Write("ACQ".ToCharArray());
-                binaryWriter.Write(this._SessionTimeout);
-                binaryWriter.Write(remoteIP.GetAddressBytes());
-                binaryWriter.Write((byte)sessionID.Length);
-                binaryWriter.Write(sessionID.ToCharArray());
+                binaryWriter.Write(reservationTimeout);
+                binaryWriter.Write((byte)uniqueID.Length);
+                binaryWriter.Write(uniqueID.ToCharArray());
                 binaryWriter.Flush();
 
                 long requestID =
@@ -81,7 +78,7 @@ namespace Xeora.Web.Service.Session
                 byte[] responseBytes =
                     this._ResponseHandler.WaitForMessage(requestID);
 
-                this.ParseResponse(responseBytes, remoteIP, out sessionObject);
+                this.ParseResponse(responseBytes, out reservationObject);
             }
             finally
             {
@@ -96,9 +93,9 @@ namespace Xeora.Web.Service.Session
             }
         }
 
-        private void ParseResponse(byte[] responseBytes, IPAddress remoteIP, out Basics.Session.IHttpSession sessionObject)
+        private void ParseResponse(byte[] responseBytes, out Basics.DSS.IDSS reservationObject)
         {
-            sessionObject = null;
+            reservationObject = null;
 
             if (responseBytes == null)
                 return;
@@ -115,15 +112,15 @@ namespace Xeora.Web.Service.Session
              */
 
             if (binaryReader.ReadByte() == 2)
-                throw new SessionCreationException();
+                throw new ReservationCreationException();
 
-            byte sessionIDLength = binaryReader.ReadByte();
-            string sessionID =
-                new string(binaryReader.ReadChars(sessionIDLength));
+            byte reservationIDLength = binaryReader.ReadByte();
+            string reservationID =
+                new string(binaryReader.ReadChars(reservationIDLength));
             DateTime expireDate =
                 new DateTime(binaryReader.ReadInt64());
 
-            sessionObject = new ExternalSession(ref this._RequestHandler, ref this._ResponseHandler, remoteIP, sessionID, expireDate);
+            reservationObject = new ExternalDSS(ref this._RequestHandler, ref this._ResponseHandler, reservationID, expireDate);
         }
     }
 }

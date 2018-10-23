@@ -7,6 +7,7 @@ namespace Xeora.Web.Configuration
         public Xeora()
         {
             this.Service = new Service();
+            this.DSS = new DSS();
             this.Session = new Session();
             this.Application = new Application();
             this.User = new UserSettings();
@@ -14,6 +15,9 @@ namespace Xeora.Web.Configuration
 
         [JsonProperty(PropertyName = "service")]
         public Basics.Configuration.IService Service { get; private set; }
+
+        [JsonProperty(PropertyName = "dss")]
+        public Basics.Configuration.IDSS DSS { get; private set; }
 
         [JsonProperty(PropertyName = "session")]
         public Basics.Configuration.ISession Session { get; private set; }

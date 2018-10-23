@@ -8,7 +8,6 @@ namespace Xeora.Web.Configuration
     {
         private string _ConfigurationPath;
         private string _ConfigurationFile;
-        private Xeora _XeoraConfiguration;
 
         private ConfigurationManager(string configurationPath, string configurationFile)
         {
@@ -32,7 +31,7 @@ namespace Xeora.Web.Configuration
                 jsonReader = new Newtonsoft.Json.JsonTextReader(sR);
 
                 Newtonsoft.Json.JsonSerializer jsonSerializer = new Newtonsoft.Json.JsonSerializer();
-                this._XeoraConfiguration = jsonSerializer.Deserialize<Xeora>(jsonReader);
+                this.Configuration = jsonSerializer.Deserialize<Xeora>(jsonReader);
             }
             catch (Exception ex)
             {
@@ -48,7 +47,7 @@ namespace Xeora.Web.Configuration
             }
         }
 
-        public Xeora Configuration => this._XeoraConfiguration;
+        public Xeora Configuration { get; private set; }
 
         public static void Initialize(string configurationPath, string configurationFile) =>
             ConfigurationManager._Current = new ConfigurationManager(configurationPath, configurationFile);

@@ -49,8 +49,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Xeora.Web.Basics\Xeora.Web.Basics.csproj" />
+    <ProjectReference Include="..\Xeora.Web.Service.DSS\Xeora.Web.Service.DSS.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="ExternalSession\" />
+    <Compile Remove="BuildInSession\MemoryManager.cs" />
+    <Compile Remove="BuildInSession\MemorySession.cs" />
+    <Compile Remove="ExternalSession\ExternalManager.cs" />
+    <Compile Remove="ExternalSession\ExternalSession.cs" />
   </ItemGroup>
 </Project>

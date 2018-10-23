@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <PackageId>Xeora.Web.Service.DSS</PackageId>
+    <Version>7.1.0</Version>
+    <Authors>Tuna Celik</Authors>
+    <Company>JakPark Solutions</Company>
+    <Product>XeoraCube - Web Development Framework DSS</Product>
+    <Description>XeoraCube - Web Development Framework DSS</Description>
+    <Copyright>Copyright © Tuna Celik 2003 - 2018</Copyright>
+    <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/xeora/v7</RepositoryUrl>
+    <AssemblyVersion>7.1.*</AssemblyVersion>
+    <FileVersion>7.1</FileVersion>
+    <Deterministic>False</Deterministic>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Xeora.Web.Basics\Xeora.Web.Basics.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ExternalDSS\" />
+  </ItemGroup>
+</Project>

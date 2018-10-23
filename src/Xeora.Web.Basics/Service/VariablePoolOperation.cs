@@ -4,11 +4,13 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Collections.Concurrent;
+using System.Threading;
 
 namespace Xeora.Web.Basics.Service
 {
     public sealed class VariablePoolOperation
     {
+        private static object _Lock = new object();
         private static IVariablePool _Cache = null;
 
         private string _SessionID;
@@ -17,17 +19,25 @@ namespace Xeora.Web.Basics.Service
 
         public VariablePoolOperation(string sessionID, string keyID)
         {
-            if (VariablePoolOperation._Cache == null)
+            Monitor.Enter(VariablePoolOperation._Lock);
+            try
             {
-                try
+                if (VariablePoolOperation._Cache == null)
                 {
-                    VariablePoolOperation._Cache =
-                        (IVariablePool)TypeCache.Instance.RemoteInvoke.InvokeMember("GetVariablePool", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { sessionID });
+                    try
+                    {
+                        VariablePoolOperation._Cache =
+                            (IVariablePool)TypeCache.Current.RemoteInvoke.InvokeMember("GetVariablePool", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { sessionID, keyID });
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new TargetInvocationException("Communication Error! Variable Pool is not accessable...", ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    throw new TargetInvocationException("Communication Error! Variable Pool is not accessable...", ex);
-                }
+            }
+            finally
+            {
+                Monitor.Exit(VariablePoolOperation._Lock);
             }
 
             this._SessionID = sessionID;
@@ -72,7 +82,7 @@ namespace Xeora.Web.Basics.Service
 
             if (rObject == null)
             {
-                byte[] serializedValue = VariablePoolOperation._Cache.Get(this._SessionKeyID, name);
+                byte[] serializedValue = VariablePoolOperation._Cache.Get(name);
 
                 if (serializedValue != null)
                 {
@@ -135,7 +145,7 @@ namespace Xeora.Web.Basics.Service
                 }
             }
 
-            VariablePoolOperation._Cache.Set(this._SessionKeyID, name, serializedValue);
+            VariablePoolOperation._Cache.Set(name, serializedValue);
         }
 
         private void UnRegisterVariableFromPool(string name)
@@ -144,7 +154,7 @@ namespace Xeora.Web.Basics.Service
 
             // Unregister Variable From Pool Immidiately. 
             // Otherwise it will cause cache reload in the same domain call
-            VariablePoolOperation._Cache.Set(this._SessionKeyID, name, null);
+            VariablePoolOperation._Cache.Set(name, null);
         }
 
         private void TransferRegistrations(string fromSessionID)
@@ -152,7 +162,7 @@ namespace Xeora.Web.Basics.Service
             try
             {
                 VariablePoolOperation._Cache =
-                    (IVariablePool)TypeCache.Instance.RemoteInvoke.InvokeMember("TransferVariablePool", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { fromSessionID, this._SessionID });
+                    (IVariablePool)TypeCache.Current.RemoteInvoke.InvokeMember("TransferVariablePool", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { this._KeyID, fromSessionID, this._SessionID });
             }
             catch (Exception ex)
             {
@@ -230,13 +240,22 @@ namespace Xeora.Web.Basics.Service
         // It is suitable for repeating requests...
         private class VariablePoolPreCache
         {
+            private static object _Lock = new object();
             private static ConcurrentDictionary<string, ConcurrentDictionary<string, object>> _VariablePreCache = null;
             public static ConcurrentDictionary<string, ConcurrentDictionary<string, object>> VariablePreCache
             {
                 get
                 {
-                    if (VariablePoolPreCache._VariablePreCache == null)
-                        VariablePoolPreCache._VariablePreCache = new ConcurrentDictionary<string, ConcurrentDictionary<string, object>>();
+                    Monitor.Enter(VariablePoolPreCache._Lock);
+                    try
+                    {
+                        if (VariablePoolPreCache._VariablePreCache == null)
+                            VariablePoolPreCache._VariablePreCache = new ConcurrentDictionary<string, ConcurrentDictionary<string, object>>();
+                    }
+                    finally
+                    {
+                        Monitor.Exit(VariablePoolPreCache._Lock);
+                    }
 
                     return VariablePoolPreCache._VariablePreCache;
                 }

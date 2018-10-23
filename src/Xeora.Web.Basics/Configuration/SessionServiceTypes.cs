@@ -1,6 +1,6 @@
 ﻿namespace Xeora.Web.Basics.Configuration
 {
-    public enum SessionServiceTypes
+    public enum DSSServiceTypes
     {
         BuiltIn,
         External
