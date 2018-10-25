@@ -115,7 +115,7 @@ namespace Xeora.Web.Handler
                     if (((string)this.Context["RedirectLocation"]).IndexOf("://") == -1)
                     {
                         string redirectLocation =
-                            string.Format("http://{0}{1}", this.Context.Request.Header.Host, this.Context["RedirectLocation"]);
+                            string.Format("{0}://{1}{2}", Configurations.Xeora.Service.Ssl ? "https" : "http", this.Context.Request.Header.Host, this.Context["RedirectLocation"]);
 
                         this.Context.AddOrUpdate("RedirectLocation", redirectLocation);
                     }
@@ -437,7 +437,8 @@ namespace Xeora.Web.Handler
             if (this._DomainControl != null)
             {
                 this.Context.AddOrUpdate("RedirectLocation",
-                    string.Format("http://{0}{1}",
+                    string.Format("{0}://{1}{2}",
+                        Configurations.Xeora.Service.Ssl ? "https" : "http",
                         this.Context.Request.Header.Host,
                         Helpers.CreateURL(false, this._DomainControl.Domain.Settings.Configurations.DefaultPage)
                     )

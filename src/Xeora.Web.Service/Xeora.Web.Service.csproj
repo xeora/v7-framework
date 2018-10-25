@@ -52,6 +52,7 @@
     <ProjectReference Include="..\Xeora.Web.Service.Context\Xeora.Web.Service.Context.csproj" />
     <ProjectReference Include="..\Xeora.Web.Basics\Xeora.Web.Basics.csproj" />
     <ProjectReference Include="..\Xeora.Web.Configuration\Xeora.Web.Configuration.csproj" />
+    <ProjectReference Include="..\Xeora.Web.Service.Net\Xeora.Web.Service.Net.csproj" />
   </ItemGroup>
 
 </Project>

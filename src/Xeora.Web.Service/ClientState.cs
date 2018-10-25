@@ -11,20 +11,18 @@ namespace Xeora.Web.Service
     public class ClientState : IDisposable
     {
         private IPAddress _RemoteAddr;
-        private NetworkStream _RemoteStream;
+        private Net.NetworkStream _StreamEnclosure;
 
         private string _StateID;
 
-        private Basics.Context.IHttpRequest _Request = null;
         private Basics.Context.IHttpContext _Context = null;
 
-        public ClientState(IPAddress remoteAddr, ref NetworkStream remoteStream)
+        public ClientState(IPAddress remoteAddr, Net.NetworkStream streamEnclosure)
         {
             this._RemoteAddr = remoteAddr;
-            this._RemoteStream = remoteStream;
+            this._StreamEnclosure = streamEnclosure;
 
             this._StateID = Guid.NewGuid().ToString();
-            this._Request = new HttpRequest(this._RemoteAddr);
         }
 
         public void Handle()
@@ -33,8 +31,11 @@ namespace Xeora.Web.Service
             {
                 DateTime wholeProcessBegins = DateTime.Now;
 
-                ((HttpRequest)this._Request).Build(this._StateID, ref this._RemoteStream);
-                this._Context = new HttpContext(this._StateID, ref this._Request);
+                Basics.Context.IHttpRequest request = new HttpRequest(this._RemoteAddr);
+                if (!((HttpRequest)request).Build(this._StateID, this._StreamEnclosure))
+                    return;
+
+                this._Context = new HttpContext(this._StateID, ref request);
 
                 DateTime xeoraHandlerProcessBegins = DateTime.Now;
 
@@ -56,7 +57,7 @@ namespace Xeora.Web.Service
                 this._Context.Response.Header.AddOrUpdate("X-Framework-Version", WebServer.GetVersionText());
                 this._Context.Response.Header.AddOrUpdate("Connection", "close");
 
-                ((HttpResponse)this._Context.Response).Flush(ref this._RemoteStream);
+                ((HttpResponse)this._Context.Response).Flush(this._StreamEnclosure);
 
                 Handler.HandlerManager.Current.UnMark(xeoraHandler.HandlerID);
 
@@ -96,7 +97,7 @@ namespace Xeora.Web.Service
                 sB.AppendLine("Connection: close");
 
                 byte[] buffer = Encoding.ASCII.GetBytes(sB.ToString());
-                this._RemoteStream.Write(buffer, 0, buffer.Length);
+                this._StreamEnclosure.Write(buffer, 0, buffer.Length);
             }
             catch (System.Exception)
             {

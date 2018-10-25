@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
-using System.Net.Sockets;
 using System.Text;
 using Xeora.Web.Basics;
 
@@ -35,7 +34,7 @@ namespace Xeora.Web.Service.Context
 
         public Basics.Context.IHttpResponseHeader Header { get; private set; }
 
-        private void PushHeaders(ref NetworkStream remoteStream)
+        private void PushHeaders(Net.NetworkStream streamEnclosure)
         {
             this.Header.AddOrUpdate("Date", DateTime.Now.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", new CultureInfo("en-US")));
 
@@ -70,7 +69,7 @@ namespace Xeora.Web.Service.Context
             sB.AppendLine();
 
             byte[] buffer = Encoding.ASCII.GetBytes(sB.ToString());
-            remoteStream.Write(buffer, 0, buffer.Length);
+            streamEnclosure.Write(buffer, 0, buffer.Length);
         }
 
         public void Write(string value, Encoding encoding)
@@ -85,7 +84,7 @@ namespace Xeora.Web.Service.Context
         public void Redirect(string URL) => this._RedirectedURL = URL;
         public bool IsRedirected => !string.IsNullOrEmpty(this._RedirectedURL);
 
-        private void Redirect(ref NetworkStream remoteStream)
+        private void Redirect(Net.NetworkStream streamEnclosure)
         {
             StringBuilder sB = new StringBuilder();
 
@@ -110,22 +109,22 @@ namespace Xeora.Web.Service.Context
             sB.AppendLine();
 
             byte[] buffer = Encoding.ASCII.GetBytes(sB.ToString());
-            remoteStream.Write(buffer, 0, buffer.Length);
+            streamEnclosure.Write(buffer, 0, buffer.Length);
         }
 
-        public void Flush(ref NetworkStream remoteStream)
+        public void Flush(Net.NetworkStream streamEnclosure)
         {
             if (this.IsRedirected)
             {
-                this.Redirect(ref remoteStream);
+                this.Redirect(streamEnclosure);
 
                 return;
             }
 
-            this.PushHeaders(ref remoteStream);
+            this.PushHeaders(streamEnclosure);
 
             this._ResponseOutput.Seek(0, SeekOrigin.Begin);
-            this._ResponseOutput.CopyTo(remoteStream);
+            this._ResponseOutput.CopyTo(streamEnclosure);
         }
 
         internal void Dispose()

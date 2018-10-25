@@ -1,30 +1,29 @@
-﻿using System.IO;
-using System.Net;
-using System.Net.Sockets;
+﻿using System.Net;
 
 namespace Xeora.Web.Service.Context
 {
     public class HttpRequest : Basics.Context.IHttpRequest
     {
+        private HttpRequestHeader _Header;
+
         public HttpRequest(IPAddress remoteAddr) =>
             this.RemoteAddr = remoteAddr;
 
         public IPAddress RemoteAddr { get; private set; }
-        public Basics.Context.IHttpRequestHeader Header { get; private set; }
+        public Basics.Context.IHttpRequestHeader Header => this._Header;
         public Basics.Context.IHttpRequestQueryString QueryString { get; private set; }
         public Basics.Context.IHttpRequestBody Body { get; private set; }
 
-        public void Build(string contextID, ref NetworkStream remoteStream)
+        public bool Build(string contextID, Net.NetworkStream streamEnclosure)
         {
-            this.Header = new HttpRequestHeader(ref remoteStream);
-            this.QueryString = new HttpRequestQueryString(this.Header.URL);
-            this.Body = 
-                new HttpRequestBody(
-                    contextID, 
-                    this.Header, 
-                    ((HttpRequestHeader)this.Header).Residual, 
-                    ref remoteStream
-                );
+            this._Header = new HttpRequestHeader(streamEnclosure);
+            if (!this._Header.Parse())
+                return false;
+
+            this.QueryString = new HttpRequestQueryString(this._Header.URL);
+            this.Body = new HttpRequestBody(contextID, this._Header, streamEnclosure);
+
+            return true;
         }
 
         public void RewritePath(string rawURL)

@@ -1,93 +1,24 @@
 ﻿using System;
 using System.IO;
-using System.Net.Sockets;
 using System.Text;
 
 namespace Xeora.Web.Service.Context
 {
     public class HttpRequestHeader : KeyValueCollection<string, string>, Basics.Context.IHttpRequestHeader
     {
-        private NetworkStream _RemoteStream;
+        private Net.NetworkStream _StreamEnclosure;
 
         private Basics.Context.HttpMethod _Method;
-        private Basics.Context.IURL _URL;
-        private string _Protocol;
-
-        private string _Host = string.Empty;
-        private string _UserAgent = string.Empty;
         private int _ContentLength = 0;
-        private string _ContentType = string.Empty;
-        private Encoding _ContentEncoding = null;
-        private string _Boundary = string.Empty;
 
-        private Basics.Context.IHttpCookie _Cookie;
-
-        private byte[] _Residual = null;
-
-        public HttpRequestHeader(ref NetworkStream remoteStream)
+        public HttpRequestHeader(Net.NetworkStream streamEnclosure)
         {
-            this._RemoteStream = remoteStream;
+            this._StreamEnclosure = streamEnclosure;
 
-            this._Cookie = new HttpCookie();
-
-            this.Parse();
+            this.Cookie = new HttpCookie();
         }
 
-        private string ExtractHeader()
-        {
-            string RNRN = "\r\n\r\n";
-            string NN = "\n\n";
-            int NL;
-
-            byte[] buffer = new byte[1024];
-            string content = string.Empty;
-
-            Stream contentStream = null;
-            try
-            {
-                contentStream = new MemoryStream();
-                do
-                {
-                    int bR = this._RemoteStream.Read(buffer, 0, buffer.Length);
-
-                    if (bR == 0)
-                        break;
-
-                    contentStream.Write(buffer, 0, buffer.Length);
-                    content += Encoding.ASCII.GetString(buffer, 0, bR);
-
-                    NL = 4;
-                    int EOFIndex = content.IndexOf(RNRN);
-                    if (EOFIndex == -1)
-                    {
-                        NL = 2;
-                        EOFIndex = content.IndexOf(NN);
-                    }
-                    if (EOFIndex == -1)
-                        continue;
-
-                    EOFIndex += NL;
-
-                    this._Residual = new byte[content.Length - EOFIndex];
-                    contentStream.Seek(EOFIndex, SeekOrigin.Begin);
-                    contentStream.Read(this._Residual, 0, this._Residual.Length);
-
-                    return content.Substring(0, EOFIndex);
-                } while (true);
-            }
-            finally
-            {
-                if (contentStream != null)
-                {
-                    contentStream.Close();
-                    GC.SuppressFinalize(contentStream);
-                }
-            }
-
-            return string.Empty;
-        }
-
-        private void Parse()
+        public bool Parse()
         {
             string header = this.ExtractHeader();
 
@@ -99,7 +30,12 @@ namespace Xeora.Web.Service.Context
                 string line = sR.ReadLine();
 
                 if (string.IsNullOrEmpty(line))
-                    break;
+                {
+                    if (lineNumber == 1)
+                        return false;
+
+                    return true;
+                }
 
                 switch (lineNumber)
                 {
@@ -109,15 +45,15 @@ namespace Xeora.Web.Service.Context
                         if (!System.Enum.TryParse<Basics.Context.HttpMethod>(lineParts[0], out this._Method))
                             this._Method = Basics.Context.HttpMethod.GET;
 
-                        this._URL = new URL(lineParts[1]);
-                        this._Protocol = lineParts[2];
+                        this.URL = new URL(lineParts[1]);
+                        this.Protocol = lineParts[2];
 
                         break;
 
                     default:
                         int colonIndex = line.IndexOf(':');
                         if (colonIndex == -1)
-                            return;
+                            return false;
 
                         string key = line.Substring(0, colonIndex);
                         string value = line.Substring(colonIndex + 1);
@@ -126,11 +62,11 @@ namespace Xeora.Web.Service.Context
                         switch (key.ToLowerInvariant())
                         {
                             case "host":
-                                this._Host = value;
+                                this.Host = value;
 
                                 break;
                             case "user-agent":
-                                this._UserAgent = value;
+                                this.UserAgent = value;
 
                                 break;
                             case "content-length":
@@ -140,10 +76,10 @@ namespace Xeora.Web.Service.Context
                             case "content-type":
                                 string[] contentTypeValues = value.Split(';');
 
-                                this._ContentType = contentTypeValues[0];
+                                this.ContentType = contentTypeValues[0];
 
                                 for (int cC = 1; cC < contentTypeValues.Length; cC++)
-                                { 
+                                {
                                     string keyAndValue = contentTypeValues[cC];
 
                                     int equalsIndex = keyAndValue.IndexOf('=');
@@ -152,12 +88,12 @@ namespace Xeora.Web.Service.Context
 
                                     string contentKey =
                                         keyAndValue.Substring(0, equalsIndex).Trim();
-                                    switch(contentKey)
+                                    switch (contentKey)
                                     {
                                         case "boundary":
                                             string boundaryValue =
                                                 keyAndValue.Substring(equalsIndex + 1).Trim();
-                                            this._Boundary = boundaryValue.Replace("\"", string.Empty);
+                                            this.Boundary = boundaryValue.Replace("\"", string.Empty);
 
                                             break;
                                         case "charset":
@@ -165,11 +101,11 @@ namespace Xeora.Web.Service.Context
                                                 keyAndValue.Substring(equalsIndex + 1).Trim();
                                             try
                                             {
-                                                this._ContentEncoding = Encoding.GetEncoding(charsetValue);
+                                                this.ContentEncoding = Encoding.GetEncoding(charsetValue);
                                             }
                                             catch (System.Exception)
                                             {
-                                                this._ContentEncoding = null;
+                                                this.ContentEncoding = null;
                                             }
 
                                             break;
@@ -192,6 +128,63 @@ namespace Xeora.Web.Service.Context
 
                 lineNumber++;
             }
+
+            return false;
+        }
+
+        private string ExtractHeader()
+        {
+            string RNRN = "\r\n\r\n";
+            string NN = "\n\n";
+            int NL;
+
+            Stream contentStream = null;
+            try
+            {
+                contentStream = new MemoryStream();
+
+                string content = string.Empty;
+                int EOFIndex = 0;
+
+                bool completed = this._StreamEnclosure.Listen((buffer, size) =>
+                {
+                    contentStream.Write(buffer, 0, size);
+                    content += Encoding.ASCII.GetString(buffer, 0, size);
+
+                    NL = 4;
+                    EOFIndex = content.IndexOf(RNRN);
+                    if (EOFIndex == -1)
+                    {
+                        NL = 2;
+                        EOFIndex = content.IndexOf(NN);
+                    }
+                    if (EOFIndex == -1)
+                        return true;
+
+                    EOFIndex += NL;
+
+                    byte[] residualData = new byte[content.Length - EOFIndex];
+                    contentStream.Seek(EOFIndex, SeekOrigin.Begin);
+                    contentStream.Read(residualData, 0, residualData.Length);
+
+                    this._StreamEnclosure.Return(residualData, 0, residualData.Length);
+
+                    return false;
+                });
+
+                if (!completed)
+                    return string.Empty;
+
+                return content.Substring(0, EOFIndex);
+            }
+            finally
+            {
+                if (contentStream != null)
+                {
+                    contentStream.Close();
+                    GC.SuppressFinalize(contentStream);
+                }
+            }
         }
 
         private void ParseCookies(string rawCookie)
@@ -209,29 +202,27 @@ namespace Xeora.Web.Service.Context
                 string value = keyValue.Substring(equalsIndex + 1);
                 value = value.Trim();
 
-                Basics.Context.IHttpCookieInfo cookieInfo = this._Cookie.CreateNewCookie(key);
+                Basics.Context.IHttpCookieInfo cookieInfo = this.Cookie.CreateNewCookie(key);
                 cookieInfo.Value = System.Web.HttpUtility.UrlDecode(value);
 
-                this._Cookie.AddOrUpdate(cookieInfo);
+                this.Cookie.AddOrUpdate(cookieInfo);
             }
         }
 
         public Basics.Context.HttpMethod Method => this._Method;
-        public Basics.Context.IURL URL => this._URL;
-        public string Protocol => this._Protocol;
+        public Basics.Context.IURL URL { get; private set; }
+        public string Protocol { get; private set; }
 
-        public string Host => this._Host;
-        public string UserAgent => this._UserAgent;
+        public string Host { get; private set; }
+        public string UserAgent { get; private set; }
         public int ContentLength => this._ContentLength;
-        public string ContentType => this._ContentType;
-        public Encoding ContentEncoding => this._ContentEncoding;
-        public string Boundary => this._Boundary;
+        public string ContentType { get; private set; }
+        public Encoding ContentEncoding { get; private set; }
+        public string Boundary { get; private set; }
 
-        public Basics.Context.IHttpCookie Cookie => this._Cookie;
-
-        internal byte[] Residual => this._Residual;
+        public Basics.Context.IHttpCookie Cookie { get; private set; }
 
         internal void ReplacePath(string rawURL) =>
-            this._URL = new URL(rawURL);
+            this.URL = new URL(rawURL);
     }
 }

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Net.Sockets;
 using System.Text;
 
 namespace Xeora.Web.Service.Context
@@ -11,25 +9,19 @@ namespace Xeora.Web.Service.Context
         private string _ContextID;
 
         private Basics.Context.IHttpRequestHeader _Header;
-        private Stack<byte[]> _Residual;
-        private NetworkStream _RemoteStream;
+        private Net.NetworkStream _StreamEnclosure;
 
-        private Basics.Context.IHttpRequestForm _Form;
-        private Basics.Context.IHttpRequestFile _File;
         private Stream _ContentStream;
 
-        public HttpRequestBody(string contextID, Basics.Context.IHttpRequestHeader header, byte[] residual, ref NetworkStream remoteStream)
+        public HttpRequestBody(string contextID, Basics.Context.IHttpRequestHeader header, Net.NetworkStream streamEnclosure)
         {
             this._ContextID = contextID;
 
             this._Header = header;
-            this._Residual = new Stack<byte[]>();
-            if (residual != null)
-                this._Residual.Push(residual);
-            this._RemoteStream = remoteStream;
+            this._StreamEnclosure = streamEnclosure;
 
-            this._Form = new HttpRequestForm();
-            this._File = new HttpRequestFile();
+            this.Form = new HttpRequestForm();
+            this.File = new HttpRequestFile();
 
             this.Parse();
         }
@@ -40,41 +32,7 @@ namespace Xeora.Web.Service.Context
             contentStream.Seek(offset, origin);
             contentStream.Read(contentBytes, 0, contentBytes.Length);
 
-            this._Residual.Push(contentBytes);
-        }
-
-        private int Read(byte[] buffer, int offset, int count)
-        {
-            int totalRead = 0;
-
-            while (this._Residual.Count > 0)
-            {
-                byte[] residual = this._Residual.Pop();  
-                int readLength = residual.Length;
-
-                if (readLength > count)
-                {
-                    byte[] newResidual = new byte[readLength - count];
-                    Array.Copy(residual, count, newResidual, 0, newResidual.Length);
-                    this._Residual.Push(newResidual);
-
-                    readLength = count;
-                }
-
-                Array.Copy(residual, 0, buffer, offset, readLength);
-                totalRead += readLength;
-
-                count -= readLength;
-                offset += readLength;
-
-                if (count == 0)
-                    return totalRead;
-            }
-
-            if (this._RemoteStream.DataAvailable)
-                totalRead += this._RemoteStream.Read(buffer, offset, count);
-
-            return totalRead;
+            this._StreamEnclosure.Return(contentBytes, 0, contentBytes.Length);
         }
 
         private void ReadToEndInto(ref Stream contentStream)
@@ -87,7 +45,7 @@ namespace Xeora.Web.Service.Context
 
             do
             {
-                bR = this.Read(buffer, 0, buffer.Length);
+                bR = this._StreamEnclosure.Read(buffer, 0, buffer.Length);
 
                 if (bR > 0)
                     contentStream.Write(buffer, 0, bR);
@@ -126,32 +84,38 @@ namespace Xeora.Web.Service.Context
         private bool MoveToNextContent()
         {
             string SearchBoundary = string.Format("--{0}", this._Header.Boundary);
-
-            byte[] buffer = new byte[SearchBoundary.Length];
-            string content = string.Empty;
+            string EndBoundary = string.Format("--{0}--", this._Header.Boundary);
 
             Stream contentStream = null;
             try
             {
+                bool foundNextContent = false;
+
                 contentStream = new MemoryStream();
-                do
+                string content = string.Empty;
+
+                this._StreamEnclosure.Listen((buffer, size) =>
                 {
-                    int bR = this.Read(buffer, 0, buffer.Length);
-
-                    if (bR == 0)
-                        break;
-
-                    contentStream.Write(buffer, 0, bR);
-                    content += Encoding.ASCII.GetString(buffer, 0, bR);
+                    contentStream.Write(buffer, 0, size);
+                    content += Encoding.ASCII.GetString(buffer, 0, size);
 
                     int EOFIndex = content.IndexOf(SearchBoundary);
                     if (EOFIndex == -1)
-                        continue;
+                        return true;
+
+                    if (EOFIndex + EndBoundary.Length > content.Length)
+                        return true;
+
+                    if (EOFIndex == content.IndexOf(EndBoundary))
+                        return false;
 
                     this.AddToResidual(ref contentStream, SeekOrigin.Begin, EOFIndex, content.Length - EOFIndex);
+                    foundNextContent = true;
 
-                    return true;
-                } while (true);
+                    return false;
+                });
+
+                return foundNextContent;
             }
             finally
             {
@@ -161,8 +125,6 @@ namespace Xeora.Web.Service.Context
                     GC.SuppressFinalize(contentStream);
                 }
             }
-
-            return false;
         }
 
         private ContentHeader ReadContentHeader()
@@ -171,39 +133,40 @@ namespace Xeora.Web.Service.Context
             string NN = "\n\n";
             int NL;
 
-            byte[] buffer = new byte[1024];
-            string content = string.Empty;
-
             Stream contentStream = null;
             try
             {
                 contentStream = new MemoryStream();
-                do
+
+                string content = string.Empty;
+                int EOFIndex = 0;
+
+                bool completed = this._StreamEnclosure.Listen((buffer, size) =>
                 {
-                    int bR = this.Read(buffer, 0, buffer.Length);
-
-                    if (bR == 0)
-                        break;
-
-                    contentStream.Write(buffer, 0, bR);
-                    content += Encoding.ASCII.GetString(buffer, 0, bR);
+                    contentStream.Write(buffer, 0, size);
+                    content += Encoding.ASCII.GetString(buffer, 0, size);
 
                     NL = 4;
-                    int EOFIndex = content.IndexOf(RNRN);
+                    EOFIndex = content.IndexOf(RNRN);
                     if (EOFIndex == -1)
                     {
                         NL = 2;
                         EOFIndex = content.IndexOf(NN);
                     }
                     if (EOFIndex == -1)
-                        continue;
+                        return true;
 
                     EOFIndex += NL;
 
                     this.AddToResidual(ref contentStream, SeekOrigin.Begin, EOFIndex, content.Length - EOFIndex);
 
-                    return this.ParseContentHeader(content.Substring(0, EOFIndex));
-                } while (true);
+                    return false;
+                });
+
+                if (!completed)
+                    return default(ContentHeader);
+
+                return this.ParseContentHeader(content.Substring(0, EOFIndex));
             }
             finally
             {
@@ -213,8 +176,6 @@ namespace Xeora.Web.Service.Context
                     GC.SuppressFinalize(contentStream);
                 }
             }
-
-            return default(ContentHeader);
         }
 
         private struct ContentHeader
@@ -319,7 +280,7 @@ namespace Xeora.Web.Service.Context
                 {
                     contentStream = new MemoryStream();
 
-                    if (this.ReadContentBody(ref contentStream))
+                    if (this.ReadContentBody(contentStream))
                     {
                         if (contentHeader.ContentEncoding != null)
                             sR = new StreamReader(contentStream, contentHeader.ContentEncoding, true);
@@ -362,31 +323,24 @@ namespace Xeora.Web.Service.Context
                     contentHeader.FileName, 
                     this._Header.ContentLength < 3670016
                 );
-            if (this.ReadContentBody(ref requestFI._ContentStream))
-                ((HttpRequestFile)this._File).AddOrUpdate(contentHeader.Name, requestFI);
+            if (this.ReadContentBody(requestFI._ContentStream))
+                ((HttpRequestFile)this.File).AddOrUpdate(contentHeader.Name, requestFI);
         }
 
-        private bool ReadContentBody(ref Stream containerStream)
+        private bool ReadContentBody(Stream containerStream)
         {
             string SearchBoundary = string.Format("--{0}", this._Header.Boundary);
             string RN = "\r\n";
             string N = "\n";
 
-            byte[] buffer = new byte[short.MaxValue];
-
             int totalRead = 0;
 
-            do
+            return this._StreamEnclosure.Listen((buffer, size) =>
             {
-                int bR = this.Read(buffer, 0, buffer.Length);
+                totalRead += size;
+                containerStream.Write(buffer, 0, size);
 
-                if (bR == 0)
-                    break;
-
-                totalRead += bR;
-                containerStream.Write(buffer, 0, bR);
-
-                string content = Encoding.ASCII.GetString(buffer, 0, bR);
+                string content = Encoding.ASCII.GetString(buffer, 0, size);
 
                 int EOFIndex = content.IndexOf(SearchBoundary);
                 if (EOFIndex == -1)
@@ -397,13 +351,13 @@ namespace Xeora.Web.Service.Context
 
                     containerStream.Seek(SearchBoundary.Length * -1, SeekOrigin.Current);
 
-                    continue;
+                    return true;
                 }
 
-                this.AddToResidual(ref containerStream, SeekOrigin.Current, (bR - (EOFIndex - 2)) * -1, (bR - (EOFIndex - 2)));
+                this.AddToResidual(ref containerStream, SeekOrigin.Current, (size - (EOFIndex - 2)) * -1, (size - (EOFIndex - 2)));
 
                 byte[] newLineTest = new byte[2];
-                this.Read(newLineTest, 0, newLineTest.Length);
+                this._StreamEnclosure.Read(newLineTest, 0, newLineTest.Length);
 
                 if (string.Compare(Encoding.ASCII.GetString(newLineTest), RN) == 0)
                     EOFIndex -= 2;
@@ -411,12 +365,10 @@ namespace Xeora.Web.Service.Context
                     EOFIndex -= 1;
 
                 containerStream.Seek(0, SeekOrigin.Begin);
-                containerStream.SetLength((totalRead - bR) + EOFIndex);
+                containerStream.SetLength((totalRead - size) + EOFIndex);
 
-                return true;
-            } while (true);
-
-            return false;
+                return false;
+            });
         }
 
         private void ParseApplicationXWWWFormURLEncoded()
@@ -457,10 +409,10 @@ namespace Xeora.Web.Service.Context
                         value = System.Web.HttpUtility.UrlDecode(value);
                     }
 
-                    if (((HttpRequestForm)this._Form).ContainsKey(key))
-                        value = string.Format("{0},{1}", this._Form[key], value);
+                    if (((HttpRequestForm)this.Form).ContainsKey(key))
+                        value = string.Format("{0},{1}", this.Form[key], value);
 
-                    ((HttpRequestForm)this._Form).AddOrUpdate(key, value);
+                    ((HttpRequestForm)this.Form).AddOrUpdate(key, value);
                 }
             }
             finally
@@ -481,13 +433,13 @@ namespace Xeora.Web.Service.Context
             this._ContentStream.Seek(0, SeekOrigin.Begin);
         }
 
-        public Basics.Context.IHttpRequestForm Form => this._Form;
-        public Basics.Context.IHttpRequestFile File => this._File;
+        public Basics.Context.IHttpRequestForm Form { get; private set; }
+        public Basics.Context.IHttpRequestFile File { get; private set; }
         public Stream ContentStream => this._ContentStream;
 
         internal void Dispose()
         {
-            ((HttpRequestFile)this._File).Dispose();
+            ((HttpRequestFile)this.File).Dispose();
 
             if (this._ContentStream != null)
             {
