@@ -56,7 +56,7 @@ namespace Xeora.Web.Service
                 {
                     this._Certificate = new X509Certificate2(
                         Path.Combine(this._ConfigurationPath, "server.p12"),
-                        ConfigurationManager.Current.Configuration.Service.SslKey
+                        ConfigurationManager.Current.Configuration.Service.CertificatePassword
                     );
 
 

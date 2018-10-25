@@ -11,7 +11,7 @@ namespace Xeora.Web.Configuration
             this._Address = "127.0.0.1";
             this.Port = 3381;
             this.Ssl = false;
-            this.SslKey = string.Empty;
+            this.CertificatePassword = string.Empty;
             this.Print = false;
         }
 
@@ -30,8 +30,8 @@ namespace Xeora.Web.Configuration
         public bool Ssl { get; private set; }
 
         [DefaultValue("")]
-        [JsonProperty(PropertyName = "sslKey", DefaultValueHandling = DefaultValueHandling.Populate)]
-        public string SslKey { get; private set; }
+        [JsonProperty(PropertyName = "certificatePassword", DefaultValueHandling = DefaultValueHandling.Populate)]
+        public string CertificatePassword { get; private set; }
 
         [DefaultValue(false)]
         [JsonProperty(PropertyName = "print", DefaultValueHandling = DefaultValueHandling.Populate)]
