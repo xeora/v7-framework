@@ -10,8 +10,9 @@ namespace Xeora.Web.Configuration
         {
             this._Address = "127.0.0.1";
             this.Port = 3381;
+            this.Ssl = false;
+            this.SslKey = string.Empty;
             this.Print = false;
-            this.SessionCookieKey = "xcsid";
         }
 
         [DefaultValue("127.0.0.1")]
@@ -25,11 +26,15 @@ namespace Xeora.Web.Configuration
         public short Port { get; private set; }
 
         [DefaultValue(false)]
+        [JsonProperty(PropertyName = "ssl", DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool Ssl { get; private set; }
+
+        [DefaultValue("")]
+        [JsonProperty(PropertyName = "sslKey", DefaultValueHandling = DefaultValueHandling.Populate)]
+        public string SslKey { get; private set; }
+
+        [DefaultValue(false)]
         [JsonProperty(PropertyName = "print", DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool Print { get; private set; }
-
-        [DefaultValue("xcsid")]
-        [JsonProperty(PropertyName = "SessionCookieKey", DefaultValueHandling = DefaultValueHandling.Populate)]
-        public string SessionCookieKey { get; private set; }
     }
 }
