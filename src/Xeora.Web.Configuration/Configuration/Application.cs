@@ -10,7 +10,6 @@ namespace Xeora.Web.Configuration
         {
             this.Main = new Main();
             this.RequestTagFilter = new RequestTagFilter();
-            this.ServicePort = new ServicePort();
             this.CustomMimes = new MimeItem[] { };
             this._BannedFiles = new string[] { };
         }
@@ -20,9 +19,6 @@ namespace Xeora.Web.Configuration
 
         [JsonProperty(PropertyName = "requestTagFilter")]
         public Basics.Configuration.IRequestTagFilter RequestTagFilter { get; private set; }
-
-        [JsonProperty(PropertyName = "servicePort")]
-        public Basics.Configuration.IServicePort ServicePort { get; private set; }
 
         [JsonProperty(PropertyName = "customMimes")]
         public Basics.Configuration.IMimeItem[] CustomMimes { get; private set; }
