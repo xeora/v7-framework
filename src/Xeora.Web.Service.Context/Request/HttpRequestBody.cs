@@ -40,6 +40,39 @@ namespace Xeora.Web.Service.Context
             if (contentStream == null)
                 contentStream = new MemoryStream();
 
+            if (this._Header.ContentLength > 0)
+                this.ReadWithLength(this._Header.ContentLength, ref contentStream);
+            else
+                this.ReadBlind(ref contentStream);
+        }
+
+        private void ReadWithLength(int length, ref Stream contentStream)
+        {
+            Stream contentStreamReference = contentStream;
+
+            this._StreamEnclosure.Listen((buffer, size) =>
+            {
+                int read = size;
+                if (length < read)
+                    read = length;
+
+                contentStreamReference.Write(buffer, 0, read);
+                length -= read;
+
+                if (read - size < 0)
+                    this._StreamEnclosure.Return(buffer, read, size - read);
+
+                if (length > 0)
+                    return true;
+
+                return false;
+            });
+
+            contentStream = contentStreamReference;
+        }
+
+        private void ReadBlind(ref Stream contentStream)
+        {
             byte[] buffer = new byte[1024];
             int waitCount = 5;
 
