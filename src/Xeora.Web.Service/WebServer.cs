@@ -16,7 +16,7 @@ namespace Xeora.Web.Service
         private string _ConfigurationFile;
 
         private TcpListener _TCPListener;
-        private X509Certificate _Certificate;
+        private X509Certificate2 _Certificate;
 
         private const short READ_TIMEOUT = 5; // 5 seconds
 
@@ -54,7 +54,7 @@ namespace Xeora.Web.Service
 
                 if (ConfigurationManager.Current.Configuration.Service.Ssl)
                 {
-                    this._Certificate = new X509Certificate(
+                    this._Certificate = new X509Certificate2(
                         Path.Combine(this._ConfigurationPath, "server.p12"),
                         ConfigurationManager.Current.Configuration.Service.SslKey
                     );
@@ -77,7 +77,11 @@ namespace Xeora.Web.Service
             }
             catch (System.Exception ex)
             {
-                Basics.Console.Push("XeoraEngine is FAILED!", ex.Message, false, true);
+                string message = ex.Message;
+                if (ex.InnerException != null)
+                    message = string.Format("{0} ({1})", message, ex.InnerException.Message);
+
+				Basics.Console.Push("XeoraEngine is FAILED!", message, false, true);
 
                 return 1;
             }
