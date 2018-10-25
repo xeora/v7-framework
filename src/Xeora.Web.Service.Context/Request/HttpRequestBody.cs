@@ -37,19 +37,30 @@ namespace Xeora.Web.Service.Context
 
         private void ReadToEndInto(ref Stream contentStream)
         {
-            byte[] buffer = new byte[1024];
-            int bR = 0;
-
             if (contentStream == null)
                 contentStream = new MemoryStream();
 
+            byte[] buffer = new byte[1024];
+            int waitCount = 5;
+
             do
             {
-                bR = this._StreamEnclosure.Read(buffer, 0, buffer.Length);
+                int bR = this._StreamEnclosure.Read(buffer, 0, buffer.Length);
 
-                if (bR > 0)
-                    contentStream.Write(buffer, 0, bR);
-            } while (bR > 0);
+                if (bR == 0)
+                {
+                    if (waitCount == 0)
+                        return;
+
+                    waitCount--;
+                    System.Threading.Thread.Sleep(1);
+
+                    continue;
+                }
+
+                waitCount = 5;
+                contentStream.Write(buffer, 0, bR);
+            } while (true);
         }
 
         private void Parse()
