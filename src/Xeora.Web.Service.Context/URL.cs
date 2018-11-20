@@ -6,35 +6,45 @@ namespace Xeora.Web.Service.Context
     {
         public URL(string rawURL)
         {
-            string ApplicationRootPath = Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation;
+            string ApplicationRootPath = 
+                Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation;
             // Fix false path request
-            if (string.Compare(ApplicationRootPath, "/") != 0 &&
-                string.Compare(string.Format("{0}/", rawURL).Substring((rawURL.Length + 1) - ApplicationRootPath.Length), ApplicationRootPath) == 0)
-                rawURL = string.Format("{0}/", rawURL);
+            if (string.Compare(ApplicationRootPath, "/") != 0)
+            {
+                string fixedRawURL = string.Format("{0}/", rawURL);
+
+                if (string.Compare(fixedRawURL.Substring(fixedRawURL.Length - ApplicationRootPath.Length), ApplicationRootPath) == 0)
+                    rawURL = fixedRawURL;
+            }
 
             this.Raw = rawURL;
 
-            int DoubleDashIndex = rawURL.IndexOf("//");
-            if (DoubleDashIndex > -1)
-                rawURL = rawURL.Remove(0, DoubleDashIndex + 2);
-
-            int FirstSingleDashIndex = rawURL.IndexOf('/');
-            if (FirstSingleDashIndex > -1)
-                rawURL = rawURL.Remove(0, FirstSingleDashIndex);
-
-            this.Relative = rawURL;
-
-            int FirstQuestionMarkIndex = rawURL.IndexOf('?');
+            int FirstQuestionMarkIndex = this.Raw.IndexOf('?');
             if (FirstQuestionMarkIndex > -1)
             {
-                this.RelativePath = rawURL.Substring(0, FirstQuestionMarkIndex);
-                this.QueryString = rawURL.Substring(FirstQuestionMarkIndex + 1);
+                this.RelativePath = this.CleanUpDashRepetition(this.Raw.Substring(0, FirstQuestionMarkIndex));
+                this.QueryString = this.Raw.Substring(FirstQuestionMarkIndex + 1);
+                this.Relative = string.Format("{0}?{1}", this.RelativePath, this.QueryString);
 
                 return;
             }
 
-            this.RelativePath = rawURL;
+            this.RelativePath = this.CleanUpDashRepetition(this.Raw);
             this.QueryString = string.Empty;
+            this.Relative = this.RelativePath;
+        }
+
+        private string CleanUpDashRepetition(string input)
+        {
+            int DoubleDashIndex;
+            do
+            {
+                DoubleDashIndex = input.IndexOf("//");
+                if (DoubleDashIndex > -1)
+                    input = input.Remove(DoubleDashIndex, 1);
+            } while (DoubleDashIndex > -1);
+
+            return input;
         }
 
         public string Raw { get; private set; }
