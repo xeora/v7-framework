@@ -142,6 +142,9 @@ namespace Xeora.Web.Service
                     remoteStream.Close();
                     remoteStream.Dispose();
 
+                    remoteClient.Close();
+                    remoteClient.Dispose();
+
                     return;
                 }
                 catch (System.Exception ex)
@@ -150,6 +153,9 @@ namespace Xeora.Web.Service
 
                     remoteStream.Close();
                     remoteStream.Dispose();
+
+                    remoteClient.Close();
+                    remoteClient.Dispose();
 
                     return;
                 }
