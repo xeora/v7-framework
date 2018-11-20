@@ -2,13 +2,20 @@
 {
     public class HttpResponseStatus : Basics.Context.IHttpResponseStatus
     {
-        public HttpResponseStatus()
-        {
-            this.Code = 200;
-            this.Message = "OK";
-        }
+        private short _Code;
 
-        public short Code { get; set; }
-        public string Message { get; set; }
+        public HttpResponseStatus() =>
+            this.Code = 200;
+
+        public short Code 
+        {
+            get => this._Code;
+            set
+            {
+                this._Code = value;
+                this.Message = HttpResponseStatusCodes.StatusCodes.GetMessage(this._Code);
+            }
+        }
+        public string Message { get; private set; }
     }
 }

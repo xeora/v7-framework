@@ -3,6 +3,6 @@
     public interface IHttpResponseStatus
     {
         short Code { get; set; }
-        string Message { get; set; }
+        string Message { get; }
     }
 }

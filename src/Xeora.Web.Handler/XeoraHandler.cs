@@ -485,8 +485,6 @@ namespace Xeora.Web.Handler
                 (File.Exists(requestFilePath) && this.IsRequestedStaticFileBanned(requestFilePath)))
             {
                 this.Context.Response.Header.Status.Code = 404;
-                this.Context.Response.Header.Status.Message = "Not Found";
-
                 this.Context.AddOrUpdate("RedirectLocation", null);
 
                 return;
@@ -545,8 +543,6 @@ namespace Xeora.Web.Handler
                 catch (System.Exception)
                 {
                     this.Context.Response.Header.Status.Code = 416;
-                    this.Context.Response.Header.Status.Message = "Range Not Satisfiable";
-
                     this.Context.AddOrUpdate("RedirectLocation", null);
 
                     return;
@@ -565,15 +561,12 @@ namespace Xeora.Web.Handler
                 if (endRange > requestFileStream.Length - 1 || beginRange > endRange)
                 {
                     this.Context.Response.Header.Status.Code = 416;
-                    this.Context.Response.Header.Status.Message = "Range Not Satisfiable";
-
                     this.Context.AddOrUpdate("RedirectLocation", null);
 
                     return;
                 }
 
                 this.Context.Response.Header.Status.Code = 206;
-                this.Context.Response.Header.Status.Message = "Partial Content";
                 this.Context.Response.Header.AddOrUpdate("Content-Type", contentType);
                 this.Context.Response.Header.AddOrUpdate("Content-Encoding", "identity");
                 this.Context.Response.Header.AddOrUpdate("Content-Range", string.Format("bytes {0}-{1}/{2}", beginRange, endRange, requestFileStream.Length));
@@ -621,7 +614,6 @@ namespace Xeora.Web.Handler
                 if (requestFileStream == null)
                 {
                     this.Context.Response.Header.Status.Code = 404;
-                    this.Context.Response.Header.Status.Message = "Not Found";
 
                     return;
                 }
