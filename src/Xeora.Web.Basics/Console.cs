@@ -67,7 +67,7 @@ namespace Xeora.Web.Basics
         /// <param name="message">Message Content</param>
         /// <param name="applyRules">If set to <c>true</c> obey the rules defined in Xeora project settings json</param>
         /// <param name="immediate">If set to <c>true</c> message will not be queued and print to the console immidiately</param>
-        public static void Push(string header, string message, bool applyRules, bool immediate = false)
+        public static void Push(string header, string summary, string details, bool applyRules, bool immediate = false)
         {
             if (applyRules && !Configurations.Xeora.Service.Print)
                 return;
@@ -80,7 +80,13 @@ namespace Xeora.Web.Basics
 
             header = header.PadRight(30, ' ');
 
-            string consoleMessage = string.Format("{0} {1} {2}", DateTime.Now.ToString(), header, message);
+            string consoleMessage = string.Format("{0} {1} {2}", DateTime.Now.ToString(), header, summary);
+            if (!string.IsNullOrEmpty(details))
+            {
+                string detailsHeader = "--------------- Details ---------------";
+
+                consoleMessage = string.Format("{0}\n\n{1}\n{2}\n\n", consoleMessage, detailsHeader, details);
+            }
 
             if (immediate)
             {

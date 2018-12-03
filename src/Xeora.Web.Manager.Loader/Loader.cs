@@ -106,13 +106,13 @@ namespace Xeora.Web.Manager
 
                 this.LoadDomainExecutables(this._DomainRootLocation);
 
-                Basics.Console.Push(string.Empty, "Application is loaded successfully!", false);
+                Basics.Console.Push(string.Empty, "Application is loaded successfully!", string.Empty, false);
 
                 this._ReloadedHandler?.Invoke();
             }
             catch (System.Exception)
             {
-                Basics.Console.Push(string.Empty, "Application loading progress has been FAILED!", false);
+                Basics.Console.Push(string.Empty, "Application loading progress has been FAILED!", string.Empty, false);
             }
 
             // Do not block Application load
@@ -209,7 +209,7 @@ namespace Xeora.Web.Manager
                 }
             }
 
-            Basics.Console.Push(string.Empty, "Cache is cleaned up!", false);
+            Basics.Console.Push(string.Empty, "Cache is cleaned up!", string.Empty, false);
         }
     }
 }
