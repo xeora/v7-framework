@@ -15,7 +15,7 @@ namespace Xeora.Web.Service.Net
         private bool _Disposed;
         private Thread _StreamListenerThread;
 
-        public NetworkStream(Stream remoteStream)
+        public NetworkStream(ref Stream remoteStream)
         {
             this._RemoteStream = remoteStream;
 
@@ -175,11 +175,5 @@ namespace Xeora.Web.Service.Net
 
         public override void SetLength(long value) =>
             this._RemoteStream.SetLength(value);
-
-        public new void Dispose()
-        {
-            this._RemoteStream.Close();
-            this._RemoteStream.Dispose();
-        }
     }
 }

@@ -5,7 +5,6 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
 using Xeora.Web.Configuration;
 
 namespace Xeora.Web.Service
@@ -59,21 +58,22 @@ namespace Xeora.Web.Service
                         ConfigurationManager.Current.Configuration.Service.CertificatePassword
                     );
 
+                    System.Text.StringBuilder sslDetails = new System.Text.StringBuilder();
+                    sslDetails.AppendFormat(" - Serial     {0}\n", this._Certificate.GetSerialNumberString());
+                    sslDetails.AppendFormat(" - Issuer     {0}\n", this._Certificate.Issuer);
+                    sslDetails.AppendFormat(" - Subject    {0}\n", this._Certificate.Subject);
+                    sslDetails.AppendFormat(" - From       {0}\n", this._Certificate.GetEffectiveDateString());
+                    sslDetails.AppendFormat(" - Till       {0}\n", this._Certificate.GetExpirationDateString());
+                    sslDetails.AppendFormat(" - Format     {0}\n", this._Certificate.GetFormat());
+                    sslDetails.AppendFormat(" - Public Key {0}", this._Certificate.GetPublicKeyString());
 
-                    Basics.Console.Push("SSL Certificate Details", string.Empty, false);
-                    Basics.Console.Push(" - Serial", this._Certificate.GetSerialNumberString(), false);
-                    Basics.Console.Push(" - Issuer", this._Certificate.Issuer, false);
-                    Basics.Console.Push(" - Subject", this._Certificate.Subject, false);
-                    Basics.Console.Push(" - From", this._Certificate.GetEffectiveDateString(), false);
-                    Basics.Console.Push(" - Till", this._Certificate.GetExpirationDateString(), false);
-                    Basics.Console.Push(" - Format", this._Certificate.GetFormat(), false);
-                    Basics.Console.Push(" - Public Key", this._Certificate.GetPublicKeyString(), false);
+                    Basics.Console.Push("SSL Certificate Information", string.Empty, sslDetails.ToString(), false);
                 }
 
                 this._TCPListener = new TcpListener(serviceIPEndPoint);
                 this._TCPListener.Start(100);
 
-                Basics.Console.Push("XeoraEngine is started at", string.Format("{0} ({1})", serviceIPEndPoint, ConfigurationManager.Current.Configuration.Service.Ssl ? "Secure" : "Basic"), false);
+                Basics.Console.Push("XeoraEngine is started at", string.Format("{0} ({1})", serviceIPEndPoint, ConfigurationManager.Current.Configuration.Service.Ssl ? "Secure" : "Basic"), string.Empty, false);
             }
             catch (System.Exception ex)
             {
@@ -81,30 +81,26 @@ namespace Xeora.Web.Service
                 if (ex.InnerException != null)
                     message = string.Format("{0} ({1})", message, ex.InnerException.Message);
 
-				Basics.Console.Push("XeoraEngine is FAILED!", message, false, true);
+				Basics.Console.Push("XeoraEngine is FAILED!", message, string.Empty, false, true);
 
                 return 1;
             }
 
-            Task connectionHandler =
-                this.HandleConnections();
-            connectionHandler.Wait();
+            this.HandleConnections();
 
             return 0;
         }
 
-        private async Task HandleConnections()
+        private void HandleConnections()
         {
             while (true)
             {
                 try
                 {
                     TcpClient remoteClient =
-                        await this._TCPListener.AcceptTcpClientAsync();
-                    IPEndPoint remoteIPEndPoint = 
-                        (IPEndPoint)remoteClient.Client.RemoteEndPoint;
+                        this._TCPListener.AcceptTcpClient();
 
-                    this.EstablishConnection(remoteIPEndPoint, remoteClient);
+                    System.Threading.ThreadPool.QueueUserWorkItem(this.ConnectionThread, remoteClient);
                 }
                 catch (InvalidOperationException)
                 {
@@ -116,49 +112,36 @@ namespace Xeora.Web.Service
                 }
                 catch (System.Exception ex)
                 {
-                    Basics.Console.Push("Connection isn't established", ex.Message, false);
+                    Basics.Console.Push("Connection isn't established", ex.Message, string.Empty, false);
 
                     continue;
                 }
             }
         }
 
-        private async void EstablishConnection(IPEndPoint remoteIPEndPoint, TcpClient remoteClient)
+        private void ConnectionThread(object state)
         {
+            TcpClient remoteClient = (TcpClient)state;
+
+            this.EstablishConnection(ref remoteClient);
+
+            remoteClient.Close();
+            remoteClient.Dispose();
+        }
+
+        private void EstablishConnection(ref TcpClient remoteClient)
+        {
+            IPEndPoint remoteIPEndPoint =
+                (IPEndPoint)remoteClient.Client.RemoteEndPoint;
             Stream remoteStream = remoteClient.GetStream();
 
-            if (ConfigurationManager.Current.Configuration.Service.Ssl)
+            if (ConfigurationManager.Current.Configuration.Service.Ssl &&
+                !this.MakeSecureConnection(ref remoteStream, remoteIPEndPoint))
             {
-                remoteStream = new SslStream(remoteStream, false);
+                remoteStream.Close();
+                remoteStream.Dispose();
 
-                try
-                {
-                    ((SslStream)remoteStream).AuthenticateAsServer(this._Certificate, false, System.Security.Authentication.SslProtocols.Tls12, true);
-                }
-                catch (IOException ex)
-                {
-                    Basics.Console.Push("Connection is rejected from", string.Format("{0} ({1})", remoteIPEndPoint, ex.Message), true);
-
-                    remoteStream.Close();
-                    remoteStream.Dispose();
-
-                    remoteClient.Close();
-                    remoteClient.Dispose();
-
-                    return;
-                }
-                catch (System.Exception ex)
-                {
-                    Basics.Console.Push("Ssl Connection FAILED!", ex.ToString(), false, true);
-
-                    remoteStream.Close();
-                    remoteStream.Dispose();
-
-                    remoteClient.Close();
-                    remoteClient.Dispose();
-
-                    return;
-                }
+                return;
             }
 
             // If reads create problems and put the loop to infinite. drop the connection.
@@ -166,18 +149,41 @@ namespace Xeora.Web.Service
             // No need to put timeout to write operation because xeora will handle connection state
             remoteStream.ReadTimeout = READ_TIMEOUT * 1000;
 
-            Net.NetworkStream streamEnclosure = new Net.NetworkStream(remoteStream);
+            Net.NetworkStream streamEnclosure = 
+                new Net.NetworkStream(ref remoteStream);
 
-            Basics.Console.Push("Connection is accepted from", string.Format("{0} ({1})", remoteIPEndPoint, ConfigurationManager.Current.Configuration.Service.Ssl ? "Secure" : "Basic"), true);
+            Basics.Console.Push("Connection is accepted from", string.Format("{0} ({1})", remoteIPEndPoint, ConfigurationManager.Current.Configuration.Service.Ssl ? "Secure" : "Basic"), string.Empty, true);
 
             ClientState clientState = new ClientState(remoteIPEndPoint.Address, streamEnclosure);
-            await Task.Run(() => clientState.Handle());
+            clientState.Handle();
             clientState.Dispose();
 
-            streamEnclosure.Dispose();
+            remoteStream.Close();
+            remoteStream.Dispose();
+        }
 
-            remoteClient.Close();
-            remoteClient.Dispose();
+        private bool MakeSecureConnection(ref Stream remoteStream, IPEndPoint remoteIPEndPoint)
+        {
+            remoteStream = new SslStream(remoteStream, false);
+
+            try
+            {
+                ((SslStream)remoteStream).AuthenticateAsServer(this._Certificate, false, System.Security.Authentication.SslProtocols.Tls12, true);
+
+                return true;
+            }
+            catch (IOException ex)
+            {
+                Basics.Console.Push("Connection is rejected from", string.Format("{0} ({1})", remoteIPEndPoint, ex.Message), string.Empty, true);
+
+                return false;
+            }
+            catch (System.Exception ex)
+            {
+                Basics.Console.Push("Ssl Connection FAILED!", ex.Message, ex.ToString(), false, true);
+
+                return false;
+            }
         }
 
         private void PrintLogo()
@@ -228,7 +234,7 @@ namespace Xeora.Web.Service
                 return;
             this._Terminating = true;
 
-            Basics.Console.Push("Terminating XeoraEngine...", string.Empty, false);
+            Basics.Console.Push("Terminating XeoraEngine...", string.Empty, string.Empty, false);
 
             this._TCPListener.Stop();
 
