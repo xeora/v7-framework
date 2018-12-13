@@ -78,9 +78,24 @@ namespace Xeora.Web.Deployment
 
         public string ProvideTemplateContent(string serviceFullPath)
         {
+            // Compiled Xeora Content File Index header seperates
+            // PATH and FILE differently. serviceFullPath contain filename with 
+            // path name which is not fitting Index header records.
+            string registrationPath = this.TemplatesRegistration;
+            string fileName = serviceFullPath;
+
+            if (fileName.IndexOf('/') > 0)
+            {
+                int idx = fileName.LastIndexOf('/');
+
+                registrationPath = string.Format("{0}\\{1}", registrationPath, fileName.Substring(0, idx).Replace('/', '\\'));
+                fileName = fileName.Substring(idx + 1);
+            }
+            // !--
+
             FileEntry fileEntry =
                 this.Decompiler.Get(
-                    this.TemplatesRegistration, string.Format("{0}.xchtml", serviceFullPath));
+                    registrationPath, string.Format("{0}.xchtml", fileName));
 
             if (fileEntry.Index == -1)
                 return string.Empty;
