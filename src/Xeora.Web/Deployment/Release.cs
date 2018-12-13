@@ -88,7 +88,7 @@ namespace Xeora.Web.Deployment
             {
                 int idx = fileName.LastIndexOf('/');
 
-                registrationPath = string.Format("{0}\\{1}", registrationPath, fileName.Substring(0, idx).Replace('/', '\\'));
+                registrationPath = string.Format("{0}{1}", registrationPath, fileName.Substring(0, idx + 1).Replace('/', '\\'));
                 fileName = fileName.Substring(idx + 1);
             }
             // !--
