@@ -737,8 +737,8 @@ namespace Xeora.Web.Handler
 
             this._DomainControl.RenderService(messageResult, updateBlockControlID);
 
-            this.Context.Response.Header.Status.Code =
-                (this._DomainControl.ServiceResult.HasErrors ? (short)218 : (short)200);
+            if (this.Context.Response.Header.Status.Code == 200 && this._DomainControl.ServiceResult.HasErrors)
+                this.Context.Response.Header.Status.Code = 218;
 
             StringBuilder sB = new StringBuilder();
 
