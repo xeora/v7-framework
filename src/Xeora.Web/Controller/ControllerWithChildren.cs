@@ -78,11 +78,11 @@ namespace Xeora.Web.Controller
                         ((IHasChildren)controller).Build();
 
                     builder.Append(controller.RenderedValue);
+
+                    this.HasInlineError |= controller.HasInlineError;
                 }
                 catch (System.Exception ex)
                 {
-                    this.HasInlineError = true;
-
                     Helper.EventLogger.Log(ex);
 
                     if (Basics.Configurations.Xeora.Application.Main.Debugging)
@@ -103,6 +103,8 @@ namespace Xeora.Web.Controller
 
                         builder.Append(exceptionString);
                     }
+
+                    this.HasInlineError = true;
                 }
             }
 

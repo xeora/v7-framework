@@ -22,6 +22,7 @@
         bool IsUpdateBlockController { get; }
 
         string RenderedValue { get; }
+        bool HasInlineError { get; }
         bool IsRendered { get; }
 
         void Setup();
