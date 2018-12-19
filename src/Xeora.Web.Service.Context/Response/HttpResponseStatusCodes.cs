@@ -20,6 +20,7 @@ namespace Xeora.Web.Service.Context
             base.TryAdd(206, "Partial Content");
             base.TryAdd(207, "Multi-Status");
             base.TryAdd(208, "Already Reported");
+            base.TryAdd(218, "Has Inline Errors");
             base.TryAdd(226, "IM Used");
 
             base.TryAdd(300, "Multiple Choices");
