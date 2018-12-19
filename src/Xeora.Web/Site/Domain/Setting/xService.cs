@@ -52,7 +52,7 @@ namespace Xeora.Web.Site.Setting
             return rObject;
         }
 
-        public string Render(string executeIn, string serviceID)
+        public Basics.Domain.RenderResult Render(string executeIn, string serviceID)
         {
             // call = Calling Function Providing in Query String
             Basics.Execution.Bind bind =
@@ -89,7 +89,7 @@ namespace Xeora.Web.Site.Setting
             return this.GenerateXML(invokeResult.Result);
         }
 
-        public string GenerateXML(object result)
+        public Basics.Domain.RenderResult GenerateXML(object result)
         {
             StringWriter xmlStream = new StringWriter();
             XmlTextWriter xmlWriter = new XmlTextWriter(xmlStream);
@@ -286,7 +286,7 @@ namespace Xeora.Web.Site.Setting
             xmlWriter.Close();
             xmlStream.Close();
 
-            return xmlStream.ToString();
+            return new Basics.Domain.RenderResult(xmlStream.ToString(), false);
         }
 
         private Basics.Service.VariablePoolOperation VariablePool => Basics.Helpers.VariablePoolForxService;

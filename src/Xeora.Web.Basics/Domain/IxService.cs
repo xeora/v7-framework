@@ -6,7 +6,7 @@ namespace Xeora.Web.Basics.Domain
     {
         object ReadSessionVariable(string publicKey, string name);
         string CreateAuthentication(params DictionaryEntry[] items);
-        string Render(string executeIn, string serviceID);
-        string GenerateXML(object methodResult);
+        RenderResult Render(string executeIn, string serviceID);
+        RenderResult GenerateXML(object methodResult);
     }
 }

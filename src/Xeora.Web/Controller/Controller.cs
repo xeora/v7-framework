@@ -55,6 +55,7 @@ namespace Xeora.Web.Controller
         public bool IsUpdateBlockController => !string.IsNullOrEmpty(this.UpdateBlockControlID);
 
         public string RenderedValue { get; protected set; }
+        public bool HasInlineError { get; protected set; }
         public bool IsRendered => !string.IsNullOrEmpty(this.RenderedValue);
 
         public void Setup()

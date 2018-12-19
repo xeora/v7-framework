@@ -81,6 +81,8 @@ namespace Xeora.Web.Controller
                 }
                 catch (System.Exception ex)
                 {
+                    this.HasInlineError = true;
+
                     Helper.EventLogger.Log(ex);
 
                     if (Basics.Configurations.Xeora.Application.Main.Debugging)

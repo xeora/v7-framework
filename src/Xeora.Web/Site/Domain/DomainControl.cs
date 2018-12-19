@@ -29,7 +29,7 @@ namespace Xeora.Web.Site
 
             this.ServiceDefinition = null;
             this.ServiceMimeType = string.Empty;
-            this.ServiceResult = string.Empty;
+            this.ServiceResult = new Basics.Domain.RenderResult(string.Empty, false);
 
             this._ExecuteIn = string.Empty;
 
@@ -90,7 +90,7 @@ namespace Xeora.Web.Site
         public Basics.ServiceDefinition ServiceDefinition { get; private set; }
         public Basics.Domain.ServiceTypes ServiceType { get; private set; }
         public string ServiceMimeType { get; private set; }
-        public string ServiceResult { get; private set; }
+        public Basics.Domain.RenderResult ServiceResult { get; private set; }
 
         public bool IsAuthenticationRequired { get; private set; }
         public bool IsWorkingAsStandAlone { get; private set; }

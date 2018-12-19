@@ -105,6 +105,8 @@ namespace Xeora.Web.Handler
             }
             catch (System.Exception ex)
             {
+                this.Context.Response.Header.Status.Code = 500;
+
                 this.HandleErrorLogging(ex);
             }
             finally
@@ -124,6 +126,8 @@ namespace Xeora.Web.Handler
                         this.Context.Response.Redirect((string)this.Context["RedirectLocation"]);
                     else
                     {
+                        this.Context.Response.Header.Status.Code = 200;
+
                         byte[] redirectBytes =
                             Encoding.UTF8.GetBytes(string.Format("rl:{0}", (string)this.Context["RedirectLocation"]));
 
@@ -710,7 +714,7 @@ namespace Xeora.Web.Handler
             {
                 writer = new StringWriter();
                 writer.Write("<?xml version=\"1.0\" encoding=\"utf-8\" ?>");
-                writer.Write(this._DomainControl.ServiceResult);
+                writer.Write(this._DomainControl.ServiceResult.Content);
                 writer.Flush();
             }
             catch (System.Exception)
@@ -733,9 +737,12 @@ namespace Xeora.Web.Handler
 
             this._DomainControl.RenderService(messageResult, updateBlockControlID);
 
+            this.Context.Response.Header.Status.Code =
+                (this._DomainControl.ServiceResult.HasErrors ? (short)218 : (short)200);
+
             StringBuilder sB = new StringBuilder();
 
-            sB.Append(this._DomainControl.ServiceResult);
+            sB.Append(this._DomainControl.ServiceResult.Content);
             sB.Append(methodResult);
 
             string result = sB.ToString();

@@ -113,10 +113,10 @@ namespace Xeora.Web.Site
             Deployment.InstanceFactory.Current.Reset();
         }
 
-        public string Render(Basics.ServiceDefinition serviceDefinition, Basics.ControlResult.Message messageResult, string updateBlockControlID = null) =>
+        public Basics.Domain.RenderResult Render(Basics.ServiceDefinition serviceDefinition, Basics.ControlResult.Message messageResult, string updateBlockControlID = null) =>
             this._Renderer.Start(serviceDefinition, messageResult, updateBlockControlID);
 
-        public string Render(string xeoraContent, Basics.ControlResult.Message messageResult, string updateBlockControlID = null) =>
+        public Basics.Domain.RenderResult Render(string xeoraContent, Basics.ControlResult.Message messageResult, string updateBlockControlID = null) =>
             this._Renderer.Start(xeoraContent, messageResult, updateBlockControlID);
 
         private class Renderer
@@ -126,10 +126,10 @@ namespace Xeora.Web.Site
             public void Inject(Basics.Domain.IDomain instance) =>
                 this._Instance = instance;
 
-            public string Start(Basics.ServiceDefinition serviceDefinition, Basics.ControlResult.Message messageResult, string updateBlockControlID = null) =>
+            public Basics.Domain.RenderResult Start(Basics.ServiceDefinition serviceDefinition, Basics.ControlResult.Message messageResult, string updateBlockControlID = null) =>
                 this.Start(string.Format("$T:{0}$", serviceDefinition.FullPath), messageResult, updateBlockControlID);
 
-            public string Start(string xeoraContent, Basics.ControlResult.Message messageResult, string updateBlockControlID = null)
+            public Basics.Domain.RenderResult Start(string xeoraContent, Basics.ControlResult.Message messageResult, string updateBlockControlID = null)
             {
                 if (this._Instance == null)
                     throw new System.Exception("Injection required!");
@@ -141,7 +141,7 @@ namespace Xeora.Web.Site
 
                 ExternalController.Render(null);
 
-                return ExternalController.RenderedValue;
+                return new Basics.Domain.RenderResult(ExternalController.RenderedValue, ExternalController.HasInlineError);
             }
 
             private void OnParseRequest(string rawValue, ref ControllerCollection childrenContainer, Global.ArgumentInfoCollection contentArguments)
