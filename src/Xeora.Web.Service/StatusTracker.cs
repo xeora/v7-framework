@@ -36,12 +36,9 @@ namespace Xeora.Web.Service
 
         public int Get(short statusCode)
         {
-            int value = 0;
+            this._Status.TryGetValue(statusCode, out int status);
 
-            if (!this._Status.TryGetValue(statusCode, out value))
-                return this.Get(statusCode);
-
-            return value;
+            return status;
         }
     }
 }
