@@ -21,11 +21,15 @@ namespace Xeora.Web.Service
 
         public WebServer(string configurationFilePath)
         {
-            // Application Domain UnHandled Exception Event Handling Defination
-            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(this.OnUnhandledExceptions);
+            // Application Domain UnHandled Exception Event Handling
+            AppDomain.CurrentDomain.UnhandledException += this.OnUnhandledExceptions;
             // !---
 
-            Console.CancelKeyPress += new ConsoleCancelEventHandler(this.OnCancelKeyPressed);
+            // Application Domain SIGTERM Event Handling
+            AppDomain.CurrentDomain.ProcessExit += (s, e) => this.OnTerminateSignal(s, null);
+            // !---
+
+            Console.CancelKeyPress += this.OnTerminateSignal;
 
             if (string.IsNullOrEmpty(configurationFilePath))
             {
@@ -228,7 +232,7 @@ namespace Xeora.Web.Service
         }
 
         private bool _Terminating = false;
-        private void OnCancelKeyPressed(object source, ConsoleCancelEventArgs args)
+        private void OnTerminateSignal(object source, ConsoleCancelEventArgs args)
         {
             if (this._Terminating)
                 return;
@@ -237,6 +241,9 @@ namespace Xeora.Web.Service
             Basics.Console.Push("Terminating XeoraEngine...", string.Empty, string.Empty, false);
 
             this._TCPListener.Stop();
+
+            if (args == null)
+                return;
 
             args.Cancel = true;
         }
