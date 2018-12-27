@@ -74,6 +74,8 @@ namespace Xeora.Web.Service
                         string.Format("{0}ms", DateTime.Now.Subtract(wholeProcessBegins).TotalMilliseconds), 
                         string.Empty, false);
                 }
+
+                StatusTracker.Current.Increase(this._Context.Response.Header.Status.Code);
             }
             catch (System.Exception ex)
             {
@@ -87,6 +89,8 @@ namespace Xeora.Web.Service
                     Basics.Console.Push("SYSTEM ERROR", string.Empty, ex.ToString(), false);
 
                 this.PushServerError();
+
+                StatusTracker.Current.Increase(500);
             }
         }
 

@@ -72,5 +72,20 @@ namespace Xeora.Web.Basics
                 return this._DomainType;
             }
         }
+
+        private Type _StatusTracker = null;
+        public Type StatusTracker
+        {
+            get
+            {
+                if (this._StatusTracker != null)
+                    return this._StatusTracker;
+
+                Assembly LoadedAssembly = this.GetAssembly("Xeora.Web.Service");
+                this._StatusTracker = LoadedAssembly.GetType("Xeora.Web.Service.StatusTracker", false, true);
+
+                return this._StatusTracker;
+            }
+        }
     }
 }

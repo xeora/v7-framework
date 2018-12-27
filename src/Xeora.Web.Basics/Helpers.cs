@@ -230,6 +230,32 @@ namespace Xeora.Web.Basics
             }
         }
 
+        private static object _StatusTrackerLock = new object();
+        private static IStatusTracker _StatusTracker = null;
+        /// <summary>
+        /// Gets Status Tracker Instance
+        /// </summary>
+        /// <value>Status Tracker instance</value>
+        public static IStatusTracker StatusTracker
+        {
+            get
+            {
+                Monitor.Enter(Helpers._StatusTrackerLock);
+                try
+                {
+                    if (Helpers._StatusTracker == null)
+                        Helpers._StatusTracker =
+                           (IStatusTracker)TypeCache.Current.StatusTracker.InvokeMember("Current", BindingFlags.Public | BindingFlags.Static | BindingFlags.GetProperty, null, null, null);
+                }
+                finally
+                {
+                    Monitor.Exit(Helpers._StatusTrackerLock);
+                }
+
+                return Helpers._StatusTracker;
+            }
+        }
+
         /// <summary>
         /// Gets the variable pool
         /// </summary>
