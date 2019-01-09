@@ -20,8 +20,6 @@ namespace Xeora.Web.Manager
 
         public bool Find(MethodInfo mI)
         {
-            bool attributeCheck = (string.Compare(this._SearchName, mI.Name, true) == 0);
-
             foreach (object aT in mI.GetCustomAttributes(false))
             {
                 Type workingType = aT.GetType();
@@ -32,12 +30,17 @@ namespace Xeora.Web.Manager
                         (Basics.Context.HttpMethod)workingType.InvokeMember("Method", BindingFlags.GetProperty, null, aT, null);
                     object bindProcedureName =
                         workingType.InvokeMember("BindProcedureName", BindingFlags.GetProperty, null, aT, null);
+                        
+                    if (httpMethod != this._HttpMethod) return false;
 
-                    return (httpMethod == this._HttpMethod) && (string.Compare(bindProcedureName.ToString(), this._SearchName) == 0);
+                    if (!string.IsNullOrEmpty(bindProcedureName.ToString()))
+                        return string.Compare(bindProcedureName.ToString(), this._SearchName) == 0;
+
+                    break;
                 }
             }
 
-            return attributeCheck;
+            return string.Compare(this._SearchName, mI.Name, true) == 0;
         }
     }
 }
