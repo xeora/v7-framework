@@ -13,7 +13,7 @@
             base.AddOrUpdate(key, value);
         }
 
-        public Basics.Context.IHttpResponseStatus Status { get; private set; };
-        public Basics.Context.IHttpCookie Cookie { get; private set; };
+        public Basics.Context.IHttpResponseStatus Status { get; private set; }
+        public Basics.Context.IHttpCookie Cookie { get; private set; }
     }
 }
