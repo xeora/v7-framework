@@ -100,8 +100,10 @@ namespace Xeora.Web.Service
             {
                 StringBuilder sB = new StringBuilder();
 
-                sB.AppendLine("HTTP/1.1 500 Internal Server Error");
-                sB.AppendLine("Connection: close");
+                sB.Append("HTTP/1.1 500 Internal Server Error");
+                sB.Append(HttpResponse.NEWLINE);
+                sB.Append("Connection: close");
+                sB.Append(HttpResponse.NEWLINE);
 
                 byte[] buffer = Encoding.ASCII.GetBytes(sB.ToString());
                 this._StreamEnclosure.Write(buffer, 0, buffer.Length);

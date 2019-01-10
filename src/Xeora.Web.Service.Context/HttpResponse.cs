@@ -9,6 +9,8 @@ namespace Xeora.Web.Service.Context
     public delegate Basics.Context.IHttpCookieInfo SessionCookieRequestedHandler(bool skip);
     public class HttpResponse : Basics.Context.IHttpResponse
     {
+        public static readonly char[] NEWLINE = { '\r', '\n' };
+
         private string _ContextID;
         private string _TempLocation;
         private Stream _ResponseOutput;
@@ -47,12 +49,12 @@ namespace Xeora.Web.Service.Context
             StringBuilder sB = new StringBuilder();
 
             sB.AppendFormat("HTTP/1.1 {0} {1}", this.Header.Status.Code, this.Header.Status.Message);
-            sB.AppendLine();
+            sB.Append(NEWLINE);
 
             foreach (string key in this.Header.Keys)
             {
                 sB.AppendFormat("{0}: {1}", key, this.Header[key]);
-                sB.AppendLine();
+                sB.Append(NEWLINE);
             }
 
             string contentType = 
@@ -63,10 +65,10 @@ namespace Xeora.Web.Service.Context
             foreach (string key in this.Header.Cookie.Keys)
             {
                 sB.AppendFormat("Set-Cookie: {0}", this.Header.Cookie[key].ToString());
-                sB.AppendLine();
+                sB.Append(NEWLINE);
             }
 
-            sB.AppendLine();
+            sB.Append(NEWLINE);
 
             byte[] buffer = Encoding.ASCII.GetBytes(sB.ToString());
             streamEnclosure.Write(buffer, 0, buffer.Length);
@@ -88,15 +90,17 @@ namespace Xeora.Web.Service.Context
         {
             StringBuilder sB = new StringBuilder();
 
-            sB.AppendLine("HTTP/1.1 302 Object Moved");
+            sB.Append("HTTP/1.1 302 Object Moved");
+            sB.Append(NEWLINE);
 
             sB.AppendFormat("Date: {0}", DateTime.Now.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", new CultureInfo("en-US")));
-            sB.AppendLine();
+            sB.Append(NEWLINE);
 
             sB.AppendFormat("Location: {0}", this._RedirectedURL);
-            sB.AppendLine();
+            sB.Append(NEWLINE);
 
-            sB.AppendLine("Connection: close");
+            sB.Append("Connection: close");
+            sB.Append(NEWLINE);
 
             this.Header.Cookie.AddOrUpdate(SessionCookieRequested?.Invoke(false));
 
@@ -104,9 +108,9 @@ namespace Xeora.Web.Service.Context
             foreach (string key in this.Header.Cookie.Keys)
             {
                 sB.AppendFormat("Set-Cookie: {0}", this.Header.Cookie[key].ToString());
-                sB.AppendLine();
+                sB.Append(NEWLINE);
             }
-            sB.AppendLine();
+            sB.Append(NEWLINE);
 
             byte[] buffer = Encoding.ASCII.GetBytes(sB.ToString());
             streamEnclosure.Write(buffer, 0, buffer.Length);
