@@ -11,7 +11,8 @@ namespace Xeora.Web.Service.Context
         private Basics.Context.HttpMethod _Method;
         private int _ContentLength = 0;
 
-        public HttpRequestHeader(Net.NetworkStream streamEnclosure)
+        public HttpRequestHeader(Net.NetworkStream streamEnclosure) : 
+            base(StringComparer.OrdinalIgnoreCase)
         {
             this._StreamEnclosure = streamEnclosure;
 

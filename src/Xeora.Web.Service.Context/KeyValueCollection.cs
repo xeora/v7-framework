@@ -9,6 +9,9 @@ namespace Xeora.Web.Service.Context
         public KeyValueCollection() =>
             this._Container = new Dictionary<K, V>();
 
+        public KeyValueCollection(IEqualityComparer<K> comparer) =>
+            this._Container = new Dictionary<K, V>(comparer);
+
         internal void AddOrUpdate(K key, V value) =>
             this._Container[key] = value;
 
