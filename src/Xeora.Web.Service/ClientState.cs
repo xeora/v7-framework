@@ -8,39 +8,27 @@ using Xeora.Web.Service.Context;
 
 namespace Xeora.Web.Service
 {
-    public class ClientState : IDisposable
+    public class ClientState
     {
-        private IPAddress _RemoteAddr;
-        private Net.NetworkStream _StreamEnclosure;
-
-        private string _StateID;
-
-        private Basics.Context.IHttpContext _Context = null;
-
-        public ClientState(IPAddress remoteAddr, Net.NetworkStream streamEnclosure)
+        public static void Handle(IPAddress remoteAddr, Net.NetworkStream streamEnclosure)
         {
-            this._RemoteAddr = remoteAddr;
-            this._StreamEnclosure = streamEnclosure;
+            string stateID = Guid.NewGuid().ToString();
 
-            this._StateID = Guid.NewGuid().ToString();
-        }
-
-        public void Handle()
-        {
+            Basics.Context.IHttpContext context = null;
             try
             {
                 DateTime wholeProcessBegins = DateTime.Now;
 
-                Basics.Context.IHttpRequest request = new HttpRequest(this._RemoteAddr);
-                if (!((HttpRequest)request).Build(this._StateID, this._StreamEnclosure))
+                Basics.Context.IHttpRequest request = new HttpRequest(remoteAddr);
+                if (!((HttpRequest)request).Build(stateID, streamEnclosure))
                     return;
 
-                this._Context = new HttpContext(this._StateID, ref request);
+                context = new HttpContext(stateID, ref request);
 
                 DateTime xeoraHandlerProcessBegins = DateTime.Now;
 
                 IHandler xeoraHandler =
-                    Handler.HandlerManager.Current.Create(ref this._Context);
+                    Handler.HandlerManager.Current.Create(ref context);
                 ((Handler.XeoraHandler)xeoraHandler).Handle();
 
                 if (Configurations.Xeora.Application.Main.PrintAnalytics)
@@ -53,12 +41,12 @@ namespace Xeora.Web.Service
 
                 DateTime responseFlushBegins = DateTime.Now;
 
-                this._Context.Response.Header.AddOrUpdate("Server", "XeoraEngine");
-                this._Context.Response.Header.AddOrUpdate("X-Powered-By", "XeoraCube");
-                this._Context.Response.Header.AddOrUpdate("X-Framework-Version", WebServer.GetVersionText());
-                this._Context.Response.Header.AddOrUpdate("Connection", "close");
+                context.Response.Header.AddOrUpdate("Server", "XeoraEngine");
+                context.Response.Header.AddOrUpdate("X-Powered-By", "XeoraCube");
+                context.Response.Header.AddOrUpdate("X-Framework-Version", WebServer.GetVersionText());
+                context.Response.Header.AddOrUpdate("Connection", "close");
 
-                ((HttpResponse)this._Context.Response).Flush(this._StreamEnclosure);
+                ((HttpResponse)context.Response).Flush(streamEnclosure);
 
                 Handler.HandlerManager.Current.UnMark(xeoraHandler.HandlerID);
 
@@ -75,7 +63,7 @@ namespace Xeora.Web.Service
                         string.Empty, false);
                 }
 
-                StatusTracker.Current.Increase(this._Context.Response.Header.Status.Code);
+                StatusTracker.Current.Increase(context.Response.Header.Status.Code);
             }
             catch (System.Exception ex)
             {
@@ -88,13 +76,18 @@ namespace Xeora.Web.Service
                 if (Configurations.Xeora.Service.Print)
                     Basics.Console.Push("SYSTEM ERROR", string.Empty, ex.ToString(), false);
 
-                this.PushServerError();
+                ClientState.PushServerError(ref streamEnclosure);
 
                 StatusTracker.Current.Increase(500);
             }
+            finally
+            {
+                if (context != null)
+                    context.Dispose();
+            }
         }
 
-        private void PushServerError()
+        private static void PushServerError(ref Net.NetworkStream streamEnclosure)
         {
             try
             {
@@ -106,18 +99,12 @@ namespace Xeora.Web.Service
                 sB.Append(HttpResponse.NEWLINE);
 
                 byte[] buffer = Encoding.ASCII.GetBytes(sB.ToString());
-                this._StreamEnclosure.Write(buffer, 0, buffer.Length);
+                streamEnclosure.Write(buffer, 0, buffer.Length);
             }
             catch (System.Exception)
             {
                 // Just Handle Exceptions
             }
-        }
-
-        public void Dispose()
-        {
-            if (this._Context != null)
-                this._Context.Dispose();
         }
     }
 }
