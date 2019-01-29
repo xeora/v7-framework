@@ -93,11 +93,20 @@ namespace Xeora.Web.Site
 
         public void ProvideFileStream(string requestedFilePath, out Stream outputStream)
         {
-            this._Deployment.ProvideContentFileStream(
-                this.Languages.Current.Info.ID,
-                requestedFilePath,
-                out outputStream
-            );
+            outputStream = null;
+            try
+            {
+                this._Deployment.ProvideContentFileStream(
+                    this.Languages.Current.Info.ID,
+                    requestedFilePath,
+                    out outputStream
+                );
+            }
+            catch (FileNotFoundException)
+            {
+                if (this.Parent == null)
+                    throw;
+            }
 
             if (outputStream == null && this.Parent != null)
                 this.Parent.ProvideFileStream(requestedFilePath, out outputStream);

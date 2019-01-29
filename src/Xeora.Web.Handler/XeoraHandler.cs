@@ -611,16 +611,9 @@ namespace Xeora.Web.Handler
         private void PostDomainContentFileToClient(string requestedFilePathInDomainContents)
         {
             Stream requestFileStream = null;
-            this._DomainControl.Domain.ProvideFileStream(requestedFilePathInDomainContents, out requestFileStream);
-
             try
             {
-                if (requestFileStream == null)
-                {
-                    this.Context.Response.Header.Status.Code = 404;
-
-                    return;
-                }
+                this._DomainControl.Domain.ProvideFileStream(requestedFilePathInDomainContents, out requestFileStream);
 
                 this.WriteOutput(
                     MimeType.GetMime(
@@ -629,6 +622,11 @@ namespace Xeora.Web.Handler
                     ref requestFileStream,
                     this._SupportCompression
                 );
+            }
+            catch (FileNotFoundException)
+            {
+                this.Context.Response.Header.Status.Code = 404;
+                return;
             }
             catch (System.Exception)
             {
