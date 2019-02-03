@@ -64,7 +64,7 @@ namespace Xeora.Web.Controller.Directive.Control
             if (invokeResult.Exception != null)
                 throw new Exception.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);
 
-            Basics.Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, 0, 0));
+            Basics.Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, 0, 0, true));
 
             switch (invokeResult.Result.Type)
             {
@@ -116,7 +116,7 @@ namespace Xeora.Web.Controller.Directive.Control
                 return;
             }
 
-            Basics.Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, invokeResult.Result.Count, invokeResult.Result.Total));
+            Basics.Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, invokeResult.Result.Count, invokeResult.Result.Total, false));
 
             CultureInfo compareCulture = new CultureInfo("en-US");
 
@@ -259,13 +259,11 @@ namespace Xeora.Web.Controller.Directive.Control
                     rC += 1;
                 } while (dbReader.Read());
 
-                Basics.Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, rC, rC));
+                Basics.Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, rC, rC, false));
                 this.RenderedValue = renderedContent.ToString();
             }
             catch (System.Exception ex)
             {
-                Basics.Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, 0, 0));
-
                 if (invokeResult.Result.Message == null)
                     throw new Exception.DirectDataAccessException(ex);
 
@@ -313,8 +311,6 @@ namespace Xeora.Web.Controller.Directive.Control
 
             if (invokeResult.Result.Message != null)
             {
-                Basics.Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, 0, 0));
-
                 if (!contentDescription.HasMessageTemplate)
                     this.RenderedValue = invokeResult.Result.Message.Content;
                 else
@@ -330,7 +326,7 @@ namespace Xeora.Web.Controller.Directive.Control
                 return;
             }
 
-            Basics.Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, invokeResult.Result.Count, invokeResult.Result.Total));
+            Basics.Helpers.VariablePool.Set(this.ControlID, new Global.DataListOutputInfo(this.UniqueID, invokeResult.Result.Count, invokeResult.Result.Total, false));
 
             StringBuilder renderedContent = new StringBuilder();
             int contentIndex = 0, rC = 0;
