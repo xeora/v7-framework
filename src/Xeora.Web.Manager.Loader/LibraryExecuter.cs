@@ -9,15 +9,15 @@ namespace Xeora.Web.Manager
 {
     internal class LibraryExecuter : AssemblyLoadContext, IDisposable
     {
-        private string _ExecutableName;
-        private string[] _AssemblySearchPaths;
+        private readonly string _ExecutableName;
+        private readonly string[] _AssemblySearchPaths;
 
-        private string _ExecutablePath;
+        private readonly string _ExecutablePath;
         private Assembly _AssemblyDll;
         private Dictionary<Type, bool> _XeoraControlTypes;
 
-        private ConcurrentDictionary<Type, object> _ExecutableInstances;
-        private ConcurrentDictionary<string, MethodInfo[]> _AssemblyMethods;
+        private readonly ConcurrentDictionary<Type, object> _ExecutableInstances;
+        private readonly ConcurrentDictionary<string, MethodInfo[]> _AssemblyMethods;
 
         public LibraryExecuter(string executablesPath, string executableName, string[] assemblySearchPaths)
         {
@@ -39,7 +39,6 @@ namespace Xeora.Web.Manager
             this._AssemblyMethods = new ConcurrentDictionary<string, MethodInfo[]>();
 
             this.PrepareXeoraControlTypes();
-            this.Load();
         }
 
         private string ResolveAssemblyLocation(AssemblyName assemblyName)
@@ -69,10 +68,8 @@ namespace Xeora.Web.Manager
                 AppDomain.CurrentDomain.GetAssemblies();
 
             foreach (Assembly assembly in currentDomainAssemblies)
-            {
                 if (string.Compare(assembly.FullName, assemblyName.FullName) == 0)
                     return assembly;
-            }
 
             return null;
         }
@@ -111,7 +108,7 @@ namespace Xeora.Web.Manager
             return null;
         }
 
-        private void Load()
+        public void Load()
         {
             try
             {
@@ -591,8 +588,7 @@ namespace Xeora.Web.Manager
             Type examInterface =
                 this._AssemblyDll.GetType(string.Format("Xeora.Domain.{0}", this._ExecutableName), false, true);
 
-            object executeObject = null;
-            if (this._ExecutableInstances.TryRemove(examInterface, out executeObject))
+            if (this._ExecutableInstances.TryRemove(examInterface, out object executeObject))
             {
                 try
                 {

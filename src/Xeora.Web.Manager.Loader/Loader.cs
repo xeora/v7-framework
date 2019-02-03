@@ -6,20 +6,12 @@ namespace Xeora.Web.Manager
 {
     internal class Loader
     {
-        private static object _LoaderLock = new object();
-        private static Loader _Current = null;
+        private readonly string _CacheRootLocation;
+        private readonly string _DomainRootLocation;
+        // private readonly FileSystemWatcher _FileSystemWatcher = null;
 
-        private string _CacheRootLocation;
-        private string _DomainRootLocation;
-        private bool _LoadRequested;
-        private FileSystemWatcher _FileSystemWatcher = null;
-
-        private Action _ReloadedHandler;
-
-        private Loader(Action reloadedHandler)
+        private Loader(Action libraryChanged)
         {
-            this._ReloadedHandler = reloadedHandler;
-
             this._CacheRootLocation =
                 System.IO.Path.Combine(
                     Basics.Configurations.Xeora.Application.Main.TemporaryRoot,
@@ -38,63 +30,39 @@ namespace Xeora.Web.Manager
                     )
                 );
 
-            this._LoadRequested = false;
 
-            this._FileSystemWatcher = new FileSystemWatcher();
-            this._FileSystemWatcher.Path = this._DomainRootLocation;
-            this._FileSystemWatcher.IncludeSubdirectories = true;
-            this._FileSystemWatcher.Filter = "*.dll";
-            this._FileSystemWatcher.NotifyFilter = NotifyFilters.LastWrite;
-            this._FileSystemWatcher.EnableRaisingEvents = true;
-            this._FileSystemWatcher.Changed += (object sender, FileSystemEventArgs e) => Loader.Reload();
+            /* TODO: Canceled until we find a stabil solution for binary refreshing
+            this._FileSystemWatcher = new FileSystemWatcher
+            {
+                Path = this._DomainRootLocation,
+                IncludeSubdirectories = true,
+                Filter = "*.dll",
+                NotifyFilter = NotifyFilters.LastWrite,
+                EnableRaisingEvents = true
+            };
+            this._FileSystemWatcher.Changed += (object sender, FileSystemEventArgs e) => this.Load(libraryChanged);
 
-            this.LoadApplication();
+            Basics.Console.Register((keyInfo) => {
+                if ((keyInfo.Modifiers & ConsoleModifiers.Control) == 0 || keyInfo.Key != ConsoleKey.R)
+                    return;
+
+                this.Load(libraryChanged);
+            });
+            */
         }
 
         public string ID { get; private set; }
         public string Path =>
             System.IO.Path.Combine(this._CacheRootLocation, this.ID);
 
-        public static Loader Current => 
-            Loader._Current;
-        public static void Initialize(Action reloadedHandler)
+        public static Loader Current { get; private set; }
+        public static void Initialize(Action libraryChanged)
         {
-            Monitor.Enter(Loader._LoaderLock);
-            try
-            {
-                if (Loader._Current != null)
-                {
-                    if (Loader._Current._LoadRequested)
-                    {
-                        Loader._Current.LoadApplication();
-                        Loader._Current._LoadRequested = false;
-                    }
-
-                    return;
-                }
-
-                Loader._Current = new Loader(reloadedHandler);
-            }
-            finally
-            {
-                Monitor.Exit(Loader._LoaderLock);
-            }
+            Loader.Current = new Loader(libraryChanged);
+            Loader.Current.Load(null);
         }
 
-        public static void Reload()
-        {
-            if (!Monitor.TryEnter(Loader._LoaderLock))
-                return;
-
-            if (Loader._Current == null)
-                return;
-
-            Loader._Current._LoadRequested = true;
-
-            Monitor.Exit(Loader._LoaderLock);
-        }
-
-        private void LoadApplication()
+        private void Load(Action libraryChanged)
         {
             try
             {
@@ -104,11 +72,11 @@ namespace Xeora.Web.Manager
                 if (!Directory.Exists(applicationLocation))
                     Directory.CreateDirectory(applicationLocation);
 
-                this.LoadDomainExecutables(this._DomainRootLocation);
+                this.LoadExecutables(this._DomainRootLocation);
+
+                libraryChanged?.Invoke();
 
                 Basics.Console.Push(string.Empty, "Application is loaded successfully!", string.Empty, false);
-
-                this._ReloadedHandler?.Invoke();
             }
             catch (System.Exception)
             {
@@ -119,7 +87,7 @@ namespace Xeora.Web.Manager
             ThreadPool.QueueUserWorkItem((object state) => this.Cleanup());
         }
 
-        private void LoadDomainExecutables(string domainRootPath)
+        private void LoadExecutables(string domainRootPath)
         {
             DirectoryInfo domainsDI =
                 new DirectoryInfo(domainRootPath);
@@ -142,21 +110,14 @@ namespace Xeora.Web.Manager
                         if (applicationLocationFI.Exists)
                             continue;
 
-                        try
-                        {
-                            executableFI.CopyTo(applicationLocationFI.FullName, true);
-                        }
-                        catch (System.Exception)
-                        {
-                            // Just Handle Exceptions
-                        }
+                        executableFI.CopyTo(applicationLocationFI.FullName, true);
                     }
                 }
 
                 DirectoryInfo domainChildrenDI =
                     new DirectoryInfo(System.IO.Path.Combine(domainDI.FullName, "Addons"));
                 if (domainChildrenDI.Exists)
-                    this.LoadDomainExecutables(domainChildrenDI.FullName);
+                    this.LoadExecutables(domainChildrenDI.FullName);
             }
         }
 

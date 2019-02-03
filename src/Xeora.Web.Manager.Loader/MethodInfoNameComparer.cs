@@ -6,7 +6,7 @@ namespace Xeora.Web.Manager
 {
     internal class MethodInfoNameComparer : IComparer
     {
-        private CultureInfo _CompareCultureInfo;
+        private readonly CultureInfo _CompareCultureInfo;
 
         public MethodInfoNameComparer(CultureInfo cultureInfo)
         {

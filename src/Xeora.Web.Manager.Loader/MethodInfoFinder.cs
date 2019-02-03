@@ -5,8 +5,8 @@ namespace Xeora.Web.Manager
 {
     internal class MethodInfoFinder
     {
-        private Basics.Context.HttpMethod _HttpMethod;
-        private string _SearchName;
+        private readonly Basics.Context.HttpMethod _HttpMethod;
+        private readonly string _SearchName;
 
         public MethodInfoFinder(Basics.Context.HttpMethod httpMethod, string searchName)
         {

@@ -15,8 +15,8 @@ namespace Xeora.Web.Manager
     public class StatementFactory
     {
         private ConcurrentDictionary<string, string> _StatementExecutables;
-        private Regex _ParamRegEx;
-        private object _GetLock;
+        private readonly Regex _ParamRegEx;
+        private readonly object _GetLock;
 
         private StatementFactory()
         {
@@ -48,11 +48,6 @@ namespace Xeora.Web.Manager
 
         public static StatementExecutable CreateExecutable(string[] domainIDAccessTree, string statementBlockID, string statement, bool parametric, bool cache)
         {
-            Loader.Initialize(() => {
-                Application.Dispose();
-                StatementFactory.Dispose();
-            });
-
             try
             {
                 string blockKey =
@@ -83,9 +78,7 @@ namespace Xeora.Web.Manager
 
             lock (this._GetLock)
             {
-                string executableName;
-
-                if (!this._StatementExecutables.TryGetValue(blockKey, out executableName))
+                if (!this._StatementExecutables.TryGetValue(blockKey, out string executableName))
                     executableName = this.Create(blockKey, statement, parametric, cache);
 
                 return executableName;
@@ -233,10 +226,7 @@ namespace Xeora.Web.Manager
         public static void Dispose()
         {
             foreach (string key in StatementFactory.Current._StatementExecutables.Keys)
-            {
-                string dummy;
-                StatementFactory.Current._StatementExecutables.TryRemove(key, out dummy);
-            }
+                StatementFactory.Current._StatementExecutables.TryRemove(key, out string dummy);
         }
     }
 }
