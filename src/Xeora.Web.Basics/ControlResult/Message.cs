@@ -2,7 +2,7 @@
 
 namespace Xeora.Web.Basics.ControlResult
 {
-    [Serializable()]
+    [Serializable]
     public class Message
     {
         public enum Types

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Xeora.Web.Basics.X
 {
-    [Serializable()]
+    [Serializable]
     public class SocketObject
     {
         public SocketObject(ref Context.IHttpContext context, KeyValuePair<string, object>[] parameters)

@@ -3,10 +3,10 @@ using System.Data;
 
 namespace Xeora.Web.Basics.ControlResult
 {
-    [Serializable()]
+    [Serializable]
     public class DirectDataAccess : IDataSource
     {
-        private IDbCommand _DbCommand;
+        private readonly IDbCommand _DbCommand;
 
         public DirectDataAccess(IDbCommand dbCommand)
         {

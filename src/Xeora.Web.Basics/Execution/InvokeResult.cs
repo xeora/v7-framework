@@ -2,7 +2,7 @@
 
 namespace Xeora.Web.Basics.Execution
 {
-    [Serializable()]
+    [Serializable]
     public class InvokeResult<T>
     {
         public InvokeResult(Bind bind)

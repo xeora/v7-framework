@@ -13,9 +13,9 @@ namespace Xeora.Web.Basics.Service
         private static object _Lock = new object();
         private static IVariablePool _Cache = null;
 
-        private string _SessionID;
-        private string _KeyID;
-        private string _SessionKeyID;
+        private readonly string _SessionID;
+        private readonly string _KeyID;
+        private readonly string _SessionKeyID;
 
         public VariablePoolOperation(string sessionID, string keyID)
         {
@@ -183,8 +183,7 @@ namespace Xeora.Web.Basics.Service
                 forStream = null;
                 try
                 {
-                    object variableValue;
-                    if (nameValuePairs.TryGetValue(variableName, out variableValue))
+                    if (nameValuePairs.TryGetValue(variableName, out object variableValue))
                     {
                         forStream = new MemoryStream();
 
@@ -263,8 +262,7 @@ namespace Xeora.Web.Basics.Service
 
             public static object GetCachedVariable(string sessionKeyID, string name)
             {
-                ConcurrentDictionary<string, object> nameValuePairs = null;
-                if (VariablePoolPreCache.VariablePreCache.TryGetValue(sessionKeyID, out nameValuePairs))
+                if (VariablePoolPreCache.VariablePreCache.TryGetValue(sessionKeyID, out ConcurrentDictionary<string, object> nameValuePairs))
                 {
                     object value = null;
                     if (nameValuePairs.TryGetValue(name, out value) && value != null)
@@ -276,8 +274,7 @@ namespace Xeora.Web.Basics.Service
 
             public static void CacheVariable(string sessionKeyID, string name, object value)
             {
-                ConcurrentDictionary<string, object> nameValuePairs = null;
-                if (!VariablePoolPreCache.VariablePreCache.TryGetValue(sessionKeyID, out nameValuePairs))
+                if (!VariablePoolPreCache.VariablePreCache.TryGetValue(sessionKeyID, out ConcurrentDictionary<string, object> nameValuePairs))
                 {
                     nameValuePairs = new ConcurrentDictionary<string, object>();
 
@@ -297,8 +294,7 @@ namespace Xeora.Web.Basics.Service
 
             public static void CleanCachedVariables(string sessionKeyID, string name)
             {
-                ConcurrentDictionary<string, object> nameValuePairs = null;
-                if (VariablePoolPreCache.VariablePreCache.TryGetValue(sessionKeyID, out nameValuePairs))
+                if (VariablePoolPreCache.VariablePreCache.TryGetValue(sessionKeyID, out ConcurrentDictionary<string, object> nameValuePairs))
                 {
                     object dummy;
                     nameValuePairs.TryRemove(name, out dummy);
@@ -306,10 +302,10 @@ namespace Xeora.Web.Basics.Service
             }
         }
 
-        [Serializable()]
+        [Serializable]
         public class SerializableDictionary : List<SerializableDictionary.SerializableKeyValuePair>
         {
-            [Serializable()]
+            [Serializable]
             public class SerializableKeyValuePair
             {
                 public SerializableKeyValuePair(string name, byte[] value)

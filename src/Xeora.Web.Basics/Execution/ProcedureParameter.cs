@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 namespace Xeora.Web.Basics.Execution
 {
-    [Serializable()]
+    [Serializable]
     public class ProcedureParameter
     {
-        private Dictionary<char, bool> _Operators =
+        private readonly Dictionary<char, bool> _Operators =
             new Dictionary<char, bool>() {
                 { '^', true },
                 { '~', true },

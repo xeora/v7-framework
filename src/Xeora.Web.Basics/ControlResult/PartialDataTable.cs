@@ -3,7 +3,7 @@ using System.Data;
 
 namespace Xeora.Web.Basics.ControlResult
 {
-    [Serializable()]
+    [Serializable]
     public class PartialDataTable : DataTable, IDataSource
     {
         private long _Total;

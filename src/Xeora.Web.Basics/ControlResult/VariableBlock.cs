@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Xeora.Web.Basics.ControlResult
 {
-    [Serializable()]
+    [Serializable]
     public class VariableBlock : Dictionary<string, object>
     {
         public VariableBlock() : base(StringComparer.InvariantCultureIgnoreCase)

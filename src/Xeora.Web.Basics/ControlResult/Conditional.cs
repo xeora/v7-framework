@@ -2,7 +2,7 @@
 
 namespace Xeora.Web.Basics.ControlResult
 {
-    [Serializable()]
+    [Serializable]
     public class Conditional
     {
         public enum Conditions

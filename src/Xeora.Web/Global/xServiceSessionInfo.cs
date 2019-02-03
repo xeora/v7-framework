@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Xeora.Web.Global
 {
-    [Serializable()]
+    [Serializable]
     public class xServiceSessionInfo : IEnumerable
     {
         private List<KeyValuePair<string, object>> _SessionItems;
