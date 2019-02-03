@@ -8,6 +8,13 @@
 
         public override void Render(string requesterUniqueID)
         {
+            if (this.Mother.MessageResult == null)
+            {
+                this.RenderedValue = string.Empty;
+
+                return;
+            }
+
             Global.ContentDescription contentDescription = 
                 new Global.ContentDescription(this.Value);
 
@@ -15,11 +22,8 @@
 
             this.Parse(blockContent);
 
-            if (this.Mother.MessageResult != null)
-            {
-                this.ContentArguments.AppendKeyWithValue("MessageType", this.Mother.MessageResult.Type);
-                this.ContentArguments.AppendKeyWithValue("Message", this.Mother.MessageResult.Content);
-            }
+            this.ContentArguments.AppendKeyWithValue("MessageType", this.Mother.MessageResult.Type);
+            this.ContentArguments.AppendKeyWithValue("Message", this.Mother.MessageResult.Content);
 
             base.Render(requesterUniqueID);
         }
