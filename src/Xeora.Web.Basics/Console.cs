@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,10 +8,16 @@ namespace Xeora.Web.Basics
 {
     public class Console
     {
-        private ConcurrentQueue<string> _Messages = null;
+        private readonly ConcurrentQueue<string> _Messages = null;
+        private readonly ConcurrentDictionary<string, Action<ConsoleKeyInfo>> _KeyListeners = null;
 
-        private Console() =>
+        private Console()
+        {
             this._Messages = new ConcurrentQueue<string>();
+            this._KeyListeners = new ConcurrentDictionary<string, Action<ConsoleKeyInfo>>();
+
+            ThreadPool.QueueUserWorkItem((state) => this.StartKeyListener());
+        }
 
         private void Queue(string message)
         {
@@ -37,6 +44,50 @@ namespace Xeora.Web.Basics
 
                 this._Flushing = false;
             });
+        }
+
+        private void StartKeyListener()
+        {
+            do
+            {
+                ConsoleKeyInfo keyInfo = 
+                    System.Console.ReadKey(true);
+
+                IEnumerator<KeyValuePair<string, Action<ConsoleKeyInfo>>> enumerator =
+                    this._KeyListeners.GetEnumerator();
+
+                while (enumerator.MoveNext())
+                {
+                    Action<ConsoleKeyInfo> action = 
+                        enumerator.Current.Value;
+
+                    ThreadPool.QueueUserWorkItem((state) => action.Invoke(keyInfo));
+                }
+            } while (true);
+        }
+
+        private string AddKeyListener(Action<ConsoleKeyInfo> callback)
+        {
+            if (callback == null)
+                return Guid.Empty.ToString();
+
+            string registrationId = Guid.NewGuid().ToString();
+
+            if (!this._KeyListeners.TryAdd(registrationId, callback))
+                return Guid.Empty.ToString();
+
+            return registrationId;
+        }
+
+        private bool RemoveKeyListener(string callbackId)
+        {
+            if (string.IsNullOrEmpty(callbackId))
+                return false;
+
+            if (!this._KeyListeners.TryRemove(callbackId, out Action<ConsoleKeyInfo> value))
+                return false;
+
+            return true;
         }
 
         private static object _Lock = new object();
@@ -96,5 +147,21 @@ namespace Xeora.Web.Basics
 
             Console.Current.Queue(consoleMessage);
         }
+
+        /// <summary>
+        /// Register an action to Xeora framework console key listener
+        /// </summary>
+        /// <returns>Registration ID</returns>
+        /// <param name="callback">Listener action to be invoked when a key pressed on Xeora framework console</param>
+        public static string Register(Action<ConsoleKeyInfo> callback) =>
+            Console.Current.AddKeyListener(callback);
+
+        /// <summary>
+        /// Unregister an action registered with an ID previously
+        /// </summary>
+        /// <returns>Removal Result, <c>true</c> if removed; otherwise, <c>false</c></returns>
+        /// <param name="registrationId">registration Id of action</param>
+        public static bool Unregister(string registrationId) =>
+            Console.Current.RemoveKeyListener(registrationId);
     }
 }

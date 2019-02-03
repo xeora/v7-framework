@@ -54,9 +54,7 @@ namespace Xeora.Web.Deployment
         {
             foreach (string key in this._Instances.Keys)
             {
-                Domain domain = null;
-
-                this._Instances.TryRemove(key, out domain);
+                this._Instances.TryRemove(key, out Domain domain);
 
                 if (domain != null)
                     domain.Dispose();

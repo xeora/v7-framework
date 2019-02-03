@@ -15,13 +15,17 @@ namespace Xeora.Web.Handler
 {
     public class XeoraHandler : IHandler
     {
+        private readonly bool _ForceRefresh;
+
         private DateTime _BeginRequestTime;
         private bool _SupportCompression;
 
         private DomainControl _DomainControl = null;
 
-        internal XeoraHandler(ref IHttpContext context)
+        internal XeoraHandler(ref IHttpContext context, bool forceRefresh)
         {
+            this._ForceRefresh = forceRefresh;
+
             this.Context = context ?? throw new System.Exception("Context is required!");
             this.HandlerID = Guid.NewGuid().ToString();
 
@@ -66,6 +70,8 @@ namespace Xeora.Web.Handler
             {
                 IHttpContext context = this.Context;
                 this._DomainControl = new DomainControl(ref context);
+                if (this._ForceRefresh)
+                    this._DomainControl.Domain.ClearCache();
 
                 Basics.Enum.PageCachingTypes defaultCaching =
                     this._DomainControl.Domain.Settings.Configurations.DefaultCaching;

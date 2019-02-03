@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Threading;
 using Xeora.Web.Basics.Context;
 using Xeora.Web.Site.Service;
@@ -9,8 +10,20 @@ namespace Xeora.Web.Handler
     {
         private ConcurrentDictionary<string, HandlerContainer> _Handlers;
 
-        private HandlerManager() =>
+        private HandlerManager()
+        {
             this._Handlers = new ConcurrentDictionary<string, HandlerContainer>();
+
+            Basics.Console.Register((keyInfo) => {
+                if ((keyInfo.Modifiers & ConsoleModifiers.Control) == 0 || keyInfo.Key != ConsoleKey.R)
+                    return;
+
+                HandlerManager.Refresh();
+
+                Basics.Console.Push(
+                    string.Empty, "Domains refresh requested!", string.Empty, false);
+            });
+        }
 
         private static object _Lock = new object();
         private static HandlerManager _Current = null;
@@ -38,8 +51,19 @@ namespace Xeora.Web.Handler
             // TODO: Pool Variable Expire minutes should me dynamic
             PoolFactory.Initialize(20);
 
-            Basics.IHandler handler =
-                new XeoraHandler(ref context);
+            Basics.IHandler handler;
+
+            Monitor.Enter(HandlerManager._RefreshLock);
+            try 
+            {
+                handler = 
+                    new XeoraHandler(ref context, HandlerManager._Refresh);
+                HandlerManager._Refresh = false;
+            }
+            finally
+            {
+                Monitor.Exit(HandlerManager._RefreshLock);
+            }
 
             this.Add(ref handler);
 
@@ -51,8 +75,7 @@ namespace Xeora.Web.Handler
             if (string.IsNullOrEmpty(handlerID))
                 return null;
 
-            HandlerContainer handlerContainer;
-            if (!this._Handlers.TryGetValue(handlerID, out handlerContainer))
+            if (!this._Handlers.TryGetValue(handlerID, out HandlerContainer handlerContainer))
                 return null;
 
             return handlerContainer.Handler;
@@ -72,8 +95,7 @@ namespace Xeora.Web.Handler
 
         public void Mark(string handlerID)
         {
-            HandlerContainer handlerContainer;
-            if (!this._Handlers.TryGetValue(handlerID, out handlerContainer))
+            if (!this._Handlers.TryGetValue(handlerID, out HandlerContainer handlerContainer))
                 return;
 
             handlerContainer.Removable = false;
@@ -81,14 +103,28 @@ namespace Xeora.Web.Handler
 
         public void UnMark(string handlerID)
         {
-            HandlerContainer handlerContainer;
-            if (!this._Handlers.TryGetValue(handlerID, out handlerContainer))
+            if (!this._Handlers.TryGetValue(handlerID, out HandlerContainer handlerContainer))
                 return;
 
             if (handlerContainer.Removable)
                 this._Handlers.TryRemove(handlerID, out handlerContainer);
             else
                 handlerContainer.Removable = true;
+        }
+
+        private static object _RefreshLock = new object();
+        private static bool _Refresh = false;
+        private static void Refresh()
+        {
+            if (!Monitor.TryEnter(HandlerManager._RefreshLock))
+                return;
+
+            if (HandlerManager._Refresh)
+                return;
+
+            HandlerManager._Refresh = true;
+
+            Monitor.Exit(HandlerManager._RefreshLock);
         }
     }
 }

@@ -203,6 +203,8 @@ namespace Xeora.Web.Manager
             if (!bind.Ready)
                 throw new System.Exception("Bind Parameters shoud be parsed first!");
 
+            Master.Initialize();
+
             Basics.Execution.InvokeResult<T> rInvokeResult =
                 new Basics.Execution.InvokeResult<T>(bind);
 
@@ -241,6 +243,8 @@ namespace Xeora.Web.Manager
             if (executableInfo.Exception != null)
                 return executableInfo.Exception;
 
+            Master.Initialize();
+
             try
             {
                 object invokedObject =
@@ -273,12 +277,6 @@ namespace Xeora.Web.Manager
                 return (string)methodResult;
 
             return null;
-        }
-
-        public static void ClearCache()
-        {
-            Application.Dispose();
-            StatementFactory.Dispose();
         }
     }
 }

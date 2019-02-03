@@ -114,7 +114,7 @@ namespace Xeora.Web.Site
 
         public void ClearCache()
         {
-            AssemblyCore.ClearCache();
+            Master.ClearCache();
 
             this._Renderer.ClearCache();
             PartialCache.ClearCache(this.IDAccessTree);
