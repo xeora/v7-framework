@@ -46,17 +46,27 @@ namespace Xeora.Web.Deployment
             if (string.IsNullOrEmpty(requestedFilePath))
                 return;
 
-            requestedFilePath = requestedFilePath.Replace('/', Path.DirectorySeparatorChar);
-            if (requestedFilePath[0] == Path.DirectorySeparatorChar)
+            requestedFilePath = requestedFilePath.Replace('/', '\\');
+            if (requestedFilePath[0] == '\\')
                 requestedFilePath = requestedFilePath.Substring(1);
+
+            string requestPath = string.Empty;
+            string requestFile = requestedFilePath;
+
+            int lastIndex = requestedFilePath.LastIndexOf('\\');
+            if (lastIndex > -1)
+            {
+                requestPath = requestedFilePath.Substring(0, lastIndex + 1);
+                requestFile = requestedFilePath.Substring(lastIndex + 1);
+            }
 
             FileEntry fileEntry =
                 this.Decompiler.Get(
-                    Path.Combine(
+                    string.Concat(
                         this.ContentsRegistration(languageID),
-                        requestedFilePath.Replace(Path.GetFileName(requestedFilePath), string.Empty)
+                        requestPath
                     ),
-                    Path.GetFileName(requestedFilePath)
+                    requestFile
                 );
 
             if (fileEntry.Index == -1)
