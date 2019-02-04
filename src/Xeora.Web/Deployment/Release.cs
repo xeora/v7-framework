@@ -70,7 +70,7 @@ namespace Xeora.Web.Deployment
                 );
 
             if (fileEntry.Index == -1)
-                return;
+                throw new FileNotFoundException();
 
             outputStream = new MemoryStream();
 
