@@ -7,8 +7,8 @@ namespace Xeora.Web.Site
 {
     public class MetaRecord : IMetaRecordCollection
     {
-        private ConcurrentDictionary<Basics.MetaRecord.Tags, string> _Records;
-        private ConcurrentDictionary<string, string> _CustomRecords;
+        private readonly ConcurrentDictionary<Basics.MetaRecord.Tags, string> _Records;
+        private readonly ConcurrentDictionary<string, string> _CustomRecords;
 
         public MetaRecord()
         {
@@ -56,15 +56,11 @@ namespace Xeora.Web.Site
             if (string.IsNullOrEmpty(name))
                 throw new NullReferenceException("Name can not be null!");
 
-            string dummy;
-            this._CustomRecords.TryRemove(name, out dummy);
+            this._CustomRecords.TryRemove(name, out string dummy);
         }
 
-        public void Remove(Basics.MetaRecord.Tags tag)
-        {
-            string dummy;
-            this._Records.TryRemove(tag, out dummy);
-        }
+        public void Remove(Basics.MetaRecord.Tags tag) =>
+            this._Records.TryRemove(tag, out string dummy);
 
         public KeyValuePair<Basics.MetaRecord.Tags, string>[] CommonTags
         {
@@ -76,8 +72,7 @@ namespace Xeora.Web.Site
                 int keyCount = 0;
                 foreach (Basics.MetaRecord.Tags key in this._Records.Keys)
                 {
-                    string value;
-                    this._Records.TryGetValue(key, out value);
+                    this._Records.TryGetValue(key, out string value);
 
                     metaTags[keyCount] = new KeyValuePair<Basics.MetaRecord.Tags, string>(key, value);
                     keyCount++;
@@ -97,8 +92,7 @@ namespace Xeora.Web.Site
                 int keyCount = 0;
                 foreach (string key in this._CustomRecords.Keys)
                 {
-                    string value;
-                    this._CustomRecords.TryGetValue(key, out value);
+                    this._CustomRecords.TryGetValue(key, out string value);
 
                     metaTags[keyCount] = new KeyValuePair<string, string>(key, value);
                     keyCount++;

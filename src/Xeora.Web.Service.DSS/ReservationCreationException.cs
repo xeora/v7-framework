@@ -1,7 +1,5 @@
-﻿using System;
-
-namespace Xeora.Web.Service.DSS
+﻿namespace Xeora.Web.Service.DSS
 {
-    public class ReservationCreationException : Exception
+    public class ReservationCreationException : System.Exception
     {}
 }

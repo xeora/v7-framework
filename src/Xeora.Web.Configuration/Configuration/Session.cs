@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System.ComponentModel;
-using System.Net;
 using Xeora.Web.Basics.Configuration;
 
 namespace Xeora.Web.Configuration

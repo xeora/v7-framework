@@ -35,18 +35,17 @@
         public ControlSettings Clone()
         {
             ControlSettings settings =
-                new ControlSettings();
+                new ControlSettings
+                {
+                    Type = this.Type
+                };
 
-            settings.Type = this.Type;
-
-            SecurityDefinition security;
-            this.Security.Clone(out security);
+            this.Security.Clone(out SecurityDefinition security);
             settings.Security = security;
 
             if (this.Bind != null)
             {
-                Basics.Execution.Bind bind;
-                this.Bind.Clone(out bind);
+                this.Bind.Clone(out Basics.Execution.Bind bind);
                 settings.Bind = bind;
             }
 

@@ -78,7 +78,7 @@ namespace Xeora.Web.Basics
                 urlInstance.Active)
             {
                 Mapping.MappingItem[] mappingItems =
-                           urlInstance.Items.ToArray();
+                    urlInstance.Items.ToArray();
                 System.Text.RegularExpressions.Match rqMatch = null;
 
                 foreach (Mapping.MappingItem mapItem in mappingItems)
@@ -331,8 +331,10 @@ namespace Xeora.Web.Basics
             catch (Exception ex)
             {
                 InvokeResult<T> rInvokeResult =
-                    new InvokeResult<T>(bind);
-                rInvokeResult.Exception = new Exception("CrossCall Execution Error!", ex);
+                    new InvokeResult<T>(bind)
+                    {
+                        Exception = new Exception("CrossCall Execution Error!", ex)
+                    };
 
                 return rInvokeResult;
             }

@@ -5,9 +5,8 @@ namespace Xeora.Web.Service.DSS
 {
     internal class MemoryDSS : Basics.DSS.IDSS, IDSSService
     {
-        private ConcurrentDictionary<string, object> _Items;
-
-        private int _ExpiresInMinute;
+        private readonly ConcurrentDictionary<string, object> _Items;
+        private readonly int _ExpiresInMinute;
 
         public MemoryDSS(string uniqueID, int expiresInMinutes)
         {

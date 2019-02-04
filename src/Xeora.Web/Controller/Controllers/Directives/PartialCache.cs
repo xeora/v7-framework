@@ -25,8 +25,7 @@ namespace Xeora.Web.Controller.Directive
             this._CacheID =
                 CacheObject.ProvideUniqueCacheID(this, ref instance);
 
-            CacheObject cacheObject = null;
-            CachePool.Current.Get(this._IDAccessTree, this._CacheID, out cacheObject);
+            CachePool.Current.Get(this._IDAccessTree, this._CacheID, out CacheObject cacheObject);
 
             if (cacheObject != null)
             {
@@ -55,19 +54,15 @@ namespace Xeora.Web.Controller.Directive
             CachePool.Current.AddOrUpdate(this._IDAccessTree, cacheObject);
         }
 
-        public static void ClearCache(string[] domainIDAccessTree)
-        {
+        public static void ClearCache(string[] domainIDAccessTree) =>
             CachePool.Current.Reset(domainIDAccessTree);
-        }
 
         private class CachePool
         {
-            private ConcurrentDictionary<string[], ConcurrentDictionary<string, CacheObject>> _PartialCaches = null;
+            private readonly ConcurrentDictionary<string[], ConcurrentDictionary<string, CacheObject>> _PartialCaches = null;
 
-            private CachePool()
-            {
+            private CachePool() =>
                 this._PartialCaches = new ConcurrentDictionary<string[], ConcurrentDictionary<string, CacheObject>>();
-            }
 
             private static object _Lock = new object();
             private static CachePool _Current = null;
@@ -92,9 +87,7 @@ namespace Xeora.Web.Controller.Directive
 
             public void AddOrUpdate(string[] domainIDAccessTree, CacheObject cacheObject)
             {
-                ConcurrentDictionary<string, CacheObject> cacheObjects;
-
-                if (!this._PartialCaches.TryGetValue(domainIDAccessTree, out cacheObjects))
+                if (!this._PartialCaches.TryGetValue(domainIDAccessTree, out ConcurrentDictionary<string, CacheObject> cacheObjects))
                 {
                     cacheObjects = new ConcurrentDictionary<string, CacheObject>();
 
@@ -113,18 +106,14 @@ namespace Xeora.Web.Controller.Directive
             {
                 cacheObject = null;
 
-                ConcurrentDictionary<string, CacheObject> cacheObjects;
-                if (!this._PartialCaches.TryGetValue(domainIDAccessTree, out cacheObjects))
+                if (!this._PartialCaches.TryGetValue(domainIDAccessTree, out ConcurrentDictionary<string, CacheObject> cacheObjects))
                     return;
 
                 cacheObjects.TryGetValue(cacheID, out cacheObject);
             }
 
-            public void Reset(string[] domainIDAccessTree)
-            {
-                ConcurrentDictionary<string, CacheObject> dummy;
-                this._PartialCaches.TryRemove(domainIDAccessTree, out dummy);
-            }
+            public void Reset(string[] domainIDAccessTree) =>
+                this._PartialCaches.TryRemove(domainIDAccessTree, out ConcurrentDictionary<string, CacheObject> dummy);
         }
 
         private class CacheObject

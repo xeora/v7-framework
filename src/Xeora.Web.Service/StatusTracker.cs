@@ -5,7 +5,7 @@ namespace Xeora.Web.Service
 {
     public class StatusTracker : Basics.IStatusTracker
     {
-        private ConcurrentDictionary<short, int> _Status;
+        private readonly ConcurrentDictionary<short, int> _Status;
 
         private StatusTracker() =>
             this._Status = new ConcurrentDictionary<short, int>();

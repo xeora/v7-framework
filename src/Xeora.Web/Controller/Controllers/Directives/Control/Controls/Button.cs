@@ -1,5 +1,4 @@
-﻿using System;
-using Xeora.Web.Basics;
+﻿using Xeora.Web.Basics;
 
 namespace Xeora.Web.Controller.Directive.Control
 {

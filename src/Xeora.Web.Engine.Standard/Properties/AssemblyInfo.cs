@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("JakPark Solutions")]
 [assembly: AssemblyProduct("XeoraCube - Web Development Framework Engine Standard")]
-[assembly: AssemblyCopyright("Copyright © Tuna Celik 2003 - 2018")]
+[assembly: AssemblyCopyright("Copyright © Tuna Celik 2003 - 2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

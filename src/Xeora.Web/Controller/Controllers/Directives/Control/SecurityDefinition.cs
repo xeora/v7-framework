@@ -50,16 +50,16 @@
 
         public void Clone(out SecurityDefinition security)
         {
-            security = new SecurityDefinition();
-
-            security._Set = this._Set;
-            security.RegisteredGroup = this.RegisteredGroup;
-            security._FriendlyName = this._FriendlyName;
+            security = new SecurityDefinition
+            {
+                _Set = this._Set,
+                RegisteredGroup = this.RegisteredGroup,
+                _FriendlyName = this._FriendlyName
+            };
 
             if (this.Bind != null)
             {
-                Basics.Execution.Bind bind;
-                this.Bind.Clone(out bind);
+                this.Bind.Clone(out Basics.Execution.Bind bind);
                 security.Bind = bind;
             }
 

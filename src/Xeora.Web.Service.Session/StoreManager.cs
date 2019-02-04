@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Net;
 
 namespace Xeora.Web.Service.Session
 {
     public class StoreManager : IHttpSessionManager
     {
-        private short _ExpireInMinutes;
+        private readonly short _ExpireInMinutes;
 
         public StoreManager(short expireInMinutes) =>
-        this._ExpireInMinutes = expireInMinutes;
+            this._ExpireInMinutes = expireInMinutes;
 
         public void Acquire(string sessionID, out Basics.Session.IHttpSession sessionObject)
         {
@@ -21,8 +20,7 @@ namespace Xeora.Web.Service.Session
                 sessionID = sessionID.ToLowerInvariant();
             }
 
-            Basics.DSS.IDSS reservation;
-            DSS.DSSManager.Current.Reserve(sessionID, this._ExpireInMinutes, out reservation);
+            DSS.DSSManager.Current.Reserve(sessionID, this._ExpireInMinutes, out Basics.DSS.IDSS reservation);
 
             if (reservation == null)
                 throw new SessionCreationException();

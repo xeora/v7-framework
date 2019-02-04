@@ -32,8 +32,7 @@ namespace Xeora.Web.Controller.Directive
             if (string.IsNullOrEmpty(requesterUniqueID))
                 return;
 
-            IController controller = null;
-            this.Mother.Pool.GetInto(requesterUniqueID, out controller);
+            this.Mother.Pool.GetInto(requesterUniqueID, out IController controller);
 
             if (controller != null &&
                 controller is INamable &&
@@ -75,9 +74,11 @@ namespace Xeora.Web.Controller.Directive
             bind.Parameters.Prepare(
                 (parameter) =>
                 {
-                    Property property = new Property(0, parameter.Query, (leveledController.Parent == null ? null : leveledController.Parent.ContentArguments));
-                    property.Mother = leveledController.Mother;
-                    property.Parent = leveledController.Parent;
+                    Property property = new Property(0, parameter.Query, leveledController.Parent?.ContentArguments)
+                    {
+                        Mother = leveledController.Mother,
+                        Parent = leveledController.Parent
+                    };
                     property.InstanceRequested += (ref Basics.Domain.IDomain instance) => InstanceRequested?.Invoke(ref instance);
                     property.Setup();
 
@@ -88,7 +89,7 @@ namespace Xeora.Web.Controller.Directive
             );
 
             Basics.Execution.InvokeResult<object> invokeResult =
-                Manager.AssemblyCore.InvokeBind<object>(Basics.Helpers.Context.Request.Header.Method, bind, Manager.ExecuterTypes.Other);
+                Manager.AssemblyCore.InvokeBind<object>(Helpers.Context.Request.Header.Method, bind, Manager.ExecuterTypes.Other);
 
             if (invokeResult.Exception != null)
                 throw new Exception.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);

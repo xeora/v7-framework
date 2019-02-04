@@ -8,7 +8,7 @@ namespace Xeora.Web.Site
 {
     public class LanguagesHolder : ILanguages
     {
-        private ILanguages _Languages;
+        private readonly ILanguages _Languages;
             
         public LanguagesHolder(IDomain owner, ILanguages languages)
         {

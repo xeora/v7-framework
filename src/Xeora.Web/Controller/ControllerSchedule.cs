@@ -7,8 +7,8 @@ namespace Xeora.Web.Controller
 {
     public class ControllerSchedule
     {
-        private ConcurrentDictionary<string, ConcurrentQueue<string>> _ScheduledItems;
-        private ControllerPool _Pool;
+        private readonly ConcurrentDictionary<string, ConcurrentQueue<string>> _ScheduledItems;
+        private readonly ControllerPool _Pool;
 
         public ControllerSchedule(ref ControllerPool pool)
         {
@@ -18,9 +18,7 @@ namespace Xeora.Web.Controller
 
         public void Register(string boundControlID, string uniqueID)
         {
-            ConcurrentQueue<string> waitingIDs = null;
-
-            if (!this._ScheduledItems.TryGetValue(boundControlID, out waitingIDs))
+            if (!this._ScheduledItems.TryGetValue(boundControlID, out ConcurrentQueue<string> waitingIDs))
             {
                 waitingIDs = new ConcurrentQueue<string>();
 
@@ -37,9 +35,7 @@ namespace Xeora.Web.Controller
 
         public void Fire(string boundControlID)
         {
-            ConcurrentQueue<string> waitingIDs = null;
-
-            if (!this._ScheduledItems.TryGetValue(boundControlID, out waitingIDs))
+            if (!this._ScheduledItems.TryGetValue(boundControlID, out ConcurrentQueue<string> waitingIDs))
                 return;
 
             List<Task> runningJobs = new List<Task>();
@@ -50,8 +46,7 @@ namespace Xeora.Web.Controller
 
             while (!waitingIDs.IsEmpty)
             {
-                string uniqueID;
-                waitingIDs.TryDequeue(out uniqueID);
+                waitingIDs.TryDequeue(out string uniqueID);
 
                 runningJobs.Add(
                     Task.Run(() =>
@@ -68,8 +63,7 @@ namespace Xeora.Web.Controller
 
         private void RequestRender(string uniqueID)
         {
-            IController controller;
-            this._Pool.GetInto(uniqueID, out controller);
+            this._Pool.GetInto(uniqueID, out IController controller);
 
             if (controller != null)
                 controller.Render(uniqueID);

@@ -11,9 +11,9 @@ namespace Xeora.Web.Service.Context
     {
         public static readonly char[] NEWLINE = { '\r', '\n' };
 
-        private string _ContextID;
-        private string _TempLocation;
-        private Stream _ResponseOutput;
+        private readonly string _ContextID;
+        private readonly string _TempLocation;
+        private readonly Stream _ResponseOutput;
 
         private string _RedirectedURL = string.Empty;
 

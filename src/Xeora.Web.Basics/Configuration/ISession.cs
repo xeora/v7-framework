@@ -1,6 +1,4 @@
-﻿using System.Net;
-
-namespace Xeora.Web.Basics.Configuration
+﻿namespace Xeora.Web.Basics.Configuration
 {
     public interface ISession
     {

@@ -8,7 +8,7 @@ namespace Xeora.Web.Basics
     internal class TypeCache
     {
         private static object _Lock = new object();
-        private static TypeCache _Current = null;
+        private static TypeCache _Current;
         public static TypeCache Current
         {
             get
@@ -32,9 +32,7 @@ namespace Xeora.Web.Basics
             new ConcurrentDictionary<string, Assembly>();
         private Assembly GetAssembly(string assemblyID)
         {
-            Assembly rAssembly = null;
-
-            if (!this._LoadedAssemblies.TryGetValue(assemblyID, out rAssembly))
+            if (!this._LoadedAssemblies.TryGetValue(assemblyID, out Assembly rAssembly))
             {
                 rAssembly = Assembly.Load(assemblyID);
                 this._LoadedAssemblies.TryAdd(assemblyID, rAssembly);

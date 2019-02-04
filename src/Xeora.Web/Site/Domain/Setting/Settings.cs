@@ -6,8 +6,8 @@ namespace Xeora.Web.Site.Setting
 {
     public class Settings : Basics.Domain.ISettings
     {
-        private StringReader _XPathStream = null;
-        private XPathNavigator _XPathNavigator;
+        private readonly StringReader _XPathStream;
+        private readonly XPathNavigator _XPathNavigator;
 
         public Settings(string configurationContent)
         {

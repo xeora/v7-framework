@@ -10,11 +10,11 @@ namespace Xeora.Web.Deployment
 {
     internal class Decompiler
     {
-        private string _DomainFileLocation;
-        private byte[] _PasswordHash = null;
+        private readonly string _DomainFileLocation;
+        private readonly byte[] _PasswordHash = null;
 
-        private ConcurrentDictionary<string, FileEntry> _DomainFileEntryListCache;
-        private ConcurrentDictionary<string, byte[]> _DomainFileEntryBytesCache;
+        private readonly ConcurrentDictionary<string, FileEntry> _DomainFileEntryListCache;
+        private readonly ConcurrentDictionary<string, byte[]> _DomainFileEntryBytesCache;
         private DateTime _CacheDate;
 
         public Decompiler(string domainRoot)
@@ -86,8 +86,7 @@ namespace Xeora.Web.Deployment
             string cacheSearchKey =
                 FileEntry.CreateSearchKey(registrationPath, fileName);
 
-            FileEntry fileEntry;
-            if (this._DomainFileEntryListCache.TryGetValue(cacheSearchKey, out fileEntry))
+            if (this._DomainFileEntryListCache.TryGetValue(cacheSearchKey, out FileEntry fileEntry))
                 return fileEntry;
             // !---
 
@@ -106,9 +105,8 @@ namespace Xeora.Web.Deployment
                 if (key.IndexOf(
                         FileEntry.CreateSearchKey(registrationPath, fileName)) == 0)
                 {
-                    FileEntry fileEntry;
-                    if (this._DomainFileEntryListCache.TryGetValue(key, out fileEntry))
-                        result.Add(fileEntry);    
+                    if (this._DomainFileEntryListCache.TryGetValue(key, out FileEntry fileEntry))
+                        result.Add(fileEntry);
                 }
             }
 
@@ -128,8 +126,7 @@ namespace Xeora.Web.Deployment
             string searchKey =
                 string.Format("{0}$i:{1}.l:{2}", this._DomainFileLocation, index, length);
 
-            byte[] buffer = null;
-            if (this._DomainFileEntryBytesCache.TryGetValue(searchKey, out buffer))
+            if (this._DomainFileEntryBytesCache.TryGetValue(searchKey, out byte[] buffer))
             {
                 outputStream.Write(buffer, 0, buffer.Length);
                 outputStream.Seek(0, SeekOrigin.Begin);

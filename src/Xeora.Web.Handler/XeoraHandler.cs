@@ -364,13 +364,10 @@ namespace Xeora.Web.Handler
             if (invokeResult.Exception != null)
                 throw new Exception.ServiceSocketException(invokeResult.Exception.ToString());
 
-            if (invokeResult.Result is Message)
+            if (invokeResult.Result is Message messageResult)
             {
-                Message MessageResult =
-                    (Message)invokeResult.Result;
-
-                if (MessageResult.Type == Message.Types.Error)
-                    throw new Exception.ServiceSocketException(MessageResult.Content);
+                if (messageResult.Type == Message.Types.Error)
+                    throw new Exception.ServiceSocketException(messageResult.Content);
             }
         }
 
@@ -1041,7 +1038,7 @@ namespace Xeora.Web.Handler
             {
                 outputStream =
                     new MemoryStream(
-                        System.Text.Encoding.UTF8.GetBytes(outputContent));
+                        Encoding.UTF8.GetBytes(outputContent));
 
                 this.WriteOutput(contentType, ref outputStream, sendAsCompressed);
             }

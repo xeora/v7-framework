@@ -7,8 +7,8 @@ namespace Xeora.Web.Site.Setting
 {
     public class Controls : IControls
     {
-        private StringReader _XPathStream = null;
-        private XPathNavigator _XPathNavigator;
+        private readonly StringReader _XPathStream;
+        private readonly XPathNavigator _XPathNavigator;
 
         internal Controls(string xmlContent)
         {

@@ -5,7 +5,7 @@ namespace Xeora.Web.Basics.Mapping
 {
     public class MappingItemCollection : IEnumerable
     {
-        private List<MappingItem> _Items;
+        private readonly List<MappingItem> _Items;
 
         public MappingItemCollection(MappingItem[] items)
         {

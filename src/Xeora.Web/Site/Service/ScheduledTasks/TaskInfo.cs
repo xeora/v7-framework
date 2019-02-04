@@ -4,7 +4,7 @@ namespace Xeora.Web.Site.Service
 {
     internal class TaskInfo
     {
-        private Guid _ID;
+        private readonly Guid _ID;
 
         public TaskInfo(Action<object[]> callBack, object[] callBackParams, DateTime executionTime)
         {

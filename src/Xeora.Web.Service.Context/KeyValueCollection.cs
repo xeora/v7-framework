@@ -4,7 +4,7 @@ namespace Xeora.Web.Service.Context
 {
     public class KeyValueCollection<K, V> : Basics.Context.IKeyValueCollection<K, V>
     {
-        private Dictionary<K, V> _Container;
+        private readonly Dictionary<K, V> _Container;
 
         public KeyValueCollection() =>
             this._Container = new Dictionary<K, V>();

@@ -4,7 +4,7 @@ namespace Xeora.Web.Basics.Domain.Info
 {
     public class DomainCollection : List<Domain>
     {
-        private Dictionary<string, int> _NameIndexMap;
+        private readonly Dictionary<string, int> _NameIndexMap;
 
         public DomainCollection() : base() =>
             this._NameIndexMap = new Dictionary<string, int>();

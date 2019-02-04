@@ -7,8 +7,7 @@ namespace Xeora.Web.Controller.Directive.Control
     {
         public static ControlTypes ParseControlType(string controlTypeName)
         {
-            ControlTypes controlType;
-            if (Enum.TryParse(controlTypeName, true, out controlType))
+            if (Enum.TryParse(controlTypeName, true, out ControlTypes controlType))
                 return controlType;
 
             return ControlTypes.Unknown;

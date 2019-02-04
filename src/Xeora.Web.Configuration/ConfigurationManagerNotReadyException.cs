@@ -1,7 +1,5 @@
-﻿using System;
-
-namespace Xeora.Web.Configuration
+﻿namespace Xeora.Web.Configuration
 {
-    public class ConfigurationManagerNotReadyException : Exception
+    public class ConfigurationManagerNotReadyException : System.Exception
     {}
 }

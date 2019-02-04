@@ -5,7 +5,7 @@ namespace Xeora.Web.Service.Application
 {
     public class ApplicationContainer : Basics.Application.IHttpApplication
     {
-        private ConcurrentDictionary<string, object> _Items;
+        private readonly ConcurrentDictionary<string, object> _Items;
 
         public ApplicationContainer() =>
             this._Items = new ConcurrentDictionary<string, object>();
@@ -35,8 +35,7 @@ namespace Xeora.Web.Service.Application
         {
             get
             {
-                object value;
-                if (this._Items.TryGetValue(key, out value))
+                if (this._Items.TryGetValue(key, out object value))
                     return value;
 
                 return null;

@@ -7,8 +7,8 @@ namespace Xeora.Web.Site.Setting
 {
     public class Language : ILanguageDefinition, ILanguage
     {
-        private StringReader _XPathStream = null;
-        private XPathNavigator _XPathNavigator;
+        private readonly StringReader _XPathStream;
+        private readonly XPathNavigator _XPathNavigator;
 
         internal Language(string xmlContent, bool @default)
         {

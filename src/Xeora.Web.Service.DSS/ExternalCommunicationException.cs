@@ -1,7 +1,5 @@
-﻿using System;
-
-namespace Xeora.Web.Service.DSS
+﻿namespace Xeora.Web.Service.DSS
 {
-    public class ExternalCommunicationException : Exception
+    public class ExternalCommunicationException : System.Exception
     {}
 }

@@ -9,7 +9,7 @@ namespace Xeora.Web.Site
 {
     public class DomainControl : Basics.IDomainControl
     {
-        private Basics.Context.IHttpContext _Context;
+        private readonly Basics.Context.IHttpContext _Context;
         private Basics.Domain.IDomain _Domain;
 
         private string[] _AuthenticationKeys;
@@ -95,7 +95,7 @@ namespace Xeora.Web.Site
         public bool IsAuthenticationRequired { get; private set; }
         public bool IsWorkingAsStandAlone { get; private set; }
 
-        public string XeoraJSVersion => "1.0.017";
+        public string XeoraJSVersion => "1.0.018";
 
         private void SelectDomain(string languageID)
         {

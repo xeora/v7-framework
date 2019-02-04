@@ -61,10 +61,4 @@
     <ProjectReference Include="..\Xeora.Web.Service\Xeora.Web.Service.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="xeora.settings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>

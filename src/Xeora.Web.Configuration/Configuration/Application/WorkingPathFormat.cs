@@ -9,7 +9,6 @@
         }
 
         public string WorkingPath { get; internal set; }
-
         public string WorkingPathID { get; internal set; }
     }
 }

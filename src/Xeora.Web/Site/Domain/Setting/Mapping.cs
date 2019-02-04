@@ -4,7 +4,7 @@ namespace Xeora.Web.Site.Setting
 {
     public class Mappings : Basics.Domain.IURL
     {
-        private XPathNavigator _XPathNavigator;
+        private readonly XPathNavigator _XPathNavigator;
 
         public Mappings(ref XPathNavigator configurationNavigator)
         {
@@ -29,8 +29,7 @@ namespace Xeora.Web.Site.Setting
 
                 if (xPathIter.MoveNext())
                 {
-                    bool isActive = true;
-                    if (!bool.TryParse(xPathIter.Current.GetAttribute("active", xPathIter.Current.BaseURI), out isActive))
+                    if (!bool.TryParse(xPathIter.Current.GetAttribute("active", xPathIter.Current.BaseURI), out bool isActive))
                         this.Active = false;
                     this.Active = isActive;
 
@@ -101,11 +100,12 @@ namespace Xeora.Web.Site.Setting
                                                         string mappedItemDefaultValue =
                                                             xPathIterSub.Current.GetAttribute("defaultValue", xPathIterSub.Current.BaseURI);
 
-                                                        Basics.Mapping.ResolveItem resolveItem = 
-                                                            new Basics.Mapping.ResolveItem(mappedItemID);
-
-                                                        resolveItem.QueryStringKey = mappedItemQueryStringKey;
-                                                        resolveItem.DefaultValue = mappedItemDefaultValue;
+                                                        Basics.Mapping.ResolveItem resolveItem =
+                                                            new Basics.Mapping.ResolveItem(mappedItemID)
+                                                            {
+                                                                QueryStringKey = mappedItemQueryStringKey,
+                                                                DefaultValue = mappedItemDefaultValue
+                                                            };
 
                                                         reverseMappedItems.Add(resolveItem);
 
@@ -119,18 +119,20 @@ namespace Xeora.Web.Site.Setting
                             } while (xPathIterSub.Current.MoveToNext());
                         }
 
-                        Basics.Mapping.MappingItem tMappingItem = 
-                            new Basics.Mapping.MappingItem();
+                        Basics.Mapping.MappingItem tMappingItem =
+                            new Basics.Mapping.MappingItem
+                            {
+                                Overridable = overridable,
+                                Priority = priority,
+                                RequestMap = request
+                            };
 
-                        tMappingItem.Overridable = overridable;
-                        tMappingItem.Priority = priority;
-                        tMappingItem.RequestMap = request;
-
-                        Basics.Mapping.ResolveEntry resolveEntry = 
+                        Basics.Mapping.ResolveEntry resolveEntry =
                             new Basics.Mapping.ResolveEntry(
-                                Basics.ServiceDefinition.Parse(reverseID, true));
-
-                        resolveEntry.MapFormat = reverseMapped;
+                                Basics.ServiceDefinition.Parse(reverseID, true))
+                            {
+                                MapFormat = reverseMapped
+                            };
                         resolveEntry.ResolveItems.AddRange(reverseMappedItems);
 
                         tMappingItem.ResolveEntry = resolveEntry;

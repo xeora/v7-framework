@@ -9,7 +9,7 @@ namespace Xeora.Web.Service.Context
     {
         internal Stream _ContentStream;
 
-        private string _TempLocation;
+        private readonly string _TempLocation;
 
         public HttpRequestFileInfo(string contextID, string contentType, Encoding contentEncoding, string fileName, bool keepInMemory)
         {

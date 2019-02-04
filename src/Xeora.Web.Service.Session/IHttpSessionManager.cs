@@ -1,6 +1,4 @@
-﻿using System.Net;
-
-namespace Xeora.Web.Service.Session
+﻿namespace Xeora.Web.Service.Session
 {
     public interface IHttpSessionManager
     {

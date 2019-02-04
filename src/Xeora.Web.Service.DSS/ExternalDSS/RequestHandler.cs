@@ -6,10 +6,10 @@ namespace Xeora.Web.Service.DSS
 {
     public class RequestHandler
     {
-        private TcpClient _DSSServiceClient;
+        private readonly TcpClient _DSSServiceClient;
 
         private long _LastRequestID = 0;
-        private object _StreamLock;
+        private readonly object _StreamLock;
 
         public RequestHandler(ref TcpClient dssServiceClient)
         {

@@ -6,8 +6,8 @@ namespace Xeora.Web.Site.Service
 {
     public class PoolFactory : ConcurrentDictionary<string, IVariablePool>
     {
-        private static PoolFactory _Current = null;
-        private short _ExpiresInMinutes ;
+        private static PoolFactory _Current;
+        private readonly short _ExpiresInMinutes ;
 
         private PoolFactory(short expiresInMinutes) =>
             this._ExpiresInMinutes = expiresInMinutes;
@@ -43,19 +43,15 @@ namespace Xeora.Web.Site.Service
         {
             string poolKey = this.CreatePoolKey(sessionID, keyID);
 
-            Basics.DSS.IDSS reservation;
-            DSSManager.Current.Reserve(poolKey, this._ExpiresInMinutes, out reservation);
+            DSSManager.Current.Reserve(poolKey, this._ExpiresInMinutes, out Basics.DSS.IDSS reservation);
 
             variablePool = new VariablePool(sessionID, keyID, ref reservation);
         }
 
         private void CopyVariablePool(string keyID, string fromSessionID, string toSessionID)
         {
-            IVariablePool oldVariablePool = null;
-            this.ProvideVariablePool(fromSessionID, keyID, out oldVariablePool);
-
-            IVariablePool newVariablePool = null;
-            this.ProvideVariablePool(toSessionID, keyID, out newVariablePool);
+            this.ProvideVariablePool(fromSessionID, keyID, out IVariablePool oldVariablePool);
+            this.ProvideVariablePool(toSessionID, keyID, out IVariablePool newVariablePool);
 
             oldVariablePool.CopyInto(ref newVariablePool);
         }

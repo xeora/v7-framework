@@ -2,7 +2,7 @@
 {
     public class HttpRequestQueryString : KeyValueCollection<string, string>, Basics.Context.IHttpRequestQueryString
     {
-        private Basics.Context.IURL _URL;
+        private readonly Basics.Context.IURL _URL;
 
         public HttpRequestQueryString(Basics.Context.IURL url)
         {

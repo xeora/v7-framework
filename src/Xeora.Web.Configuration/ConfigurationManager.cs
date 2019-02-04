@@ -6,8 +6,8 @@ namespace Xeora.Web.Configuration
 {
     public class ConfigurationManager
     {
-        private string _ConfigurationPath;
-        private string _ConfigurationFile;
+        private readonly string _ConfigurationPath;
+        private readonly string _ConfigurationFile;
 
         private ConfigurationManager(string configurationPath, string configurationFile)
         {

@@ -8,10 +8,10 @@ namespace Xeora.Web.Service.DSS
 {
     public class ExternalManager : IDSSManager
     {
-        private object _ConnectionLock;
+        private readonly object _ConnectionLock;
         private TcpClient _DSSServiceClient;
 
-        private IPEndPoint _ServiceEndPoint;
+        private readonly IPEndPoint _ServiceEndPoint;
 
         private RequestHandler _RequestHandler;
         private ResponseHandler _ResponseHandler;

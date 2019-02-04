@@ -12,6 +12,7 @@ namespace Xeora.Web.Global
             public List<string> Parts { get; set; }
             public string MessageTemplate { get; set; }
         }
+
         private static ConcurrentDictionary<string, PartCache> _PartsCache = 
             new ConcurrentDictionary<string, PartCache>();
 
@@ -73,8 +74,7 @@ namespace Xeora.Web.Global
             this.Parts = new List<string>();
             this.MessageTemplate = string.Empty;
 
-            PartCache partCache = null;
-            if (ContentDescription._PartsCache.TryGetValue(controlIDWithIndex, out partCache))
+            if (ContentDescription._PartsCache.TryGetValue(controlIDWithIndex, out PartCache partCache))
             {
                 if (string.Compare(partCache.Content, coreContent) == 0)
                 {
@@ -128,10 +128,12 @@ namespace Xeora.Web.Global
                 throw new Exception.EmptyBlockException();
 
             // Cache Result
-            PartCache partCache = new PartCache();
-            partCache.Content = content;
-            partCache.Parts = this.Parts;
-            partCache.MessageTemplate = this.MessageTemplate;
+            PartCache partCache = new PartCache
+            {
+                Content = content,
+                Parts = this.Parts,
+                MessageTemplate = this.MessageTemplate
+            };
 
             ContentDescription._PartsCache.TryAdd(controlIDWithIndex, partCache);
         }

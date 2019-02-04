@@ -12,9 +12,7 @@ namespace Xeora.Web.Handler
 
         public static IVariablePool GetVariablePool(string sessionID, string keyID)
         {
-            IVariablePool rVP = null;
-
-            PoolFactory.Get(sessionID, keyID, out rVP);
+            PoolFactory.Get(sessionID, keyID, out IVariablePool rVP);
 
             return rVP;
         }

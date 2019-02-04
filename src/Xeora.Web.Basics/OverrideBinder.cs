@@ -15,8 +15,7 @@ namespace Xeora.Web.Basics
         {
             string sShortAssemblyName = assemblyName.Substring(0, assemblyName.IndexOf(','));
 
-            Assembly assembly;
-            if (OverrideBinder._AssemblyCache.TryGetValue(sShortAssemblyName, out assembly))
+            if (OverrideBinder._AssemblyCache.TryGetValue(sShortAssemblyName, out Assembly assembly))
                 return this.GetDeserializeType(assembly, typeName);
 
             Assembly[] ayAssemblies = AppDomain.CurrentDomain.GetAssemblies();

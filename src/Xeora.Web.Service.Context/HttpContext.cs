@@ -5,7 +5,7 @@ namespace Xeora.Web.Service.Context
 {
     public class HttpContext : KeyValueCollection<string, object>, Basics.Context.IHttpContext
     {
-        private Basics.Session.IHttpSession _Session = null;
+        private Basics.Session.IHttpSession _Session;
 
         public HttpContext(string contextID, ref Basics.Context.IHttpRequest request)
         {

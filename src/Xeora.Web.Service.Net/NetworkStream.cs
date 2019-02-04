@@ -7,13 +7,13 @@ namespace Xeora.Web.Service.Net
     public class NetworkStream : Stream
     {
         private const int BUFFER_SIZE = 1024;
-        private Stream _RemoteStream;
+        private readonly Stream _RemoteStream;
 
-        private ConcurrentQueue<byte[]> _IncomeCache;
-        private ConcurrentStack<byte[]> _Residual;
+        private readonly ConcurrentQueue<byte[]> _IncomeCache;
+        private readonly ConcurrentStack<byte[]> _Residual;
 
         private bool _Disposed;
-        private Thread _StreamListenerThread;
+        private readonly Thread _StreamListenerThread;
 
         public NetworkStream(ref Stream remoteStream)
         {
@@ -22,9 +22,11 @@ namespace Xeora.Web.Service.Net
             this._IncomeCache = new ConcurrentQueue<byte[]>();
             this._Residual = new ConcurrentStack<byte[]>();
 
-            this._StreamListenerThread = new Thread(this.StreamListener);
-            this._StreamListenerThread.IsBackground = true;
-            this._StreamListenerThread.Priority = ThreadPriority.BelowNormal;
+            this._StreamListenerThread = new Thread(this.StreamListener)
+            {
+                IsBackground = true,
+                Priority = ThreadPriority.BelowNormal
+            };
             this._StreamListenerThread.Start();
         }
 
@@ -93,9 +95,7 @@ namespace Xeora.Web.Service.Net
         {
             while (!this._Residual.IsEmpty)
             {
-                byte[] data;
-
-                if (!this._Residual.TryPop(out data))
+                if (!this._Residual.TryPop(out byte[] data))
                     continue;
 
                 if (data.Length >= count)
@@ -122,9 +122,7 @@ namespace Xeora.Web.Service.Net
         {
             while (!this._IncomeCache.IsEmpty)
             {
-                byte[] data;
-
-                if (!this._IncomeCache.TryDequeue(out data))
+                if (!this._IncomeCache.TryDequeue(out byte[] data))
                     continue;
 
                 if (data.Length >= count)

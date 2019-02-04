@@ -166,12 +166,10 @@ namespace Xeora.Web.Basics.X
                 XPathNavigator xPathNavigator = xPathDoc.CreateNavigator();
                 XPathNodeIterator xPathIter = xPathNavigator.Select("/ServiceResult");
 
-                bool isDone = false;
-
                 if (!xPathIter.MoveNext())
                     return new Exception("xService Response Error!");
 
-                bool.TryParse(xPathIter.Current.GetAttribute("isdone", xPathIter.Current.NamespaceURI), out isDone);
+                bool.TryParse(xPathIter.Current.GetAttribute("isdone", xPathIter.Current.NamespaceURI), out bool isDone);
 
                 if (!isDone)
                     return new Exception("xService End-Point Process Error!");
@@ -189,24 +187,24 @@ namespace Xeora.Web.Basics.X
                 switch (xType)
                 {
                     case "Conditional":
-                        ControlResult.Conditional.Conditions condition =
-                            ControlResult.Conditional.Conditions.Unknown;
-                        System.Enum.TryParse<ControlResult.Conditional.Conditions>(xPathIter.Current.Value, out condition);
+                        Conditional.Conditions condition =
+                            Conditional.Conditions.Unknown;
+                        System.Enum.TryParse<Conditional.Conditions>(xPathIter.Current.Value, out condition);
 
-                        return new ControlResult.Conditional(condition);
+                        return new Conditional(condition);
                     case "Message":
-                        ControlResult.Message.Types type =
-                            ControlResult.Message.Types.Error;
-                        System.Enum.TryParse<ControlResult.Message.Types>(xPathIter.Current.GetAttribute("messagetype", xPathIter.Current.NamespaceURI), out type);
+                        Message.Types type =
+                            Message.Types.Error;
+                        System.Enum.TryParse<Message.Types>(xPathIter.Current.GetAttribute("messagetype", xPathIter.Current.NamespaceURI), out type);
 
-                        return new ControlResult.Message(xPathIter.Current.Value, type);
+                        return new Message(xPathIter.Current.Value, type);
                     case "ObjectFeed":
                         // TODO: Object Feed xService Implementation should be done!
                         return new Exception("Not Implemented Yet!");
                     case "PartialDataTable":
                         return Service.ParsePartialDataTable(ref xPathIter);
                     case "RedirectOrder":
-                        return new ControlResult.RedirectOrder(xPathIter.Current.Value);
+                        return new RedirectOrder(xPathIter.Current.Value);
                     case "VariableBlock":
                         return Service.ParseVariableBlock(ref xPathIter);
                     default:
@@ -262,8 +260,7 @@ namespace Xeora.Web.Basics.X
             PartialDataTable partialDataTable =
                 new PartialDataTable();
 
-            int Total = 0;
-            int.TryParse(xPathIter.Current.GetAttribute("total", xPathIter.Current.NamespaceURI), out Total);
+            int.TryParse(xPathIter.Current.GetAttribute("total", xPathIter.Current.NamespaceURI), out int Total);
             System.Globalization.CultureInfo CultureInfo =
                 new System.Globalization.CultureInfo(xPathIter.Current.GetAttribute("cultureinfo", xPathIter.Current.NamespaceURI));
 
@@ -411,8 +408,10 @@ namespace Xeora.Web.Basics.X
                     return null;
 
                 System.Runtime.Serialization.Formatters.Binary.BinaryFormatter binaryFormater =
-                    new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                binaryFormater.Binder = new OverrideBinder();
+                    new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+                    {
+                        Binder = new OverrideBinder()
+                    };
 
                 Stream serializationStream = null;
                 try
@@ -448,8 +447,10 @@ namespace Xeora.Web.Basics.X
             public static object Deserialize(byte[] serializedBytes)
             {
                 System.Runtime.Serialization.Formatters.Binary.BinaryFormatter binaryFormater =
-                    new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                binaryFormater.Binder = new OverrideBinder();
+                    new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+                    {
+                        Binder = new OverrideBinder()
+                    };
 
                 Stream serializationStream = null;
                 try

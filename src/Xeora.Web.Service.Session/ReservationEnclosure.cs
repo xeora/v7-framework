@@ -4,7 +4,7 @@ namespace Xeora.Web.Service.Session
 {
     internal class ReservationEnclosure : Basics.Session.IHttpSession
     {
-        private Basics.DSS.IDSS _Reservation;
+        private readonly Basics.DSS.IDSS _Reservation;
 
         public ReservationEnclosure(string sessionID, ref Basics.DSS.IDSS reservation)
         {
@@ -19,15 +19,8 @@ namespace Xeora.Web.Service.Session
         }
 
         public string SessionID { get; private set; }
-        public DateTime Expires 
-        {
-            get => this._Reservation.Expires;
-        }
-
-        public string[] Keys
-        {
-            get => this._Reservation.Keys;
-        }
+        public DateTime Expires => this._Reservation.Expires;
+        public string[] Keys => this._Reservation.Keys;
 
         public bool IsExpired => ((DSS.IDSSService)this._Reservation).IsExpired;
         public void Extend() => ((DSS.IDSSService)this._Reservation).Extend();

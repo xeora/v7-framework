@@ -9,7 +9,6 @@
         }
 
         public string FileSystemImplementation { get; internal set; }
-
         public string BrowserImplementation { get; internal set; }
     }
 }

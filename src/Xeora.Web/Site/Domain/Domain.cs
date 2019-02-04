@@ -15,10 +15,9 @@ namespace Xeora.Web.Site
 {
     public class Domain : Basics.Domain.IDomain
     {
-        private Renderer _Renderer = null;
-
-        private Deployment.Domain _Deployment = null;
-        private LanguagesHolder _LanguagesHolder = null;
+        private Renderer _Renderer;
+        private Deployment.Domain _Deployment;
+        private LanguagesHolder _LanguagesHolder;
 
         public Domain(string[] domainIDAccessTree) :
             this(domainIDAccessTree, null)
@@ -402,8 +401,7 @@ namespace Xeora.Web.Site
 
                 do
                 {
-                    ControlSettings localSettings;
-                    Basics.Domain.Info.DeploymentTypes deploymentType = 
+                    Basics.Domain.Info.DeploymentTypes deploymentType =
                         ((Domain)workingInstance)._Deployment.DeploymentType;
 
                     string currentDomainIDAccessTreeString =
@@ -412,7 +410,7 @@ namespace Xeora.Web.Site
                         string.Format("{0}_{1}", currentDomainIDAccessTreeString, controlID);
 
                     if (deploymentType == Basics.Domain.Info.DeploymentTypes.Release && 
-                        Renderer._ControlsCache.TryGetValue(cacheSearchKey, out localSettings))
+                        Renderer._ControlsCache.TryGetValue(cacheSearchKey, out ControlSettings localSettings))
                     {
                         settings = localSettings.Clone();
 

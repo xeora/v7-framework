@@ -8,7 +8,7 @@ namespace Xeora.Web.Handler
 {
     public class HandlerManager
     {
-        private ConcurrentDictionary<string, HandlerContainer> _Handlers;
+        private readonly ConcurrentDictionary<string, HandlerContainer> _Handlers;
 
         private HandlerManager()
         {

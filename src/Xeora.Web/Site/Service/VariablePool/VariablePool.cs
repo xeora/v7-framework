@@ -5,7 +5,7 @@ namespace Xeora.Web.Site.Service
     [Serializable]
     public class VariablePool : Basics.Service.IVariablePool
     {
-        private Basics.DSS.IDSS _Reservation;
+        private readonly Basics.DSS.IDSS _Reservation;
 
         public VariablePool(string sessionID, string keyID, ref Basics.DSS.IDSS reservation)
         {

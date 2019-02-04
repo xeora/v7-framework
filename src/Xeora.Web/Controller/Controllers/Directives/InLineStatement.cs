@@ -36,8 +36,7 @@ namespace Xeora.Web.Controller.Directive
             if (string.IsNullOrEmpty(requesterUniqueID))
                 return;
 
-            IController controller = null;
-            this.Mother.Pool.GetInto(requesterUniqueID, out controller);
+            this.Mother.Pool.GetInto(requesterUniqueID, out IController controller);
 
             if (controller != null &&
                 controller is INamable &&
@@ -104,9 +103,9 @@ namespace Xeora.Web.Controller.Directive
 
                     blockContent = sR.ReadToEnd();
                 }
-                catch (Exception.GrammerException ex)
+                catch (Exception.GrammerException)
                 {
-                    throw ex;
+                    throw;
                 }
                 catch (System.Exception)
                 {
@@ -164,9 +163,11 @@ namespace Xeora.Web.Controller.Directive
             foreach (string paramDef in paramDefs)
             {
                 Property property =
-                    new Property(0, paramDef, this.Parent.ContentArguments);
-                property.Mother = this.Mother;
-                property.Parent = this.Parent;
+                    new Property(0, paramDef, this.Parent.ContentArguments)
+                    {
+                        Mother = this.Mother,
+                        Parent = this.Parent
+                    };
                 property.InstanceRequested += (ref Basics.Domain.IDomain instance) => InstanceRequested?.Invoke(ref instance);
                 property.Setup();
 

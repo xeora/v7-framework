@@ -11,7 +11,7 @@ namespace Xeora.Web.Basics.Service
     public sealed class VariablePoolOperation
     {
         private static object _Lock = new object();
-        private static IVariablePool _Cache = null;
+        private static IVariablePool _Cache;
 
         private readonly string _SessionID;
         private readonly string _KeyID;
@@ -264,8 +264,7 @@ namespace Xeora.Web.Basics.Service
             {
                 if (VariablePoolPreCache.VariablePreCache.TryGetValue(sessionKeyID, out ConcurrentDictionary<string, object> nameValuePairs))
                 {
-                    object value = null;
-                    if (nameValuePairs.TryGetValue(name, out value) && value != null)
+                    if (nameValuePairs.TryGetValue(name, out object value) && value != null)
                         return value;
                 }
 
@@ -295,10 +294,7 @@ namespace Xeora.Web.Basics.Service
             public static void CleanCachedVariables(string sessionKeyID, string name)
             {
                 if (VariablePoolPreCache.VariablePreCache.TryGetValue(sessionKeyID, out ConcurrentDictionary<string, object> nameValuePairs))
-                {
-                    object dummy;
-                    nameValuePairs.TryRemove(name, out dummy);
-                }
+                    nameValuePairs.TryRemove(name, out object dummy);
             }
         }
 

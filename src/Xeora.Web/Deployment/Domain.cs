@@ -6,11 +6,7 @@ namespace Xeora.Web.Deployment
 {
     public class Domain : IDisposable
     {
-        private Basics.Domain.ISettings _Settings = null;
-        private Basics.Domain.ILanguages _Languages = null;
-        private Basics.Domain.IControls _Controls = null;
-        private Basics.Domain.IxService _xService = null;
-        private Basics.Domain.Info.DomainCollection _Children = null;
+        private Basics.Domain.Info.DomainCollection _Children;
 
         public Domain(string[] domainIDAccessTree)
         {
@@ -69,7 +65,7 @@ namespace Xeora.Web.Deployment
 
         private void LoadDomain()
         {
-            this._Settings =
+            this.Settings =
                 new Site.Setting.Settings(this.Deployment.ProvideConfigurationContent());
 
             // Setup Languages
@@ -77,22 +73,22 @@ namespace Xeora.Web.Deployment
             if (languageIDs.Length == 0)
                 throw new Exception.LanguageFileException();
 
-            this._Languages = new Site.Setting.Languages();
+            this.Languages = new Site.Setting.Languages();
 
             foreach (string languageID in languageIDs)
             {
-                ((Site.Setting.Languages)this._Languages).Add(
+                ((Site.Setting.Languages)this.Languages).Add(
                     new Site.Setting.Language(
                         this.Deployment.ProvideLanguageContent(languageID),
-                        string.Compare(languageID, this._Settings.Configurations.DefaultLanguage) == 0
+                        string.Compare(languageID, this.Settings.Configurations.DefaultLanguage) == 0
                     )
                 );
             }
             // !---
 
-            this._Controls =
+            this.Controls =
                 new Site.Setting.Controls(this.Deployment.ProvideControlsContent());
-            this._xService = new Site.Setting.xService();
+            this.xService = new Site.Setting.xService();
 
             // Compile Children Domains
             this._Children =
@@ -138,10 +134,10 @@ namespace Xeora.Web.Deployment
             }
         }
 
-        public Basics.Domain.ISettings Settings => this._Settings;
-        public Basics.Domain.ILanguages Languages => this._Languages;
-        public Basics.Domain.IControls Controls => this._Controls;
-        public Basics.Domain.IxService xService => this._xService;
+        public Basics.Domain.ISettings Settings { get; private set; }
+        public Basics.Domain.ILanguages Languages { get; private set; }
+        public Basics.Domain.IControls Controls { get; private set; }
+        public Basics.Domain.IxService xService { get; private set; }
         public Basics.Domain.Info.DomainCollection Children => this._Children;
 
         public void ProvideContentFileStream(string languageID, string requestedFilePath, out Stream outputStream) =>
@@ -186,12 +182,12 @@ namespace Xeora.Web.Deployment
 
         public void Dispose()
         {
-            if (this._Settings != null)
-                this._Settings.Dispose();
-            if (this._Languages != null)
-                this._Languages.Dispose();
-            if (this._Controls != null)
-                this._Controls.Dispose();
+            if (this.Settings != null)
+                this.Settings.Dispose();
+            if (this.Languages != null)
+                this.Languages.Dispose();
+            if (this.Controls != null)
+                this.Controls.Dispose();
             GC.SuppressFinalize(this);
         }
     }

@@ -6,7 +6,7 @@ namespace Xeora.Web.Site.Setting
 {
     public class Services : Basics.Domain.IServices
     {
-        private XPathNavigator _XPathNavigator;
+        private readonly XPathNavigator _XPathNavigator;
 
         public Services(ref XPathNavigator configurationNavigator) =>
             this._XPathNavigator = configurationNavigator.Clone();

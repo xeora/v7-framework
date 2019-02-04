@@ -7,10 +7,8 @@ namespace Xeora.Web.Configuration
 {
     public class DSS : IDSS
     {
-        public DSS()
-        {
+        public DSS() =>
             this.ServiceType = DSSServiceTypes.BuiltIn;
-        }
 
         [DefaultValue(DSSServiceTypes.BuiltIn)]
         [JsonProperty(PropertyName = "serviceType", DefaultValueHandling = DefaultValueHandling.Populate)]

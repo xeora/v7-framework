@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Xeora.Web.Basics.Service
+﻿namespace Xeora.Web.Basics.Service
 {
     public interface IVariablePool
     {

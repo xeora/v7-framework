@@ -7,12 +7,10 @@ namespace Xeora.Web.Controller
 {
     public class ControllerCollection : List<IController>
     {
-        private IController _Parent;
+        private readonly IController _Parent;
 
-        public ControllerCollection(IController parent)
-        {
+        public ControllerCollection(IController parent) =>
             this._Parent = parent;
-        }
 
         public new void Add(IController item)
         {

@@ -54,7 +54,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="_sps_v1.0.017.js" />
+    <EmbeddedResource Include="_sps_v1.0.018.js" />
   </ItemGroup>
 
   <ItemGroup>

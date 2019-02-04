@@ -6,7 +6,7 @@ namespace Xeora.Web.Service.Context
 {
     public class HttpRequestHeader : KeyValueCollection<string, string>, Basics.Context.IHttpRequestHeader
     {
-        private Net.NetworkStream _StreamEnclosure;
+        private readonly Net.NetworkStream _StreamEnclosure;
 
         private Basics.Context.HttpMethod _Method;
         private int _ContentLength = 0;
@@ -43,7 +43,7 @@ namespace Xeora.Web.Service.Context
                     case 1:
                         string[] lineParts = line.Split(' ');
 
-                        if (!System.Enum.TryParse<Basics.Context.HttpMethod>(lineParts[0], out this._Method))
+                        if (!Enum.TryParse<Basics.Context.HttpMethod>(lineParts[0], out this._Method))
                             this._Method = Basics.Context.HttpMethod.GET;
 
                         this.URL = new URL(lineParts[1]);
@@ -104,7 +104,7 @@ namespace Xeora.Web.Service.Context
                                             {
                                                 this.ContentEncoding = Encoding.GetEncoding(charsetValue);
                                             }
-                                            catch (System.Exception)
+                                            catch (Exception)
                                             {
                                                 this.ContentEncoding = null;
                                             }

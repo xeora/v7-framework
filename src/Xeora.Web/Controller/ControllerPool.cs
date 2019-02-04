@@ -4,7 +4,7 @@ namespace Xeora.Web.Controller
 {
     public class ControllerPool
     {
-        private ConcurrentDictionary<string, IController> _Controllers;
+        private readonly ConcurrentDictionary<string, IController> _Controllers;
 
         public ControllerPool() =>
             this._Controllers = new ConcurrentDictionary<string, IController>();
@@ -15,10 +15,7 @@ namespace Xeora.Web.Controller
         public void GetInto(string uniqueID, out IController controller) =>
             this._Controllers.TryGetValue(uniqueID, out controller);
 
-        public void Unregister(string uniqueID)
-        {
-            IController dummy;
-            this._Controllers.TryRemove(uniqueID, out dummy);
-        }
+        public void Unregister(string uniqueID) =>
+            this._Controllers.TryRemove(uniqueID, out IController dummy);
     }
 }

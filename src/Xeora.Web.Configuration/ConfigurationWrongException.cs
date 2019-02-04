@@ -1,13 +1,11 @@
-﻿using System;
-
-namespace Xeora.Web.Configuration
+﻿namespace Xeora.Web.Configuration
 {
-    public class ConfigurationWrongException : Exception
+    public class ConfigurationWrongException : System.Exception
     {
         public ConfigurationWrongException() : base()
         { }
 
-        public ConfigurationWrongException(Exception exception) : base("Configuration Loading Error", exception)
+        public ConfigurationWrongException(System.Exception exception) : base("Configuration Loading Error", exception)
         { }
     }
 }

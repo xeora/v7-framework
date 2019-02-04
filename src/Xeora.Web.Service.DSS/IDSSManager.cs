@@ -1,6 +1,4 @@
-﻿using System.Net;
-
-namespace Xeora.Web.Service.DSS
+﻿namespace Xeora.Web.Service.DSS
 {
     public interface IDSSManager
     {

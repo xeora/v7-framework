@@ -6,7 +6,7 @@ namespace Xeora.Web.Site.Setting
 {
     public class Languages : ILanguages
     {
-        private Dictionary<string, ILanguage> _Languages;
+        private readonly Dictionary<string, ILanguage> _Languages;
         private string _DefaultID;
 
         public Languages()

@@ -13,8 +13,8 @@ namespace Xeora.Web.Helper
         private int _FlushCycle = 5;
         private Timer _FlushTimer = null;
 
-        private object _LogCacheSyncObject;
-        private SortedDictionary<long, LogObject> _LogCache;
+        private readonly object _LogCacheSyncObject;
+        private readonly SortedDictionary<long, LogObject> _LogCache;
 
         public EventLogger()
         {

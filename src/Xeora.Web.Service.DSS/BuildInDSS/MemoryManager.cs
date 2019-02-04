@@ -6,11 +6,11 @@ namespace Xeora.Web.Service.DSS
 {
     public class MemoryManager : IDSSManager
     {
-        private ConcurrentDictionary<string, Basics.DSS.IDSS> _ReservationTable;
+        private readonly ConcurrentDictionary<string, Basics.DSS.IDSS> _ReservationTable;
 
         private const short PRUNE_INTERVAL = 10 * 60; // 10 minutes
-        private System.Timers.Timer _PruneTimer;
-        private object _PruneLock;
+        private readonly System.Timers.Timer _PruneTimer;
+        private readonly object _PruneLock;
 
         public MemoryManager()
         {
@@ -76,9 +76,7 @@ namespace Xeora.Web.Service.DSS
 
                 foreach (string key in keys)
                 {
-                    Basics.DSS.IDSS reservation;
-
-                    this._ReservationTable.TryGetValue(key, out reservation);
+                    this._ReservationTable.TryGetValue(key, out Basics.DSS.IDSS reservation);
 
                     if (((IDSSService)reservation).IsExpired)
                         this._ReservationTable.TryRemove(key, out reservation);

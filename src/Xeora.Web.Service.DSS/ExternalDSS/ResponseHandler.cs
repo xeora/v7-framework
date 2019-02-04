@@ -9,8 +9,8 @@ namespace Xeora.Web.Service.DSS
 {
     public class ResponseHandler
     {
-        private TcpClient _DSSServiceClient;
-        private ConcurrentDictionary<long, byte[]> _ResponseResults;
+        private readonly TcpClient _DSSServiceClient;
+        private readonly ConcurrentDictionary<long, byte[]> _ResponseResults;
 
         public ResponseHandler(ref TcpClient dssServiceClient)
         {
@@ -30,10 +30,9 @@ namespace Xeora.Web.Service.DSS
 
         public byte[] WaitForMessage(long requestID)
         {
-            byte[] message = null;
             do
             {
-                if (this._ResponseResults.TryRemove(requestID, out message))
+                if (this._ResponseResults.TryRemove(requestID, out byte[] message))
                     return message;
 
                 Thread.Sleep(1);

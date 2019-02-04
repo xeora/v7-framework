@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Xeora.Web.Service.DSS
 {
     internal class ExternalDSS : Basics.DSS.IDSS, IDSSService
     {
-        private RequestHandler _RequestHandler;
-        private ResponseHandler _ResponseHandler;
+        private readonly RequestHandler _RequestHandler;
+        private readonly ResponseHandler _ResponseHandler;
 
         public ExternalDSS(ref RequestHandler requestHandler, ref ResponseHandler responseHandler, string uniqueID, DateTime expireDate)
         {
@@ -279,7 +278,7 @@ namespace Xeora.Web.Service.DSS
 
                 return ((MemoryStream)forStream).ToArray();
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 return new byte[] { };
             }
@@ -304,7 +303,7 @@ namespace Xeora.Web.Service.DSS
 
                 return binFormater.Deserialize(forStream);
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 return null;
             }

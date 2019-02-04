@@ -44,9 +44,11 @@ namespace Xeora.Web.Controller
         public static IController CreateSingleController(string rawValue, IController parent, Global.ArgumentInfoCollection contentArguments)
         {
             Single controller =
-                new Single(0, rawValue, contentArguments);
-            controller.Mother = parent.Mother;
-            controller.Parent = parent;
+                new Single(0, rawValue, contentArguments)
+                {
+                    Mother = parent.Mother,
+                    Parent = parent
+                };
             controller.Setup();
 
             return controller;

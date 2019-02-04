@@ -6,10 +6,10 @@ namespace Xeora.Web.Service.Context
 {
     public class HttpRequestBody : Basics.Context.IHttpRequestBody
     {
-        private string _ContextID;
+        private readonly string _ContextID;
 
-        private Basics.Context.IHttpRequestHeader _Header;
-        private Net.NetworkStream _StreamEnclosure;
+        private readonly Basics.Context.IHttpRequestHeader _Header;
+        private readonly Net.NetworkStream _StreamEnclosure;
 
         private Stream _ContentStream;
 

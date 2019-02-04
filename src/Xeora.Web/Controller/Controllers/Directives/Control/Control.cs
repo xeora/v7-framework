@@ -5,7 +5,7 @@ namespace Xeora.Web.Controller.Directive.Control
 {
     public abstract class Control : Directive, IControl
     {
-        public Control(int rawStartIndex, string rawValue, ArgumentInfoCollection contentArguments, ControlSettings settings) : 
+        protected Control(int rawStartIndex, string rawValue, ArgumentInfoCollection contentArguments, ControlSettings settings) : 
             base(rawStartIndex, rawValue, DirectiveTypes.Control, contentArguments)
         {
             this.Settings = settings;
@@ -50,9 +50,8 @@ namespace Xeora.Web.Controller.Directive.Control
 
             if (string.IsNullOrEmpty(requesterUniqueID))
                 return;
-            
-            IController controller = null;
-            this.Mother.Pool.GetInto(requesterUniqueID, out controller);
+
+            this.Mother.Pool.GetInto(requesterUniqueID, out IController controller);
 
             if (controller != null &&
                 controller is INamable &&

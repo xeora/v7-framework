@@ -6,15 +6,14 @@ namespace Xeora.Web.Site.Service
 {
     public class ScheduledTasksEngine : Basics.Service.IScheduledTaskEngine
     {
-        System.Timers.Timer _ExecutionTimer;
-
-        ConcurrentDictionary<long, ConcurrentQueue<TaskInfo>> _ExecutionList;
-        ConcurrentDictionary<string, bool> _ListOfCanceled;
+        private readonly System.Timers.Timer _ExecutionTimer;
+        private readonly ConcurrentDictionary<long, ConcurrentQueue<TaskInfo>> _ExecutionList;
+        private readonly ConcurrentDictionary<string, bool> _ListOfCanceled;
 
         public ScheduledTasksEngine()
         {
             this._ExecutionTimer = new System.Timers.Timer(1000);
-            this._ExecutionTimer.Elapsed += new System.Timers.ElapsedEventHandler(this.Execute);
+            this._ExecutionTimer.Elapsed += this.Execute;
             this._ExecutionTimer.Start();
 
             this._ExecutionList = new ConcurrentDictionary<long, ConcurrentQueue<TaskInfo>>();
@@ -25,8 +24,7 @@ namespace Xeora.Web.Site.Service
         {
             long executionID = Helper.DateTime.Format(executionTime);
 
-            ConcurrentQueue<TaskInfo> queue;
-            if (!this._ExecutionList.TryGetValue(executionID, out queue))
+            if (!this._ExecutionList.TryGetValue(executionID, out ConcurrentQueue<TaskInfo> queue))
             {
                 queue = new ConcurrentQueue<TaskInfo>();
 
@@ -55,8 +53,7 @@ namespace Xeora.Web.Site.Service
         {
             long executionID = Helper.DateTime.Format();
 
-            ConcurrentQueue<TaskInfo> queue;
-            if (this._ExecutionList.TryRemove(executionID, out queue))
+            if (this._ExecutionList.TryRemove(executionID, out ConcurrentQueue<TaskInfo> queue))
                 ThreadPool.QueueUserWorkItem(new WaitCallback(this.ExecutionThread), queue);
         }
 
@@ -66,13 +63,12 @@ namespace Xeora.Web.Site.Service
 
             while (!queue.IsEmpty)
             {
-                TaskInfo taskInfo;
-                if (queue.TryDequeue(out taskInfo))
+                if (queue.TryDequeue(out TaskInfo taskInfo))
                 {
-                    bool dummy;
-                    if (!this._ListOfCanceled.TryRemove(taskInfo.ID, out dummy))
+                    if (!this._ListOfCanceled.TryRemove(taskInfo.ID, out bool dummy))
                         ThreadPool.QueueUserWorkItem(
-                            (object taskState) => {
+                            (object taskState) =>
+                            {
                                 try
                                 {
                                     ((TaskInfo)taskState).Execute();
@@ -81,7 +77,7 @@ namespace Xeora.Web.Site.Service
                                 {
                                     Helper.EventLogger.Log(ex);
                                 }
-                            }, 
+                            },
                             taskInfo
                         );
                 }

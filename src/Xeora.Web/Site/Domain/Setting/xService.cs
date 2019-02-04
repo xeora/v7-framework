@@ -131,11 +131,8 @@ namespace Xeora.Web.Site.Setting
                     xmlWriter.WriteCData(
                         ((Basics.ControlResult.Conditional)result).Result.ToString());
                 }
-                else if (result is Basics.ControlResult.VariableBlock)
+                else if (result is Basics.ControlResult.VariableBlock variableBlockResult)
                 {
-                    Basics.ControlResult.VariableBlock variableBlockResult =
-                        (Basics.ControlResult.VariableBlock)result;
-
                     xmlWriter.WriteAttributeString("type", result.GetType().Name);
                     xmlWriter.WriteAttributeString("cultureinfo", CultureInfo.CurrentCulture.ToString());
 

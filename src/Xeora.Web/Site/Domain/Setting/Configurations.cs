@@ -5,7 +5,7 @@ namespace Xeora.Web.Site.Setting
 {
     public class Configurations : Basics.Domain.IConfigurations
     {
-        private XPathNavigator _XPathNavigator;
+        private readonly XPathNavigator _XPathNavigator;
 
         public Configurations(ref XPathNavigator configurationNavigator) =>
             this._XPathNavigator = configurationNavigator.Clone();
@@ -31,10 +31,9 @@ namespace Xeora.Web.Site.Setting
         {
             get
             {
-                Basics.Enum.PageCachingTypes rPageCaching;
                 string configString = this.ReadConfiguration("defaultcaching");
 
-                if (!Enum.TryParse<Basics.Enum.PageCachingTypes>(configString, out rPageCaching))
+                if (!Enum.TryParse<Basics.Enum.PageCachingTypes>(configString, out Basics.Enum.PageCachingTypes rPageCaching))
                     rPageCaching = Basics.Enum.PageCachingTypes.AllContent;
 
                 return rPageCaching;
