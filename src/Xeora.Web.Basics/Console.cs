@@ -50,8 +50,17 @@ namespace Xeora.Web.Basics
         {
             do
             {
-                ConsoleKeyInfo keyInfo = 
-                    System.Console.ReadKey(true);
+                ConsoleKeyInfo keyInfo;
+                try
+                {
+                    keyInfo = System.Console.ReadKey(true);
+                }
+                catch (InvalidOperationException)
+                {
+                    Console.Push(string.Empty, "Console inputs are not supported!", string.Empty, false);
+
+                    return;
+                }
 
                 IEnumerator<KeyValuePair<string, Action<ConsoleKeyInfo>>> enumerator =
                     this._KeyListeners.GetEnumerator();
