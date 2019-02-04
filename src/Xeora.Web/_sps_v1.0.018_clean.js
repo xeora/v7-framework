@@ -4,6 +4,7 @@
 };
 
 XeoraJS.prototype.pushCode = function (callCode) {
+    this.bindId = this.bindId.substring(0, 10);
     this.bindId += new String(callCode);
 };
 
