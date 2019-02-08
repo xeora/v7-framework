@@ -56,7 +56,6 @@ namespace Xeora.Web.Controller
                     // ConditionalStatement should be rendered, however it would be bound or
                     // depending on some other control value. That's why, its parent should be rendered
                     child.Parent.Render(this.UniqueID);
-                    
                 }
             }
 

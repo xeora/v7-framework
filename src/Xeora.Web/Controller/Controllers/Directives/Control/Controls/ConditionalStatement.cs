@@ -49,9 +49,11 @@ namespace Xeora.Web.Controller.Directive.Control
             this.Bind.Parameters.Prepare(
                 (parameter) =>
                 {
-                    Property property = new Property(0, parameter.Query, (leveledController.Parent == null ? null : leveledController.Parent.ContentArguments));
-                    property.Mother = leveledController.Mother;
-                    property.Parent = leveledController.Parent;
+                    Property property = new Property(0, parameter.Query, (leveledController.Parent?.ContentArguments))
+                    {
+                        Mother = leveledController.Mother,
+                        Parent = leveledController.Parent
+                    };
                     property.InstanceRequested += (ref IDomain instance) => InstanceRequested?.Invoke(ref instance);
                     property.Setup();
 

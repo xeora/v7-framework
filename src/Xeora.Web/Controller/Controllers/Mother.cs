@@ -5,7 +5,7 @@ namespace Xeora.Web.Controller.Directive
     public class Mother : ControllerWithChildren, IMother
     {
         public event ParsingHandler ParseRequested;
-        private ControllerPool _Pool;
+        private readonly ControllerPool _Pool;
 
         public Mother(int rawStartIndex, string rawValue, Basics.ControlResult.Message messageResult, string updateBlockControlID) :
             base(rawStartIndex, rawValue, ControllerTypes.Mother, null)
