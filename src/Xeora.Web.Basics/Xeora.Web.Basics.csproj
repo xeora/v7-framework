@@ -4,16 +4,16 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Platforms>AnyCPU;x64;x86</Platforms>
     <PackageId>Xeora.Web.Basics</PackageId>
-    <Version>7.1.6974-hotfix</Version>
+    <Version>7.2.6974</Version>
     <Description>XeoraCube - Web Development Framework Basics</Description>
     <Product>XeoraCube - Web Development Framework Basics</Product>
-    <Copyright>Copyright © Tuna Celik 2003 - 2018</Copyright>
+    <Copyright>Copyright © Tuna Celik 2003 - 2019</Copyright>
     <Authors>Tuna Celik</Authors>
     <Company>JakPark Solutions</Company>
     <RepositoryUrl>https://github.com/xeora/v7</RepositoryUrl>
     <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
-    <AssemblyVersion>7.1.*</AssemblyVersion>
-    <FileVersion>7.1</FileVersion>
+    <AssemblyVersion>7.2.*</AssemblyVersion>
+    <FileVersion>7.2</FileVersion>
     <Deterministic>False</Deterministic>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
