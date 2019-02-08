@@ -59,6 +59,8 @@ namespace Xeora.Web.Controller.Directive
                         return DirectiveTypes.Template;
                     case "L":
                         return DirectiveTypes.Translation;
+                    case "O":
+                        return DirectiveTypes.FormattableTranslation;
                     case "P":
                         return DirectiveTypes.HashCodePointedTemplate;
                     case "F":

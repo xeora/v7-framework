@@ -11,6 +11,7 @@
         PartialCache,
         Template,
         Translation,
+        FormattableTranslation,
         UpdateBlock,
         Undefined
     }

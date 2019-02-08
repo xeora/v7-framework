@@ -285,6 +285,10 @@ namespace Xeora.Web.Site
                                                 workingDirective = new PartialCache(mainSearchMatch.Index, pointedOriginalValue, null);
 
                                                 break;
+                                            case DirectiveTypes.FormattableTranslation:
+                                                workingDirective = new FormattableTranslation(mainSearchMatch.Index, pointedOriginalValue, null);
+
+                                                break;
                                         }
 
                                         if (workingDirective != null)
@@ -356,6 +360,10 @@ namespace Xeora.Web.Site
                                             break;
                                         case DirectiveTypes.PartialCache:
                                             workingDirective = new PartialCache(mainSearchMatch.Index, mainSearchMatch.Value, null);
+
+                                            break;
+                                        case DirectiveTypes.FormattableTranslation:
+                                            workingDirective = new FormattableTranslation(mainSearchMatch.Index, mainSearchMatch.Value, null);
 
                                             break;
                                     }
