@@ -50,31 +50,32 @@ XeoraJS.prototype.update = function (updateLocation, assemblyInfo, indicatorCall
     updateLocation = new String(updateLocation);
 
     var allUpdateLocations = updateLocation.split(",");
-    var currentUpdateLocation = new String(allUpdateLocations[0]);
-    var nextUpdateLocations = updateLocation.slice(currentUpdateLocation.length + 1, updateLocation.length);
+    var updateLocationPath = new String(allUpdateLocations[0]);
+    var nextUpdateLocations = updateLocation.slice(updateLocationPath.length + 1, updateLocation.length);
 
-    var mostAvailableObject = null;
-    var pathOfUpdateLocation = currentUpdateLocation.split(">");
-    if (pathOfUpdateLocation.length > 0) {
-        mostAvailableObject = document.getElementById(pathOfUpdateLocation[0]);
-    }
-
-    if (mostAvailableObject == null) {
+    var updateLocationPathParts = updateLocationPath.split(">");
+    if (updateLocationPathParts.length == 0) {
         this.update(nextUpdateLocations, assemblyInfo);
         return;
     }
 
-    for (var i = 1; i < pathOfUpdateLocation.length; i++) {
-        var innerObject = this.findObjectById(mostAvailableObject, pathOfUpdateLocation[i], 1);
+    var mostAvailableObject = document.getElementById(updateLocationPathParts[0]);
+    if (mostAvailableObject == undefined) {
+        this.update(nextUpdateLocations, assemblyInfo);
+        return;
+    }
+
+    for (var i = 1; i < updateLocationPathParts.length; i++) {
+        var innerObject = this.findObjectById(mostAvailableObject, updateLocationPathParts[i]);
         if (innerObject != null) {
             mostAvailableObject = innerObject;
         }
     }
 
-    this.httprequests[httprequestIndex].onreadystatechange = function () { __XeoraJS.processstate(mostAvailableObject.id, nextUpdateLocations, assemblyInfo, indicatorCallback, httprequestIndex); };
+    this.httprequests[httprequestIndex].onreadystatechange = function () { __XeoraJS.processstate(updateLocationPathParts, nextUpdateLocations, assemblyInfo, indicatorCallback, httprequestIndex); };
     this.httprequests[httprequestIndex].open("POST", document.forms[0].action, true);
     this.httprequests[httprequestIndex].setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-    this.httprequests[httprequestIndex].setRequestHeader('X-BlockRenderingID', currentUpdateLocation);
+    this.httprequests[httprequestIndex].setRequestHeader('X-BlockRenderingID', updateLocationPath);
 
     var postContent = "";
     if (assemblyInfo != null && assemblyInfo != "")
@@ -92,7 +93,7 @@ XeoraJS.prototype.update = function (updateLocation, assemblyInfo, indicatorCall
     }
 
     if (indicatorCallback == null) {
-        var indicatorObject = this.findObjectById(mostAvailableObject, "indicator", null);
+        var indicatorObject = this.findObjectById(mostAvailableObject, "indicator");
         if (indicatorObject != null) {
             indicatorObject.style.display = "";
         }
@@ -103,7 +104,7 @@ XeoraJS.prototype.update = function (updateLocation, assemblyInfo, indicatorCall
     this.httprequests[httprequestIndex].send(postContent);
 };
 
-XeoraJS.prototype.processstate = function (divID, nextDivIDs, assemblyInfo, indicatorCallback, httprequestindex) {
+XeoraJS.prototype.processstate = function (updateLocationPathParts, nextDivIDs, assemblyInfo, indicatorCallback, httprequestindex) {
     if (this.httprequests[httprequestindex].readyState != 4) {
         return;
     }
@@ -124,7 +125,7 @@ XeoraJS.prototype.processstate = function (divID, nextDivIDs, assemblyInfo, indi
 
         var evalScript = this.compileScriptTags(resultSource);
 
-        document.getElementById(divID).replaceWith(resultSource.firstChild);
+        this.prepareTargetObject(updateLocationPathParts).replaceWith(resultSource.firstChild);
         eval(evalScript);
 
         if (indicatorCallback != null) {
@@ -142,11 +143,30 @@ XeoraJS.prototype.processstate = function (divID, nextDivIDs, assemblyInfo, indi
     { this.update(nextDivIDs, assemblyInfo); }
 };
 
-XeoraJS.prototype.findObjectById = function (searchObject, searchID, depth) {
-    if (depth < 0) {
-        return null;
+XeoraJS.prototype.prepareTargetObject = function (updateLocationPathParts) {
+    var targetObject = document.getElementById(updateLocationPathParts[0]);
+    if (targetObject == undefined) {
+        targetObject = document.createElement("DIV");
+        targetObject.id = updateLocationPathParts[0];
+
+        document.firstChild.appendChild(targetObject);
+    }
+    
+    for (var i = 1; i < updateLocationPathParts.length; i++) {
+        var innerObject = this.findObjectById(targetObject, updateLocationPathParts[i]);
+        if (innerObject == null) {
+            innerObject = document.createElement("DIV");
+            innerObject.id = updateLocationPathParts[i];
+
+            targetObject.appendChild(innerObject);
+        }
+        targetObject = innerObject;
     }
 
+    return targetObject;
+};
+
+XeoraJS.prototype.findObjectById = function (searchObject, searchID) {
     if (searchObject.id == searchID) {
         return searchObject;
     }
@@ -156,7 +176,7 @@ XeoraJS.prototype.findObjectById = function (searchObject, searchID, depth) {
     }
 
     for (var cC = 0; cC < searchObject.childNodes.length; cC++) {
-        returnObject = this.findObjectById(searchObject.childNodes[cC], searchID, depth == null ? null : depth - 1);
+        returnObject = this.findObjectById(searchObject.childNodes[cC], searchID);
         if (returnObject != null) { return returnObject }
     }
 
