@@ -1,4 +1,5 @@
-﻿using Xeora.Web.Global;
+﻿using System.Collections.Generic;
+using Xeora.Web.Global;
 
 namespace Xeora.Web.Controller.Directive
 {
@@ -7,13 +8,17 @@ namespace Xeora.Web.Controller.Directive
         public event ParsingHandler ParseRequested;
         private readonly ControllerPool _Pool;
 
-        public Mother(int rawStartIndex, string rawValue, Basics.ControlResult.Message messageResult, string updateBlockControlID) :
+        public Mother(int rawStartIndex, string rawValue, Basics.ControlResult.Message messageResult, string[] updateBlockControlIDStack) :
             base(rawStartIndex, rawValue, ControllerTypes.Mother, null)
         {
             this._Pool = new ControllerPool();
             this.Scheduler = new ControllerSchedule(ref this._Pool);
+            this.UpdateBlockControlIDStack = new Stack<string>();
+
             this.MessageResult = messageResult;
-            this.ProcessingUpdateBlockControlID = updateBlockControlID;
+            if (updateBlockControlIDStack != null && updateBlockControlIDStack.Length > 0)
+                foreach(string updateBlockControlID in updateBlockControlIDStack)
+                    this.UpdateBlockControlIDStack.Push(updateBlockControlID);
 
             base.Mother = this;
         }
@@ -21,17 +26,17 @@ namespace Xeora.Web.Controller.Directive
         public ControllerPool Pool => this._Pool;
         public ControllerSchedule Scheduler { get; private set; }
         public Basics.ControlResult.Message MessageResult { get; private set; }
-        public string ProcessingUpdateBlockControlID { get; private set; }
+        public Stack<string> UpdateBlockControlIDStack { get; private set; }
 
         public override void Render(string requesterUniqueID)
         {
             if (this.Parent != null)
                 throw new Exception.HasParentException();
 
-            if (!string.IsNullOrEmpty(this.ProcessingUpdateBlockControlID))
+            if (this.UpdateBlockControlIDStack.Count > 0)
             {
                 IController updateBlockController =
-                    base.Find(this.ProcessingUpdateBlockControlID);
+                    base.Find(this.UpdateBlockControlIDStack.Peek());
 
                 if (updateBlockController != null)
                 {

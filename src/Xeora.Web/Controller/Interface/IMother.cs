@@ -1,4 +1,6 @@
-﻿namespace Xeora.Web.Controller
+﻿using System.Collections.Generic;
+
+namespace Xeora.Web.Controller
 {
     public delegate void ParsingHandler(string rawValue, ref ControllerCollection childrenContainer, Global.ArgumentInfoCollection contentArguments);
     public interface IMother
@@ -7,7 +9,7 @@
         ControllerSchedule Scheduler { get; }
 
         Basics.ControlResult.Message MessageResult { get; }
-        string ProcessingUpdateBlockControlID { get; }
+        Stack<string> UpdateBlockControlIDStack { get; }
 
         void RequestParsing(string rawValue, ref ControllerCollection childrenContainer, Global.ArgumentInfoCollection contentArguments);
     }

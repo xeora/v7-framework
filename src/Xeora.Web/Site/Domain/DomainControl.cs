@@ -446,7 +446,7 @@ namespace Xeora.Web.Site
             return rBind;
         }
 
-        public void RenderService(Basics.ControlResult.Message messageResult, string updateBlockControlID)
+        public void RenderService(Basics.ControlResult.Message messageResult, string[] updateBlockControlIDStack)
         {
             if (this.ServiceDefinition == null)
                 throw new System.Exception(Global.SystemMessages.TEMPLATE_IDMUSTBESET + "!");
@@ -454,7 +454,7 @@ namespace Xeora.Web.Site
             switch (this.ServiceType)
             {
                 case Basics.Domain.ServiceTypes.Template:
-                    this.ServiceResult = this.Domain.Render(this.ServiceDefinition, messageResult, updateBlockControlID);
+                    this.ServiceResult = this.Domain.Render(this.ServiceDefinition, messageResult, updateBlockControlIDStack);
 
                     break;
                 case Basics.Domain.ServiceTypes.xService:

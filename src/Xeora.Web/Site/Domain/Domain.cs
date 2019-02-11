@@ -121,11 +121,11 @@ namespace Xeora.Web.Site
             Deployment.InstanceFactory.Current.Reset();
         }
 
-        public Basics.Domain.RenderResult Render(Basics.ServiceDefinition serviceDefinition, Basics.ControlResult.Message messageResult, string updateBlockControlID = null) =>
-            this._Renderer.Start(serviceDefinition, messageResult, updateBlockControlID);
+        public Basics.Domain.RenderResult Render(Basics.ServiceDefinition serviceDefinition, Basics.ControlResult.Message messageResult, string[] updateBlockControlIDStack = null) =>
+            this._Renderer.Start(serviceDefinition, messageResult, updateBlockControlIDStack);
 
-        public Basics.Domain.RenderResult Render(string xeoraContent, Basics.ControlResult.Message messageResult, string updateBlockControlID = null) =>
-            this._Renderer.Start(xeoraContent, messageResult, updateBlockControlID);
+        public Basics.Domain.RenderResult Render(string xeoraContent, Basics.ControlResult.Message messageResult, string[] updateBlockControlIDStack = null) =>
+            this._Renderer.Start(xeoraContent, messageResult, updateBlockControlIDStack);
 
         private class Renderer
         {
@@ -134,16 +134,16 @@ namespace Xeora.Web.Site
             public void Inject(Basics.Domain.IDomain instance) =>
                 this._Instance = instance;
 
-            public Basics.Domain.RenderResult Start(Basics.ServiceDefinition serviceDefinition, Basics.ControlResult.Message messageResult, string updateBlockControlID = null) =>
-                this.Start(string.Format("$T:{0}$", serviceDefinition.FullPath), messageResult, updateBlockControlID);
+            public Basics.Domain.RenderResult Start(Basics.ServiceDefinition serviceDefinition, Basics.ControlResult.Message messageResult, string[] updateBlockControlIDStack = null) =>
+                this.Start(string.Format("$T:{0}$", serviceDefinition.FullPath), messageResult, updateBlockControlIDStack);
 
-            public Basics.Domain.RenderResult Start(string xeoraContent, Basics.ControlResult.Message messageResult, string updateBlockControlID = null)
+            public Basics.Domain.RenderResult Start(string xeoraContent, Basics.ControlResult.Message messageResult, string[] updateBlockControlIDStack = null)
             {
                 if (this._Instance == null)
                     throw new System.Exception("Injection required!");
 
                 Mother ExternalController =
-                    new Mother(0, xeoraContent, messageResult, updateBlockControlID);
+                    new Mother(0, xeoraContent, messageResult, updateBlockControlIDStack);
                 ExternalController.ParseRequested += this.OnParseRequest;
                 ExternalController.Setup();
 

@@ -12,9 +12,6 @@
 
         public override void Render(string requesterUniqueID)
         {
-            if (this.IsUpdateBlockController)
-                throw new Exception.RequestBlockException();
-
             Global.ContentDescription contentDescription = 
                 new Global.ContentDescription(this.Value);
 
@@ -23,18 +20,25 @@
 
             if (blockContent.IndexOf(renderOnRequestMarker) == 0)
             {
-                if (string.Compare(this.ControlID, this.Mother.ProcessingUpdateBlockControlID) != 0)
-                {
-                    this.RenderedValue = string.Format("<div id=\"{0}\"></div>", this.ControlID);
-
+                if (!this.Mother.UpdateBlockControlIDStack.Contains(this.ControlID))
                     return;
-                }
 
-                blockContent = blockContent.Replace(renderOnRequestMarker, string.Empty);
+                blockContent = blockContent.Remove(0, renderOnRequestMarker.Length);
             }
 
             this.Parse(blockContent);
-            base.Render(requesterUniqueID);
+
+            if (this.Mother.UpdateBlockControlIDStack.Count > 0)
+                this.Mother.UpdateBlockControlIDStack.Push(this.ControlID);
+            try
+            {
+                base.Render(requesterUniqueID);
+            }
+            finally
+            {
+                if (this.Mother.UpdateBlockControlIDStack.Count > 0)
+                    this.Mother.UpdateBlockControlIDStack.Pop();
+            }
         }
 
         public override void Build()

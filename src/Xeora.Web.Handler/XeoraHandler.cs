@@ -708,7 +708,7 @@ namespace Xeora.Web.Handler
 
         private void CreateServiceResult(Message messageResult)
         {
-            this._DomainControl.RenderService(messageResult, string.Empty);
+            this._DomainControl.RenderService(messageResult, null);
 
             StringWriter writer = null;
             try
@@ -736,7 +736,10 @@ namespace Xeora.Web.Handler
             string updateBlockControlID =
                 this.Context.Request.Header["X-BlockRenderingID"];
 
-            this._DomainControl.RenderService(messageResult, updateBlockControlID);
+            if (!string.IsNullOrEmpty(updateBlockControlID))
+                this._DomainControl.RenderService(messageResult, updateBlockControlID.Split('>'));
+            else
+                this._DomainControl.RenderService(messageResult, null);
 
             if (this.Context.Response.Header.Status.Code == 200 && this._DomainControl.ServiceResult.HasErrors)
                 this.Context.Response.Header.Status.Code = 218;

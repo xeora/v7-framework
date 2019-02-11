@@ -50,10 +50,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="_sps_v1.0.017.js" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="_sps_v1.0.018.js" />
   </ItemGroup>
 

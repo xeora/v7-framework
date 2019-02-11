@@ -22,8 +22,8 @@ namespace Xeora.Web.Basics.Domain
         /// <param name="outputStream">Output stream</param>
         void ProvideFileStream(string requestedFilePath, out Stream outputStream);
 
-        RenderResult Render(ServiceDefinition serviceDefinition, ControlResult.Message messageResult, string updateBlockControlID = null);
-        RenderResult Render(string xeoraContent, ControlResult.Message messageResult, string updateBlockControlID = null);
+        RenderResult Render(ServiceDefinition serviceDefinition, ControlResult.Message messageResult, string[] updateBlockControlIDStack = null);
+        RenderResult Render(string xeoraContent, ControlResult.Message messageResult, string[] updateBlockControlIDStack = null);
         void ClearCache();
     }
 }
