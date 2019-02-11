@@ -18,8 +18,6 @@ namespace Xeora.Web.Controller.Directive.Control
             Global.ContentDescription contentDescription = 
                 new Global.ContentDescription(this.Value);
 
-            string blockContent = contentDescription.Parts[0];
-
             // Call Related Function and Exam It
             IController leveledController = this;
             int level = this.Leveling.Level;
@@ -41,9 +39,11 @@ namespace Xeora.Web.Controller.Directive.Control
             this.Bind.Parameters.Prepare(
                 (parameter) =>
                 {
-                    Property property = new Property(0, parameter.Query, (leveledController.Parent == null ? null : leveledController.Parent.ContentArguments));
-                    property.Mother = leveledController.Mother;
-                    property.Parent = leveledController.Parent;
+                    Property property = new Property(0, parameter.Query, (leveledController.Parent?.ContentArguments))
+                    {
+                        Mother = leveledController.Mother,
+                        Parent = leveledController.Parent
+                    };
                     property.InstanceRequested += (ref IDomain instance) => InstanceRequested?.Invoke(ref instance);
                     property.Setup();
 
@@ -58,7 +58,29 @@ namespace Xeora.Web.Controller.Directive.Control
 
             if (invokeResult.Exception != null)
                 throw new Exception.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);
+
+            if (invokeResult.Result == null)
+                return;
             // ----
+
+            if (invokeResult.Result.Message != null)
+            {
+                if (!contentDescription.HasMessageTemplate)
+                    this.RenderedValue = invokeResult.Result.Message.Content;
+                else
+                {
+                    this.ContentArguments.AppendKeyWithValue("MessageType", invokeResult.Result.Message.Type);
+                    this.ContentArguments.AppendKeyWithValue("Message", invokeResult.Result.Message.Content);
+
+                    this.RenderedValue =
+                        ControllerHelper.RenderSingleContent(
+                            contentDescription.MessageTemplate, this, this.ContentArguments, requesterUniqueID);
+                }
+
+                this.Mother.Scheduler.Fire(this.ControlID);
+
+                return;
+            }
 
             if (!this.Leveling.ExecutionOnly)
                 this.ContentArguments.Replace(leveledController.ContentArguments);
@@ -70,6 +92,8 @@ namespace Xeora.Web.Controller.Directive.Control
             }
 
             // Just parse the children to be accessable in search
+            string blockContent = contentDescription.Parts[0];
+
             this.Parse(blockContent);
 
             if (!this.Leveling.ExecutionOnly)

@@ -9,6 +9,8 @@ namespace Xeora.Web.Basics.ControlResult
         public VariableBlock() : base(StringComparer.InvariantCultureIgnoreCase)
         { }
 
+        public Message Message { get; set; }
+
         public new void Add(string key, object value)
         {
             if (base.ContainsKey(key))
