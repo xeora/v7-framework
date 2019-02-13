@@ -8,6 +8,9 @@ namespace Xeora.Web.Basics.ControlResult
         private readonly object[] _Objects;
         private long _Total;
 
+        public ObjectFeed() : this(null)
+        { }
+
         public ObjectFeed(object[] objects)
         {
             this.Type = DataSourceTypes.ObjectFeed;
