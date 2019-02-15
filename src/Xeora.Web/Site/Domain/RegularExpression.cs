@@ -9,7 +9,10 @@ namespace Xeora.Web.Site
         {
             // CAPTURE REGULAR EXPRESSIONS
             string characterGroup = "0-9_a-zA-Z";
-            string variableRegEx = "([#]+|[\\^\\-\\+\\*\\~])?([" + characterGroup + "]+)|\\=([\\S+][^\\$\\|]*)|@([#]+|[\\-])?([" + characterGroup + "]+\\.)[\\." + characterGroup + "]+";
+            string simpleVariableRegEx = "([#]+|[\\^\\-\\+\\*\\~])?([" + characterGroup + "]+)";
+            string staticVariableRegEx = "\\=[\\S]*";
+            string objectVariableRegEx = "@([#]+|[\\-])?([" + characterGroup + "]+\\.)[\\." + characterGroup + "]+";
+            string variableRegEx = simpleVariableRegEx + "|" + staticVariableRegEx + "|" + objectVariableRegEx;
             string tagIDRegEx = "[\\.\\-" + characterGroup + "]+";
             string tagIDWithSlashRegEx = "[\\/\\.\\-" + characterGroup + "]+"; // for template capturing
             string directivePointerRegEx = "[A-Z]";
@@ -17,6 +20,15 @@ namespace Xeora.Web.Site
             string parentingRegEx = "\\[" + tagIDRegEx + "\\]";
             string parametersRegEx = "\\(((\\|)?(" + variableRegEx + ")?)+\\)";
             string procedureRegEx = tagIDRegEx + "\\?" + tagIDRegEx + "(\\,((\\|)?(" + variableRegEx + ")?)*)?";
+
+            /*
+             * Directive Index Marker is implemented for the workaround purpose of .net regex insufficiency
+             * When the raw input with marked directive is pushed for parsing to regex, it parses correctly
+             * but inefficiently. It takes around 4 seconds to parse for a simple input. If you track the
+             * index marker on directives, it takes 0 ms. So Track the index marker and skip in the loop
+             * in Domain.cs file line ~183.
+             */
+            string directiveIndexMarkerRegEx = "\\~\\d+";
 
             string captureRegEx =
                 "\\$" +
@@ -29,7 +41,7 @@ namespace Xeora.Web.Site
                     "(" +
                         tagIDWithSlashRegEx + "\\$" + // Capture Control without content
                         "|" +
-                        tagIDRegEx + "(" + parametersRegEx + ")?\\:\\{" + // Capture Control with content and Parameters(opening)
+                        tagIDRegEx + "(" + parametersRegEx + ")?(" + directiveIndexMarkerRegEx + ")?\\:\\{" + // Capture Control with content and Parameters(opening)
                         "|" +
                         procedureRegEx + "\\$" + // Capture Procedure
                     ")" + 
@@ -43,7 +55,7 @@ namespace Xeora.Web.Site
                         ")" +
                     ")" +
                 ")"; 
-            string bracketedRegExOpening = "\\$((?<ItemID>" + tagIDRegEx + ")|(?<DirectiveType>" + directivePointerRegEx + ")(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:(?<ItemID>" + tagIDRegEx + ")(" + parametersRegEx + ")?)\\:\\{";
+            string bracketedRegExOpening = "\\$((?<ItemID>" + tagIDRegEx + ")|(?<DirectiveType>" + directivePointerRegEx + ")(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:(?<ItemID>" + tagIDRegEx + ")(" + parametersRegEx + ")?(?<DirectiveIndex>" + directiveIndexMarkerRegEx + ")?)\\:\\{";
             string bracketedRegExSeparator = "\\}:(?<ItemID>" + tagIDRegEx + ")\\:\\{";
             string bracketedRegExClosing = "\\}:(?<ItemID>" + tagIDRegEx + ")\\$";
             // !---

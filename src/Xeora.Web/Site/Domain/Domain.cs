@@ -177,6 +177,11 @@ namespace Xeora.Web.Site
                     {
                         mainSearchMatch = (Match)remEnum.Current;
 
+                        // Exam For Bracketed Regex Result
+                        bracketOpenExamMatch = RegularExpression.Current.BracketedControllerOpenPattern.Match(mainSearchMatch.Value);
+                        if (bracketOpenExamMatch.Success &&
+                            !string.IsNullOrEmpty(bracketOpenExamMatch.Result("${DirectiveIndex}"))) continue;
+
                         // Check till this match any renderless content exists
                         if (mainSearchMatch.Index > lastIndex)
                         {
@@ -189,9 +194,6 @@ namespace Xeora.Web.Site
                             );
                             lastIndex = mainSearchMatch.Index;
                         }
-
-                        // Exam For Bracketed Regex Result
-                        bracketOpenExamMatch = RegularExpression.Current.BracketedControllerOpenPattern.Match(mainSearchMatch.Value);
 
                         if (bracketOpenExamMatch.Success)
                         {
