@@ -45,11 +45,19 @@ namespace Xeora.Web.Global
                     directiveInnerValue.Substring(colonIndex + 1);
             }
 
+            // Cleanup if there is parameters
+            int parameterBeginIndex = blockContent.IndexOf('(');
+            int parameterEndIndex = blockContent.IndexOf('~');
+            if (parameterBeginIndex > -1 && parameterEndIndex > -1 && 
+                parameterEndIndex > parameterBeginIndex && 
+                parameterEndIndex < firstContentIndex)
+                blockContent = blockContent.Remove(parameterBeginIndex, parameterEndIndex - parameterBeginIndex);
+
             // Update First Content Index
             firstContentIndex = 
                 blockContent.IndexOf(":{");
 
-            // ControlIDWithIndex Like ControlID~INDEX
+            // ControlIDWithIndex is Like ControlID~INDEX
             string controlIDWithIndex = 
                 blockContent.Substring(0, firstContentIndex);
 

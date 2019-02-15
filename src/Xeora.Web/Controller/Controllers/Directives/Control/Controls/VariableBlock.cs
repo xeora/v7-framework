@@ -1,4 +1,5 @@
-﻿using Xeora.Web.Basics.Domain;
+﻿using System.Text.RegularExpressions;
+using Xeora.Web.Basics.Domain;
 
 namespace Xeora.Web.Controller.Directive.Control
 {
@@ -39,7 +40,23 @@ namespace Xeora.Web.Controller.Directive.Control
             this.Bind.Parameters.Prepare(
                 (parameter) =>
                 {
-                    Property property = new Property(0, parameter.Query, (leveledController.Parent?.ContentArguments))
+                    string query = parameter.Query;
+
+                    Match match =
+                        _ParameterPointerRegEx.Match(parameter.Query);
+
+                    if (match.Success)
+                    {
+                        int paramIndex =
+                            int.Parse(match.Groups["index"].Value);
+
+                        if (paramIndex >= this.Parameters.Length)
+                            throw new Exception.FormatIndexOutOfRangeException();
+
+                        query = this.Parameters[paramIndex];
+                    }
+
+                    Property property = new Property(0, query, (leveledController.Parent?.ContentArguments))
                     {
                         Mother = leveledController.Mother,
                         Parent = leveledController.Parent

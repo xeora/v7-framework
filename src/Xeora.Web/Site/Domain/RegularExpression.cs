@@ -15,6 +15,7 @@ namespace Xeora.Web.Site
             string directivePointerRegEx = "[A-Z]";
             string levelingRegEx = "\\#\\d+(\\+)?";
             string parentingRegEx = "\\[" + tagIDRegEx + "\\]";
+            string parametersRegEx = "\\(((\\|)?(" + variableRegEx + ")?)+\\)";
             string procedureRegEx = tagIDRegEx + "\\?" + tagIDRegEx + "(\\,((\\|)?(" + variableRegEx + ")?)*)?";
 
             string captureRegEx =
@@ -28,7 +29,7 @@ namespace Xeora.Web.Site
                     "(" +
                         tagIDWithSlashRegEx + "\\$" + // Capture Control without content
                         "|" +
-                        tagIDRegEx + "\\:\\{" + // Capture Control with content (opening)
+                        tagIDRegEx + "(" + parametersRegEx + ")?\\:\\{" + // Capture Control with content and Parameters(opening)
                         "|" +
                         procedureRegEx + "\\$" + // Capture Procedure
                     ")" + 
@@ -42,7 +43,7 @@ namespace Xeora.Web.Site
                         ")" +
                     ")" +
                 ")"; 
-            string bracketedRegExOpening = "\\$((?<ItemID>" + tagIDRegEx + ")|(?<DirectiveType>" + directivePointerRegEx + ")(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:(?<ItemID>" + tagIDRegEx + "))\\:\\{";
+            string bracketedRegExOpening = "\\$((?<ItemID>" + tagIDRegEx + ")|(?<DirectiveType>" + directivePointerRegEx + ")(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:(?<ItemID>" + tagIDRegEx + ")(" + parametersRegEx + ")?)\\:\\{";
             string bracketedRegExSeparator = "\\}:(?<ItemID>" + tagIDRegEx + ")\\:\\{";
             string bracketedRegExClosing = "\\}:(?<ItemID>" + tagIDRegEx + ")\\$";
             // !---

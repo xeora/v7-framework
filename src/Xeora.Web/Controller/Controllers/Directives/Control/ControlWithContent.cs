@@ -1,9 +1,13 @@
-﻿using Xeora.Web.Global;
+﻿using System.Text.RegularExpressions;
+using Xeora.Web.Global;
 
 namespace Xeora.Web.Controller.Directive.Control
 {
     public abstract class ControlWithContent : DirectiveWithChildren, IControl
     {
+        protected static Regex _ParameterPointerRegEx =
+            new Regex("^\\{(?<index>\\d+)\\}$", RegexOptions.Compiled);
+
         protected ControlWithContent(int rawStartIndex, string rawValue, ArgumentInfoCollection contentArguments, ControlSettings settings) : 
             base(rawStartIndex, rawValue, DirectiveTypes.Control, contentArguments)
         {
@@ -14,6 +18,7 @@ namespace Xeora.Web.Controller.Directive.Control
             this.ControlID = DirectiveHelper.CaptureControlID(this.Value);
             this.BoundControlID = DirectiveHelper.CaptureBoundControlID(this.Value);
             this.Leveling = LevelingInfo.Create(this.Value);
+            this.Parameters = DirectiveHelper.CaptureControlParameters(this.Value);
 
             this.Security = settings.Security;
             this.Bind = settings.Bind;
@@ -24,6 +29,7 @@ namespace Xeora.Web.Controller.Directive.Control
         public string BoundControlID { get; private set; }
         public bool HasBound => !string.IsNullOrEmpty(this.BoundControlID);
         public LevelingInfo Leveling { get; private set; }
+        public string[] Parameters { get; private set; }
 
         public ControlSettings Settings { get; private set; }
 

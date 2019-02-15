@@ -14,7 +14,7 @@ namespace Xeora.Web.Controller.Directive
 
             if (cpIDMatch.Success)
             {
-                // Trim [ and ] character from match result
+                // Trim [ and ] characters from match result
                 return cpIDMatch.Value.Substring(1, cpIDMatch.Value.Length - 2);
             }
 
@@ -30,12 +30,29 @@ namespace Xeora.Web.Controller.Directive
             Match cpIDMatch = DirectiveHelper._ControlIDRegEx.Match(controlValueSplitted[1]);
 
             if (cpIDMatch.Success)
-            {
-                // Trim [ and ] character from match result
                 return cpIDMatch.Value;
-            }
 
             return string.Empty;
+        }
+
+        private static Regex _ControlParametersRegEx =
+            new Regex("\\(((\\|)?(([#]+|[\\^\\-\\+\\*\\~])?([0-9_a-zA-Z]+)|\\=([\\S+][^\\$\\|]*)|@([#]+|[\\-])?([0-9_a-zA-Z]+\\.)[\\.0-9_a-zA-Z]+)?)+\\)", RegexOptions.Compiled);
+        public static string[] CaptureControlParameters(string value)
+        {
+            string[] controlValueSplitted = value.Split(':');
+
+            Match cpIDMatch = DirectiveHelper._ControlParametersRegEx.Match(controlValueSplitted[1]);
+
+            if (cpIDMatch.Success)
+            {
+                // Trim ( and ) character from match result
+                string rawParameters = 
+                    cpIDMatch.Value.Substring(1, cpIDMatch.Value.Length - 2);
+
+                return rawParameters.Split('|');
+            }
+
+            return new string[] { };
         }
 
         private static Regex _DirectiveTypeRegEx = 
