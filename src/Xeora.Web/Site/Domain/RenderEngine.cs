@@ -37,17 +37,12 @@ namespace Xeora.Web.Site
 
         private void OnParseRequest(string rawValue, ref DirectiveCollection childrenContainer, ArgumentCollection arguments)
         {
-            DateTime begins = DateTime.Now;
-
             List<IDirective> directives = 
                 new List<IDirective>();
 
             Parser.Parse(directives.Add, rawValue, arguments);
 
             childrenContainer.AddRange(directives);
-
-            TimeSpan duration = DateTime.Now.Subtract(begins);
-            Basics.Console.Push(rawValue, duration.TotalMilliseconds.ToString(), duration.TotalMilliseconds > 100 ? rawValue : string.Empty, false, true);
         }
 
         private void OnDeploymentAccessRequest(ref Basics.Domain.IDomain domain, ref Deployment.Domain deployment) =>
