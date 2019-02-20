@@ -204,6 +204,12 @@ namespace Xeora.Web.Basics
         public static Domain.Info.DomainCollection Domains =>
             Helpers.HandlerInstance.DomainControl.GetAvailableDomains();
 
+        /// <summary>
+        /// Gets the render engine instance of active domain
+        /// </summary>
+        /// <returns>The render engine instance</returns>
+        public static IRenderEngine RenderEngine => Helpers.HandlerInstance.DomainControl.RenderEngine;
+
         private static object _ScheduledTasksLock = new object();
         private static Service.IScheduledTaskEngine _ScheduledTasks = null;
         /// <summary>

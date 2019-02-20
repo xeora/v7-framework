@@ -13,63 +13,39 @@ namespace Xeora.Web.Site
             string staticVariableRegEx = "\\=[\\S]*";
             string objectVariableRegEx = "@([#]+|[\\-])?([" + characterGroup + "]+\\.)[\\." + characterGroup + "]+";
             string variableRegEx = simpleVariableRegEx + "|" + staticVariableRegEx + "|" + objectVariableRegEx;
-            string tagIDRegEx = "[\\.\\-" + characterGroup + "]+";
-            string tagIDWithSlashRegEx = "[\\/\\.\\-" + characterGroup + "]+"; // for template capturing
+            string directiveIDRegEx = "[\\.\\-" + characterGroup + "]+";
+            string directiveIDWithSlashRegEx = "[\\/\\.\\-" + characterGroup + "]+"; // for template capturing
             string directivePointerRegEx = "[A-Z]";
             string levelingRegEx = "\\#\\d+(\\+)?";
-            string parentingRegEx = "\\[" + tagIDRegEx + "\\]";
+            string parentingRegEx = "\\[" + directiveIDRegEx + "\\]";
             string parametersRegEx = "\\(((\\|)?(" + variableRegEx + ")?)+\\)";
-            string procedureRegEx = tagIDRegEx + "\\?" + tagIDRegEx + "(\\,((\\|)?(" + variableRegEx + ")?)*)?";
+            string procedureRegEx = directiveIDRegEx + "\\?" + directiveIDRegEx + "(\\,((\\|)?(" + variableRegEx + ")?)*)?";
 
-            /*
-             * Directive Index Marker is implemented for the workaround purpose of .net regex insufficiency
-             * When the raw input with marked directive is pushed for parsing to regex, it parses correctly
-             * but inefficiently. It takes around 4 seconds to parse for a simple input. If you track the
-             * index marker on directives, it takes 0 ms. So Track the index marker and skip in the loop
-             * in Domain.cs file line ~183.
-             */
-            string directiveIndexMarkerRegEx = "\\~\\d+";
-
-            string captureRegEx =
+            string singleRegEx =
                 "\\$" +
                 "(" +
                     "(" + variableRegEx + ")\\$" + // Capture Variable
                     "|" +
-                    tagIDRegEx + "\\:\\{" + // Capture Special Tag
-                    "|" +
                     directivePointerRegEx + "(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:" + // Capture Directive with Leveling and Parenting
                     "(" +
-                        tagIDWithSlashRegEx + "\\$" + // Capture Control without content
-                        "|" +
-                        tagIDRegEx + "(" + parametersRegEx + ")?(" + directiveIndexMarkerRegEx + ")?\\:\\{" + // Capture Control with content and Parameters(opening)
+                        directiveIDWithSlashRegEx + "\\$" + // Capture Control without content
                         "|" +
                         procedureRegEx + "\\$" + // Capture Procedure
                     ")" + 
-                ")|(" + 
-                    "(" +
-                        "\\}\\:" + tagIDRegEx +
-                        "(" +
-                            "\\:\\{" + // Capture Control with Content (seperator)
-                            "|" +
-                            "\\$" + // Capture Control with Content (closing)
-                        ")" +
-                    ")" +
-                ")"; 
-            string bracketedRegExOpening = "\\$((?<ItemID>" + tagIDRegEx + ")|(?<DirectiveType>" + directivePointerRegEx + ")(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:(?<ItemID>" + tagIDRegEx + ")(" + parametersRegEx + ")?(?<DirectiveIndex>" + directiveIndexMarkerRegEx + ")?)\\:\\{";
-            string bracketedRegExSeparator = "\\}:(?<ItemID>" + tagIDRegEx + ")\\:\\{";
-            string bracketedRegExClosing = "\\}:(?<ItemID>" + tagIDRegEx + ")\\$";
+                ")";
+            string contentOpeningRegEx = "\\$((?<DirectiveID>" + directiveIDRegEx + ")|(?<DirectiveType>" + directivePointerRegEx + ")(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:(?<DirectiveID>" + directiveIDRegEx + ")(" + parametersRegEx + ")?)\\:\\{";
+            string contentSeparatorRegEx = "\\}:(?<DirectiveID>" + directiveIDRegEx + ")\\:\\{";
+            string contentClosingRegEx = "\\}:(?<DirectiveID>" + directiveIDRegEx + ")\\$";
             // !---
 
-            this.MainCapturePattern =
-                new Regex(captureRegEx, RegexOptions.Multiline | RegexOptions.Compiled);
-            this.BracketedControllerOpenPattern =
-                new Regex(bracketedRegExOpening, RegexOptions.Multiline | RegexOptions.Compiled);
-            this.BracketedControllerSeparatorPattern =
-                new Regex(bracketedRegExSeparator, RegexOptions.Multiline | RegexOptions.Compiled);
-            this.BracketedControllerClosePattern =
-                new Regex(bracketedRegExClosing, RegexOptions.Multiline | RegexOptions.Compiled);
-            this.VariableCapturePattern =
-                new Regex(variableRegEx, RegexOptions.Multiline | RegexOptions.Compiled);
+            this.SingleCapturePattern =
+                new Regex(singleRegEx, RegexOptions.Multiline | RegexOptions.Compiled);
+            this.ContentOpeningPattern =
+                new Regex(contentOpeningRegEx, RegexOptions.Multiline | RegexOptions.Compiled);
+            this.ContentSeparatorPattern =
+                new Regex(contentSeparatorRegEx, RegexOptions.Multiline | RegexOptions.Compiled);
+            this.ContentClosingPattern =
+                new Regex(contentClosingRegEx, RegexOptions.Multiline | RegexOptions.Compiled);
         }
 
         private static object _Lock = new object();
@@ -93,10 +69,9 @@ namespace Xeora.Web.Site
             }
         }
 
-        public Regex MainCapturePattern { get; private set; }
-        public Regex BracketedControllerOpenPattern { get; private set; }
-        public Regex BracketedControllerSeparatorPattern { get; private set; }
-        public Regex BracketedControllerClosePattern { get; private set; }
-        public Regex VariableCapturePattern { get; private set; }
+        public Regex SingleCapturePattern { get; private set; }
+        public Regex ContentOpeningPattern { get; private set; }
+        public Regex ContentSeparatorPattern { get; private set; }
+        public Regex ContentClosingPattern { get; private set; }
     }
 }

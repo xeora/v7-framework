@@ -8,7 +8,8 @@ using Xeora.Web.Basics;
 using Xeora.Web.Basics.Context;
 using Xeora.Web.Basics.ControlResult;
 using Xeora.Web.Basics.X;
-using Xeora.Web.Controller.Directive;
+using Xeora.Web.Directives;
+using Xeora.Web.Directives.Elements;
 using Xeora.Web.Site;
 
 namespace Xeora.Web.Handler
@@ -71,7 +72,7 @@ namespace Xeora.Web.Handler
                 IHttpContext context = this.Context;
                 this._DomainControl = new DomainControl(ref context);
                 if (this._ForceRefresh)
-                    this._DomainControl.Domain.ClearCache();
+                    this._DomainControl.ClearCache();
 
                 Basics.Enum.PageCachingTypes defaultCaching =
                     this._DomainControl.Domain.Settings.Configurations.DefaultCaching;
@@ -267,11 +268,14 @@ namespace Xeora.Web.Handler
                 bind.Parameters.Prepare(
                     (parameter) =>
                     {
-                        Property property = new Property(0, parameter.Query, null);
-                        property.InstanceRequested += (ref Basics.Domain.IDomain instance) => instance = this._DomainControl.Domain;
-                        property.Setup();
+                        Mother mother = new Mother(null, null);
+                        mother.InstanceRequested += (ref Basics.Domain.IDomain instance) => instance = this._DomainControl.Domain;
 
-                        property.Render(null);
+                        Property property =
+                            new Property(parameter.Query, null);
+
+                        mother.Directives.Add(property);
+                        mother.Directives.Render(null);
 
                         return property.ObjectResult;
                     }
@@ -335,11 +339,14 @@ namespace Xeora.Web.Handler
             bind.Parameters.Prepare(
                 (parameter) =>
                 {
-                    Property property = new Property(0, parameter.Query, null);
-                    property.InstanceRequested += (ref Basics.Domain.IDomain instance) => instance = this._DomainControl.Domain;
-                    property.Setup();
+                    Mother mother = new Mother(null, null);
+                    mother.InstanceRequested += (ref Basics.Domain.IDomain instance) => instance = this._DomainControl.Domain;
 
-                    property.Render(null);
+                    Property property =
+                        new Property(parameter.Query, null);
+
+                    mother.Directives.Add(property);
+                    mother.Directives.Render(null);
 
                     return property.ObjectResult;
                 }

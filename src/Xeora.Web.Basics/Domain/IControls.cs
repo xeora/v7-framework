@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Xml.XPath;
+using Xeora.Web.Basics.Domain.Control.Definitions;
 
 namespace Xeora.Web.Basics.Domain
 {
     public interface IControls : IDisposable
     {
-        XPathNavigator Select(string controlID);
+        IBase Select(string controlID);
     }
 }

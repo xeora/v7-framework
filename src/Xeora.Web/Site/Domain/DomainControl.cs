@@ -4,6 +4,8 @@ using System.IO;
 using System.Reflection;
 using System.Security;
 using System.Text.RegularExpressions;
+using Xeora.Web.Directives;
+using Xeora.Web.Manager;
 
 namespace Xeora.Web.Site
 {
@@ -29,7 +31,7 @@ namespace Xeora.Web.Site
 
             this.ServiceDefinition = null;
             this.ServiceMimeType = string.Empty;
-            this.ServiceResult = new Basics.Domain.RenderResult(string.Empty, false);
+            this.ServiceResult = new Basics.RenderResult(string.Empty, false);
 
             this._ExecuteIn = string.Empty;
 
@@ -66,31 +68,38 @@ namespace Xeora.Web.Site
             {
                 this._Domain = value;
 
-                if (this._Domain != null)
+                if (this._Domain == null)
                 {
-                    ((Domain)this.Domain).SetLanguageChangedListener((language) =>
-                    {
-                        Basics.Context.IHttpCookieInfo languageCookie =
-                            this._Context.Request.Header.Cookie[this._CookieSearchKeyForLanguage];
+                    this.RenderEngine = null;
 
-                        if (languageCookie == null)
-                            languageCookie = this._Context.Response.Header.Cookie.CreateNewCookie(this._CookieSearchKeyForLanguage);
-
-                        languageCookie.Value = language.Info.ID;
-                        languageCookie.Expires = DateTime.Now.AddDays(30);
-
-                        this._Context.Response.Header.Cookie.AddOrUpdate(languageCookie);
-                    });
-
-                    this.SiteTitle = this.Domain.Languages.Current.Get("SITETITLE");
+                    return;
                 }
+
+                this.RenderEngine = new RenderEngine(this._Domain);
+
+                ((Domain)this.Domain).SetLanguageChangedListener((language) =>
+                {
+                    Basics.Context.IHttpCookieInfo languageCookie =
+                        this._Context.Request.Header.Cookie[this._CookieSearchKeyForLanguage];
+
+                    if (languageCookie == null)
+                        languageCookie = this._Context.Response.Header.Cookie.CreateNewCookie(this._CookieSearchKeyForLanguage);
+
+                    languageCookie.Value = language.Info.ID;
+                    languageCookie.Expires = DateTime.Now.AddDays(30);
+
+                    this._Context.Response.Header.Cookie.AddOrUpdate(languageCookie);
+                });
+
+                this.SiteTitle = this.Domain.Languages.Current.Get("SITETITLE");
             }
         }
+        public Basics.IRenderEngine RenderEngine { get; private set; }
 
         public Basics.ServiceDefinition ServiceDefinition { get; private set; }
         public Basics.Domain.ServiceTypes ServiceType { get; private set; }
         public string ServiceMimeType { get; private set; }
-        public Basics.Domain.RenderResult ServiceResult { get; private set; }
+        public Basics.RenderResult ServiceResult { get; private set; }
 
         public bool IsAuthenticationRequired { get; private set; }
         public bool IsWorkingAsStandAlone { get; private set; }
@@ -454,7 +463,8 @@ namespace Xeora.Web.Site
             switch (this.ServiceType)
             {
                 case Basics.Domain.ServiceTypes.Template:
-                    this.ServiceResult = this.Domain.Render(this.ServiceDefinition, messageResult, updateBlockControlIDStack);
+                    this.ServiceResult = 
+                        this.RenderEngine.Render(this.ServiceDefinition, messageResult, updateBlockControlIDStack);
 
                     break;
                 case Basics.Domain.ServiceTypes.xService:
@@ -589,6 +599,21 @@ namespace Xeora.Web.Site
             DomainControl._AvailableDomains = rDomainInfoCollection;
 
             return DomainControl._AvailableDomains;
+        }
+
+        public void ClearCache()
+        {
+            // Clear Compiled Statements Cache
+            Master.ClearCache();
+
+            // Clear Domain Control Map Cache
+            this.RenderEngine.ClearCache();
+
+            // Clear Deployment Template and File Cache
+            Deployment.InstanceFactory.Current.Reset();
+
+            // Clear Partial Block Cache
+            PartialCachePool.Current.Reset(this.Domain.IDAccessTree);
         }
     }
 }

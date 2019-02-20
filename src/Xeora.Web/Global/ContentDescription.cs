@@ -1,5 +1,4 @@
-﻿
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace Xeora.Web.Global
@@ -16,16 +15,22 @@ namespace Xeora.Web.Global
         private static ConcurrentDictionary<string, PartCache> _PartsCache = 
             new ConcurrentDictionary<string, PartCache>();
 
-        private const string TemplatePointerText = "!MESSAGETEMPLATE";
+        private const string MESSAGE_TEMPLATE_POINTER_TEXT = "!MESSAGETEMPLATE";
 
-        public ContentDescription(string directiveInnerValue)
+        public ContentDescription(string rawValue)
         {
-            // Parse Block Content
-            int firstContentIndex = 
-                directiveInnerValue.IndexOf(":{");
+            this.Parts = new List<string>();
+            this.MessageTemplate = string.Empty;
 
-            string directiveIdentifier = 
-                directiveInnerValue.Substring(0, firstContentIndex);
+            // Parse Block Content
+            int firstContentIndex =
+                rawValue.IndexOf(":{");
+
+            if (firstContentIndex == -1)
+                return;
+
+            string directiveIdentifier =
+                rawValue.Substring(0, firstContentIndex);
 
             string blockContent = null;
             int colonIndex = 
@@ -35,14 +40,14 @@ namespace Xeora.Web.Global
             if (colonIndex == -1)
             {
                 // Special Directive such as PC, MB, XF
-                blockContent = directiveInnerValue;
+                blockContent = rawValue;
                 isSpecialDirective = true;
             }
             else
             {
-                // Common Directive such as DirectiveType:ControlID
-                blockContent = 
-                    directiveInnerValue.Substring(colonIndex + 1);
+                // Common Directive such as DirectiveType:DirectiveID
+                blockContent =
+                    rawValue.Substring(colonIndex + 1);
             }
 
             // Cleanup if there is parameters
@@ -78,9 +83,6 @@ namespace Xeora.Web.Global
                 blockContent.Substring(idxCoreContStart, idxCoreContEnd - idxCoreContStart);
             if (isSpecialDirective)
                 coreContent = coreContent.Trim();
-
-            this.Parts = new List<string>();
-            this.MessageTemplate = string.Empty;
 
             if (ContentDescription._PartsCache.TryGetValue(controlIDWithIndex, out PartCache partCache))
             {
@@ -120,12 +122,12 @@ namespace Xeora.Web.Global
                 if (isSpecialDirective)
                     contentPart = contentPart.Trim();
 
-                if (contentPart.IndexOf(ContentDescription.TemplatePointerText) == 0)
+                if (contentPart.IndexOf(ContentDescription.MESSAGE_TEMPLATE_POINTER_TEXT) == 0)
                 {
                     if (!string.IsNullOrEmpty(this.MessageTemplate))
                         throw new Exception.MultipleBlockException("Only One Message Template Block Allowed!");
 
-                    this.MessageTemplate = contentPart.Substring(ContentDescription.TemplatePointerText.Length);
+                    this.MessageTemplate = contentPart.Substring(ContentDescription.MESSAGE_TEMPLATE_POINTER_TEXT.Length);
                 }
                 else
                     if (!string.IsNullOrEmpty(contentPart))

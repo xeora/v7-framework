@@ -71,6 +71,21 @@ namespace Xeora.Web.Basics
             }
         }
 
+        private Type _RenderEngineType = null;
+        public Type RenderEngine
+        {
+            get
+            {
+                if (this._RenderEngineType != null)
+                    return this._RenderEngineType;
+
+                Assembly LoadedAssembly = this.GetAssembly("Xeora.Web");
+                this._RenderEngineType = LoadedAssembly.GetType("Xeora.Web.Site.RenderEngine", false, true);
+
+                return this._RenderEngineType;
+            }
+        }
+
         private Type _StatusTracker = null;
         public Type StatusTracker
         {

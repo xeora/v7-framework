@@ -59,5 +59,7 @@
     <Folder Include="Execution\" />
     <Folder Include="Mapping\" />
     <Folder Include="DSS\" />
+    <Folder Include="Domain\Control\" />
+    <Folder Include="Domain\Control\Definitions\" />
   </ItemGroup>
 </Project>

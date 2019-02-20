@@ -59,4 +59,11 @@
     <ProjectReference Include="..\Xeora.Web.Service.DSS\Xeora.Web.Service.DSS.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Directives\Controls\" />
+    <Folder Include="Site\Domain\Setting\Control\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Controller\ControllerWithChildren.cs" />
+  </ItemGroup>
 </Project>
