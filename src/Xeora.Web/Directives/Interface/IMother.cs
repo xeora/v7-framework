@@ -19,8 +19,6 @@ namespace Xeora.Web.Directives
         Basics.ControlResult.Message MessageResult { get; }
         Stack<string> UpdateBlockIDStack { get; }
 
-        //RenderEngine Engine { get; }
-
         void RequestParsing(string rawValue, ref DirectiveCollection childrenContainer, ArgumentCollection arguments);
         void RequestInstance(ref IDomain instance);
         void RequestDeploymentAccess(ref IDomain instance, ref Deployment.Domain deployment);
