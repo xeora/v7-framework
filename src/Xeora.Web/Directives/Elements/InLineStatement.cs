@@ -10,7 +10,6 @@ namespace Xeora.Web.Directives.Elements
         private readonly ContentDescription _Contents;
         private DirectiveCollection _Children;
         private bool _Parsed;
-        private bool _Rendered;
         private bool _Queued;
 
         private bool _Cache;
@@ -32,7 +31,7 @@ namespace Xeora.Web.Directives.Elements
         public bool HasBound => !string.IsNullOrEmpty(this.BoundDirectiveID);
 
         public override bool Searchable => false;
-        public override bool Rendered => this._Rendered;
+        public override bool CanAsync => false;
 
         public DirectiveCollection Children => this._Children;
 
@@ -85,12 +84,11 @@ namespace Xeora.Web.Directives.Elements
                 uniqueID = requesterUniqueID;
             }
 
-            if (this._Rendered)
+            if (this.Status != RenderStatus.None)
                 return;
-            this._Rendered = true;
+            this.Status = RenderStatus.Rendering;
 
-            this.Children.Render(uniqueID);
-
+            this.Children.Render(this.UniqueID);
             this.ExecuteStatement(uniqueID);
 
             this.Mother.Pool.Register(this);
@@ -124,12 +122,12 @@ namespace Xeora.Web.Directives.Elements
                 else
                     renderResult = Manager.AssemblyCore.GetPrimitiveValue(methodResultInfo);
 
-                this.Result = renderResult;
+                this.Deliver(RenderStatus.Rendered, renderResult);
 
                 return;
             }
 
-            this.Result = string.Empty;
+            this.Deliver(RenderStatus.Rendered, string.Empty);
         }
 
         private void ExtractSubDirectives(ref string blockContent)

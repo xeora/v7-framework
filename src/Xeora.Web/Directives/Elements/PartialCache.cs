@@ -12,7 +12,6 @@ namespace Xeora.Web.Directives.Elements
         private readonly ContentDescription _Contents;
         private DirectiveCollection _Children;
         private bool _Parsed;
-        private bool _Rendered;
 
         public PartialCache(string rawValue, ArgumentCollection arguments) :
             base(DirectiveTypes.PartialCache, arguments)
@@ -28,7 +27,7 @@ namespace Xeora.Web.Directives.Elements
         }
 
         public override bool Searchable => false;
-        public override bool Rendered => this._Rendered;
+        public override bool CanAsync => false;
 
         public DirectiveCollection Children => this._Children;
 
@@ -47,9 +46,9 @@ namespace Xeora.Web.Directives.Elements
         {
             this.Parse();
 
-            if (this._Rendered)
+            if (this.Status != RenderStatus.None)
                 return;
-            this._Rendered = true;
+            this.Status = RenderStatus.Rendering;
 
             Basics.Domain.IDomain instance = null;
             this.Mother.RequestInstance(ref instance);
@@ -61,12 +60,13 @@ namespace Xeora.Web.Directives.Elements
 
             if (cacheObject != null)
             {
-                this.Result = cacheObject.Content;
+                this.Deliver(RenderStatus.Rendered, cacheObject.Content);
 
                 return;
             }
 
             this.Children.Render(this.UniqueID);
+            this.Deliver(RenderStatus.Rendered, this.Result);
 
             PartialCachePool.Current.AddOrUpdate(
                 instance.IDAccessTree,

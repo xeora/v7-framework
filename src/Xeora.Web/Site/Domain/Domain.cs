@@ -1,5 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
+using Xeora.Web.Basics.Domain.Control.Definitions;
+using Xeora.Web.Directives;
+using Xeora.Web.Global;
 
 namespace Xeora.Web.Site
 {
@@ -95,5 +100,73 @@ namespace Xeora.Web.Site
             if (outputStream == null && this.Parent != null)
                 this.Parent.ProvideFileStream(requestedFilePath, out outputStream);
         }
+
+        public Basics.RenderResult Render(Basics.ServiceDefinition serviceDefinition, Basics.ControlResult.Message messageResult, string[] updateBlockControlIDStack = null) =>
+            this.Render(string.Format("$T:{0}$", serviceDefinition.FullPath), messageResult, updateBlockControlIDStack);
+
+        public Basics.RenderResult Render(string xeoraContent, Basics.ControlResult.Message messageResult, string[] updateBlockControlIDStack = null)
+        {
+            Mother mother =
+                new Mother(xeoraContent, messageResult, updateBlockControlIDStack);
+            mother.ParseRequested += this.OnParseRequest;
+            mother.InstanceRequested += this.OnInstanceRequest;
+            mother.DeploymentAccessRequested += this.OnDeploymentAccessRequest;
+            mother.ControlResolveRequested += this.OnControlResolveRequest;
+            mother.Process();
+
+            return new Basics.RenderResult(mother.Result, mother.HasInlineError);
+        }
+
+        private void OnParseRequest(string rawValue, ref DirectiveCollection childrenContainer, ArgumentCollection arguments)
+        {
+            DateTime parseBegins = DateTime.Now;
+
+            List<IDirective> directives =
+                new List<IDirective>();
+
+            Parser.Parse(directives.Add, rawValue, arguments);
+
+            childrenContainer.AddRange(directives);
+
+            if (Basics.Configurations.Xeora.Application.Main.PrintAnalytics)
+            {
+                Basics.Console.Push(
+                    "analytic - parsed duration",
+                    string.Format("{0}ms - total ({1})", DateTime.Now.Subtract(parseBegins).TotalMilliseconds, directives.Count),
+                    string.Empty, false);
+            }
+        }
+
+        private void OnDeploymentAccessRequest(ref Basics.Domain.IDomain domain, ref Deployment.Domain deployment) =>
+            deployment = ((Domain)domain).Deployment;
+
+        private void OnInstanceRequest(ref Basics.Domain.IDomain domain) =>
+            domain = this;
+
+        private static readonly ConcurrentDictionary<string, IBase> _ControlsCache =
+            new ConcurrentDictionary<string, IBase>();
+        private void OnControlResolveRequest(string controlID, ref Basics.Domain.IDomain domain, out IBase control)
+        {
+            if (Domain._ControlsCache.TryGetValue(controlID, out control))
+                return;
+
+            do
+            {
+                control =
+                    ((Domain)domain).Controls.Select(controlID);
+
+                if (control.Type != Basics.Domain.Control.ControlTypes.Unknown)
+                {
+                    Domain._ControlsCache.TryAdd(controlID, control);
+
+                    return;
+                }
+
+                domain = domain.Parent;
+            } while (domain != null);
+        }
+
+        public void ClearCache() =>
+            Domain._ControlsCache.Clear();
     }
 }

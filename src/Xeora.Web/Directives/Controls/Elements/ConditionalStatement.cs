@@ -133,7 +133,10 @@ namespace Xeora.Web.Directives.Controls.Elements
             }
 
             if (this._SelectedContent > -1)
+            {
                 this._Children.Render(requesterUniqueID);
+                this._Parent.Deliver(RenderStatus.Rendered, this._Parent.Result);
+            }
         }
     }
 }

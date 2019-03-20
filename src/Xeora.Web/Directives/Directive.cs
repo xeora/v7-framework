@@ -29,12 +29,18 @@ namespace Xeora.Web.Directives
         public ArgumentCollection Arguments { get; private set; }
 
         public abstract bool Searchable { get; }
+        public abstract bool CanAsync { get; }
         public bool HasInlineError { get; set; }
-
-        public string Result { get; set; }
-        public abstract bool Rendered { get; }
+        public RenderStatus Status { get; protected set; }
 
         public abstract void Parse();
         public abstract void Render(string requesterUniqueID);
+
+        public void Deliver(RenderStatus status, string result)
+        {
+            this.Result = result;
+            this.Status = status;
+        }
+        public string Result { get; private set; }
     }
 }

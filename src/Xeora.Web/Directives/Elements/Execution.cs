@@ -6,7 +6,6 @@ namespace Xeora.Web.Directives.Elements
     public class Execution : Directive, ILevelable, IBoundable
     {
         private readonly string _RawValue;
-        private bool _Rendered;
         private bool _Queued;
 
         public Execution(string rawValue, ArgumentCollection arguments) :
@@ -23,7 +22,7 @@ namespace Xeora.Web.Directives.Elements
         public bool HasBound => !string.IsNullOrEmpty(this.BoundDirectiveID);
 
         public override bool Searchable => false;
-        public override bool Rendered => this._Rendered;
+        public override bool CanAsync => false;
 
         public override void Parse()
         { }
@@ -58,9 +57,9 @@ namespace Xeora.Web.Directives.Elements
                 uniqueID = requesterUniqueID;
             }
 
-            if (this._Rendered)
+            if (this.Status != RenderStatus.None)
                 return;
-            this._Rendered = true;
+            this.Status = RenderStatus.Rendering;
 
             this.ExecuteBind(uniqueID);
         }
@@ -106,12 +105,15 @@ namespace Xeora.Web.Directives.Elements
                 Helpers.Context.AddOrUpdate("RedirectLocation",
                     ((Basics.ControlResult.RedirectOrder)invokeResult.Result).Location);
 
-                this.Result = string.Empty;
+                this.Deliver(RenderStatus.Rendered, string.Empty);
 
                 return;
             }
 
-            this.Result = Manager.AssemblyCore.GetPrimitiveValue(invokeResult.Result);
+            this.Deliver(
+                RenderStatus.Rendered,
+                Manager.AssemblyCore.GetPrimitiveValue(invokeResult.Result)
+            );
         }
     }
 }

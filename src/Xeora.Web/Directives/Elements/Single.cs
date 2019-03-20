@@ -8,7 +8,6 @@ namespace Xeora.Web.Directives
         private readonly ContentDescription _Contents;
         private DirectiveCollection _Children;
         private bool _Parsed;
-        private bool _Rendered;
 
         public Single(string rawValue, ArgumentCollection arguments) :
             base(DirectiveTypes.Single, arguments)
@@ -19,7 +18,7 @@ namespace Xeora.Web.Directives
         }
 
         public override bool Searchable => true;
-        public override bool Rendered => this._Rendered;
+        public override bool CanAsync => false;
 
         public DirectiveCollection Children => this._Children;
 
@@ -38,11 +37,12 @@ namespace Xeora.Web.Directives
         {
             this.Parse();
 
-            if (this._Rendered)
+            if (this.Status != RenderStatus.None)
                 return;
-            this._Rendered = true;
+            this.Status = RenderStatus.Rendering;
 
             this.Children.Render(this.UniqueID);
+            this.Deliver(RenderStatus.Rendered, this.Result);
         }
     }
 }

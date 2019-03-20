@@ -11,19 +11,42 @@ namespace Xeora.Web.Directives.Elements
     public class Property : Directive
     {
         private readonly string _RawValue;
-        private bool _Rendered;
+        private readonly bool _CanAsync;
 
         public Property(string rawValue, ArgumentCollection arguments) :
             base(DirectiveTypes.Property, arguments)
         {
             this._RawValue = rawValue;
+            this._CanAsync = true;
 
-            this.Result = string.Empty;
-            this.ObjectResult = null;
+            if (!string.IsNullOrEmpty(this._RawValue))
+            {
+                switch (this._RawValue)
+                {
+                    case "DomainContents":
+                    case "PageRenderDuration":
+                        break;
+                    default:
+                        switch (this._RawValue[0])
+                        {
+                            case '^':
+                            case '~':
+                            case '-':
+                            case '+':
+                            case '=':
+                                break;
+                            default:
+                                this._CanAsync = false;
+
+                                break;
+                        }
+                        break;
+                }
+            }
         }
 
         public override bool Searchable => false;
-        public override bool Rendered => this._Rendered;
+        public override bool CanAsync => this._CanAsync;
 
         public object ObjectResult { get; private set; }
 
@@ -34,13 +57,13 @@ namespace Xeora.Web.Directives.Elements
         {
             this.Parse();
 
-            if (this._Rendered)
+            if (this.Status != RenderStatus.None)
                 return;
-            this._Rendered = true;
+            this.Status = RenderStatus.Rendering;
 
             if (string.IsNullOrEmpty(this._RawValue))
             {
-                this.Result = string.Empty;
+                this.Deliver(RenderStatus.Rendered, string.Empty);
                 this.ObjectResult = null;
 
                 return;
@@ -123,9 +146,9 @@ namespace Xeora.Web.Directives.Elements
                                 searchArgValue = Helpers.Context.Request.QueryString[searchArgKey];
 
                             if (searchArgValue != null)
-                                this.Result = searchArgValue.ToString();
+                                this.Deliver(RenderStatus.Rendered, searchArgValue.ToString());
                             else
-                                this.Result = string.Empty;
+                                this.Deliver(RenderStatus.Rendered, string.Empty);
                             this.ObjectResult = searchArgValue;
 
                             break;
@@ -148,14 +171,16 @@ namespace Xeora.Web.Directives.Elements
             Basics.Domain.IDomain instance = null;
             this.Mother.RequestInstance(ref instance);
 
-            this.Result = instance.ContentsVirtualPath;
-            this.ObjectResult = (object)this.Result;
+            this.Deliver(RenderStatus.Rendered, instance.ContentsVirtualPath);
+            this.ObjectResult = (object)instance.ContentsVirtualPath;
         }
 
         private void RenderPageRenderDuration()
         {
-            this.Result = "<!--_sys_PAGERENDERDURATION-->";
-            this.ObjectResult = (object)this.Result;
+            string pointer = "<!--_sys_PAGERENDERDURATION-->";
+
+            this.Deliver(RenderStatus.Rendered, pointer);
+            this.ObjectResult = (object)pointer;
         }
 
         private void RenderQueryString()
@@ -177,8 +202,8 @@ namespace Xeora.Web.Directives.Elements
                 }
             }
 
-            this.Result = queryItemValue;
-            this.ObjectResult = (object)this.Result;
+            this.Deliver(RenderStatus.Rendered, queryItemValue);
+            this.ObjectResult = (object)queryItemValue;
         }
 
         private void RenderFormPost()
@@ -199,7 +224,7 @@ namespace Xeora.Web.Directives.Elements
 
             if (requestFileObjects.Count > 0)
             {
-                this.Result = string.Empty;
+                this.Deliver(RenderStatus.Rendered, string.Empty);
                 if (requestFileObjects.Count == 1)
                     this.ObjectResult = requestFileObjects[0];
                 else
@@ -224,7 +249,7 @@ namespace Xeora.Web.Directives.Elements
                 }
             }
 
-            this.Result = formItemValue;
+            this.Deliver(RenderStatus.Rendered, formItemValue);
             this.ObjectResult = formItemValue;
         }
 
@@ -235,9 +260,9 @@ namespace Xeora.Web.Directives.Elements
                 Helpers.Context.Session[sessionItemKey];
 
             if (sessionItemValue == null)
-                this.Result = string.Empty;
+                this.Deliver(RenderStatus.Rendered, string.Empty);
             else
-                this.Result = sessionItemValue.ToString();
+                this.Deliver(RenderStatus.Rendered, sessionItemValue.ToString());
             this.ObjectResult = sessionItemValue;
         }
 
@@ -249,21 +274,22 @@ namespace Xeora.Web.Directives.Elements
 
             if (cookieItem == null)
             {
-                this.Result = string.Empty;
+                this.Deliver(RenderStatus.Rendered, string.Empty);
                 this.ObjectResult = null;
 
                 return;
             }
 
-            this.Result = cookieItem.Value;
+            this.Deliver(RenderStatus.Rendered, cookieItem.Value);
             this.ObjectResult = cookieItem.Value;
         }
 
         private void RenderStaticString()
         {
-            string stringValue = this._RawValue.Substring(1);
+            string stringValue = 
+                this._RawValue.Substring(1);
 
-            this.Result = stringValue;
+            this.Deliver(RenderStatus.Rendered, stringValue);
             this.ObjectResult = stringValue;
         }
 
@@ -276,7 +302,7 @@ namespace Xeora.Web.Directives.Elements
 
             if (searchDirective == null)
             {
-                this.Result = string.Empty;
+                this.Deliver(RenderStatus.Rendered, string.Empty);
                 this.ObjectResult = null;
 
                 return;
@@ -288,13 +314,13 @@ namespace Xeora.Web.Directives.Elements
             if (argItem != null &&
                 !object.ReferenceEquals(argItem.GetType(), typeof(DBNull)))
             {
-                this.Result = argItem.ToString();
+                this.Deliver(RenderStatus.Rendered, argItem.ToString());
                 this.ObjectResult = argItem;
 
                 return;
             }
 
-            this.Result = string.Empty;
+            this.Deliver(RenderStatus.Rendered, string.Empty);
             this.ObjectResult = null;
         }
 
@@ -303,9 +329,9 @@ namespace Xeora.Web.Directives.Elements
             object poolValue = Helpers.VariablePool.Get(this._RawValue);
 
             if (poolValue != null)
-                this.Result = poolValue.ToString();
+                this.Deliver(RenderStatus.Rendered, poolValue.ToString());
             else
-                this.Result = string.Empty;
+                this.Deliver(RenderStatus.Rendered, string.Empty);
             this.ObjectResult = poolValue;
         }
 
@@ -358,7 +384,7 @@ namespace Xeora.Web.Directives.Elements
 
             if (objectItem == null)
             {
-                this.Result = string.Empty;
+                this.Deliver(RenderStatus.Rendered, string.Empty);
                 this.ObjectResult = null;
 
                 return;
@@ -383,9 +409,9 @@ namespace Xeora.Web.Directives.Elements
             }
 
             if (objectValue != null)
-                this.Result = objectValue.ToString();
+                this.Deliver(RenderStatus.Rendered, objectValue.ToString());
             else
-                this.Result = string.Empty;
+                this.Deliver(RenderStatus.Rendered, string.Empty);
             this.ObjectResult = objectValue;
         }
 

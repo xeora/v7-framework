@@ -103,17 +103,19 @@ namespace Xeora.Web.Directives.Controls.Elements
 
             if (this._Settings.Security.Disabled.Set && 
                 this._Settings.Security.Disabled.Type == SecurityDefinition.DisabledDefinition.Types.Dynamic)
-                this._Parent.Result = this._Settings.Security.Disabled.Value;
+                this._Parent.Deliver(RenderStatus.Rendered, this._Settings.Security.Disabled.Value);
             else
             {
-                this._Parent.Result =
+                this._Parent.Deliver(
+                    RenderStatus.Rendered,
                     string.Format(
                         "<input type=\"checkbox\" name=\"{0}\" id=\"{1}\"{2}>{3}",
                         this._Parent.DirectiveID,
                         checkBoxID,
                         this._Settings.Attributes.ToString(),
                         checkBoxLabel
-                    );
+                    )
+                );
             }
         }
     }

@@ -9,7 +9,6 @@ namespace Xeora.Web.Directives.Elements
         private readonly ContentDescription _Contents;
         private DirectiveCollection _Children;
         private bool _Parsed;
-        private bool _Rendered;
 
         public FormattableTranslation(string rawValue, ArgumentCollection arguments) :
             base(DirectiveTypes.FormattableTranslation, arguments)
@@ -21,7 +20,7 @@ namespace Xeora.Web.Directives.Elements
         public string DirectiveID { get; private set; }
 
         public override bool Searchable => false;
-        public override bool Rendered => this._Rendered;
+        public override bool CanAsync => false;
 
         public DirectiveCollection Children => this._Children;
 
@@ -50,9 +49,9 @@ namespace Xeora.Web.Directives.Elements
         {
             this.Parse();
 
-            if (this._Rendered)
+            if (this.Status != RenderStatus.None)
                 return;
-            this._Rendered = true;
+            this.Status = RenderStatus.Rendering;
 
             this.Children.Render(this.UniqueID);
 
@@ -81,8 +80,7 @@ namespace Xeora.Web.Directives.Elements
                     translationValue.Insert(current.Index, parameters[formatIndex]);
             }
 
-            this.Result = translationValue;
-
+            this.Deliver(RenderStatus.Rendered, translationValue);
             this.Mother.Pool.Register(this);
             this.Mother.Scheduler.Fire(this.DirectiveID);
         }

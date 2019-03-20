@@ -115,7 +115,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             if (invokeResult.Result.Message != null)
             {
                 if (!this._Contents.HasMessageTemplate)
-                    this._Parent.Result = invokeResult.Result.Message.Content;
+                    this._Parent.Deliver(RenderStatus.Rendered, invokeResult.Result.Message.Content);
                 else
                 {
                     this._Parent.Arguments.AppendKeyWithValue("MessageType", invokeResult.Result.Message.Type);
@@ -123,6 +123,7 @@ namespace Xeora.Web.Directives.Controls.Elements
 
                     this.Parse();
                     this._Children.Render(requesterUniqueID);
+                    this._Parent.Deliver(RenderStatus.Rendered, this._Parent.Result);
                 }
 
                 return;
@@ -177,7 +178,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 rC += 1;
             }
 
-            this._Parent.Result = renderedContent.ToString();
+            this._Parent.Deliver(RenderStatus.Rendered, renderedContent.ToString());
         }
 
         private void RenderDirectDataAccess(string requesterUniqueID, Basics.Execution.InvokeResult<Basics.ControlResult.IDataSource> invokeResult)
@@ -193,7 +194,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 if (invokeResult.Result.Message != null)
                 {
                     if (!this._Contents.HasMessageTemplate)
-                        this._Parent.Result = invokeResult.Result.Message.Content;
+                        this._Parent.Deliver(RenderStatus.Rendered, invokeResult.Result.Message.Content);
                     else
                     {
                         this._Parent.Arguments.AppendKeyWithValue("MessageType", invokeResult.Result.Message.Type);
@@ -201,6 +202,7 @@ namespace Xeora.Web.Directives.Controls.Elements
 
                         this.Parse();
                         this._Children.Render(requesterUniqueID);
+                        this._Parent.Deliver(RenderStatus.Rendered, this._Parent.Result);
                     }
 
                     Helper.EventLogger.Log(string.Format("DirectDataAccess [{0}] failed! DatabaseCommand must not be null!", this._Parent.DirectiveID));
@@ -228,7 +230,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                     if (invokeResult.Result.Message != null)
                     {
                         if (!this._Contents.HasMessageTemplate)
-                            this._Parent.Result = invokeResult.Result.Message.Content;
+                            this._Parent.Deliver(RenderStatus.Rendered, invokeResult.Result.Message.Content);
                         else
                         {
                             this._Parent.Arguments.AppendKeyWithValue("MessageType", invokeResult.Result.Message.Type);
@@ -236,6 +238,7 @@ namespace Xeora.Web.Directives.Controls.Elements
 
                             this.Parse();
                             this._Children.Render(requesterUniqueID);
+                            this._Parent.Deliver(RenderStatus.Rendered, this._Parent.Result);
                         }
                     }
 
@@ -270,7 +273,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 } while (dbReader.Read());
 
                 Basics.Helpers.VariablePool.Set(this._Parent.DirectiveID, new DataListOutputInfo(this._Parent.UniqueID, rC, rC, false));
-                this._Parent.Result = renderedContent.ToString();
+                this._Parent.Deliver(RenderStatus.Rendered, renderedContent.ToString());
             }
             catch (System.Exception ex)
             {
@@ -278,7 +281,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                     throw new Exception.DirectDataAccessException(ex);
 
                 if (!this._Contents.HasMessageTemplate)
-                    this._Parent.Result = invokeResult.Result.Message.Content;
+                    this._Parent.Deliver(RenderStatus.Rendering, invokeResult.Result.Message.Content);
                 else
                 {
                     this._Parent.Arguments.AppendKeyWithValue("MessageType", invokeResult.Result.Message.Type);
@@ -287,6 +290,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                     this._SelectedContent = -1;
                     this.Parse();
                     this._Children.Render(requesterUniqueID);
+                    this._Parent.Deliver(RenderStatus.Rendered, this._Parent.Result);
                 }
 
                 Helper.EventLogger.Log(ex);
@@ -322,7 +326,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             if (invokeResult.Result.Message != null)
             {
                 if (!this._Contents.HasMessageTemplate)
-                    this._Parent.Result = invokeResult.Result.Message.Content;
+                    this._Parent.Deliver(RenderStatus.Rendered, invokeResult.Result.Message.Content);
                 else
                 {
                     this._Parent.Arguments.AppendKeyWithValue("MessageType", invokeResult.Result.Message.Type);
@@ -330,6 +334,7 @@ namespace Xeora.Web.Directives.Controls.Elements
 
                     this.Parse();
                     this._Children.Render(requesterUniqueID);
+                    this._Parent.Deliver(RenderStatus.Rendered, this._Parent.Result);
                 }
 
                 return;
@@ -360,7 +365,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 rC += 1;
             }
 
-            this._Parent.Result = renderedContent.ToString();
+            this._Parent.Deliver(RenderStatus.Rendered, renderedContent.ToString());
         }
     }
 }

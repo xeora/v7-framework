@@ -8,6 +8,7 @@ namespace Xeora.Web.Directives
 {
     public class Mother : IMother
     {
+        private readonly IDirective _Directive;
         private readonly DirectivePool _Pool;
 
         public event ParsingHandler ParseRequested;
@@ -15,7 +16,7 @@ namespace Xeora.Web.Directives
         public event DeploymentAccessHandler DeploymentAccessRequested;
         public event ControlResolveHandler ControlResolveRequested;
 
-        public Mother(Basics.ControlResult.Message messageResult, string[] updateBlockIDStack)
+        public Mother(IDirective directive, Basics.ControlResult.Message messageResult, string[] updateBlockIDStack)
         {
             this._Pool = new DirectivePool();
             this.Scheduler = new DirectiveScheduler(ref this._Pool);
@@ -23,17 +24,21 @@ namespace Xeora.Web.Directives
 
             this.MessageResult = messageResult;
             if (updateBlockIDStack != null && updateBlockIDStack.Length > 0)
-                foreach(string updateBlockControlID in updateBlockIDStack)
+                foreach (string updateBlockControlID in updateBlockIDStack)
                     this.UpdateBlockIDStack.Push(updateBlockControlID);
 
-            this.Directives = new DirectiveCollection(this, null);
+            this._Directive = directive;
+            this._Directive.Mother = this;
         }
+
+        public Mother(string xeoraContent, Basics.ControlResult.Message messageResult, string[] updateBlockIDStack) :
+            this(new Single(xeoraContent, null), messageResult, updateBlockIDStack)
+        { }
 
         public DirectivePool Pool => this._Pool;
         public DirectiveScheduler Scheduler { get; private set; }
         public Basics.ControlResult.Message MessageResult { get; private set; }
         public Stack<string> UpdateBlockIDStack { get; private set; }
-        public DirectiveCollection Directives { get; private set; }
 
         public void RequestParsing(string rawValue, ref DirectiveCollection childrenContainer, ArgumentCollection arguments) =>
             ParseRequested?.Invoke(rawValue, ref childrenContainer, arguments);
@@ -49,5 +54,30 @@ namespace Xeora.Web.Directives
             control = new Unknown();
             ControlResolveRequested?.Invoke(controlID, ref instance, out control);
         }
+
+        public void Process()
+        {
+            if (this.UpdateBlockIDStack.Count > 0)
+            {
+                if (!(this._Directive is Single single))
+                    throw new System.Exception("update request container should be single!");
+
+                single.Parse();
+
+                IDirective result =
+                    single.Children.Find(this.UpdateBlockIDStack.Peek());
+
+                if (result == null)
+                    return;
+
+                single.Children.Clear();
+                single.Children.Add(result);
+            }
+
+            this._Directive.Render(null);
+        }
+
+        public string Result => this._Directive.Result;
+        public bool HasInlineError => this._Directive.HasInlineError;
     }
 }

@@ -7,7 +7,6 @@ namespace Xeora.Web.Directives.Elements
     public class Renderless : Directive
     {
         private readonly string _RawValue;
-        private bool _Rendered;
 
         public Renderless(string rawValue) :
             base(DirectiveTypes.Renderless, null)
@@ -16,7 +15,7 @@ namespace Xeora.Web.Directives.Elements
         }
 
         public override bool Searchable => false;
-        public override bool Rendered => this._Rendered;
+        public override bool CanAsync => true;
 
         public override void Parse()
         { }
@@ -27,9 +26,9 @@ namespace Xeora.Web.Directives.Elements
         {
             this.Parse();
 
-            if (this._Rendered)
+            if (this.Status != RenderStatus.None)
                 return;
-            this._Rendered = true;
+            this.Status = RenderStatus.Rendering;
 
             // Change ~/ values with the exact application root path
             MatchCollection rootPathMatches = Renderless._RootPathRegEx.Matches(this._RawValue);
@@ -58,12 +57,11 @@ namespace Xeora.Web.Directives.Elements
 
             if (workingValue.Length > 0)
             {
-                this.Result = workingValue.ToString();
-
+                this.Deliver(RenderStatus.Rendered, workingValue.ToString());
                 return;
             }
 
-            this.Result = this._RawValue;
+            this.Deliver(RenderStatus.Rendered, this._RawValue);
         }
     }
 }

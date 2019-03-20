@@ -69,13 +69,7 @@ namespace Xeora.Web.Site
                 this._Domain = value;
 
                 if (this._Domain == null)
-                {
-                    this.RenderEngine = null;
-
                     return;
-                }
-
-                this.RenderEngine = new RenderEngine(this._Domain);
 
                 ((Domain)this.Domain).SetLanguageChangedListener((language) =>
                 {
@@ -94,7 +88,6 @@ namespace Xeora.Web.Site
                 this.SiteTitle = this.Domain.Languages.Current.Get("SITETITLE");
             }
         }
-        public Basics.IRenderEngine RenderEngine { get; private set; }
 
         public Basics.ServiceDefinition ServiceDefinition { get; private set; }
         public Basics.Domain.ServiceTypes ServiceType { get; private set; }
@@ -464,7 +457,7 @@ namespace Xeora.Web.Site
             {
                 case Basics.Domain.ServiceTypes.Template:
                     this.ServiceResult = 
-                        this.RenderEngine.Render(this.ServiceDefinition, messageResult, updateBlockControlIDStack);
+                        this.Domain.Render(this.ServiceDefinition, messageResult, updateBlockControlIDStack);
 
                     break;
                 case Basics.Domain.ServiceTypes.xService:
@@ -607,7 +600,7 @@ namespace Xeora.Web.Site
             Master.ClearCache();
 
             // Clear Domain Control Map Cache
-            this.RenderEngine.ClearCache();
+            this.Domain.ClearCache();
 
             // Clear Deployment Template and File Cache
             Deployment.InstanceFactory.Current.Reset();

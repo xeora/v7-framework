@@ -11,12 +11,14 @@
         Global.ArgumentCollection Arguments { get; }
 
         bool Searchable { get; }
+        bool CanAsync { get; }
         bool HasInlineError { get; set; }
-
-        string Result { get; set; }
-        bool Rendered { get; }
+        RenderStatus Status { get; }
 
         void Parse();
         void Render(string requesterUniqueID);
+
+        void Deliver(RenderStatus status, string result);
+        string Result { get; }
     }
 }

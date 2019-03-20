@@ -268,14 +268,12 @@ namespace Xeora.Web.Handler
                 bind.Parameters.Prepare(
                     (parameter) =>
                     {
-                        Mother mother = new Mother(null, null);
-                        mother.InstanceRequested += (ref Basics.Domain.IDomain instance) => instance = this._DomainControl.Domain;
-
                         Property property =
                             new Property(parameter.Query, null);
 
-                        mother.Directives.Add(property);
-                        mother.Directives.Render(null);
+                        Mother mother = new Mother(property, null, null);
+                        mother.InstanceRequested += (ref Basics.Domain.IDomain instance) => instance = this._DomainControl.Domain;
+                        mother.Process();
 
                         return property.ObjectResult;
                     }
@@ -339,14 +337,12 @@ namespace Xeora.Web.Handler
             bind.Parameters.Prepare(
                 (parameter) =>
                 {
-                    Mother mother = new Mother(null, null);
-                    mother.InstanceRequested += (ref Basics.Domain.IDomain instance) => instance = this._DomainControl.Domain;
-
                     Property property =
                         new Property(parameter.Query, null);
 
-                    mother.Directives.Add(property);
-                    mother.Directives.Render(null);
+                    Mother mother = new Mother(property, null, null);
+                    mother.InstanceRequested += (ref Basics.Domain.IDomain instance) => instance = this._DomainControl.Domain;
+                    mother.Process();
 
                     return property.ObjectResult;
                 }

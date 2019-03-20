@@ -12,7 +12,6 @@ namespace Xeora.Web.Directives.Elements
         private DirectiveCollection _Children;
         private bool _Authenticated;
         private bool _Parsed;
-        private bool _Rendered;
 
         public Template(string rawValue, ArgumentCollection arguments) :
             base(DirectiveTypes.Template, arguments)
@@ -23,7 +22,7 @@ namespace Xeora.Web.Directives.Elements
         public string DirectiveID { get; private set; }
 
         public override bool Searchable => true;
-        public override bool Rendered => this._Rendered;
+        public override bool CanAsync => true;
 
         public DirectiveCollection Children => this._Children;
 
@@ -216,17 +215,21 @@ namespace Xeora.Web.Directives.Elements
         {
             this.Parse();
 
-            if (this._Rendered)
+            if (this.Status != RenderStatus.None)
                 return;
-            this._Rendered = true;
+            this.Status = RenderStatus.Rendering;
 
             if (!this._Authenticated)
             {
-                this.Result = "<div style='width:100%; font-weight:bolder; color:#CC0000; text-align:center'>" + SystemMessages.TEMPLATE_AUTH + "!</div>";
+                this.Deliver(
+                    RenderStatus.Rendered,
+                    "<div style='width:100%; font-weight:bolder; color:#CC0000; text-align:center'>" + SystemMessages.TEMPLATE_AUTH + "!</div>"
+                );
                 return;
             }
 
             this.Children.Render(this.UniqueID);
+            this.Deliver(RenderStatus.Rendered, this.Result);
 
             this.Mother.Pool.Register(this);
             this.Mother.Scheduler.Fire(this.DirectiveID);

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using Xeora.Web.Basics;
 using Xeora.Web.Directives.Elements;
 
@@ -8,11 +10,17 @@ namespace Xeora.Web.Directives
 {
     public class DirectiveCollection : List<IDirective>
     {
+        private readonly Dictionary<int, bool> _Toucheds;
+        private readonly ConcurrentQueue<int> _Undones;
+
         private readonly IMother _Mother;
         private IDirective _Parent;
 
         public DirectiveCollection(IMother mother, IDirective parent)
         {
+            this._Toucheds = new Dictionary<int, bool>();
+            this._Undones = new ConcurrentQueue<int>();
+
             this._Mother = mother;
             this._Parent = parent;
         }
@@ -28,24 +36,117 @@ namespace Xeora.Web.Directives
             if (item is Control)
                 ((Control)item).Load();
 
+            this._Undones.Enqueue(this.Count);
             base.Add(item);
         }
 
         public new void AddRange(IEnumerable<IDirective> collection)
         {
             foreach (IDirective item in collection)
-            {
-                item.Mother = this._Mother;
-                item.Parent = this._Parent;
-
-                if (item is Control)
-                    ((Control)item).Load();
-            }
-
-            base.AddRange(collection);
+                this.Add(item);
         }
 
-        public IDirective Find(DirectiveCollection directives, string directiveID)
+        public void Render(string requesterUniqueID)
+        {
+            string currentHandlerID = Helpers.CurrentHandlerID;
+
+            while(this._Undones.TryDequeue(out int index))
+            {
+                switch (this[index].Status)
+                {
+                    case RenderStatus.Rendering:
+                        this._Undones.Enqueue(index);
+
+                        continue;
+                    case RenderStatus.Rendered:
+                        continue;
+                    case RenderStatus.None:
+                        if (!this._Toucheds.ContainsKey(index))
+                            break;
+
+                        this._Undones.Enqueue(index);
+                        continue;
+                }
+
+                if (!this[index].CanAsync)
+                {
+                    this.Render(currentHandlerID, requesterUniqueID, this[index]);
+                    continue;
+                }
+
+                Task.Run(() => this.Render(currentHandlerID, requesterUniqueID, this[index]));
+                this._Undones.Enqueue(index);
+
+                this._Toucheds[index] = true;
+            }
+
+            StringBuilder resultContainer = new StringBuilder();
+
+            foreach (IDirective directive in this)
+                resultContainer.Append(directive.Result);
+
+            this._Parent.Deliver(RenderStatus.Rendering, resultContainer.ToString());
+        }
+
+        private void Render(string handlerID, string requesterUniqueID, IDirective directive)
+        {
+            Helpers.AssignHandlerID(handlerID);
+
+            try
+            {
+                // Analytics Calculator
+                DateTime renderBegins = DateTime.Now;
+
+                directive.Render(requesterUniqueID);
+
+                if (directive.Parent != null)
+                    directive.Parent.HasInlineError |= directive.HasInlineError;
+
+                if (Configurations.Xeora.Application.Main.PrintAnalytics)
+                {
+                    string analyticOutput = directive.UniqueID;
+                    if (directive is INamable)
+                        analyticOutput = string.Format("{0} - {1}", analyticOutput, ((INamable)directive).DirectiveID);
+                    Basics.Console.Push(
+                        string.Format("analytic - {0}", directive.GetType().Name),
+                        string.Format("{0}ms {{{1}}}", DateTime.Now.Subtract(renderBegins).TotalMilliseconds, analyticOutput),
+                        string.Empty, false);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                if (directive.Parent != null)
+                    directive.Parent.HasInlineError = true;
+
+                Helper.EventLogger.Log(ex);
+
+                if (Configurations.Xeora.Application.Main.Debugging)
+                {
+                    string exceptionString = string.Empty;
+                    do
+                    {
+                        exceptionString =
+                            string.Format(
+                                "<div align='left' style='border: solid 1px #660000; background-color: #FFFFFF'><div align='left' style='font-weight: bolder; color:#FFFFFF; background-color:#CC0000; padding: 4px;'>{0}</div><br><div align='left' style='padding: 4px'>{1}{2}</div></div>",
+                                ex.Message,
+                                ex.Source,
+                                (!string.IsNullOrEmpty(exceptionString) ? string.Concat("<hr size='1px' />", exceptionString) : null)
+                            );
+
+                        ex = ex.InnerException;
+                    } while (ex != null);
+
+                    directive.Deliver(RenderStatus.Rendered, exceptionString);
+                }
+                else
+                    directive.Deliver(RenderStatus.Rendered, string.Empty);
+            }
+        }
+
+        public IDirective Find(string directiveID) => 
+            this.Find(this, directiveID);
+
+        private IDirective Find(DirectiveCollection directives, string directiveID)
         {
             foreach (IDirective directive in directives)
             {
@@ -64,7 +165,7 @@ namespace Xeora.Web.Directives
                     {
                         case Basics.Domain.Control.ControlTypes.ConditionalStatement:
                         case Basics.Domain.Control.ControlTypes.VariableBlock:
-                            directive.Render(this._Parent?.UniqueID);
+                            directive.Render(directives._Parent?.UniqueID);
 
                             break;
                     }
@@ -83,87 +184,6 @@ namespace Xeora.Web.Directives
             }
 
             return null;
-        }
-
-        public void Render(string requesterUniqueID)
-        {
-            if (this._Parent == null && 
-                this._Mother.UpdateBlockIDStack.Count > 0 && 
-                string.IsNullOrEmpty(requesterUniqueID))
-            {
-                if (this.Count == 1 && this[0] is Single)
-                {
-                    Single single = 
-                        (Single)this[0];
-                    single.Parse();
-
-                    IDirective result =
-                        this.Find(single.Children, this._Mother.UpdateBlockIDStack.Peek());
-
-                    if (result != null)
-                    {
-                        single.Children.Clear();
-                        single.Children.Add(result);
-                    }
-                }
-            }
-
-            StringBuilder resultContainer = new StringBuilder();
-
-            foreach (IDirective directive in this)
-            {
-                try
-                {
-                    // Analytics Calculator
-                    DateTime renderBegins = DateTime.Now;
-
-                    directive.Render(requesterUniqueID);
-                    resultContainer.Append(directive.Result);
-
-                    if (this._Parent != null)
-                        this._Parent.HasInlineError |= directive.HasInlineError;
-
-                    if (Configurations.Xeora.Application.Main.PrintAnalytics)
-                    {
-                        string analyticOutput = directive.UniqueID;
-                        if (directive is INamable)
-                            analyticOutput = string.Format("{0} - {1}", analyticOutput, ((INamable)directive).DirectiveID);
-                        Basics.Console.Push(
-                            string.Format("analytic - {0}", directive.GetType().Name),
-                            string.Format("{0}ms {{{1}}}", DateTime.Now.Subtract(renderBegins).TotalMilliseconds, analyticOutput),
-                            string.Empty, false);
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    Helper.EventLogger.Log(ex);
-
-                    if (Configurations.Xeora.Application.Main.Debugging)
-                    {
-                        string exceptionString = null;
-                        do
-                        {
-                            exceptionString =
-                                string.Format(
-                                    "<div align='left' style='border: solid 1px #660000; background-color: #FFFFFF'><div align='left' style='font-weight: bolder; color:#FFFFFF; background-color:#CC0000; padding: 4px;'>{0}</div><br><div align='left' style='padding: 4px'>{1}{2}</div></div>",
-                                    ex.Message,
-                                    ex.Source,
-                                    (!string.IsNullOrEmpty(exceptionString) ? string.Concat("<hr size='1px' />", exceptionString) : null)
-                                );
-
-                            ex = ex.InnerException;
-                        } while (ex != null);
-
-                        resultContainer.Append(exceptionString);
-                    }
-
-                    if (this._Parent != null)
-                        this._Parent.HasInlineError = true;
-                }
-            }
-
-            if (this._Parent != null)
-                this._Parent.Result = resultContainer.ToString();
         }
     }
 }

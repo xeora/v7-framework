@@ -7,7 +7,6 @@ namespace Xeora.Web.Directives.Elements
         private readonly ContentDescription _Contents;
         private DirectiveCollection _Children;
         private bool _Parsed;
-        private bool _Rendered;
 
         public MessageBlock(string rawValue, ArgumentCollection arguments) :
             base(DirectiveTypes.MessageBlock, arguments)
@@ -16,7 +15,7 @@ namespace Xeora.Web.Directives.Elements
         }
 
         public override bool Searchable => false;
-        public override bool Rendered => this._Rendered;
+        public override bool CanAsync => true;
 
         public DirectiveCollection Children => this._Children;
 
@@ -41,12 +40,14 @@ namespace Xeora.Web.Directives.Elements
         {
             this.Parse();
 
-            if (this._Rendered)
+            if (this.Status != RenderStatus.None)
                 return;
-            this._Rendered = true;
+            this.Status = RenderStatus.Rendering;
 
             if (this.Mother.MessageResult != null)
                 this.Children.Render(this.UniqueID);
+
+            this.Deliver(RenderStatus.Rendered, this.Result);
         }
     }
 }

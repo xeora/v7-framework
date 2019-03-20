@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Xeora.Web.Basics.Domain;
 using Xeora.Web.Basics.Domain.Control.Definitions;
 using Xeora.Web.Global;
@@ -18,7 +19,7 @@ namespace Xeora.Web.Directives
         Basics.ControlResult.Message MessageResult { get; }
         Stack<string> UpdateBlockIDStack { get; }
 
-        DirectiveCollection Directives { get; }
+        //RenderEngine Engine { get; }
 
         void RequestParsing(string rawValue, ref DirectiveCollection childrenContainer, ArgumentCollection arguments);
         void RequestInstance(ref IDomain instance);

@@ -6,7 +6,6 @@ namespace Xeora.Web.Directives.Elements
     public class HashCodePointedTemplate : Directive
     {
         private readonly string _TemplateID;
-        private bool _Rendered;
 
         public HashCodePointedTemplate(string rawValue, ArgumentCollection arguments) : 
             base(DirectiveTypes.HashCodePointedTemplate, arguments)
@@ -15,7 +14,7 @@ namespace Xeora.Web.Directives.Elements
         }
 
         public override bool Searchable => false;
-        public override bool Rendered => this._Rendered;
+        public override bool CanAsync => true;
 
         public override void Parse()
         { }
@@ -24,11 +23,14 @@ namespace Xeora.Web.Directives.Elements
         {
             this.Parse();
 
-            if (this._Rendered)
+            if (this.Status != RenderStatus.None)
                 return;
-            this._Rendered = true;
+            this.Status = RenderStatus.Rendering;
 
-            this.Result = string.Format("{0}/{1}", Helpers.Context.HashCode, this._TemplateID);
+            this.Deliver(
+                RenderStatus.Rendered,
+                string.Format("{0}/{1}", Helpers.Context.HashCode, this._TemplateID)
+            );
         }
     }
 }

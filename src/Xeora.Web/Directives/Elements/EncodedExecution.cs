@@ -7,7 +7,6 @@ namespace Xeora.Web.Directives.Elements
         private readonly ContentDescription _Contents;
         private DirectiveCollection _Children;
         private bool _Parsed;
-        private bool _Rendered;
 
         public EncodedExecution(string rawValue, ArgumentCollection arguments) :
             base(DirectiveTypes.EncodedExecution, arguments)
@@ -16,7 +15,7 @@ namespace Xeora.Web.Directives.Elements
         }
 
         public override bool Searchable => false;
-        public override bool Rendered => this._Rendered;
+        public override bool CanAsync => false;
 
         public DirectiveCollection Children => this._Children;
 
@@ -43,29 +42,33 @@ namespace Xeora.Web.Directives.Elements
         {
             this.Parse();
 
-            if (this._Rendered)
+            if (this.Status != RenderStatus.None)
                 return;
-            this._Rendered = true;
+            this.Status = RenderStatus.Rendering;
 
             this.Children.Render(this.UniqueID);
 
             if (this.Mother.UpdateBlockIDStack.Count > 0)
             {
-                this.Result =
+                this.Deliver(
+                    RenderStatus.Rendered,
                     string.Format(
                         "javascript:__XeoraJS.update('{0}', '{1}');",
                         this.Mother.UpdateBlockIDStack.Peek(),
                         Manager.AssemblyCore.EncodeFunction(Basics.Helpers.Context.HashCode, this.Result)
-                    );
+                    )
+                );
 
                 return;
             }
 
-            this.Result =
+            this.Deliver( 
+                RenderStatus.Rendered,
                 string.Format(
                     "javascript:__XeoraJS.post('{0}');",
                     Manager.AssemblyCore.EncodeFunction(Basics.Helpers.Context.HashCode, this.Result)
-                );
+                )
+            );
         }
     }
 }

@@ -11,7 +11,6 @@ namespace Xeora.Web.Directives.Elements
     {
         private readonly string _RawValue;
         private IControl _Control;
-        private bool _Rendered;
         private bool _Queued;
 
         public Control(string rawValue, ArgumentCollection arguments) : 
@@ -111,7 +110,7 @@ namespace Xeora.Web.Directives.Elements
         public new ControlTypes Type { get; private set; }
 
         public override bool Searchable => this._Control.Searchable;
-        public override bool Rendered => this._Rendered;
+        public override bool CanAsync => false;
 
         public RenderBag Bag { get; private set; }
 
@@ -142,9 +141,9 @@ namespace Xeora.Web.Directives.Elements
                 }
             }
 
-            if (this._Rendered)
+            if (this.Status != RenderStatus.None)
                 return;
-            this._Rendered = true;
+            this.Status = RenderStatus.Rendering;
 
             this._Control.Render(requesterUniqueID);
 

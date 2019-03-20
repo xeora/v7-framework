@@ -153,14 +153,14 @@ namespace Xeora.Web.Basics
         /// </summary>
         /// <value>The current handler identifier</value>
         public static string CurrentHandlerID =>
-            (string)AppDomain.CurrentDomain.GetData(string.Format("HandlerID_{0}", System.Threading.Thread.CurrentThread.ManagedThreadId));
+            (string)AppDomain.CurrentDomain.GetData(string.Format("HandlerID_{0}", Thread.CurrentThread.ManagedThreadId));
 
         /// <summary>
         /// Assigns the handler identifier for the current thread
         /// </summary>
         /// <param name="handlerID">Handler identifier</param>
         public static void AssignHandlerID(string handlerID) =>
-            AppDomain.CurrentDomain.SetData(string.Format("HandlerID_{0}", System.Threading.Thread.CurrentThread.ManagedThreadId), handlerID);
+            AppDomain.CurrentDomain.SetData(string.Format("HandlerID_{0}", Thread.CurrentThread.ManagedThreadId), handlerID);
 
         internal static IHandler HandlerInstance =>
             (IHandler)TypeCache.Current.RemoteInvoke.InvokeMember("GetHandler", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { Helpers.CurrentHandlerID });
@@ -203,13 +203,7 @@ namespace Xeora.Web.Basics
         /// <value>Xeora project domains</value>
         public static Domain.Info.DomainCollection Domains =>
             Helpers.HandlerInstance.DomainControl.GetAvailableDomains();
-
-        /// <summary>
-        /// Gets the render engine instance of active domain
-        /// </summary>
-        /// <returns>The render engine instance</returns>
-        public static IRenderEngine RenderEngine => Helpers.HandlerInstance.DomainControl.RenderEngine;
-
+            
         private static object _ScheduledTasksLock = new object();
         private static Service.IScheduledTaskEngine _ScheduledTasks = null;
         /// <summary>

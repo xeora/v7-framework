@@ -6,7 +6,6 @@ namespace Xeora.Web.Directives.Elements
     public class Translation : Directive
     {
         private readonly string _TranslationID;
-        private bool _Rendered;
 
         public Translation(string rawValue, ArgumentCollection arguments) :
             base(DirectiveTypes.Translation, arguments)
@@ -15,7 +14,7 @@ namespace Xeora.Web.Directives.Elements
         }
 
         public override bool Searchable => false;
-        public override bool Rendered => this._Rendered;
+        public override bool CanAsync => true;
 
         public override void Parse()
         { }
@@ -24,14 +23,14 @@ namespace Xeora.Web.Directives.Elements
         {
             this.Parse();
 
-            if (this._Rendered)
+            if (this.Status != RenderStatus.None)
                 return;
-            this._Rendered = true;
+            this.Status = RenderStatus.Rendering;
 
             IDomain instance = null;
             this.Mother.RequestInstance(ref instance);
 
-            this.Result = instance.Languages.Current.Get(this._TranslationID);
+            this.Deliver(RenderStatus.Rendered, instance.Languages.Current.Get(this._TranslationID));
         }
 
     }

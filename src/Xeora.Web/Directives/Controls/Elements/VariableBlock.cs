@@ -89,7 +89,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             if (invokeResult.Result.Message != null)
             {
                 if (!this._Contents.HasMessageTemplate)
-                    this._Parent.Result = invokeResult.Result.Message.Content;
+                    this._Parent.Deliver(RenderStatus.Rendered, invokeResult.Result.Message.Content);
                 else
                 {
                     this._Parent.Arguments.AppendKeyWithValue("MessageType", invokeResult.Result.Message.Type);
@@ -97,6 +97,7 @@ namespace Xeora.Web.Directives.Controls.Elements
 
                     this.Parse();
                     this._Children.Render(requesterUniqueID);
+                    this._Parent.Deliver(RenderStatus.Rendered, this._Parent.Result);
                 }
 
                 return;
@@ -117,6 +118,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             this._SelectedContent = 0;
             this.Parse();
             this._Children.Render(requesterUniqueID);
+            this._Parent.Deliver(RenderStatus.Rendered, this._Parent.Result);
         }
     }
 }

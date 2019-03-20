@@ -10,7 +10,6 @@ namespace Xeora.Web.Basics
         IMetaRecordCollection MetaRecord { get; }
 
         IDomain Domain { get; }
-        IRenderEngine RenderEngine { get; }
 
         Mapping.ResolutionResult ResolveURL(string requestFilePath);
         DomainCollection GetAvailableDomains();

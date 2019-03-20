@@ -62,4 +62,7 @@
     <Folder Include="Domain\Control\" />
     <Folder Include="Domain\Control\Definitions\" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="IRenderEngine.cs" />
+  </ItemGroup>
 </Project>

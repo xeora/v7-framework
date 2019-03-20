@@ -10,7 +10,6 @@ namespace Xeora.Web.Directives.Elements
         private readonly ContentDescription _Contents;
         private DirectiveCollection _Children;
         private bool _Parsed;
-        private bool _Rendered;
 
         public UpdateBlock(string rawValue, ArgumentCollection arguments) : 
             base(DirectiveTypes.UpdateBlock, arguments)
@@ -22,7 +21,7 @@ namespace Xeora.Web.Directives.Elements
         public string DirectiveID { get; private set; }
 
         public override bool Searchable => true;
-        public override bool Rendered => this._Rendered;
+        public override bool CanAsync => false;
 
         public DirectiveCollection Children => this._Children;
 
@@ -55,9 +54,9 @@ namespace Xeora.Web.Directives.Elements
         {
             this.Parse();
 
-            if (this._Rendered)
+            if (this.Status != RenderStatus.None)
                 return;
-            this._Rendered = true;
+            this.Status = RenderStatus.Rendering;
 
             if (!this._RenderOnRequest)
             {
@@ -74,10 +73,7 @@ namespace Xeora.Web.Directives.Elements
                 }
             }
 
-            this.Result = string.Format("<div id=\"{0}\">{1}</div>", this.DirectiveID, this.Result);
-
-            this.Mother.Pool.Register(this);
-            this.Mother.Scheduler.Fire(this.DirectiveID);
+            this.Deliver(RenderStatus.Rendered, string.Format("<div id=\"{0}\">{1}</div>", this.DirectiveID, this.Result));
         }
     }
 }
