@@ -694,7 +694,7 @@ namespace Xeora.Web.Handler
                         referrerURLQueryString =
                             new KeyValuePair<string, string>(
                                 "xcRef",
-                                System.Web.HttpUtility.UrlEncode(this.Context.Request.Header.URL.Raw)
+                                System.Web.HttpUtility.UrlEncode(this.Context.Request.Header.URL.Raw.Substring(1))
                             );
 
                     // Reset Redirect Location to AuthenticationPage
