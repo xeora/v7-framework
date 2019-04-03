@@ -1,4 +1,6 @@
-﻿using Xeora.Web.Global;
+﻿using System.Collections.Generic;
+using System.IO;
+using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives.Elements
 {
@@ -8,10 +10,13 @@ namespace Xeora.Web.Directives.Elements
         private DirectiveCollection _Children;
         private bool _Parsed;
 
+        private bool _Clean;
+
         public EncodedExecution(string rawValue, ArgumentCollection arguments) :
             base(DirectiveTypes.EncodedExecution, arguments)
         {
             this._Contents = new ContentDescription(rawValue);
+            this._Clean = false;
         }
 
         public override bool Searchable => false;
@@ -48,6 +53,20 @@ namespace Xeora.Web.Directives.Elements
 
             this.Children.Render(this.UniqueID);
 
+            string result = this.Result;
+
+            this.ExtractSubDirectives(ref result);
+
+            if (this._Clean)
+            {
+                this.Deliver(
+                    RenderStatus.Rendered, 
+                    Manager.AssemblyCore.EncodeFunction(Basics.Helpers.Context.HashCode, result)
+                );
+
+                return;
+            }
+
             if (this.Mother.UpdateBlockIDStack.Count > 0)
             {
                 this.Deliver(
@@ -69,6 +88,63 @@ namespace Xeora.Web.Directives.Elements
                     Manager.AssemblyCore.EncodeFunction(Basics.Helpers.Context.HashCode, this.Result)
                 )
             );
+        }
+
+        private void ExtractSubDirectives(ref string blockContent)
+        {
+            Dictionary<string, System.Func<string, string>> subDirectives =
+                new Dictionary<string, System.Func<string, string>>() {
+                    {
+                        "!CLEAN",
+                        new System.Func<string, string>(
+                            (d) =>
+                            {
+                                this._Clean = true;
+                                return d.Replace("!CLEAN", string.Empty);
+                            }
+                        )
+                    }
+                };
+
+            // Sub Directive Test
+            if (blockContent.IndexOf('!') == 0)
+            {
+                string directives = string.Empty;
+                StringReader sR = null;
+                try
+                {
+                    sR = new StringReader(blockContent);
+                    directives = sR.ReadLine();
+
+                    blockContent = sR.ReadToEnd();
+                }
+                catch (Exception.GrammerException)
+                {
+                    throw;
+                }
+                catch (System.Exception)
+                {
+                    // Just Handle Exceptions
+                }
+                finally
+                {
+                    if (sR != null)
+                        sR.Close();
+                }
+
+                foreach (string key in subDirectives.Keys)
+                {
+                    int dIdx = directives.IndexOf(key);
+
+                    if (dIdx == -1)
+                        continue;
+
+                    directives = subDirectives[key].Invoke(directives);
+                }
+
+                blockContent = string.Format("{0}{1}", directives, blockContent);
+            }
+            blockContent = blockContent.Trim();
         }
     }
 }
