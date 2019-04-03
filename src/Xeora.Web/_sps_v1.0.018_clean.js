@@ -111,7 +111,7 @@ XeoraJS.prototype.processstate = function (updateLocationPathParts, nextDivIDs, 
 
     var continueOperation = false;
 
-    if (this.httprequests[httprequestindex].status == 200) {
+    if (this.httprequests[httprequestindex].status == 200 || this.httprequests[httprequestindex].status == 218) {
         var rText = new String(this.httprequests[httprequestindex].responseText);
 
         if (rText.indexOf("rl:", 0) == 0) {
