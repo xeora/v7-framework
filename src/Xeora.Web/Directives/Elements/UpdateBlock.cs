@@ -60,16 +60,14 @@ namespace Xeora.Web.Directives.Elements
 
             if (!this._RenderOnRequest)
             {
-                if (this.Mother.UpdateBlockIDStack.Count > 0)
-                    this.Mother.UpdateBlockIDStack.Push(this.DirectiveID);
+                this.Mother.UpdateBlockIDStack.Push(this.DirectiveID);
                 try
                 {
                     this.Children.Render(this.UniqueID);
                 }
                 finally
                 {
-                    if (this.Mother.UpdateBlockIDStack.Count > 0)
-                        this.Mother.UpdateBlockIDStack.Pop();
+                    this.Mother.UpdateBlockIDStack.Pop();
                 }
             }
 
