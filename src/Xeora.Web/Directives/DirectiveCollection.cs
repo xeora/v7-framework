@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Xeora.Web.Basics;
 using Xeora.Web.Directives.Elements;
@@ -10,16 +11,16 @@ namespace Xeora.Web.Directives
 {
     public class DirectiveCollection : List<IDirective>
     {
-        private readonly Dictionary<int, bool> _Toucheds;
-        private readonly ConcurrentQueue<int> _Undones;
+        private readonly Dictionary<int, bool> _Checked;
+        private readonly ConcurrentQueue<int> _Queued;
 
         private readonly IMother _Mother;
         private IDirective _Parent;
 
         public DirectiveCollection(IMother mother, IDirective parent)
         {
-            this._Toucheds = new Dictionary<int, bool>();
-            this._Undones = new ConcurrentQueue<int>();
+            this._Checked = new Dictionary<int, bool>();
+            this._Queued = new ConcurrentQueue<int>();
 
             this._Mother = mother;
             this._Parent = parent;
@@ -36,7 +37,7 @@ namespace Xeora.Web.Directives
             if (item is Control)
                 ((Control)item).Load();
 
-            this._Undones.Enqueue(this.Count);
+            this._Queued.Enqueue(this.Count);
             base.Add(item);
         }
 
@@ -50,34 +51,37 @@ namespace Xeora.Web.Directives
         {
             string currentHandlerID = Helpers.CurrentHandlerID;
 
-            while(this._Undones.TryDequeue(out int index))
+            while(this._Queued.TryDequeue(out int index))
             {
                 switch (this[index].Status)
                 {
+                    case RenderStatus.None:
+                        if (this._Checked.ContainsKey(index))
+                            goto case RenderStatus.Rendering;
+
+                        this._Checked[index] = true;
+
+                        break;
                     case RenderStatus.Rendering:
-                        this._Undones.Enqueue(index);
+                        this._Queued.Enqueue(index);
 
                         continue;
                     case RenderStatus.Rendered:
                         continue;
-                    case RenderStatus.None:
-                        if (!this._Toucheds.ContainsKey(index))
-                            break;
-
-                        this._Undones.Enqueue(index);
-                        continue;
                 }
 
-                if (!this[index].CanAsync)
+                Task renderTask = 
+                    new Task(() => this.Render(currentHandlerID, requesterUniqueID, this[index]));
+
+                if (this[index].CanAsync)
                 {
-                    this.Render(currentHandlerID, requesterUniqueID, this[index]);
+                    this._Queued.Enqueue(index);
+                    renderTask.Start();
+
                     continue;
                 }
 
-                Task.Run(() => this.Render(currentHandlerID, requesterUniqueID, this[index]));
-                this._Undones.Enqueue(index);
-
-                this._Toucheds[index] = true;
+                renderTask.RunSynchronously();
             }
 
             StringBuilder resultContainer = new StringBuilder();
@@ -127,7 +131,11 @@ namespace Xeora.Web.Directives
                     {
                         exceptionString =
                             string.Format(
-                                "<div align='left' style='border: solid 1px #660000; background-color: #FFFFFF'><div align='left' style='font-weight: bolder; color:#FFFFFF; background-color:#CC0000; padding: 4px;'>{0}</div><br><div align='left' style='padding: 4px'>{1}{2}</div></div>",
+                                @"<div align='left' style='border: solid 1px #660000; background-color: #FFFFFF'>
+                                    <div align='left' style='font-weight: bolder; color:#FFFFFF; background-color:#CC0000; padding: 4px;'>{0}</div>
+                                    <br/>
+                                    <div align='left' style='padding: 4px'>{1}{2}</div>
+                                  </div>",
                                 ex.Message,
                                 ex.Source,
                                 (!string.IsNullOrEmpty(exceptionString) ? string.Concat("<hr size='1px' />", exceptionString) : null)
