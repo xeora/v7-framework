@@ -39,5 +39,14 @@ namespace Xeora.Web.Basics
         /// <param name="requestFilePath">Requested File Path comes right after Application Root</param>
         /// <returns>Return ResolutionResult to proceed</returns>
         Mapping.ResolutionResult ResolveURL(string requestFilePath);
+
+        /// <summary>
+        /// Translate is called when translation id is not found in language files
+        /// If you have any dynamic translation definitions, do it in this function and return the result.
+        /// </summary>
+        /// <param name="languageCode">Requested Language for translation</param>
+        /// <param name="translationID">Requested TranslationID</param>
+        /// <returns>Return Translation Text</returns>
+        TranslationResult Translate(string languageCode, string translationID);
     }
 }
