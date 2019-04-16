@@ -450,7 +450,7 @@ namespace Xeora.Web.Handler
                     string.Format("{0}://{1}{2}",
                         Configurations.Xeora.Service.Ssl ? "https" : "http",
                         this.Context.Request.Header.Host,
-                        Helpers.CreateURL(false, this._DomainControl.Domain.Settings.Configurations.DefaultPage)
+                        Helpers.CreateURL(false, this._DomainControl.Domain.Settings.Configurations.DefaultTemplate)
                     )
                 );
 
@@ -687,7 +687,7 @@ namespace Xeora.Web.Handler
                     // Get AuthenticationPage 
                     KeyValuePair<string, string> referrerURLQueryString;
                     string authenticationPage =
-                        this._DomainControl.Domain.Settings.Configurations.AuthenticationPage;
+                        this._DomainControl.Domain.Settings.Configurations.AuthenticationTemplate;
 
                     if (!string.IsNullOrEmpty(currentRequestedTemplate) &&
                         string.Compare(authenticationPage, currentRequestedTemplate, true) != 0)

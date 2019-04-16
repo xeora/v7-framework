@@ -10,21 +10,21 @@ namespace Xeora.Web.Site.Setting
         public Configurations(ref XPathNavigator configurationNavigator) =>
             this._XPathNavigator = configurationNavigator.Clone();
 
-        public string AuthenticationPage
+        public string AuthenticationTemplate
         {
             get
             {
-                string authenticationPage = 
-                    this.ReadConfiguration("authenticationpage");
+                string authenticationTemplate = 
+                    this.ReadConfiguration("authenticationtemplate");
 
-                if (authenticationPage == null)
-                    authenticationPage = this.DefaultPage;
+                if (authenticationTemplate == null)
+                    authenticationTemplate = this.DefaultTemplate;
 
-                return authenticationPage;
+                return authenticationTemplate;
             }
         }
 
-        public string DefaultPage => this.ReadConfiguration("defaultpage");
+        public string DefaultTemplate => this.ReadConfiguration("defaulttemplate");
         public string DefaultLanguage => this.ReadConfiguration("defaultlanguage");
 
         public Basics.Enum.PageCachingTypes DefaultCaching
@@ -40,7 +40,8 @@ namespace Xeora.Web.Site.Setting
             }
         }
 
-        public string DefaultSecurityBind => this.ReadConfiguration("defaultsecuritybind");
+        public string LanguageExecutable => this.ReadConfiguration("languageexecutable");
+        public string SecurityExecutable => this.ReadConfiguration("securityexecutable");
 
         private string ReadConfiguration(string key)
         {

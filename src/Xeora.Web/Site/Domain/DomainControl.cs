@@ -216,7 +216,7 @@ namespace Xeora.Web.Site
                 {
                     case Basics.Domain.ServiceTypes.Template:
                         // Overrides that page does not need authentication even it has been marked as authentication required in Configuration definition
-                        if (string.Compare(this.ServiceDefinition.FullPath, cachedInstance.Settings.Configurations.AuthenticationPage, true) == 0)
+                        if (string.Compare(this.ServiceDefinition.FullPath, cachedInstance.Settings.Configurations.AuthenticationTemplate, true) == 0)
                             this.IsAuthenticationRequired = false;
                         else
                         {
@@ -357,7 +357,7 @@ namespace Xeora.Web.Site
                     return rServiceDefinition;
                 }
 
-                return Basics.ServiceDefinition.Parse(workingInstance.Settings.Configurations.DefaultPage, false);
+                return Basics.ServiceDefinition.Parse(workingInstance.Settings.Configurations.DefaultTemplate, false);
             }
 
             return null;
