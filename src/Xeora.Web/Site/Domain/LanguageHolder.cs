@@ -68,7 +68,7 @@ namespace Xeora.Web.Site
             Basics.Execution.InvokeResult<Basics.TranslationResult> translatorInvokeResult =
                 Manager.AssemblyCore.InvokeBind<Basics.TranslationResult>(Basics.Helpers.Context.Request.Header.Method, translatorBind, Manager.ExecuterTypes.Undefined);
 
-            if (translatorInvokeResult.Exception != null)
+            if (translatorInvokeResult.Result == null || translatorInvokeResult.Exception != null)
                 return new Basics.TranslationResult(false, string.Empty);
 
             return translatorInvokeResult.Result;
