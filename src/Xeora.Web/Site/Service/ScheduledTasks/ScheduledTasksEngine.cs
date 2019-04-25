@@ -67,7 +67,7 @@ namespace Xeora.Web.Site.Service
                 {
                     if (!this._ListOfCanceled.TryRemove(taskInfo.ID, out bool dummy))
                         ThreadPool.QueueUserWorkItem(
-                            (object taskState) =>
+                            (taskState) =>
                             {
                                 try
                                 {

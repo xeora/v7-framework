@@ -70,7 +70,7 @@ namespace Xeora.Web.Basics
                     Action<ConsoleKeyInfo> action = 
                         enumerator.Current.Value;
 
-                    ThreadPool.QueueUserWorkItem((state) => action.Invoke(keyInfo));
+                    ThreadPool.QueueUserWorkItem((state) => ((Action<ConsoleKeyInfo>)state).Invoke(keyInfo), action);
                 }
             } while (true);
         }
