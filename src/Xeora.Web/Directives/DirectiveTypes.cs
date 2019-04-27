@@ -9,6 +9,7 @@
         InLineStatement,
         MessageBlock,
         PartialCache,
+        PermissionBlock,
         Template,
         Translation,
         FormattableTranslation,

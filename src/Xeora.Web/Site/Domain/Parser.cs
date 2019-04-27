@@ -398,6 +398,11 @@ namespace Xeora.Web.Site
                         new MessageBlock(rawValue, null));
 
                     break;
+                case DirectiveTypes.PermissionBlock:
+                    this._ResultHandler.Invoke(
+                        new PermissionBlock(rawValue, null));
+
+                    break;
                 case DirectiveTypes.PartialCache:
                     this._ResultHandler.Invoke(
                         new PartialCache(rawValue, null));

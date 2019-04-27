@@ -5,7 +5,7 @@ namespace Xeora.Web.Directives
 {
     public static class DirectiveHelper
     {
-        private static Regex _BoundDirectiveIDRegEx =
+        private static readonly Regex _BoundDirectiveIDRegEx =
             new Regex("\\[[\\.\\w\\-]+\\]", RegexOptions.Compiled);
         public static string CaptureBoundDirectiveID(string value)
         {
@@ -23,7 +23,7 @@ namespace Xeora.Web.Directives
             return string.Empty;
         }
 
-        private static Regex _DirectiveIDRegEx =
+        private static readonly Regex _DirectiveIDRegEx =
             new Regex("[\\/\\.\\w\\-]+", RegexOptions.Compiled);
         public static string CaptureDirectiveID(string rawValue)
         {
@@ -38,7 +38,7 @@ namespace Xeora.Web.Directives
             return string.Empty;
         }
 
-        private static Regex _ControlParametersRegEx =
+        private static readonly Regex _ControlParametersRegEx =
             new Regex("\\(((\\|)?(([#]+|[\\^\\-\\+\\*\\~])?([0-9_a-zA-Z]+)|\\=[\\S]*|@([#]+|[\\-])?([0-9_a-zA-Z]+\\.)[\\.0-9_a-zA-Z]+)?)+\\)", RegexOptions.Compiled);
         public static string[] CaptureControlParameters(string value)
         {
@@ -72,7 +72,7 @@ namespace Xeora.Web.Directives
             return int.Parse(match.Groups["index"].Value);
         }
 
-        private static Regex _DirectiveTypeRegEx =
+        private static readonly Regex _DirectiveTypeRegEx =
             new Regex("\\$(((?<DirectiveType>\\w)(\\#\\d+(\\+)?)?(\\[[\\.\\w\\-]+\\])?)|(?<DirectiveType>\\w+))\\:", RegexOptions.Compiled);
         public static DirectiveTypes CaptureDirectiveType(string rawValue)
         {
@@ -103,6 +103,8 @@ namespace Xeora.Web.Directives
                         return DirectiveTypes.InLineStatement;
                     case "H":
                         return DirectiveTypes.UpdateBlock;
+                    case "E":
+                        return DirectiveTypes.PermissionBlock;
                     case "XF":
                         return DirectiveTypes.EncodedExecution;
                     case "MB":

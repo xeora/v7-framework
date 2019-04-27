@@ -41,6 +41,15 @@ namespace Xeora.Web.Basics
         Mapping.ResolutionResult ResolveURL(string requestFilePath);
 
         /// <summary>
+        /// EnsurePermission is called when the part of the code is enclose with EP directive
+        /// permissionKey is the key defined customely. Function result will decide if
+        /// the enclosed code should be rendered or not
+        /// </summary>
+        /// <param name="permissionKey">Permission Key defined customely</param>
+        /// <returns>Return Permission Status</returns>
+        PermissionResult EnsurePermission(string permissionKey);
+
+        /// <summary>
         /// Translate is called when translation id is not found in language files
         /// If you have any dynamic translation definitions, do it in this function and return the result.
         /// </summary>

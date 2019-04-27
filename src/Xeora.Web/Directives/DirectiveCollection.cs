@@ -179,7 +179,19 @@ namespace Xeora.Web.Directives
                     }
                 }
                 else
-                    directive.Parse();
+                {
+                    switch (directive.Type)
+                    {
+                        case DirectiveTypes.PermissionBlock:
+                            directive.Render(directive.Parent?.UniqueID);
+
+                            break;
+                        default:
+                            directive.Parse();
+
+                            break;
+                    }
+                }
 
                 DirectiveCollection children =
                     ((IHasChildren)directive).Children;
