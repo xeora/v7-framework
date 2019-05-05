@@ -15,7 +15,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             this._Settings = settings;
         }
 
-        public bool Searchable => false;
+        public DirectiveCollection Children => null;
 
         public void Parse()
         { }

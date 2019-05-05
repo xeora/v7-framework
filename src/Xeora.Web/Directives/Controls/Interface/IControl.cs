@@ -2,7 +2,7 @@
 {
     public interface IControl
     {
-        bool Searchable { get; }
+        DirectiveCollection Children { get; }
 
         void Parse();
         void Render(string requesterUniqueID);

@@ -7,7 +7,7 @@ using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives.Elements
 {
-    public class Control : Directive, INamable, IBoundable, ILevelable
+    public class Control : Directive, INamable, IBoundable, ILevelable, IHasChildren
     {
         private readonly string _RawValue;
         private IControl _Control;
@@ -109,8 +109,10 @@ namespace Xeora.Web.Directives.Elements
         public LevelingInfo Leveling { get; private set; }
         public new ControlTypes Type { get; private set; }
 
-        public override bool Searchable => this._Control.Searchable;
+        public override bool Searchable => this._Control.Children != null;
         public override bool CanAsync => false;
+
+        public DirectiveCollection Children => this._Control.Children;
 
         public RenderBag Bag { get; private set; }
 

@@ -10,7 +10,7 @@ namespace Xeora.Web.Directives.Controls.Elements
         public Unknown(Control parent) =>
             this._Parent = parent;
 
-        public bool Searchable => false;
+        public DirectiveCollection Children => null;
 
         public void Parse()
         { }

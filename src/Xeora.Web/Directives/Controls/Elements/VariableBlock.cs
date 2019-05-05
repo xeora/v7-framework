@@ -3,7 +3,7 @@ using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives.Controls.Elements
 {
-    public class VariableBlock : IControl
+    public class VariableBlock : IControl, IHasChildren
     {
         private int _SelectedContent = -1;
 
@@ -22,7 +22,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             this._Settings = settings;
         }
 
-        public bool Searchable => true;
+        public DirectiveCollection Children => this._Children;
 
         public void Parse()
         {
