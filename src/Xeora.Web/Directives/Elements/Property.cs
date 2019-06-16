@@ -34,6 +34,20 @@ namespace Xeora.Web.Directives.Elements
                             case '-':
                             case '+':
                             case '=':
+                            case '#':
+                                break;
+                            case '@':
+                                switch (this._RawValue[1])
+                                {
+                                    case '-':
+                                    case '#':
+                                        break;
+                                    default:
+                                        this._CanAsync = false;
+
+                                        break;
+                                }
+
                                 break;
                             default:
                                 this._CanAsync = false;
@@ -419,25 +433,10 @@ namespace Xeora.Web.Directives.Elements
         {
             do
             {
-                do
-                {
-                    directive = directive.Parent;
-
-                    if (directive == null)
-                        return;
-
-                    if (directive is Control && ((Control)directive).Type == Basics.Domain.Control.ControlTypes.DataList)
-                        break;
-
-                    if (directive is Control && ((Control)directive).Type == Basics.Domain.Control.ControlTypes.VariableBlock)
-                        break;
-
-                    if (directive is MessageBlock)
-                        break;
-                } while(true);
+                directive = directive.Parent;
 
                 searchItemKey = searchItemKey.Substring(1);
-            } while (searchItemKey.IndexOf("#") > -1);
+            } while (searchItemKey.IndexOf("#", StringComparison.InvariantCulture) == 0);
         }
 
         private string CleanHTMLTags(string content, string[] cleaningTags)
