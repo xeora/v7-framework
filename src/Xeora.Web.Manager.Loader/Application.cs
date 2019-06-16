@@ -8,6 +8,7 @@ namespace Xeora.Web.Manager
 {
     public class Application
     {
+        private static object _PrepareLock = new object();
         private readonly List<string> _AssemblyPaths;
         private LibraryExecuter _LibraryExecuter;
 
@@ -45,8 +46,11 @@ namespace Xeora.Web.Manager
             string applicationKey =
                 string.Format("KEY-{0}_{1}", Loader.Current.Path, executableName);
 
-            if (!Application._ApplicationCache.TryGetValue(applicationKey, out Application application))
+            lock (Application._PrepareLock)
             {
+                if (Application._ApplicationCache.TryGetValue(applicationKey, out Application application))
+                    return application;
+                
                 application = new Application(executableName);
                 application.AddSearchPath(
                     Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
@@ -57,9 +61,9 @@ namespace Xeora.Web.Manager
 
                 if (!Application._ApplicationCache.TryAdd(applicationKey, application))
                     throw new OutOfMemoryException();
-            }
 
-            return application;
+                return application;
+            }
         }
 
         public static void Dispose()
