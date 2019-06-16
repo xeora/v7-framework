@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Xeora.Web.Basics;
 using Xeora.Web.Directives.Elements;
@@ -11,7 +10,6 @@ namespace Xeora.Web.Directives
 {
     public class DirectiveCollection : List<IDirective>
     {
-        private readonly Dictionary<int, bool> _Checked;
         private readonly ConcurrentQueue<int> _Queued;
 
         private readonly IMother _Mother;
@@ -19,15 +17,11 @@ namespace Xeora.Web.Directives
 
         public DirectiveCollection(IMother mother, IDirective parent)
         {
-            this._Checked = new Dictionary<int, bool>();
             this._Queued = new ConcurrentQueue<int>();
 
             this._Mother = mother;
             this._Parent = parent;
         }
-
-        public void OverrideParent(IDirective parent) =>
-            this._Parent = parent;
 
         public new void Add(IDirective item)
         {
@@ -51,38 +45,29 @@ namespace Xeora.Web.Directives
         {
             string currentHandlerID = Helpers.CurrentHandlerID;
 
-            while(this._Queued.TryDequeue(out int index))
+            List<Task> tasks = new List<Task>();
+
+            while (this._Queued.TryDequeue(out int index))
             {
-                switch (this[index].Status)
+                IDirective directive = this[index];
+
+                if (!directive.CanAsync)
                 {
-                    case RenderStatus.None:
-                        if (this._Checked.ContainsKey(index))
-                            goto case RenderStatus.Rendering;
-
-                        this._Checked[index] = true;
-
-                        break;
-                    case RenderStatus.Rendering:
-                        this._Queued.Enqueue(index);
-
-                        continue;
-                    case RenderStatus.Rendered:
-                        continue;
-                }
-
-                Task renderTask = 
-                    new Task(() => this.Render(currentHandlerID, requesterUniqueID, this[index]));
-
-                if (this[index].CanAsync)
-                {
-                    this._Queued.Enqueue(index);
-                    renderTask.Start();
-
+                    this.Render(currentHandlerID, requesterUniqueID, directive);
                     continue;
                 }
 
-                renderTask.RunSynchronously();
+                tasks.Add(
+                    Task.Factory.StartNew(
+                        (d) => this.Render(currentHandlerID, requesterUniqueID, (IDirective)d),
+                        directive,
+                        TaskCreationOptions.DenyChildAttach
+                    )
+                );
             }
+
+            if (tasks.Count > 0)
+                Task.WaitAll(tasks.ToArray());
 
             StringBuilder resultContainer = new StringBuilder();
 
