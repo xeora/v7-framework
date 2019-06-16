@@ -23,36 +23,39 @@ namespace Xeora.Web.Global
 
         public void Reset(string[] keys)
         {
-            this._ArgumentIndexes.Clear();
-            this._ValueList = new object[] { };
+            this.Reset();
 
-            if (keys != null)
-            {
-                foreach (string key in keys)
-                    this.AppendKey(key);
-            }
+            if (keys == null)
+                return;
+            
+            foreach (string key in keys)
+                this.AppendKey(key);
         }
 
         public void Reset(object[] values)
         {
-            this._ValueList = new object[this._ValueList.Length];
+            this._ValueList = new object[this._ArgumentIndexes.Count];
 
-            if (values != null)
-            {
-                if (values.Length != this._ValueList.Length)
-                    throw new ArgumentOutOfRangeException(SystemMessages.ARGUMENT_KEYVALUELENGTHMATCH);
+            if (values == null)
+                return;
+            
+            if (values.Length > this._ValueList.Length)
+                throw new ArgumentOutOfRangeException(SystemMessages.ARGUMENT_KEYVALUELENGTHMATCH);
 
-                this._ValueList = values;
-            }
+            Array.Copy(values, 0, this._ValueList, 0, values.Length);
         }
 
         public void Replace(ArgumentCollection aIC)
         {
-            if (aIC != null)
-            {
-                this._ArgumentIndexes = aIC._ArgumentIndexes;
-                this._ValueList = aIC._ValueList;
-            }
+            if (aIC == null)
+                return;
+
+            this._ArgumentIndexes.Clear();
+            foreach (KeyValuePair<string, int> pair in aIC._ArgumentIndexes)
+                this._ArgumentIndexes[pair.Key] = pair.Value;
+
+            this._ValueList = new object[this._ArgumentIndexes.Count];
+            Array.Copy(aIC._ValueList, 0, this._ValueList, 0, aIC._ValueList.Length);
         }
 
         public void AppendKey(string key) =>
@@ -60,19 +63,24 @@ namespace Xeora.Web.Global
 
         public void AppendKeyWithValue(string key, object value)
         {
-            if (!string.IsNullOrEmpty(key) && 
-                !this._ArgumentIndexes.ContainsKey(key))
+            if (string.IsNullOrEmpty(key) ||
+                this._ArgumentIndexes.ContainsKey(key))
             {
-                // Add Key
-                this._ArgumentIndexes.Add(key, this._ArgumentIndexes.Count);
+                this[key] = value;
 
-                // Add Value
-                Array.Resize<object>(ref this._ValueList, this._ValueList.Length + 1);
-                this._ValueList[this._ValueList.Length - 1] = value;
+                return;
             }
-            else
-                throw new ArgumentException(SystemMessages.ARGUMENT_EXISTS);
+            
+            // Add Key
+            this._ArgumentIndexes.Add(key, this._ArgumentIndexes.Count);
+
+            // Add Value
+            Array.Resize<object>(ref this._ValueList, this._ValueList.Length + 1);
+            this._ValueList[this._ValueList.Length - 1] = value;
         }
+
+        public bool ContainsKey(string key) =>
+            this._ArgumentIndexes.ContainsKey(key);
 
         public object this[string key]
         {
