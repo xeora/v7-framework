@@ -38,7 +38,7 @@ namespace Xeora.Web.Service.Context
 
         private void PushHeaders(Net.NetworkStream streamEnclosure)
         {
-            this.Header.AddOrUpdate("Date", DateTime.Now.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", new CultureInfo("en-US")));
+            this.Header.AddOrUpdate("Date", DateTime.Now.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", CultureInfo.InvariantCulture));
 
             if (string.IsNullOrWhiteSpace(this.Header["Content-Type"]))
                 this.Header.AddOrUpdate("Content-Type", "text/html");
@@ -93,7 +93,7 @@ namespace Xeora.Web.Service.Context
             sB.Append("HTTP/1.1 302 Object Moved");
             sB.Append(NEWLINE);
 
-            sB.AppendFormat("Date: {0}", DateTime.Now.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", new CultureInfo("en-US")));
+            sB.AppendFormat("Date: {0}", DateTime.Now.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", CultureInfo.InvariantCulture));
             sB.Append(NEWLINE);
 
             sB.AppendFormat("Location: {0}", this._RedirectedURL);

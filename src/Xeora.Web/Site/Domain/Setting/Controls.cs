@@ -182,12 +182,10 @@ namespace Xeora.Web.Site.Setting
                 return security;
 
             security = new SecurityDefinition();
-            CultureInfo compareCulture =
-                new CultureInfo("en-US");
 
             do
             {
-                switch (readerSecurity.Name.ToLower(compareCulture))
+                switch (readerSecurity.Name.ToLower(CultureInfo.InvariantCulture))
                 {
                     case "registeredgroup":
                         security.RegisteredGroup = readerSecurity.Value;

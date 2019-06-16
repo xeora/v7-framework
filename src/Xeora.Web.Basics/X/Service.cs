@@ -224,7 +224,7 @@ namespace Xeora.Web.Basics.X
                             return Convert.ChangeType(
                                 xPathIter.Current.Value,
                                 xTypeObject,
-                                new System.Globalization.CultureInfo("en-US")
+                                System.Globalization.CultureInfo.InvariantCulture
                             );
                         }
 

@@ -24,7 +24,7 @@ namespace Xeora.Web.Service.Context
             if (!this.Expires.Equals(DateTime.MinValue))
             {
                 string expires =
-                    this.Expires.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", new CultureInfo("en-US"));
+                    this.Expires.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", CultureInfo.InvariantCulture);
                 rCookie = string.Format("{0}; expires={1}", rCookie, expires);
             }
 

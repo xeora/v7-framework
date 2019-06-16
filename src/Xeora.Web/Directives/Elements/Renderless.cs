@@ -46,7 +46,7 @@ namespace Xeora.Web.Directives.Elements
 
                 workingValue.Append(this._RawValue.Substring(lastIndex, matchItem.Index - lastIndex));
 
-                if (matchItem.Value.IndexOf("~") > -1)
+                if (matchItem.Value.IndexOf("~", System.StringComparison.InvariantCulture) > -1)
                     workingValue.AppendFormat("{0}{1}", matchItem.Value.Substring(0, 1), applicationRoot);
                 else
                     workingValue.AppendFormat("{0}{1}", matchItem.Value.Substring(0, 1), virtualRoot);

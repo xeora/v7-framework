@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -56,7 +56,4 @@
     <ProjectReference Include="..\Xeora.Web.Basics\Xeora.Web.Basics.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="AssemblyLoader.cs" />
-  </ItemGroup>
 </Project>

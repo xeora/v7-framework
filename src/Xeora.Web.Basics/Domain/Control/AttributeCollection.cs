@@ -54,11 +54,10 @@ namespace Xeora.Web.Basics.Domain.Control
         public override string ToString()
         {
             StringBuilder rSB = new StringBuilder();
-            CultureInfo compareCulture = new CultureInfo("en-US");
 
             foreach (Attribute aI in this)
             {
-                if (compareCulture.CompareInfo.Compare(aI.Key, "key", CompareOptions.IgnoreCase) != 0)
+                if (string.Compare(aI.Key, "key", System.StringComparison.InvariantCultureIgnoreCase) != 0)
                 {
                     if (aI.Key == null || aI.Key.Trim().Length == 0)
                         rSB.AppendFormat(" {0}", aI.Value);
