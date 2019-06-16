@@ -39,6 +39,10 @@ namespace Xeora.Web.Directives.Elements
 
             this._Children = new DirectiveCollection(this.Mother, this);
 
+            // PartialCache needs to link ContentArguments of its parent.
+            if (this.Parent != null)
+                this.Arguments.Replace(this.Parent.Arguments);
+
             this.Mother.RequestParsing(this._Contents.Parts[0], ref this._Children, this.Arguments);
         }
 
