@@ -23,7 +23,7 @@ namespace Xeora.Web.Directives.Controls.Elements
         {
             this.Parse();
 
-            // Textarea Control does not have any ContentArguments, That's why it copies it's parent Arguments
+            // Textarea needs to link ContentArguments of its parent.
             if (this._Parent.Parent != null)
                 this._Parent.Arguments.Replace(this._Parent.Parent.Arguments);
 

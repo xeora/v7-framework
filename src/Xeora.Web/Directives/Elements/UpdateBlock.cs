@@ -35,7 +35,7 @@ namespace Xeora.Web.Directives.Elements
 
             string blockContent = this._Contents.Parts[0];
 
-            if (blockContent.IndexOf(RENDER_ON_REQUEST_MARKER) == 0)
+            if (blockContent.IndexOf(RENDER_ON_REQUEST_MARKER, System.StringComparison.InvariantCulture) == 0)
             {
                 if (!this.Mother.UpdateBlockIDStack.Contains(this.DirectiveID))
                 {
@@ -46,6 +46,10 @@ namespace Xeora.Web.Directives.Elements
 
                 blockContent = blockContent.Remove(0, RENDER_ON_REQUEST_MARKER.Length);
             }
+
+            // UpdateBlock needs to link ContentArguments of its parent.
+            if (this.Parent != null)
+                this.Arguments.Replace(this.Parent.Arguments);
 
             this.Mother.RequestParsing(blockContent, ref this._Children, this.Arguments);
         }

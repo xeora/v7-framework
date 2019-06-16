@@ -27,7 +27,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             if (this._Parent.Mother.UpdateBlockIDStack.Count > 0)
                 this._Settings.Updates.Setup(this._Parent.Mother.UpdateBlockIDStack.Peek());
 
-            // Textbox Control does not have any ContentArguments, That's why it copies it's parent Arguments
+            // Textbox needs to link ContentArguments of its parent.
             if (this._Parent.Parent != null)
                 this._Parent.Arguments.Replace(this._Parent.Parent.Arguments);
 

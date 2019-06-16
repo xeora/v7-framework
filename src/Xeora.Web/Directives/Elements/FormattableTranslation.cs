@@ -32,7 +32,7 @@ namespace Xeora.Web.Directives.Elements
 
             this._Children = new DirectiveCollection(this.Mother, this);
 
-            // FormattableTranslation does not have any ContentArguments, That's why it copies it's parent Arguments
+            // FormattableTranslation needs to link ContentArguments of its parent.
             if (this.Parent != null)
                 this.Arguments.Replace(this.Parent.Arguments);
 

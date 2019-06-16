@@ -53,7 +53,7 @@ namespace Xeora.Web.Directives.Elements
             string templateContent =
                 this.LoadTemplate(ref workingInstance);
 
-            // Template does not have any Arguments, That's why it copies it's parent Arguments
+            // Template needs to link ContentArguments of its parent.
             if (this.Parent != null)
                 this.Arguments.Replace(this.Parent.Arguments);
 

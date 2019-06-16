@@ -60,7 +60,7 @@ namespace Xeora.Web.Directives.Elements
             if (string.IsNullOrEmpty(statementContent))
                 return;
 
-            // PermissionBlock does not have any ContentArguments, That's why it copies it's parent Arguments
+            // PermissionBlock needs to link ContentArguments of its parent.
             if (this.Parent != null)
                 this.Arguments.Replace(this.Parent.Arguments);
 
