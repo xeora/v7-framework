@@ -111,6 +111,8 @@ namespace Xeora.Web.Directives
                         return DirectiveTypes.MessageBlock;
                     case "PC":
                         return DirectiveTypes.PartialCache;
+                    case "AG":
+                        return DirectiveTypes.AsyncGroup;
                 }
             }
 

@@ -2,6 +2,7 @@
 {
     public enum DirectiveTypes
     {
+        AsyncGroup,
         Control,
         EncodedExecution,
         Execution,

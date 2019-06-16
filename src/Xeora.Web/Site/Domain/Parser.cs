@@ -413,6 +413,11 @@ namespace Xeora.Web.Site
                         new FormattableTranslation(rawValue, null));
 
                     break;
+                case DirectiveTypes.AsyncGroup:
+                    this._ResultHandler.Invoke(
+                        new AsyncGroup(rawValue, null));
+
+                    break;
             }
         }
 
