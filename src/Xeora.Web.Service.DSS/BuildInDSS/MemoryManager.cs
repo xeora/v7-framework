@@ -6,6 +6,7 @@ namespace Xeora.Web.Service.DSS
 {
     public class MemoryManager : IDSSManager
     {
+        private object _ReservationLock;
         private readonly ConcurrentDictionary<string, Basics.DSS.IDSS> _ReservationTable;
 
         private const short PRUNE_INTERVAL = 10 * 60; // 10 minutes
@@ -14,6 +15,7 @@ namespace Xeora.Web.Service.DSS
 
         public MemoryManager()
         {
+            this._ReservationLock = new object();
             this._ReservationTable = new ConcurrentDictionary<string, Basics.DSS.IDSS>();
 
 			this._PruneLock = new object();
@@ -24,10 +26,13 @@ namespace Xeora.Web.Service.DSS
 
         public void Reserve(string uniqueID, int reservationTimeout, out Basics.DSS.IDSS reservationObject)
         {
-            if (this.Get(uniqueID, out reservationObject))
-                return;
+            lock (this._ReservationLock)
+            {
+                if (this.Get(uniqueID, out reservationObject))
+                    return;
 
-            this.Create(uniqueID, reservationTimeout, out reservationObject);
+                this.Create(uniqueID, reservationTimeout, out reservationObject);
+            }
         }
 
         private bool Get(string uniqueID, out Basics.DSS.IDSS reservationObject)
@@ -60,7 +65,7 @@ namespace Xeora.Web.Service.DSS
             reservationObject = new MemoryDSS(uniqueID, reservationTimeout);
 
             if (!this._ReservationTable.TryAdd(uniqueID, reservationObject))
-                throw new ReservationCreationException();
+                throw new OutOfMemoryException();
         }
 
         private void PruneReservations(object sender, EventArgs args)
