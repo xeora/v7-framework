@@ -102,13 +102,12 @@ namespace Xeora.Web.Service
                     TcpClient remoteClient =
                         await this._TcpListener.AcceptTcpClientAsync();
 
-                    System.Threading.ThreadPool.QueueUserWorkItem(
-                        (state) => ((Connection)state).Process(),
-                        new Connection(
-                            ref remoteClient, 
-                            this._Certificate
-                        )
+                    Task connectionTask =
+                        new Task((c) => ((Connection)c).Process(),
+                        new Connection(ref remoteClient, this._Certificate),
+                        TaskCreationOptions.DenyChildAttach
                     );
+                    connectionTask.Start();
                 }
                 catch (InvalidOperationException)
                 {
