@@ -38,23 +38,6 @@ namespace Xeora.Web.Directives.Controls.Elements
 
         public void Render(string requesterUniqueID)
         {
-            // Call Related Function and Exam It
-            IDirective leveledDirective = this._Parent;
-            int level = this._Parent.Leveling.Level;
-
-            do
-            {
-                if (level == 0)
-                    break;
-
-                leveledDirective = leveledDirective.Parent;
-
-                if (leveledDirective is Renderless)
-                    leveledDirective = leveledDirective.Parent;
-
-                level -= 1;
-            } while (leveledDirective != null);
-
             // Execution preparation should be done at the same level with it's parent. Because of that, send parent as parameters
             this._Settings.Bind.Parameters.Prepare(
                 (parameter) =>
@@ -72,7 +55,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                         query = this._Parameters[paramIndex];
                     }
 
-                    return DirectiveHelper.RenderProperty(leveledDirective.Parent, query, leveledDirective.Parent.Arguments, requesterUniqueID);
+                    return DirectiveHelper.RenderProperty(this._Parent.Parent, query, this._Parent.Parent.Arguments, requesterUniqueID);
                 }
             );
 
@@ -101,12 +84,6 @@ namespace Xeora.Web.Directives.Controls.Elements
                 }
 
                 return;
-            }
-
-            if (!this._Parent.Leveling.ExecutionOnly)
-            {
-                this._Parent.Arguments.Replace(leveledDirective.Arguments);
-                this._Children.OverrideParent(leveledDirective);
             }
 
             if (invokeResult.Result != null)

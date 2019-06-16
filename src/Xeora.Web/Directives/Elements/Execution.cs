@@ -69,22 +69,20 @@ namespace Xeora.Web.Directives.Elements
             string[] controlValueSplitted = 
                 this._RawValue.Split(':');
 
-            // Call Related Function and Exam It
-            IDirective leveledDirective = this;
             int level = this.Leveling.Level;
+            IDirective leveledDirective = this;
 
-            do
+            while (level > 0)
             {
-                if (level == 0)
-                    break;
-
                 leveledDirective = leveledDirective.Parent;
+                level--;
 
-                if (leveledDirective is Renderless)
-                    leveledDirective = leveledDirective.Parent;
-
-                level -= 1;
-            } while (leveledDirective != null);
+                if (leveledDirective == null)
+                {
+                    leveledDirective = this;
+                    break;
+                }
+            }
 
             Basics.Execution.Bind bind =
                 Basics.Execution.Bind.Make(string.Join(":", controlValueSplitted, 1, controlValueSplitted.Length - 1));

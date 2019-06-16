@@ -41,26 +41,9 @@ namespace Xeora.Web.Directives.Controls.Elements
 
         public void Render(string requesterUniqueID)
         {
-            // ConditionalStatment does not have any ContentArguments, That's why it copies it's parent Arguments
+            // ConditionalStatement needs to link ContentArguments of its parent.
             if (this._Parent.Parent != null)
                 this._Parent.Arguments.Replace(this._Parent.Parent.Arguments);
-
-            // Call Related Function and Exam It
-            IDirective leveledDirective = this._Parent;
-            int level = this._Parent.Leveling.Level;
-
-            do
-            {
-                if (level == 0)
-                    break;
-
-                leveledDirective = leveledDirective.Parent;
-
-                if (leveledDirective is Renderless)
-                    leveledDirective = leveledDirective.Parent;
-
-                level -= 1;
-            } while (leveledDirective != null);
 
             // Execution preparation should be done at the same level with it's parent. Because of that, send parent as parameters
             this._Settings.Bind.Parameters.Prepare(
@@ -79,7 +62,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                         query = this._Parameters[paramIndex];
                     }
 
-                    return DirectiveHelper.RenderProperty(leveledDirective.Parent, query, leveledDirective.Parent.Arguments, requesterUniqueID);
+                    return DirectiveHelper.RenderProperty(this._Parent.Parent, query, this._Parent.Parent.Arguments, requesterUniqueID);
                 }
             );
 
@@ -99,12 +82,6 @@ namespace Xeora.Web.Directives.Controls.Elements
                     if (string.IsNullOrEmpty(this._Contents.Parts[0]))
                         break;
 
-                    if (!this._Parent.Leveling.ExecutionOnly)
-                    {
-                        this._Parent.Arguments.Replace(leveledDirective.Arguments);
-                        this._Children.OverrideParent(leveledDirective);
-                    }
-
                     this._SelectedContent = 0;
                     this.Parse();
 
@@ -115,12 +92,6 @@ namespace Xeora.Web.Directives.Controls.Elements
 
                     if (string.IsNullOrEmpty(this._Contents.Parts[1]))
                         break;
-
-                    if (!this._Parent.Leveling.ExecutionOnly)
-                    {
-                        this._Parent.Arguments.Replace(leveledDirective.Arguments);
-                        this._Children.OverrideParent(leveledDirective);
-                    }
 
                     this._SelectedContent = 1;
                     this.Parse();

@@ -20,8 +20,6 @@ namespace Xeora.Web.Directives.Elements
             this.DirectiveID = DirectiveHelper.CaptureDirectiveID(rawValue);
             this.BoundDirectiveID = DirectiveHelper.CaptureBoundDirectiveID(rawValue);
             this.Leveling = LevelingInfo.Create(rawValue);
-
-            this.Bag = new RenderBag(this);
         }
 
         public void Load()
@@ -142,6 +140,27 @@ namespace Xeora.Web.Directives.Elements
                     return;
                 }
             }
+
+            int level = this.Leveling.Level;
+            IDirective leveledParentDirective = this.Parent;
+
+            while (level > 0)
+            {
+                leveledParentDirective = leveledParentDirective.Parent;
+                level--;
+
+                if (leveledParentDirective == null)
+                {
+                    leveledParentDirective = this.Parent;
+                    break;
+                }
+            }
+
+            if (!this.Leveling.ExecutionOnly)
+                this.Arguments.Replace(leveledParentDirective.Arguments);
+
+            this.Parent = leveledParentDirective;
+            this.Bag = new RenderBag(leveledParentDirective);
 
             if (this.Status != RenderStatus.None)
                 return;
