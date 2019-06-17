@@ -23,6 +23,7 @@ namespace Xeora.Web.Directives.Controls.Elements
         }
 
         public DirectiveCollection Children => this._Children;
+        public bool LinkArguments => true;
 
         public void Parse()
         {
@@ -41,11 +42,6 @@ namespace Xeora.Web.Directives.Controls.Elements
 
         public void Render(string requesterUniqueID)
         {
-            // ConditionalStatement needs to link ContentArguments of its parent.
-            if (this._Parent.Parent != null)
-                this._Parent.Arguments.Replace(this._Parent.Parent.Arguments);
-
-            // Execution preparation should be done at the same level with it's parent. Because of that, send parent as parameters
             this._Settings.Bind.Parameters.Prepare(
                 (parameter) =>
                 {
@@ -62,7 +58,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                         query = this._Parameters[paramIndex];
                     }
 
-                    return DirectiveHelper.RenderProperty(this._Parent.Parent, query, this._Parent.Parent.Arguments, requesterUniqueID);
+                    return DirectiveHelper.RenderProperty(this._Parent, query, this._Parent.Arguments, requesterUniqueID);
                 }
             );
 

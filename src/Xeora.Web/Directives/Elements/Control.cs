@@ -162,6 +162,9 @@ namespace Xeora.Web.Directives.Elements
             this.Parent = leveledParentDirective;
             this.Bag = new RenderBag(leveledParentDirective);
 
+            if (this._Control.LinkArguments && this.Parent != null)
+                this.Arguments.Replace(this.Parent.Arguments);
+
             if (this.Status != RenderStatus.None)
                 return;
             this.Status = RenderStatus.Rendering;

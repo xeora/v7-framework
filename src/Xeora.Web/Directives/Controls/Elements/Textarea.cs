@@ -15,6 +15,7 @@ namespace Xeora.Web.Directives.Controls.Elements
         }
 
         public DirectiveCollection Children => null;
+        public bool LinkArguments => true;
 
         public void Parse()
         { }
@@ -22,10 +23,6 @@ namespace Xeora.Web.Directives.Controls.Elements
         public void Render(string requesterUniqueID)
         {
             this.Parse();
-
-            // Textarea needs to link ContentArguments of its parent.
-            if (this._Parent.Parent != null)
-                this._Parent.Arguments.Replace(this._Parent.Parent.Arguments);
 
             this._Parent.Bag.Add("content", this._Settings.Content, this._Parent.Arguments);
             foreach (Attribute item in this._Settings.Attributes)

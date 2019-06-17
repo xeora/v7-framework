@@ -16,6 +16,7 @@ namespace Xeora.Web.Directives.Controls.Elements
         }
 
         public DirectiveCollection Children => null;
+        public bool LinkArguments => true;
 
         public void Parse()
         { }
@@ -26,10 +27,6 @@ namespace Xeora.Web.Directives.Controls.Elements
 
             if (this._Parent.Mother.UpdateBlockIDStack.Count > 0)
                 this._Settings.Updates.Setup(this._Parent.Mother.UpdateBlockIDStack.Peek());
-
-            // ImageButton needs to link ContentArguments of its parent.
-            if (this._Parent.Parent != null)
-                this._Parent.Arguments.Replace(this._Parent.Parent.Arguments);
 
             this._Parent.Bag.Add("source", this._Settings.Source, this._Parent.Arguments);
             foreach (Attribute item in this._Settings.Attributes)

@@ -16,6 +16,7 @@ namespace Xeora.Web.Directives.Controls.Elements
         }
 
         public DirectiveCollection Children => null;
+        public bool LinkArguments => true;
 
         public void Parse()
         { }
@@ -27,15 +28,11 @@ namespace Xeora.Web.Directives.Controls.Elements
             if (this._Parent.Mother.UpdateBlockIDStack.Count > 0)
                 this._Settings.Updates.Setup(this._Parent.Mother.UpdateBlockIDStack.Peek());
 
-            // LinkButton needs to link ContentArguments of its parent.
-            if (this._Parent.Parent != null)
-                this._Parent.Arguments.Replace(this._Parent.Parent.Arguments);
-
             this._Parent.Bag.Add("text", this._Settings.Text, this._Parent.Arguments);
             foreach (Attribute item in this._Settings.Attributes)
                 this._Parent.Bag.Add(item.Key, item.Value, this._Parent.Arguments);
 
-            // href attribute is disabled always, use url attribute instand of...
+            // href attribute is disabled always, use url attribute instead of...
             this._Settings.Attributes.Remove("href");
             this._Settings.Attributes.Remove("value");
 
@@ -43,12 +40,12 @@ namespace Xeora.Web.Directives.Controls.Elements
 
             if (!string.IsNullOrEmpty(parsedURL))
             {
-                if (parsedURL.IndexOf("~/") == 0)
+                if (parsedURL.IndexOf("~/", System.StringComparison.InvariantCulture) == 0)
                 {
                     parsedURL = parsedURL.Remove(0, 2);
                     parsedURL = parsedURL.Insert(0, Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation);
                 }
-                else if (parsedURL.IndexOf("¨/") == 0)
+                else if (parsedURL.IndexOf("¨/", System.StringComparison.InvariantCulture) == 0)
                 {
                     parsedURL = parsedURL.Remove(0, 2);
                     parsedURL = parsedURL.Insert(0, Configurations.Xeora.Application.Main.VirtualRoot);

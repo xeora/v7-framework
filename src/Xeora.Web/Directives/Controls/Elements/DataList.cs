@@ -26,6 +26,7 @@ namespace Xeora.Web.Directives.Controls.Elements
         }
 
         public DirectiveCollection Children => null;
+        public bool LinkArguments => false;
 
         public void Parse()
         {
