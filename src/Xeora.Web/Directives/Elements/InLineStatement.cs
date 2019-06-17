@@ -184,7 +184,7 @@ namespace Xeora.Web.Directives.Elements
 
                 foreach (string key in subDirectives.Keys)
                 {
-                    int dIdx = directives.IndexOf(key);
+                    int dIdx = directives.IndexOf(key, System.StringComparison.InvariantCulture);
 
                     if (dIdx == -1)
                         continue;
@@ -199,11 +199,11 @@ namespace Xeora.Web.Directives.Elements
         {
             string paramMarker = "!PARAMS(";
 
-            int openBracketIdx = directives.IndexOf(paramMarker);
+            int openBracketIdx = directives.IndexOf(paramMarker, System.StringComparison.InvariantCulture);
             if (openBracketIdx == -1)
                 return null;
 
-            int closeBracketIdx = directives.LastIndexOf(")");
+            int closeBracketIdx = directives.LastIndexOf(")", System.StringComparison.InvariantCulture);
             if (closeBracketIdx == -1)
                 throw new Exception.GrammerException();
             closeBracketIdx++;
@@ -227,7 +227,7 @@ namespace Xeora.Web.Directives.Elements
 
             foreach (string paramDef in paramDefs)
                 parameters.Add(
-                    DirectiveHelper.RenderProperty(this.Parent, paramDef, this.Parent.Arguments, requesterUniqueID));
+                    DirectiveHelper.RenderProperty(this, paramDef, this.Arguments, requesterUniqueID));
 
             return parameters.ToArray();
         }

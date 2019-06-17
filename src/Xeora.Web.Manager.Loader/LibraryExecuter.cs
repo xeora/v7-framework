@@ -510,7 +510,7 @@ namespace Xeora.Web.Manager
         private object InvokeMethod(bool instanceExecute, Type assemblyObject, MethodInfo assemblyMethod, object[] functionParams)
         {
             if (!instanceExecute)
-                return assemblyMethod.Invoke(assemblyObject, BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod, null, functionParams, System.Threading.Thread.CurrentThread.CurrentCulture);
+                return assemblyMethod.Invoke(assemblyObject, BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod, null, functionParams, System.Globalization.CultureInfo.InvariantCulture);
 
             object instanceObject = null;
             lock (this._ExecutableInstances)
@@ -534,7 +534,7 @@ namespace Xeora.Web.Manager
             if (instanceObject == null)
                 return new TargetException("Execution can not be processed on null instance!");
 
-            return assemblyMethod.Invoke(instanceObject, BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod, null, functionParams, System.Threading.Thread.CurrentThread.CurrentCulture);
+            return assemblyMethod.Invoke(instanceObject, BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod, null, functionParams, System.Globalization.CultureInfo.InvariantCulture);
         }
 
         public object Invoke(Basics.Context.HttpMethod httpMethod, string[] classNames, string functionName, object[] functionParams, bool instanceExecute, ExecuterTypes executerType)

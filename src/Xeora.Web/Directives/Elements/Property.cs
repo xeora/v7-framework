@@ -19,43 +19,43 @@ namespace Xeora.Web.Directives.Elements
             this._RawValue = rawValue;
             this._CanAsync = true;
 
-            if (!string.IsNullOrEmpty(this._RawValue))
+            if (string.IsNullOrEmpty(this._RawValue))
+                return;
+            
+            switch (this._RawValue)
             {
-                switch (this._RawValue)
-                {
-                    case "DomainContents":
-                    case "PageRenderDuration":
-                        break;
-                    default:
-                        switch (this._RawValue[0])
-                        {
-                            case '^':
-                            case '~':
-                            case '-':
-                            case '+':
-                            case '=':
-                            case '#':
-                                break;
-                            case '@':
-                                switch (this._RawValue[1])
-                                {
-                                    case '-':
-                                    case '#':
-                                        break;
-                                    default:
-                                        this._CanAsync = false;
+                case "DomainContents":
+                case "PageRenderDuration":
+                    break;
+                default:
+                    switch (this._RawValue[0])
+                    {
+                        case '^':
+                        case '~':
+                        case '-':
+                        case '+':
+                        case '=':
+                        case '#':
+                            break;
+                        case '@':
+                            switch (this._RawValue[1])
+                            {
+                                case '-':
+                                case '#':
+                                    break;
+                                default:
+                                    this._CanAsync = false;
 
-                                        break;
-                                }
+                                    break;
+                            }
 
-                                break;
-                            default:
-                                this._CanAsync = false;
+                            break;
+                        default:
+                            this._CanAsync = false;
 
-                                break;
-                        }
-                        break;
-                }
+                            break;
+                    }
+                    break;
             }
         }
 
@@ -231,8 +231,10 @@ namespace Xeora.Web.Directives.Elements
 
             for (int kC = 0; kC < keys.Length; kC++)
             {
-                if (string.Compare(keys[kC], formItemKey, true) == 0)
-                    requestFileObjects.Add(Helpers.Context.Request.Body.File[keys[kC]]);
+                if (string.Compare(keys[kC], formItemKey, true) != 0)
+                    continue;
+
+                requestFileObjects.Add(Helpers.Context.Request.Body.File[keys[kC]]);
             }
             // !--
 
@@ -404,7 +406,7 @@ namespace Xeora.Web.Directives.Elements
                 return;
             }
 
-            object objectValue = null;
+            object objectValue;
             try
             {
                 for (int pC = 1; pC < objectPaths.Length; pC++)
@@ -431,12 +433,13 @@ namespace Xeora.Web.Directives.Elements
 
         private void LocateLeveledContentInfo(ref string searchItemKey, ref IDirective directive)
         {
-            do
+            searchItemKey = searchItemKey.Substring(1);
+
+            while (searchItemKey.IndexOf("#", StringComparison.InvariantCulture) == 0)
             {
                 directive = directive.Parent;
-
                 searchItemKey = searchItemKey.Substring(1);
-            } while (searchItemKey.IndexOf("#", StringComparison.InvariantCulture) == 0);
+            } 
         }
 
         private string CleanHTMLTags(string content, string[] cleaningTags)

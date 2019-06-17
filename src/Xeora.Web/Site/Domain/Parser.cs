@@ -187,7 +187,7 @@ namespace Xeora.Web.Site
         {
             string ccSearch =
                 string.Format("}}:{0}:{{", directiveID);
-            int ccIndex = line.IndexOf(ccSearch);
+            int ccIndex = line.IndexOf(ccSearch, StringComparison.InvariantCulture);
 
             if (ccIndex == -1)
                 return -1;
@@ -224,7 +224,7 @@ namespace Xeora.Web.Site
 
             for (int i = 0; i < nestedCount; i++)
             {
-                ccIndex = line.IndexOf(ccSearch, ccIndex + 1);
+                ccIndex = line.IndexOf(ccSearch, ccIndex + 1, StringComparison.InvariantCulture);
                 if (ccIndex == -1) break;
 
                 nestedCount--;
@@ -240,7 +240,7 @@ namespace Xeora.Web.Site
         {
             string ccSearch =
                 string.Format("}}:{0}$", directiveID);
-            int ccIndex = line.IndexOf(ccSearch);
+            int ccIndex = line.IndexOf(ccSearch, StringComparison.InvariantCulture);
 
             if (ccIndex == -1)
                 return -1;
@@ -277,7 +277,7 @@ namespace Xeora.Web.Site
 
             for (int i = 0; i < nestedCount; i++)
             {
-                ccIndex = line.IndexOf(ccSearch, ccIndex + 1);
+                ccIndex = line.IndexOf(ccSearch, ccIndex + 1, StringComparison.InvariantCulture);
                 if (ccIndex == -1) break;
 
                 nestedCount--;
@@ -293,7 +293,7 @@ namespace Xeora.Web.Site
         {
             string rawValue = this._SingleCache.ToString();
             int lastNewLineIndex = 
-                rawValue.LastIndexOf(Environment.NewLine);
+                rawValue.LastIndexOf(Environment.NewLine, StringComparison.InvariantCulture);
             if (lastNewLineIndex > -1)
                 rawValue = rawValue.Remove(lastNewLineIndex, Environment.NewLine.Length);
 

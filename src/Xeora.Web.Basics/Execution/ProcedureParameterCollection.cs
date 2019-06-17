@@ -60,14 +60,13 @@ namespace Xeora.Web.Basics.Execution
         public void Override(string[] parameters)
         {
             this._Parameters.Clear();
-
-            if (parameters != null)
-            {
-                for (int pC = 0; pC < parameters.Length; pC++)
-                    this._Parameters.Add(new ProcedureParameter(parameters[pC]));
-            }
-
             this.Healthy = false;
+
+            if (parameters == null)
+                return;
+            
+            for (int pC = 0; pC < parameters.Length; pC++)
+                this._Parameters.Add(new ProcedureParameter(parameters[pC]));
         }
 
         /// <summary>
@@ -76,13 +75,13 @@ namespace Xeora.Web.Basics.Execution
         /// <param name="parser">Procedure parser</param>
         public void Prepare(Func<ProcedureParameter, object> parser)
         {
-            if (parser != null)
-            {
-                foreach (ProcedureParameter parameter in this._Parameters)
-                    parameter.Value = parser.Invoke(parameter);
+            if (parser == null)
+                return;
+            
+            foreach (ProcedureParameter parameter in this._Parameters)
+                parameter.Value = parser.Invoke(parameter);
 
-                this.Healthy = true;
-            }
+            this.Healthy = true;
         }
 
         public override string ToString()

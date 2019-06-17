@@ -70,15 +70,12 @@ namespace Xeora.Web.Basics.Execution
             string[] splittedBind2 = splittedBind1[1].Split(',');
 
             string[] classes = null;
-            string procedure = null;
+            string procedure;
 
             string[] classProcSearch = splittedBind2[0].Split('.');
 
             if (classProcSearch.Length == 1)
-            {
-                classes = null;
                 procedure = classProcSearch[0];
-            }
             else
             {
                 classes = new string[classProcSearch.Length - 1];

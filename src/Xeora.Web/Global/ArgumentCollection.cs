@@ -6,19 +6,18 @@ namespace Xeora.Web.Global
     public class ArgumentCollection
     {
         private Dictionary<string, int> _ArgumentIndexes;
-        private object[] _ValueList;
 
         public ArgumentCollection()
         {
             this._ArgumentIndexes = 
                 new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
-            this._ValueList = new object[] { };
+            this.Values = new object[] { };
         }
 
         public void Reset()
         {
             this._ArgumentIndexes.Clear();
-            this._ValueList = new object[] { };
+            this.Values = new object[] { };
         }
 
         public void Reset(string[] keys)
@@ -34,15 +33,15 @@ namespace Xeora.Web.Global
 
         public void Reset(object[] values)
         {
-            this._ValueList = new object[this._ArgumentIndexes.Count];
+            this.Values = new object[this._ArgumentIndexes.Count];
 
             if (values == null)
                 return;
             
-            if (values.Length > this._ValueList.Length)
+            if (values.Length > this.Values.Length)
                 throw new ArgumentOutOfRangeException(SystemMessages.ARGUMENT_KEYVALUELENGTHMATCH);
 
-            Array.Copy(values, 0, this._ValueList, 0, values.Length);
+            Array.Copy(values, 0, this.Values, 0, values.Length);
         }
 
         public void Replace(ArgumentCollection aIC)
@@ -54,8 +53,8 @@ namespace Xeora.Web.Global
             foreach (KeyValuePair<string, int> pair in aIC._ArgumentIndexes)
                 this._ArgumentIndexes[pair.Key] = pair.Value;
 
-            this._ValueList = new object[this._ArgumentIndexes.Count];
-            Array.Copy(aIC._ValueList, 0, this._ValueList, 0, aIC._ValueList.Length);
+            this.Values = new object[this._ArgumentIndexes.Count];
+            Array.Copy(aIC.Values, 0, this.Values, 0, aIC.Values.Length);
         }
 
         public void AppendKey(string key) =>
@@ -75,8 +74,10 @@ namespace Xeora.Web.Global
             this._ArgumentIndexes.Add(key, this._ArgumentIndexes.Count);
 
             // Add Value
-            Array.Resize<object>(ref this._ValueList, this._ValueList.Length + 1);
-            this._ValueList[this._ValueList.Length - 1] = value;
+            object[] newValues = new object[this._ArgumentIndexes.Count];
+            Array.Copy(this.Values, 0, newValues, 0, this.Values.Length);
+            newValues[newValues.Length - 1] = value;
+            this.Values = newValues;
         }
 
         public bool ContainsKey(string key) =>
@@ -91,8 +92,8 @@ namespace Xeora.Web.Global
                 {
                     int index = this._ArgumentIndexes[key];
 
-                    if (index < this._ValueList.Length)
-                        return this._ValueList[index];
+                    if (index < this.Values.Length)
+                        return this.Values[index];
                 }
 
                 return null;
@@ -105,9 +106,11 @@ namespace Xeora.Web.Global
 
                 int index = this._ArgumentIndexes[key];
 
-                this._ValueList[index] = value;
+                this.Values[index] = value;
             }
         }
+
+        public object[] Values { get; private set; }
 
         public int Count => this._ArgumentIndexes.Count;
     }

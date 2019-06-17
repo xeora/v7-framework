@@ -24,7 +24,7 @@ namespace Xeora.Web.Global
 
             // Parse Block Content
             int firstContentIndex =
-                rawValue.IndexOf(":{");
+                rawValue.IndexOf(":{", System.StringComparison.InvariantCulture);
 
             if (firstContentIndex == -1)
                 return;
@@ -39,7 +39,7 @@ namespace Xeora.Web.Global
 
             if (colonIndex == -1)
             {
-                // Special Directive such as PC, MB, XF
+                // Special Directive such as PC, MB, XF, AG
                 blockContent = rawValue;
                 isSpecialDirective = true;
             }
@@ -60,7 +60,7 @@ namespace Xeora.Web.Global
 
             // Update First Content Index
             firstContentIndex = 
-                blockContent.IndexOf(":{");
+                blockContent.IndexOf(":{", System.StringComparison.InvariantCulture);
 
             // ControlIDWithIndex is Like ControlID~INDEX
             string controlIDWithIndex = 
@@ -72,8 +72,8 @@ namespace Xeora.Web.Global
             string openingTag = string.Format("{0}:{{", controlIDWithIndex);
             string closingTag = string.Format("}}:{0}", controlIDWithIndex);
 
-            idxCoreContStart = blockContent.IndexOf(openingTag) + openingTag.Length;
-            idxCoreContEnd = blockContent.LastIndexOf(closingTag, blockContent.Length);
+            idxCoreContStart = blockContent.IndexOf(openingTag, System.StringComparison.InvariantCulture) + openingTag.Length;
+            idxCoreContEnd = blockContent.LastIndexOf(closingTag, blockContent.Length, System.StringComparison.InvariantCulture);
 
             if (idxCoreContStart != openingTag.Length || 
                 idxCoreContEnd != (blockContent.Length - openingTag.Length))
@@ -100,14 +100,14 @@ namespace Xeora.Web.Global
 
         private void PrepareDesciption(string content, string controlIDWithIndex, bool isSpecialDirective)
         {
-            string searchString = string.Format("}}:{0}:{{", controlIDWithIndex);
-            int sIdx = 0, cIdx = 0;
+            string searchString =
+                string.Format("}}:{0}:{{", controlIDWithIndex);
+            string contentPart;
+            int sIdx, cIdx = 0;
 
-            string contentPart = null;
             do
             {
-                contentPart = string.Empty;
-                sIdx = content.IndexOf(searchString, cIdx);
+                sIdx = content.IndexOf(searchString, cIdx, System.StringComparison.InvariantCulture);
 
                 if (sIdx > -1)
                 {
@@ -122,7 +122,7 @@ namespace Xeora.Web.Global
                 if (isSpecialDirective)
                     contentPart = contentPart.Trim();
 
-                if (contentPart.IndexOf(ContentDescription.MESSAGE_TEMPLATE_POINTER_TEXT) == 0)
+                if (contentPart.IndexOf(ContentDescription.MESSAGE_TEMPLATE_POINTER_TEXT, System.StringComparison.InvariantCulture) == 0)
                 {
                     if (!string.IsNullOrEmpty(this.MessageTemplate))
                         throw new Exception.MultipleBlockException("Only One Message Template Block Allowed!");

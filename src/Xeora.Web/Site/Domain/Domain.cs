@@ -147,23 +147,29 @@ namespace Xeora.Web.Site
             new ConcurrentDictionary<string, IBase>();
         private void OnControlResolveRequest(string controlID, ref Basics.Domain.IDomain domain, out IBase control)
         {
-            if (Domain._ControlsCache.TryGetValue(controlID, out control))
+            if (Domain._ControlsCache.TryGetValue(controlID, out IBase intactControl))
+            {
+                control = intactControl.Clone();
                 return;
+            }
 
             do
             {
-                control =
+                intactControl =
                     ((Domain)domain).Controls.Select(controlID);
 
-                if (control.Type != Basics.Domain.Control.ControlTypes.Unknown)
+                if (intactControl.Type != Basics.Domain.Control.ControlTypes.Unknown)
                 {
-                    Domain._ControlsCache.TryAdd(controlID, control);
+                    Domain._ControlsCache.TryAdd(controlID, intactControl);
+                    control = intactControl.Clone();
 
                     return;
                 }
 
                 domain = domain.Parent;
             } while (domain != null);
+
+            control = null;
         }
 
         public void ClearCache() =>
