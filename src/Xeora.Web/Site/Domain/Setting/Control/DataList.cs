@@ -10,7 +10,11 @@ namespace Xeora.Web.Site.Setting.Control
             base(ControlTypes.DataList, bind, security)
         { }
 
-        public override IBase Clone() =>
-            new DataList(base.Bind, base.Security);
+        public override IBase Clone()
+        {
+            base.Bind.Clone(out Bind bind);
+
+            return new DataList(bind, base.Security);
+        }
     }
 }

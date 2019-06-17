@@ -16,7 +16,11 @@ namespace Xeora.Web.Site.Setting.Control
         public string Content { get; }
         public AttributeCollection Attributes { get; }
 
-        public override IBase Clone() =>
-            new Textarea(base.Bind, base.Security, this.Content, this.Attributes);
+        public override IBase Clone()
+        {
+            base.Bind.Clone(out Bind bind);
+
+            return new Textarea(bind, base.Security, this.Content, this.Attributes);
+        }
     }
 }

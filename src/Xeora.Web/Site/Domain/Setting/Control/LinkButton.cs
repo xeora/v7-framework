@@ -20,7 +20,11 @@ namespace Xeora.Web.Site.Setting.Control
         public Updates Updates { get; }
         public AttributeCollection Attributes { get; }
 
-        public override IBase Clone() =>
-            new LinkButton(base.Bind, base.Security, this.Text, this.URL, this.Updates, this.Attributes);
+        public override IBase Clone()
+        {
+            base.Bind.Clone(out Bind bind);
+
+            return new LinkButton(bind, base.Security, this.Text, this.URL, this.Updates, this.Attributes);
+        }
     }
 }

@@ -10,7 +10,11 @@ namespace Xeora.Web.Site.Setting.Control
             base(ControlTypes.VariableBlock, bind, security)
         { }
 
-        public override IBase Clone() =>
-            new VariableBlock(base.Bind, base.Security);
+        public override IBase Clone()
+        {
+            base.Bind.Clone(out Bind bind);
+
+            return new VariableBlock(bind, base.Security);
+        }
     }
 }

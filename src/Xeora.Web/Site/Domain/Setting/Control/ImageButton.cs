@@ -18,7 +18,11 @@ namespace Xeora.Web.Site.Setting.Control
         public Updates Updates { get; }
         public AttributeCollection Attributes { get; }
 
-        public override IBase Clone() =>
-            new ImageButton(base.Bind, base.Security, this.Source, this.Updates, this.Attributes);
+        public override IBase Clone()
+        {
+            base.Bind.Clone(out Bind bind);
+
+            return new ImageButton(bind, base.Security, this.Source, this.Updates, this.Attributes);
+        }
     }
 }
