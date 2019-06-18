@@ -110,18 +110,30 @@ namespace Xeora.Web.Site
                 coMatch.Result("${DirectiveID}");
             string directiveType =
                 coMatch.Result("${DirectiveType}");
-                
-            this._ContentCache.AppendLine(
-                line.Substring(coMatch.Index)
+            Regex openingPattern =
+                RegularExpression.Current.SpecificContentOpeningPattern(directiveID, directiveType);
+
+            this._ContentCache.Append(
+                line.Substring(coMatch.Index, coMatch.Length)
             );
             this._ContentCache.Insert(
-                coMatch.Value.Length - 2,
+                coMatch.Length - 2,
                 modifierText
             );
-            line = line.Substring(coMatch.Index + coMatch.Value.Length);
+            line = line.Substring(coMatch.Index + coMatch.Length);
 
-            if (!this.FindContentTail(line, directiveID, modifierText))
-                throw new ParseException();
+            int nestedCount = 0;
+            while (!this.FindContentTail(ref nestedCount, line, directiveID, modifierText, openingPattern))
+            {
+                if (this._Reader.Peek() == -1)
+                    return null;
+
+                line = this._Reader.ReadLine();
+            }
+
+            int seperatorIndex = this.SearchForContentSeparator(this._ContentCache.ToString(), directiveID, openingPattern);
+            if (seperatorIndex > -1)
+                this._ContentCache.Insert(seperatorIndex + directiveID.Length + 2, modifierText);
 
             return new Content
             {
@@ -130,88 +142,53 @@ namespace Xeora.Web.Site
             };
         }
 
-        private bool FindContentTail(string crumb, string directiveID, string modifierText)
+        private bool FindContentTail(ref int nestedCount, string line, string directiveID, string modifierText, Regex openingPattern)
         {
-            int nestedCount = 0;
+            if (string.IsNullOrEmpty(line))
+                return false;
+
             int ccIndex =
-                this.SearchForContentClosing(ref nestedCount, crumb, directiveID);
-            if (ccIndex > -1)
+                this.SearchForContentClosing(ref nestedCount, line, directiveID, openingPattern);
+            if (ccIndex > -1 && nestedCount == 0)
             {
-                this._ContentCache.Remove(
-                    this._ContentCache.Length - (crumb.Length + Environment.NewLine.Length) + ccIndex,
-                    crumb.Length + Environment.NewLine.Length - ccIndex
-                );
+                this._ContentCache.Append(line, 0, ccIndex);
                 this._ContentCache.Insert(
                     this._ContentCache.Length - 1,
                     modifierText
                 );
-                this._Crumb = crumb.Substring(ccIndex);
+                this._Crumb = line.Substring(ccIndex);
 
                 return true;
             }
 
-            while (this._Reader.Peek() > -1)
-            {
-                crumb = this._Reader.ReadLine();
-                this._ContentCache.AppendLine(crumb);
-
-                ccIndex = this.SearchForContentSeparator(ref nestedCount, crumb, directiveID);
-                if (ccIndex > -1)
-                {
-                    this._ContentCache.Insert(
-                        this._ContentCache.Length - (crumb.Length + Environment.NewLine.Length) + ccIndex - 2,
-                        modifierText
-                    );
-                }
-
-                ccIndex = this.SearchForContentClosing(ref nestedCount, crumb, directiveID);
-                if (ccIndex == -1) continue;
-
-                this._ContentCache.Remove(
-                    this._ContentCache.Length - (crumb.Length + Environment.NewLine.Length) + ccIndex, 
-                    crumb.Length + Environment.NewLine.Length - ccIndex
-                );
-                this._ContentCache.Insert(
-                    this._ContentCache.Length - 1,
-                    modifierText
-                );
-                this._Crumb = crumb.Substring(ccIndex);
-
-                return true;
-            }
+            this._ContentCache.AppendLine(line);
 
             return false;
         }
-
-        private int SearchForContentSeparator(ref int nestedCount, string line, string directiveID)
+        
+        private int SearchForContentSeparator(string capturedContent, string directiveID, Regex openingPattern)
         {
             string ccSearch =
                 string.Format("}}:{0}:{{", directiveID);
-            int ccIndex = line.IndexOf(ccSearch, StringComparison.InvariantCulture);
+            int ccIndex = capturedContent.IndexOf(ccSearch, StringComparison.InvariantCulture);
 
             if (ccIndex == -1)
                 return -1;
 
             MatchCollection contentOpeningMatches =
-                RegularExpression.Current.ContentOpeningPattern.Matches(line);
+                openingPattern.Matches(capturedContent);
 
             if (contentOpeningMatches.Count == 0)
-                return ccIndex + ccSearch.Length;
+                return ccIndex;
 
             Match contentOpeningMatch;
-            string compareID;
-
             IEnumerator comEnum =
                 contentOpeningMatches.GetEnumerator();
+            int nestedCount = 0;
 
             while (comEnum.MoveNext())
             {
                 contentOpeningMatch = (Match)comEnum.Current;
-                compareID =
-                    contentOpeningMatch.Result("${DirectiveID}");
-
-                if (string.Compare(compareID, directiveID) != 0)
-                    continue;
 
                 if (contentOpeningMatch.Index < ccIndex)
                 {
@@ -219,74 +196,44 @@ namespace Xeora.Web.Site
                     continue;
                 }
 
-                return ccIndex + ccSearch.Length;
+                return ccIndex;
             }
 
             for (int i = 0; i < nestedCount; i++)
             {
-                ccIndex = line.IndexOf(ccSearch, ccIndex + 1, StringComparison.InvariantCulture);
+                ccIndex = capturedContent.IndexOf(ccSearch, ccIndex + 1, StringComparison.InvariantCulture);
                 if (ccIndex == -1) break;
 
                 nestedCount--;
             }
 
-            if (ccIndex > -1)
-                ccIndex += ccSearch.Length;
-
             return ccIndex;
         }
 
-        private int SearchForContentClosing(ref int nestedCount, string line, string directiveID)
+        private int SearchForContentClosing(ref int nestedCount, string line, string directiveID, Regex openingPattern)
         {
+            Match coMatch =
+                openingPattern.Match(line);
             string ccSearch =
                 string.Format("}}:{0}$", directiveID);
             int ccIndex = line.IndexOf(ccSearch, StringComparison.InvariantCulture);
 
+            if (coMatch.Success && (ccIndex == -1 || ccIndex > coMatch.Index))
+            {
+                nestedCount++;
+                return -1;
+            }
+
+            if (ccIndex > -1 && nestedCount > 0)
+            {
+                nestedCount--;
+                return -1;
+            }
+
             if (ccIndex == -1)
                 return -1;
 
-            MatchCollection contentOpeningMatches =
-                RegularExpression.Current.ContentOpeningPattern.Matches(line);
-
-            if (contentOpeningMatches.Count == 0)
-                return ccIndex + ccSearch.Length;
-
-            Match contentOpeningMatch;
-            string compareID;
-
-            IEnumerator comEnum = 
-                contentOpeningMatches.GetEnumerator();
-
-            while (comEnum.MoveNext())
-            {
-                contentOpeningMatch = (Match)comEnum.Current;
-                compareID =
-                    contentOpeningMatch.Result("${DirectiveID}");
-
-                if (string.Compare(compareID, directiveID) != 0)
-                    continue;
-
-                if (contentOpeningMatch.Index < ccIndex)
-                {
-                    nestedCount++;
-                    continue;
-                }
-
-                return ccIndex + ccSearch.Length;
-            }
-
-            for (int i = 0; i < nestedCount; i++)
-            {
-                ccIndex = line.IndexOf(ccSearch, ccIndex + 1, StringComparison.InvariantCulture);
-                if (ccIndex == -1) break;
-
-                nestedCount--;
-            }
-
-            if (ccIndex > -1)
-                ccIndex += ccSearch.Length;
-
-            return ccIndex;
+            return ccIndex + ccSearch.Length;
         }
 
         private void HandleSingles()
@@ -356,7 +303,7 @@ namespace Xeora.Web.Site
                         break;
                 }
 
-                lastIndex = singleMatch.Index + singleMatch.Value.Length;
+                lastIndex = singleMatch.Index + singleMatch.Length;
             }
 
             if (rawValue.Length - lastIndex > 1)
@@ -377,6 +324,10 @@ namespace Xeora.Web.Site
                     this._ResultHandler.Invoke(
                         new Control(rawValue, null)); 
 
+                    break;
+                case DirectiveTypes.ControlAsync:
+                    this._ResultHandler.Invoke(
+                        new ControlAsync(rawValue, null));
                     break;
                 case DirectiveTypes.InLineStatement:
                     this._ResultHandler.Invoke(
