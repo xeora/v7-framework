@@ -50,6 +50,8 @@ namespace Xeora.Web.Site
         {
             public string DirectiveID { get; set; }
             public string DirectiveType { get; set; }
+
+            public string Value { get; set; }
         }
 
         private void Parse()
@@ -176,7 +178,7 @@ namespace Xeora.Web.Site
                 return -1;
 
             MatchCollection contentOpeningMatches =
-                openingPattern.Matches(capturedContent);
+                openingPattern.Matches(capturedContent, 1);
 
             if (contentOpeningMatches.Count == 0)
                 return ccIndex;
