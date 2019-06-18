@@ -32,10 +32,10 @@ namespace Xeora.Web.Global
             string directiveIdentifier =
                 rawValue.Substring(0, firstContentIndex);
 
-            string blockContent = null;
             int colonIndex = 
                 directiveIdentifier.IndexOf(':');
             bool isSpecialDirective = false;
+            string blockContent;
 
             if (colonIndex == -1)
             {
@@ -66,20 +66,19 @@ namespace Xeora.Web.Global
             string controlIDWithIndex = 
                 blockContent.Substring(0, firstContentIndex);
 
-            string coreContent = null;
-            int idxCoreContStart = 0, idxCoreContEnd = 0;
-
             string openingTag = string.Format("{0}:{{", controlIDWithIndex);
             string closingTag = string.Format("}}:{0}", controlIDWithIndex);
 
-            idxCoreContStart = blockContent.IndexOf(openingTag, System.StringComparison.InvariantCulture) + openingTag.Length;
-            idxCoreContEnd = blockContent.LastIndexOf(closingTag, blockContent.Length, System.StringComparison.InvariantCulture);
+            int idxCoreContStart =
+                blockContent.IndexOf(openingTag, System.StringComparison.InvariantCulture) + openingTag.Length;
+            int idxCoreContEnd =
+                blockContent.LastIndexOf(closingTag, blockContent.Length, System.StringComparison.InvariantCulture);
 
             if (idxCoreContStart != openingTag.Length || 
                 idxCoreContEnd != (blockContent.Length - openingTag.Length))
                 throw new Exception.ParseException();
 
-            coreContent = 
+            string coreContent = 
                 blockContent.Substring(idxCoreContStart, idxCoreContEnd - idxCoreContStart);
             if (isSpecialDirective)
                 coreContent = coreContent.Trim();

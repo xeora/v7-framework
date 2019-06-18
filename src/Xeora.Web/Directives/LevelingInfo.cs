@@ -28,7 +28,7 @@ namespace Xeora.Web.Directives
             if (cLevelingMatch.Success)
             {
                 // Trim # character from match result
-                string cleanValue = cLevelingMatch.Value.Substring(1, cLevelingMatch.Value.Length - 1);
+                string cleanValue = cLevelingMatch.Value.Substring(1, cLevelingMatch.Length - 1);
 
                 if (cleanValue.IndexOf('+') > -1)
                 {

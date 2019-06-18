@@ -240,7 +240,7 @@ namespace Xeora.Web.Service.Context
             {
                 string line = sR.ReadLine();
 
-                if (line.IndexOf(this._Header.Boundary) > -1)
+                if (line.IndexOf(this._Header.Boundary, StringComparison.InvariantCulture) > -1)
                     continue;
 
                 if (string.IsNullOrEmpty(line))
@@ -264,10 +264,10 @@ namespace Xeora.Web.Service.Context
                     string value = keyValue.Substring(sepIndex + 1);
                     value = value.Trim();
 
-                    if (value.StartsWith("\""))
+                    if (value.StartsWith("\"", StringComparison.InvariantCulture))
                         value = value.Substring(1);
 
-                    if (value.EndsWith("\""))
+                    if (value.EndsWith("\"", StringComparison.InvariantCulture))
                         value = value.Substring(0, value.Length - 1);
 
                     int semiIndex = value.IndexOf(';');

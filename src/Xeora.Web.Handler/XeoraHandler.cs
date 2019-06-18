@@ -121,7 +121,7 @@ namespace Xeora.Web.Handler
                 // If Redirection has been assigned, handle it
                 if (this.Context["RedirectLocation"] != null)
                 {
-                    if (((string)this.Context["RedirectLocation"]).IndexOf("://") == -1)
+                    if (((string)this.Context["RedirectLocation"]).IndexOf("://", StringComparison.InvariantCulture) == -1)
                     {
                         string redirectLocation =
                             string.Format("{0}://{1}{2}", Configurations.Xeora.Service.Ssl ? "https" : "http", this.Context.Request.Header.Host, this.Context["RedirectLocation"]);
@@ -154,7 +154,7 @@ namespace Xeora.Web.Handler
             string requestedFileVirtualPath =
                 this.Context.Request.Header.URL.RelativePath;
             
-            int dcpIndex = requestedFileVirtualPath.IndexOf(domainContentsPath);
+            int dcpIndex = requestedFileVirtualPath.IndexOf(domainContentsPath, StringComparison.InvariantCulture);
             if (dcpIndex == -1)
             {
                 // This is also not a request for default DomainContents
@@ -163,11 +163,11 @@ namespace Xeora.Web.Handler
                 string requestedDomainWebPath = requestedFileVirtualPath;
                 string browserImplementation =
                     Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation;
-                int impIndex = requestedDomainWebPath.IndexOf(browserImplementation);
+                int impIndex = requestedDomainWebPath.IndexOf(browserImplementation, StringComparison.InvariantCulture);
                 if (impIndex > -1)
                     requestedDomainWebPath = requestedDomainWebPath.Remove(impIndex, browserImplementation.Length);
 
-                if (requestedDomainWebPath.IndexOf(this.Context.HashCode) == 0)
+                if (requestedDomainWebPath.IndexOf(this.Context.HashCode, StringComparison.InvariantCulture) == 0)
                     requestedDomainWebPath = requestedDomainWebPath.Substring(this.Context.HashCode.Length + 1);
 
                 if (requestedDomainWebPath.IndexOf('/') > -1)
@@ -189,7 +189,7 @@ namespace Xeora.Web.Handler
                             this._DomainControl.OverrideDomain(childDomainIDAccessTree, childDomainLanguageID);
 
                             domainContentsPath = this._DomainControl.Domain.ContentsVirtualPath;
-                            dcpIndex = requestedFileVirtualPath.IndexOf(domainContentsPath);
+                            dcpIndex = requestedFileVirtualPath.IndexOf(domainContentsPath, StringComparison.InvariantCulture);
                         }
                     }
                 }
@@ -211,7 +211,7 @@ namespace Xeora.Web.Handler
             string scriptFileName =
                 string.Format("_bi_sps_v{0}.js", this._DomainControl.XeoraJSVersion);
             int scriptFileNameIndex =
-                requestedFileVirtualPath.IndexOf(scriptFileName);
+                requestedFileVirtualPath.IndexOf(scriptFileName, StringComparison.InvariantCulture);
             bool isScriptRequesting =
                 scriptFileNameIndex > -1 && (requestedFileVirtualPath.Length - scriptFileName.Length) == scriptFileNameIndex;
 
@@ -300,7 +300,7 @@ namespace Xeora.Web.Handler
                     string applicationRootPath =
                         Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation;
                     string currentURL = this.Context.Request.Header.URL.RelativePath;
-                    currentURL = currentURL.Remove(0, currentURL.IndexOf(applicationRootPath));
+                    currentURL = currentURL.Remove(0, currentURL.IndexOf(applicationRootPath, StringComparison.InvariantCulture));
 
                     System.Text.RegularExpressions.Match mR =
                         System.Text.RegularExpressions.Regex.Match(currentURL, string.Format("{0}\\d+/", applicationRootPath));
@@ -309,7 +309,7 @@ namespace Xeora.Web.Handler
                     if (!mR.Success)
                     {
                         string tailURL = this.Context.Request.Header.URL.RelativePath;
-                        tailURL = tailURL.Remove(0, tailURL.IndexOf(applicationRootPath) + applicationRootPath.Length);
+                        tailURL = tailURL.Remove(0, tailURL.IndexOf(applicationRootPath, StringComparison.InvariantCulture) + applicationRootPath.Length);
 
                         string rewrittenPath =
                             string.Format("{0}{1}/{2}", applicationRootPath, this.Context.HashCode, tailURL);
@@ -540,7 +540,7 @@ namespace Xeora.Web.Handler
 
             long beginRange = 0, endRange = -1;
 
-            if (range.IndexOf("bytes=") == 0)
+            if (range.IndexOf("bytes=", StringComparison.InvariantCulture) == 0)
             {
                 range = range.Remove(0, "bytes=".Length);
                 try
@@ -755,7 +755,7 @@ namespace Xeora.Web.Handler
             string result = sB.ToString();
             string sys_RenderDurationMark = "<!--_sys_PAGERENDERDURATION-->";
             int idxRenderDurationMark =
-                result.IndexOf(sys_RenderDurationMark);
+                result.IndexOf(sys_RenderDurationMark, StringComparison.InvariantCulture);
             if (idxRenderDurationMark > -1)
             {
                 TimeSpan EndRequestTimeSpan = DateTime.Now.Subtract(this._BeginRequestTime);

@@ -72,7 +72,7 @@ namespace Xeora.Web.Service.Context
                 string RequestFilePath =
                     this.Request.Header.URL.RelativePath;
 
-                int biIndex = RequestFilePath.IndexOf(Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation);
+                int biIndex = RequestFilePath.IndexOf(Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation, System.StringComparison.InvariantCulture);
                 if (biIndex > -1)
                     RequestFilePath = RequestFilePath.Remove(0, biIndex + Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation.Length);
 
@@ -80,7 +80,7 @@ namespace Xeora.Web.Service.Context
                     System.Text.RegularExpressions.Regex.Match(RequestFilePath, "\\d+/");
 
                 if (mR.Success && mR.Index == 0)
-                    this._HashCode = mR.Value.Substring(0, mR.Value.Length - 1);
+                    this._HashCode = mR.Value.Substring(0, mR.Length - 1);
                 else
                 {
                     this._HashCode = this.GetHashCode().ToString();

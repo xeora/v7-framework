@@ -143,7 +143,7 @@ namespace Xeora.Web.Manager
 
                     codeBlock.AppendFormat("p[{0}]", paramMatch.Result("${ID}"));
 
-                    lastIndex = (paramMatch.Index + paramMatch.Value.Length);
+                    lastIndex = (paramMatch.Index + paramMatch.Length);
                 }
             }
             codeBlock.Append(statement.Substring(lastIndex));
