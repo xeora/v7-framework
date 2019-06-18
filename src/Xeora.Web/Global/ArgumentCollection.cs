@@ -1,16 +1,17 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace Xeora.Web.Global
 {
     public class ArgumentCollection
     {
-        private Dictionary<string, int> _ArgumentIndexes;
+        private ConcurrentDictionary<string, int> _ArgumentIndexes;
 
         public ArgumentCollection()
         {
             this._ArgumentIndexes = 
-                new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
+                new ConcurrentDictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
             this.Values = new object[] { };
         }
 
@@ -71,7 +72,7 @@ namespace Xeora.Web.Global
             }
             
             // Add Key
-            this._ArgumentIndexes.Add(key, this._ArgumentIndexes.Count);
+            this._ArgumentIndexes.TryAdd(key, this._ArgumentIndexes.Count);
 
             // Add Value
             object[] newValues = new object[this._ArgumentIndexes.Count];
@@ -113,5 +114,13 @@ namespace Xeora.Web.Global
         public object[] Values { get; private set; }
 
         public int Count => this._ArgumentIndexes.Count;
+
+        public ArgumentCollection Clone()
+        {
+            ArgumentCollection output = new ArgumentCollection();
+            output.Replace(this);
+
+            return output;
+        }
     }
 }
