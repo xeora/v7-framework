@@ -4,6 +4,7 @@
     {
         AsyncGroup,
         Control,
+        ControlAsync,
         EncodedExecution,
         Execution,
         HashCodePointedTemplate,

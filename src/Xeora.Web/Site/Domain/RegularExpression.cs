@@ -5,6 +5,8 @@ namespace Xeora.Web.Site
 {
     public class RegularExpression
     {
+        private readonly string SpecificContentOpeningRegEx;
+
         private RegularExpression()
         {
             // CAPTURE REGULAR EXPRESSIONS
@@ -15,7 +17,7 @@ namespace Xeora.Web.Site
             string variableRegEx = simpleVariableRegEx + "|" + staticVariableRegEx + "|" + objectVariableRegEx;
             string directiveIDRegEx = "[\\.\\-" + characterGroup + "]+";
             string directiveIDWithSlashRegEx = "[\\/\\.\\-" + characterGroup + "]+"; // for template capturing
-            string directivePointerRegEx = "[A-Z]";
+            string directivePointerRegEx = "[A-Z]{1,2}";
             string levelingRegEx = "\\#\\d+(\\+)?";
             string parentingRegEx = "\\[" + directiveIDRegEx + "\\]";
             string parametersRegEx = "\\(((\\|)?(" + variableRegEx + ")?)+\\)";
@@ -36,6 +38,8 @@ namespace Xeora.Web.Site
             string contentOpeningRegEx = "\\$((?<DirectiveID>" + directiveIDRegEx + ")|(?<DirectiveType>" + directivePointerRegEx + ")(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:(?<DirectiveID>" + directiveIDRegEx + ")(" + parametersRegEx + ")?)\\:\\{";
             string contentSeparatorRegEx = "\\}:(?<DirectiveID>" + directiveIDRegEx + ")\\:\\{";
             string contentClosingRegEx = "\\}:(?<DirectiveID>" + directiveIDRegEx + ")\\$";
+
+            this.SpecificContentOpeningRegEx = "\\$(({0})|({1})(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:({0})(" + parametersRegEx + ")?)\\:\\{{";
             // !---
 
             this.SingleCapturePattern =
@@ -73,5 +77,12 @@ namespace Xeora.Web.Site
         public Regex ContentOpeningPattern { get; private set; }
         public Regex ContentSeparatorPattern { get; private set; }
         public Regex ContentClosingPattern { get; private set; }
+
+        private string CorrectForRegex(string input) =>
+                input
+                .Replace(".", "\\.");
+
+        public Regex SpecificContentOpeningPattern(string directiveID, string directiveType) =>
+            new Regex(string.Format(this.SpecificContentOpeningRegEx, this.CorrectForRegex(directiveID), directiveType),RegexOptions.Singleline);
     }
 }

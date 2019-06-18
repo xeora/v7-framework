@@ -17,7 +17,7 @@ namespace Xeora.Web.Directives
             if (cpIDMatch.Success)
             {
                 // Trim [ and ] characters from match result
-                return cpIDMatch.Value.Substring(1, cpIDMatch.Value.Length - 2);
+                return cpIDMatch.Value.Substring(1, cpIDMatch.Length - 2);
             }
 
             return string.Empty;
@@ -51,7 +51,7 @@ namespace Xeora.Web.Directives
             {
                 // Trim ( and ) character from match result
                 string rawParameters =
-                    cpIDMatch.Value.Substring(1, cpIDMatch.Value.Length - 2);
+                    cpIDMatch.Value.Substring(1, cpIDMatch.Length - 2);
 
                 return rawParameters.Split('|');
             }
@@ -73,7 +73,7 @@ namespace Xeora.Web.Directives
         }
 
         private static readonly Regex _DirectiveTypeRegEx =
-            new Regex("\\$(((?<DirectiveType>\\w)(\\#\\d+(\\+)?)?(\\[[\\.\\w\\-]+\\])?)|(?<DirectiveType>\\w+))\\:", RegexOptions.Compiled);
+            new Regex("\\$(((?<DirectiveType>\\w{1,2})(\\#\\d+(\\+)?)?(\\[[\\.\\w\\-]+\\])?)|(?<DirectiveType>\\w+))\\:", RegexOptions.Compiled);
         public static DirectiveTypes CaptureDirectiveType(string rawValue)
         {
             if (string.IsNullOrEmpty(rawValue))
@@ -89,6 +89,8 @@ namespace Xeora.Web.Directives
                 {
                     case "C":
                         return DirectiveTypes.Control;
+                    case "AC":
+                        return DirectiveTypes.ControlAsync;
                     case "T":
                         return DirectiveTypes.Template;
                     case "L":
