@@ -16,8 +16,10 @@ namespace Xeora.Web.Directives.Controls.Elements
         private readonly string[] _Parameters;
         private readonly Site.Setting.Control.DataList _Settings;
 
-        private ConcurrentQueue<Single> _RowQueue;
-        private List<Task> _RowRenderTasks;
+        private readonly ConcurrentQueue<Single> _RowQueue;
+        private readonly List<Task> _RowRenderTasks;
+        private readonly object _RenderedContentLock;
+        private readonly StringBuilder _RenderedContent;
 
         public DataList(Control parent, ContentDescription contents, string[] parameters, Site.Setting.Control.DataList settings)
         {
@@ -28,8 +30,10 @@ namespace Xeora.Web.Directives.Controls.Elements
 
             this._RowQueue = new ConcurrentQueue<Single>();
             this._RowRenderTasks = new List<Task>();
+            this._RenderedContentLock = new object();
+            this._RenderedContent = new StringBuilder();
         }
-        
+
         public DirectiveCollection Children => null;
         public bool LinkArguments => false;
 
@@ -92,7 +96,6 @@ namespace Xeora.Web.Directives.Controls.Elements
 
                     break;
             }
-            // ----
         }
 
         private void RenderError(string requesterUniqueID, Basics.ControlResult.Message.Types errorType, string errorContent)
@@ -106,8 +109,7 @@ namespace Xeora.Web.Directives.Controls.Elements
 
                 this.RenderRow(requesterUniqueID, -1, this._Parent.Arguments);
 
-                this._RowQueue.TryDequeue(out Single single);
-                this._Parent.Deliver(RenderStatus.Rendered, single.Result);
+                this._Parent.Deliver(RenderStatus.Rendered, this.Result);
             }
         }
 
@@ -124,10 +126,11 @@ namespace Xeora.Web.Directives.Controls.Elements
 
             if (index == -1)
             {
-                while (this._RowQueue.TryDequeue(out Single single))
-                { }
+                while (this._RowQueue.TryDequeue(out Single single)) { }
                 this._RowRenderTasks.Clear();
+                this._RenderedContent.Clear();
             }
+
             this._RowQueue.Enqueue(rowSingle);
             this._RowRenderTasks.Add(
                 Task.Factory.StartNew(
@@ -135,15 +138,41 @@ namespace Xeora.Web.Directives.Controls.Elements
                     {
                         object[] list = (object[])s;
 
-                        Basics.Helpers.AssignHandlerID((string)list[0]);
-                        ((Single)list[1]).Render(requesterUniqueID);
+                        string handlerID = (string)list[0];
+                        Single single = (Single)list[1];
+
+                        Basics.Helpers.AssignHandlerID(handlerID);
+                        single.Render(requesterUniqueID);
+
+                        lock (this._RenderedContentLock)
+                        {
+                            do
+                            {
+                                if (!this._RowQueue.TryPeek(out Single queueSingle))
+                                    return;
+
+                                if (queueSingle.Status != RenderStatus.Rendered)
+                                    return;
+
+                                if (!this._RowQueue.TryDequeue(out queueSingle))
+                                    return;
+
+                                this._RenderedContent.Append(queueSingle.Result);
+                            } while (true);
+                        }
                     },
                     new object[] { currentHandlerID, rowSingle }
                 )
             );
+        }
 
-            if (index == -1)
+        private string Result {
+            get
+            {
                 Task.WaitAll(this._RowRenderTasks.ToArray());
+
+                return this._RenderedContent.ToString();
+            }
         }
 
         private void RenderPartialDataTable(string requesterUniqueID, ref Basics.Execution.InvokeResult<Basics.ControlResult.IDataSource> invokeResult)
@@ -175,19 +204,12 @@ namespace Xeora.Web.Directives.Controls.Elements
                 this.RenderRow(requesterUniqueID, index, dataListArgs);
             }
 
-            Task.WaitAll(this._RowRenderTasks.ToArray());
-
             this._Parent.Parent.Arguments.AppendKeyWithValue(
                 this._Parent.DirectiveID,
                 new DataListOutputInfo(this._Parent.UniqueID, invokeResult.Result.Count, invokeResult.Result.Total, false)
             );
 
-            StringBuilder renderedContent = new StringBuilder();
-
-            while (this._RowQueue.TryDequeue(out Single single))
-                renderedContent.Append(single.Result);
-
-            this._Parent.Deliver(RenderStatus.Rendered, renderedContent.ToString());
+            this._Parent.Deliver(RenderStatus.Rendered, this.Result);
         }
 
         private void RenderDirectDataAccess(string requesterUniqueID, ref Basics.Execution.InvokeResult<Basics.ControlResult.IDataSource> invokeResult)
@@ -234,19 +256,12 @@ namespace Xeora.Web.Directives.Controls.Elements
                     count++;
                 }
 
-                Task.WaitAll(this._RowRenderTasks.ToArray());
-
                 this._Parent.Parent.Arguments.AppendKeyWithValue(
                     this._Parent.DirectiveID,
                     new DataListOutputInfo(this._Parent.UniqueID, count, (total == -1) ? count : total, false)
                 );
 
-                StringBuilder renderedContent = new StringBuilder();
-
-                while (this._RowQueue.TryDequeue(out Single single))
-                    renderedContent.Append(single.Result);
-
-                this._Parent.Deliver(RenderStatus.Rendered, renderedContent.ToString());
+                this._Parent.Deliver(RenderStatus.Rendered, this.Result);
             }
             catch (System.Exception ex)
             {
@@ -293,19 +308,12 @@ namespace Xeora.Web.Directives.Controls.Elements
                 this.RenderRow(requesterUniqueID, index, dataListArgs);
             }
 
-            Task.WaitAll(this._RowRenderTasks.ToArray());
-
             this._Parent.Parent.Arguments.AppendKeyWithValue(
                 this._Parent.DirectiveID,
                 new DataListOutputInfo(this._Parent.UniqueID, invokeResult.Result.Count, invokeResult.Result.Total, false)
             );
 
-            StringBuilder renderedContent = new StringBuilder();
-
-            while (this._RowQueue.TryDequeue(out Single single))
-                renderedContent.Append(single.Result);
-
-            this._Parent.Deliver(RenderStatus.Rendered, renderedContent.ToString());
+            this._Parent.Deliver(RenderStatus.Rendered, this.Result);
         }
     }
 }
