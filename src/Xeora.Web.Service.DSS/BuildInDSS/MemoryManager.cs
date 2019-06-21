@@ -47,6 +47,9 @@ namespace Xeora.Web.Service.DSS
                 
             if (((IDSSService)reservationObject).IsExpired)
             {
+                if (!this._ReservationTable.TryRemove(uniqueID, out _))
+                    throw new ReservationCreationException();
+
                 reservationObject = null;
 
                 return false;
