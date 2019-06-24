@@ -231,8 +231,7 @@ namespace Xeora.Web.Directives.Elements
             this.Children.Render(this.UniqueID);
             this.Deliver(RenderStatus.Rendered, this.Result);
 
-            this.Mother.Pool.Register(this);
-            this.Mother.Scheduler.Fire(this.DirectiveID);
+            this.Scheduler.Fire();
         }
     }
 }

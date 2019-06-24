@@ -381,16 +381,17 @@ namespace Xeora.Web.Directives.Elements
                 default:
                     objectItem = Helpers.VariablePool.Get(objectItemKey);
 
-                    if (objectItem == null || objectItem is DataListOutputInfo)
+                    if (objectItem == null) break; ;
+
+                    if (objectItem is DataListOutputInfo)
                     {
-                        IDirective parentDirective = null;
-                        if (objectItem != null)
-                            this.Mother.Pool.GetInto(((DataListOutputInfo)objectItem).UniqueID, out parentDirective);
+                        string uniqueID =
+                            ((DataListOutputInfo)objectItem).UniqueID;
+                        this.Mother.Pool.GetByUniqueID(uniqueID, out IDirective directive);
 
-                        if (parentDirective == null)
+                        if (directive.Status != RenderStatus.Rendered)
                         {
-                            this.Mother.Scheduler.Register(objectItemKey, this.UniqueID);
-
+                            directive.Scheduler.Register(this.UniqueID);
                             return;
                         }
                     }
@@ -433,13 +434,11 @@ namespace Xeora.Web.Directives.Elements
 
         private void LocateLeveledContentInfo(ref string searchItemKey, ref IDirective directive)
         {
-            searchItemKey = searchItemKey.Substring(1);
-
-            while (searchItemKey.IndexOf("#", StringComparison.InvariantCulture) == 0)
+            do
             {
                 directive = directive.Parent;
                 searchItemKey = searchItemKey.Substring(1);
-            } 
+            } while (searchItemKey.IndexOf("#", StringComparison.InvariantCulture) == 0);
         }
 
         private string CleanHTMLTags(string content, string[] cleaningTags)

@@ -11,7 +11,6 @@ namespace Xeora.Web.Directives.Elements
     {
         private readonly string _RawValue;
         private IControl _Control;
-        private bool _Queued;
 
         public Control(string rawValue, ArgumentCollection arguments) : 
             base(DirectiveTypes.Control, arguments)
@@ -124,20 +123,22 @@ namespace Xeora.Web.Directives.Elements
                 if (string.IsNullOrEmpty(requesterUniqueID))
                     return;
 
-                this.Mother.Pool.GetInto(requesterUniqueID, out IDirective directive);
+                this.Mother.Pool.GetByDirectiveID(this.BoundDirectiveID, out IDirective[] directives);
 
-                if (directive == null ||
-                    (directive is INamable &&
-                        string.Compare(((INamable)directive).DirectiveID, this.BoundDirectiveID) != 0)
-                    )
+                if (directives == null) return;
+
+                foreach (IDirective directive in directives)
                 {
-                    if (!this._Queued)
-                    {
-                        this._Queued = true;
-                        this.Mother.Scheduler.Register(this.BoundDirectiveID, this.UniqueID);
-                    }
+                    if (!(directive is INamable)) return;
 
-                    return;
+                    string directiveID = ((INamable)directive).DirectiveID;
+                    if (string.Compare(directiveID, this.BoundDirectiveID) != 0) return;
+
+                    if (directive.Status != RenderStatus.Rendered)
+                    {
+                        directive.Scheduler.Register(this.UniqueID);
+                        return;
+                    }
                 }
             }
 
@@ -171,8 +172,7 @@ namespace Xeora.Web.Directives.Elements
 
             this._Control.Render(requesterUniqueID);
 
-            this.Mother.Pool.Register(this);
-            this.Mother.Scheduler.Fire(this.DirectiveID);
+            this.Scheduler.Fire();
         }
     }
 }

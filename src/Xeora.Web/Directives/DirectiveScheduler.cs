@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xeora.Web.Basics;
@@ -7,66 +8,52 @@ namespace Xeora.Web.Directives
 {
     public class DirectiveScheduler
     {
-        private readonly ConcurrentDictionary<string, ConcurrentQueue<string>> _ScheduledItems;
-        private readonly DirectivePool _Pool;
+        private readonly object _RegisterLock;
 
-        public DirectiveScheduler(ref DirectivePool pool)
+        private readonly ConcurrentDictionary<string, bool> _ScheduledItems;
+        private readonly ConcurrentQueue<string> _Queue;
+
+        private readonly Action<string> _CallBack;
+
+        public DirectiveScheduler(Action<string> callback)
         {
-            this._ScheduledItems = new ConcurrentDictionary<string, ConcurrentQueue<string>>();
-            this._Pool = pool;
+            this._RegisterLock = new object();
+
+            this._ScheduledItems = new ConcurrentDictionary<string, bool>();
+            this._Queue = new ConcurrentQueue<string>();
+
+            this._CallBack = callback;
         }
 
-        public void Register(string boundDirectiveID, string uniqueID)
+        public void Register(string uniqueID)
         {
-            if (!this._ScheduledItems.TryGetValue(boundDirectiveID, out ConcurrentQueue<string> waitingIDs))
+            lock (this._RegisterLock)
             {
-                waitingIDs = new ConcurrentQueue<string>();
-
-                if (!this._ScheduledItems.TryAdd(boundDirectiveID, waitingIDs))
-                {
-                    this.Register(boundDirectiveID, uniqueID);
-
+                if (this._ScheduledItems.ContainsKey(uniqueID))
                     return;
-                }
-            }
 
-            waitingIDs.Enqueue(uniqueID);
+                this._Queue.Enqueue(uniqueID);
+            }
         }
 
-        public void Fire(string boundDirectiveID)
+        public void Fire()
         {
-            if (!this._ScheduledItems.TryGetValue(boundDirectiveID, out ConcurrentQueue<string> waitingIDs))
-                return;
-
-            List<Task> runningJobs = new List<Task>();
-
-            // To make function run on a different thread with the same settings
-            // get the handlerID and assign it in the new thread.
             string handlerID = Helpers.CurrentHandlerID;
+            List<Task> callbackJobs = new List<Task>();
 
-            while (!waitingIDs.IsEmpty)
+            while (this._Queue.TryDequeue(out string uniqueID))
             {
-                waitingIDs.TryDequeue(out string uniqueID);
-
-                runningJobs.Add(
-                    Task.Run(() =>
+                callbackJobs.Add(
+                    Task.Factory.StartNew(() =>
                     {
                         Helpers.AssignHandlerID(handlerID);
-                        this.RequestRender(uniqueID);
+
+                        this._CallBack(uniqueID);
                     })
                 );
             }
 
-            foreach (Task task in runningJobs)
-                task.Wait();
-        }
-
-        private void RequestRender(string uniqueID)
-        {
-            this._Pool.GetInto(uniqueID, out IDirective directive);
-
-            if (directive != null)
-                directive.Render(uniqueID);
+            Task.WaitAll(callbackJobs.ToArray());
         }
     }
 }

@@ -17,6 +17,16 @@ namespace Xeora.Web.Directives
             if (this.Arguments == null)
                 this.Arguments = new ArgumentCollection();
 
+            this.Scheduler =
+                new DirectiveScheduler(
+                    (uniqueID) =>
+                    {
+                        this.Mother.Pool.GetByUniqueID(uniqueID, out IDirective directive);
+
+                        if (directive != null) directive.Render(this.UniqueID);
+                    }
+                );
+
             this.Result = string.Empty;
         }
 
@@ -27,6 +37,8 @@ namespace Xeora.Web.Directives
 
         public DirectiveTypes Type { get; private set; }
         public ArgumentCollection Arguments { get; private set; }
+
+        public DirectiveScheduler Scheduler { get; private set; }
 
         public abstract bool Searchable { get; }
         public abstract bool CanAsync { get; }

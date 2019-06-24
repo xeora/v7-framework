@@ -82,8 +82,7 @@ namespace Xeora.Web.Directives.Elements
 
             this.Children.Render(this.UniqueID);
 
-            this.Mother.Pool.Register(this);
-            this.Mother.Scheduler.Fire(this.DirectiveID);
+            this.Scheduler.Fire();
         }
 
         private PermissionResult EnsurePermission()

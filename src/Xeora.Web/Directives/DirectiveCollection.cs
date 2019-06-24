@@ -28,6 +28,8 @@ namespace Xeora.Web.Directives
             item.Mother = this._Mother;
             item.Parent = this._Parent;
 
+            this._Mother.Pool.Register(item);
+
             if (item is Control)
                 ((Control)item).Load();
 

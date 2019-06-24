@@ -10,7 +10,6 @@ namespace Xeora.Web.Directives.Elements
         private readonly ContentDescription _Contents;
         private DirectiveCollection _Children;
         private bool _Parsed;
-        private bool _Queued;
 
         private bool _Cache;
         private string _ParametersDefinition;
@@ -58,30 +57,31 @@ namespace Xeora.Web.Directives.Elements
         {
             this.Parse();
 
-            string uniqueID = this.UniqueID;
+            string uniqueID =
+                string.IsNullOrEmpty(requesterUniqueID) ? this.UniqueID : requesterUniqueID;
 
             if (this.HasBound)
             {
                 if (string.IsNullOrEmpty(requesterUniqueID))
                     return;
-                    
-                this.Mother.Pool.GetInto(requesterUniqueID, out IDirective directive);
 
-                if (directive == null || 
-                    (directive is INamable &&
-                        string.Compare(((INamable)directive).DirectiveID, this.BoundDirectiveID) != 0)
-                    )
+                this.Mother.Pool.GetByDirectiveID(this.BoundDirectiveID, out IDirective[] directives);
+
+                if (directives == null) return;
+
+                foreach (IDirective directive in directives)
                 {
-                    if (!this._Queued)
+                    if (!(directive is INamable)) return;
+
+                    string directiveID = ((INamable)directive).DirectiveID;
+                    if (string.Compare(directiveID, this.BoundDirectiveID) != 0) return;
+
+                    if (directive.Status != RenderStatus.Rendered)
                     {
-                        this._Queued = true;
-                        this.Mother.Scheduler.Register(this.BoundDirectiveID, this.UniqueID);
+                        directive.Scheduler.Register(this.UniqueID);
+                        return;
                     }
-
-                    return;
                 }
-
-                uniqueID = requesterUniqueID;
             }
 
             if (this.Status != RenderStatus.None)
@@ -91,8 +91,7 @@ namespace Xeora.Web.Directives.Elements
             this.Children.Render(this.UniqueID);
             this.ExecuteStatement(uniqueID);
 
-            this.Mother.Pool.Register(this);
-            this.Mother.Scheduler.Fire(this.DirectiveID);
+            this.Scheduler.Fire();
         }
 
         private void ExecuteStatement(string requesterUniqueID)

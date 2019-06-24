@@ -81,8 +81,8 @@ namespace Xeora.Web.Directives.Elements
             }
 
             this.Deliver(RenderStatus.Rendered, translationValue);
-            this.Mother.Pool.Register(this);
-            this.Mother.Scheduler.Fire(this.DirectiveID);
+
+            this.Scheduler.Fire();
         }
     }
 }

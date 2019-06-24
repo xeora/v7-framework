@@ -10,6 +10,8 @@
         DirectiveTypes Type { get; }
         Global.ArgumentCollection Arguments { get; }
 
+        DirectiveScheduler Scheduler { get; }
+
         bool Searchable { get; }
         bool CanAsync { get; }
         bool HasInlineError { get; set; }

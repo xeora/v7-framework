@@ -14,7 +14,6 @@ namespace Xeora.Web.Directives
     public interface IMother
     {
         DirectivePool Pool { get; }
-        DirectiveScheduler Scheduler { get; }
 
         Basics.ControlResult.Message MessageResult { get; }
         Stack<string> UpdateBlockIDStack { get; }

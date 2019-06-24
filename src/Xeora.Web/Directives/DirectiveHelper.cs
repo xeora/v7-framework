@@ -131,6 +131,8 @@ namespace Xeora.Web.Directives
             directives.Add(property);
             directives.Render(requesterUniqueID);
 
+            parent.Deliver(RenderStatus.Rendering, string.Empty);
+
             return property.ObjectResult;
         }
     }

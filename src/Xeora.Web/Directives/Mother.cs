@@ -19,7 +19,6 @@ namespace Xeora.Web.Directives
         public Mother(IDirective directive, Basics.ControlResult.Message messageResult, string[] updateBlockIDStack)
         {
             this._Pool = new DirectivePool();
-            this.Scheduler = new DirectiveScheduler(ref this._Pool);
             this.UpdateBlockIDStack = new Stack<string>();
 
             this.MessageResult = messageResult;
@@ -36,7 +35,6 @@ namespace Xeora.Web.Directives
         { }
 
         public DirectivePool Pool => this._Pool;
-        public DirectiveScheduler Scheduler { get; private set; }
         public Basics.ControlResult.Message MessageResult { get; private set; }
         public Stack<string> UpdateBlockIDStack { get; private set; }
 
