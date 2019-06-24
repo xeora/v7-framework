@@ -17,7 +17,7 @@ namespace Xeora.Web.Site
             string variableRegEx = simpleVariableRegEx + "|" + staticVariableRegEx + "|" + objectVariableRegEx;
             string directiveIDRegEx = "[\\.\\-" + characterGroup + "]+";
             string directiveIDWithSlashRegEx = "[\\/\\.\\-" + characterGroup + "]+"; // for template capturing
-            string directivePointerRegEx = "[A-Z]{1,2}";
+            string directivePointerRegEx = "(A)?[A-Z]";
             string levelingRegEx = "\\#\\d+(\\+)?";
             string parentingRegEx = "\\[" + directiveIDRegEx + "\\]";
             string parametersRegEx = "\\(((\\|)?(" + variableRegEx + ")?)+\\)";
@@ -78,11 +78,24 @@ namespace Xeora.Web.Site
         public Regex ContentSeparatorPattern { get; private set; }
         public Regex ContentClosingPattern { get; private set; }
 
-        private string CorrectForRegex(string input) =>
-                input
+        private string CorrectDirectiveIDForRegex(string input) =>
+            input
                 .Replace(".", "\\.");
 
+        private string CorrectDirectiveTypeForRegex(string input)
+        {
+            switch (input)
+            {
+                case "C":
+                    return input.Replace("C", "(A)?C");
+                case "AC":
+                    return input.Replace("AC", "(A)?C");
+                default:
+                    return input;
+            }
+        }
+
         public Regex SpecificContentOpeningPattern(string directiveID, string directiveType) =>
-            new Regex(string.Format(this.SpecificContentOpeningRegEx, this.CorrectForRegex(directiveID), directiveType),RegexOptions.Singleline);
+            new Regex(string.Format(this.SpecificContentOpeningRegEx, this.CorrectDirectiveIDForRegex(directiveID), this.CorrectDirectiveTypeForRegex(directiveType)),RegexOptions.Singleline);
     }
 }

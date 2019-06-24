@@ -73,7 +73,7 @@ namespace Xeora.Web.Directives
         }
 
         private static readonly Regex _DirectiveTypeRegEx =
-            new Regex("\\$(((?<DirectiveType>\\w{1,2})(\\#\\d+(\\+)?)?(\\[[\\.\\w\\-]+\\])?)|(?<DirectiveType>\\w+))\\:", RegexOptions.Compiled);
+            new Regex("\\$(((?<DirectiveType>(A)?\\w)(\\#\\d+(\\+)?)?(\\[[\\.\\w\\-]+\\])?)|(?<DirectiveType>\\w+))\\:", RegexOptions.Compiled);
         public static DirectiveTypes CaptureDirectiveType(string rawValue)
         {
             if (string.IsNullOrEmpty(rawValue))
