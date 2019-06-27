@@ -169,7 +169,7 @@ namespace Xeora.Web.Site
                 domain = domain.Parent;
             } while (domain != null);
 
-            control = null;
+            control = new Setting.Control.Unknown();
         }
 
         public void ClearCache() =>
