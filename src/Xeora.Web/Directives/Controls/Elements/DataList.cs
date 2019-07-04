@@ -120,8 +120,8 @@ namespace Xeora.Web.Directives.Controls.Elements
             Single rowSingle =
                 new Single(index == -1 ? this._Contents.MessageTemplate : this._Contents.Parts[index % this._Contents.Parts.Count], arguments.Clone())
                 {
-                    Mother = this._Parent.Mother,
-                    Parent = this._Parent
+                    Mother = this._Parent.Parent.Mother,
+                    Parent = this._Parent.Parent
                 };
 
             if (index == -1)
