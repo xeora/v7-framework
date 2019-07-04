@@ -116,10 +116,12 @@ namespace Xeora.Web.Manager
 
             codeBlock.AppendFormat("public class {0} : IDomainExecutable {{", executableName);
             codeBlock.AppendLine("public void Initialize() {}");
-            codeBlock.AppendLine("public void Terminate() {}");
-            codeBlock.AppendLine("public ResolutionResult ResolveURL(string requestFilePath) => null;");
             codeBlock.AppendLine("public void PreExecute(string executionID, ref MethodInfo mI) {}");
             codeBlock.AppendLine("public void PostExecute(string executionID, ref object result) {}");
+            codeBlock.AppendLine("public void Terminate() {}");
+            codeBlock.AppendLine("public ResolutionResult ResolveURL(string requestFilePath) => null;");
+            codeBlock.AppendLine("public PermissionResult EnsurePermission(string permissionKey) => null;");
+            codeBlock.AppendLine("public TranslationResult Translate(string languageCode, string translationID) => null;");
             codeBlock.AppendLine("} /* class */");
 
             codeBlock.AppendFormat("public class {0} {{", blockKey);
