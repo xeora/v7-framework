@@ -3,12 +3,12 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Platforms>AnyCPU;x64;x86</Platforms>
-    <PackageId>Xeora.Web.Service.DSS</PackageId>
+    <PackageId>Xeora.Web.Service.Dss</PackageId>
     <Version>7.2.0</Version>
     <Authors>Tuna Celik</Authors>
     <Company>JakPark Solutions</Company>
     <Product>XeoraCube - Web Development Framework DSS</Product>
-    <Description>XeoraCube - Web Development Framework DSS</Description>
+    <Description>XeoraCube - Web Development Framework Dss</Description>
     <Copyright>Copyright © Tuna Celik 2003 - 2019</Copyright>
     <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
     <RepositoryUrl>https://github.com/xeora/v7</RepositoryUrl>
