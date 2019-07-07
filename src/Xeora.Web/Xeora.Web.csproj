@@ -56,7 +56,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Xeora.Web.Basics\Xeora.Web.Basics.csproj" />
     <ProjectReference Include="..\Xeora.Web.Manager.Loader\Xeora.Web.Manager.Loader.csproj" />
-    <ProjectReference Include="..\Xeora.Web.Service.DSS\Xeora.Web.Service.DSS.csproj" />
+    <ProjectReference Include="..\Xeora.Web.Service.Dss\Xeora.Web.Service.Dss.csproj" />
   </ItemGroup>
 
   <ItemGroup>
