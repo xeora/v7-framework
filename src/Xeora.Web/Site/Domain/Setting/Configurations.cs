@@ -15,7 +15,7 @@ namespace Xeora.Web.Site.Setting
             get
             {
                 string authenticationTemplate = 
-                    this.ReadConfiguration("authenticationtemplate");
+                    this.ReadConfiguration("authenticationTemplate");
 
                 if (authenticationTemplate == null)
                     authenticationTemplate = this.DefaultTemplate;
@@ -24,14 +24,14 @@ namespace Xeora.Web.Site.Setting
             }
         }
 
-        public string DefaultTemplate => this.ReadConfiguration("defaulttemplate");
-        public string DefaultLanguage => this.ReadConfiguration("defaultlanguage");
+        public string DefaultTemplate => this.ReadConfiguration("defaultTemplate");
+        public string DefaultLanguage => this.ReadConfiguration("defaultLanguage");
 
         public Basics.Enum.PageCachingTypes DefaultCaching
         {
             get
             {
-                string configString = this.ReadConfiguration("defaultcaching");
+                string configString = this.ReadConfiguration("defaultCaching");
 
                 if (!Enum.TryParse<Basics.Enum.PageCachingTypes>(configString, out Basics.Enum.PageCachingTypes rPageCaching))
                     rPageCaching = Basics.Enum.PageCachingTypes.AllContent;
@@ -40,8 +40,8 @@ namespace Xeora.Web.Site.Setting
             }
         }
 
-        public string LanguageExecutable => this.ReadConfiguration("languageexecutable");
-        public string SecurityExecutable => this.ReadConfiguration("securityexecutable");
+        public string LanguageExecutable => this.ReadConfiguration("languageExecutable");
+        public string SecurityExecutable => this.ReadConfiguration("securityExecutable");
 
         private string ReadConfiguration(string key)
         {
@@ -50,15 +50,12 @@ namespace Xeora.Web.Site.Setting
                 XPathNodeIterator xPathIter = 
                     this._XPathNavigator.Select(string.Format("//Configuration/Item[@key='{0}']", key));
 
-                if (xPathIter.MoveNext())
-                    return xPathIter.Current.GetAttribute("value", xPathIter.Current.BaseURI);
+                return xPathIter.MoveNext() ? xPathIter.Current.GetAttribute("value", xPathIter.Current.BaseURI) : null;
             }
             catch (System.Exception)
             {
-                // Just Handle Exceptions
+                return null;
             }
-
-            return null;
         }
     }
 }
