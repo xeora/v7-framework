@@ -48,12 +48,12 @@ namespace Xeora.Web.Site.Setting
         public bool Default { get; private set; }
         public Basics.Domain.Info.Language Info { get; private set; }
 
-        public string Get(string translationID)
+        public string Get(string translationId)
         {
             try
             {
                 XPathNodeIterator xPathIter =
-                    this._XPathNavigator.Select(string.Format("//translation[@id='{0}']", translationID));
+                    this._XPathNavigator.Select(string.Format("//translation[@id='{0}']", translationId));
 
                 if (xPathIter.MoveNext())
                     return xPathIter.Current.Value;

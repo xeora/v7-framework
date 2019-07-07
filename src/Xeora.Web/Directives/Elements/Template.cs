@@ -16,10 +16,10 @@ namespace Xeora.Web.Directives.Elements
         public Template(string rawValue, ArgumentCollection arguments) :
             base(DirectiveTypes.Template, arguments)
         {
-            this.DirectiveID = DirectiveHelper.CaptureDirectiveID(rawValue);
+            this.DirectiveId = DirectiveHelper.CaptureDirectiveId(rawValue);
         }
 
-        public string DirectiveID { get; private set; }
+        public string DirectiveId { get; private set; }
 
         public override bool Searchable => true;
         public override bool CanAsync => true;
@@ -68,7 +68,7 @@ namespace Xeora.Web.Directives.Elements
             if (deployment == null)
                 throw new System.Exception("Domain Deployment access is failed!");
 
-            return deployment.ProvideTemplateContent(this.DirectiveID);
+            return deployment.ProvideTemplateContent(this.DirectiveId);
         }
 
         private bool CheckAuthentication(ref IDomain originalInstance, ref IDomain workingInstance)
@@ -81,7 +81,7 @@ namespace Xeora.Web.Directives.Elements
             IServiceItem cachedServiceItem = serviceItem;
             while (workingInstance != null)
             {
-                cachedServiceItem = workingInstance.Settings.Services.ServiceItems.GetServiceItem(this.DirectiveID);
+                cachedServiceItem = workingInstance.Settings.Services.ServiceItems.GetServiceItem(this.DirectiveId);
 
                 if (cachedServiceItem != null)
                 {
@@ -112,7 +112,7 @@ namespace Xeora.Web.Directives.Elements
             }
 
             if (serviceItem == null)
-                throw new SecurityException(string.Format("Service definition of {0} has not been found!", this.DirectiveID));
+                throw new SecurityException(string.Format("Service definition of {0} has not been found!", this.DirectiveId));
 
             serviceItem.AuthenticationKeys = authenticationKeys.ToArray();
 
@@ -129,7 +129,7 @@ namespace Xeora.Web.Directives.Elements
                     break;
 
                 originalInstance = workingInstance;
-                cachedServiceItem = workingInstance.Settings.Services.ServiceItems.GetServiceItem(this.DirectiveID);
+                cachedServiceItem = workingInstance.Settings.Services.ServiceItems.GetServiceItem(this.DirectiveId);
 
                 // Merge or set the authenticationkeys
                 if (cachedServiceItem.Authentication)
@@ -180,16 +180,16 @@ namespace Xeora.Web.Directives.Elements
             if (workingInstance == null)
                 return null;
 
-            List<string> childDomainIDAccessTree = new List<string>();
-            childDomainIDAccessTree.AddRange(workingInstance.IDAccessTree);
+            List<string> childDomainIdAccessTree = new List<string>();
+            childDomainIdAccessTree.AddRange(workingInstance.IdAccessTree);
 
             foreach (Basics.Domain.Info.Domain childDI in workingInstance.Children)
             {
-                childDomainIDAccessTree.Add(childDI.ID);
+                childDomainIdAccessTree.Add(childDI.Id);
 
-                IDomain rDomainInstance = new Site.Domain(childDomainIDAccessTree.ToArray(), originalInstance.Languages.Current.Info.ID);
+                IDomain rDomainInstance = new Site.Domain(childDomainIdAccessTree.ToArray(), originalInstance.Languages.Current.Info.Id);
                 IServiceItem serviceItem =
-                    rDomainInstance.Settings.Services.ServiceItems.GetServiceItem(this.DirectiveID);
+                    rDomainInstance.Settings.Services.ServiceItems.GetServiceItem(this.DirectiveId);
 
                 if (serviceItem == null ||
                     serviceItem.ServiceType != ServiceTypes.Template)
@@ -205,13 +205,13 @@ namespace Xeora.Web.Directives.Elements
                 else
                     return rDomainInstance;
 
-                childDomainIDAccessTree.RemoveAt(childDomainIDAccessTree.Count - 1);
+                childDomainIdAccessTree.RemoveAt(childDomainIdAccessTree.Count - 1);
             }
 
             return null;
         }
 
-        public override void Render(string requesterUniqueID)
+        public override void Render(string requesterUniqueId)
         {
             this.Parse();
 
@@ -228,7 +228,7 @@ namespace Xeora.Web.Directives.Elements
                 return;
             }
 
-            this.Children.Render(this.UniqueID);
+            this.Children.Render(this.UniqueId);
             this.Deliver(RenderStatus.Rendered, this.Result);
 
             this.Scheduler.Fire();

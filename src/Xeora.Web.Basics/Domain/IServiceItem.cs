@@ -2,7 +2,7 @@
 {
     public interface IServiceItem
     {
-        string ID { get; set; }
+        string Id { get; set; }
         string MimeType { get; set; }
         bool Authentication { get; set; }
         string[] AuthenticationKeys { get; set; }

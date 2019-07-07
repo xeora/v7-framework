@@ -6,9 +6,9 @@ namespace Xeora.Web.Directives.Elements
     public class PartialCache : Directive
     {
         private static readonly Regex _PositionRegEx =
-            new Regex("PC~(?<PositionID>\\d+)\\:\\{", RegexOptions.Compiled);
+            new Regex("PC~(?<PositionId>\\d+)\\:\\{", RegexOptions.Compiled);
 
-        private readonly int _PositionID;
+        private readonly int _PositionId;
         private readonly ContentDescription _Contents;
         private DirectiveCollection _Children;
         private bool _Parsed;
@@ -16,12 +16,12 @@ namespace Xeora.Web.Directives.Elements
         public PartialCache(string rawValue, ArgumentCollection arguments) :
             base(DirectiveTypes.PartialCache, arguments)
         {
-            this._PositionID = -1;
+            this._PositionId = -1;
             Match matchMI =
                 PartialCache._PositionRegEx.Match(rawValue);
 
             if (matchMI.Success)
-                int.TryParse(matchMI.Result("${PositionID}"), out this._PositionID);
+                int.TryParse(matchMI.Result("${PositionId}"), out this._PositionId);
 
             this._Contents = new ContentDescription(rawValue);
         }
@@ -46,7 +46,7 @@ namespace Xeora.Web.Directives.Elements
             this.Mother.RequestParsing(this._Contents.Parts[0], ref this._Children, this.Arguments);
         }
 
-        public override void Render(string requesterUniqueID)
+        public override void Render(string requesterUniqueId)
         {
             this.Parse();
 
@@ -57,10 +57,10 @@ namespace Xeora.Web.Directives.Elements
             Basics.Domain.IDomain instance = null;
             this.Mother.RequestInstance(ref instance);
 
-            string cacheID =
-                PartialCacheObject.CreateUniqueCacheID(this._PositionID, this, ref instance);
+            string cacheId =
+                PartialCacheObject.CreateUniqueCacheId(this._PositionId, this, ref instance);
 
-            PartialCachePool.Current.Get(instance.IDAccessTree, cacheID, out PartialCacheObject cacheObject);
+            PartialCachePool.Current.Get(instance.IdAccessTree, cacheId, out PartialCacheObject cacheObject);
 
             if (cacheObject != null)
             {
@@ -69,12 +69,12 @@ namespace Xeora.Web.Directives.Elements
                 return;
             }
 
-            this.Children.Render(this.UniqueID);
+            this.Children.Render(this.UniqueId);
             this.Deliver(RenderStatus.Rendered, this.Result);
 
             PartialCachePool.Current.AddOrUpdate(
-                instance.IDAccessTree,
-                new PartialCacheObject(cacheID, this.Result)
+                instance.IdAccessTree,
+                new PartialCacheObject(cacheId, this.Result)
             );
         }
     }

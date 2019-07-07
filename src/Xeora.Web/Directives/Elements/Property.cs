@@ -67,7 +67,7 @@ namespace Xeora.Web.Directives.Elements
         public override void Parse()
         { }
 
-        public override void Render(string requesterUniqueID)
+        public override void Render(string requesterUniqueId)
         {
             this.Parse();
 
@@ -385,13 +385,13 @@ namespace Xeora.Web.Directives.Elements
 
                     if (objectItem is DataListOutputInfo)
                     {
-                        string uniqueID =
-                            ((DataListOutputInfo)objectItem).UniqueID;
-                        this.Mother.Pool.GetByUniqueID(uniqueID, out IDirective directive);
+                        string uniqueId =
+                            ((DataListOutputInfo)objectItem).UniqueId;
+                        this.Mother.Pool.GetByUniqueId(uniqueId, out IDirective directive);
 
                         if (directive.Status != RenderStatus.Rendered)
                         {
-                            directive.Scheduler.Register(this.UniqueID);
+                            directive.Scheduler.Register(this.UniqueId);
                             return;
                         }
                     }

@@ -14,14 +14,14 @@ namespace Xeora.Web.Service.Context
         public Basics.Context.IHttpRequestQueryString QueryString { get; private set; }
         public Basics.Context.IHttpRequestBody Body { get; private set; }
 
-        public bool Build(string contextID, Net.NetworkStream streamEnclosure)
+        public bool Build(string contextId, Net.NetworkStream streamEnclosure)
         {
             this._Header = new HttpRequestHeader(streamEnclosure);
             if (!this._Header.Parse())
                 return false;
 
             this.QueryString = new HttpRequestQueryString(this._Header.URL);
-            this.Body = new HttpRequestBody(contextID, this._Header, streamEnclosure);
+            this.Body = new HttpRequestBody(contextId, this._Header, streamEnclosure);
 
             return true;
         }

@@ -160,13 +160,13 @@ namespace Xeora.Web.Basics
         /// <summary>
         /// Register an action to Xeora framework console key listener
         /// </summary>
-        /// <returns>Registration ID</returns>
+        /// <returns>Registration Id</returns>
         /// <param name="callback">Listener action to be invoked when a key pressed on Xeora framework console</param>
         public static string Register(Action<ConsoleKeyInfo> callback) =>
             Console.Current.AddKeyListener(callback);
 
         /// <summary>
-        /// Unregister an action registered with an ID previously
+        /// Unregister an action registered with an Id previously
         /// </summary>
         /// <returns>Removal Result, <c>true</c> if removed; otherwise, <c>false</c></returns>
         /// <param name="registrationId">registration Id of action</param>

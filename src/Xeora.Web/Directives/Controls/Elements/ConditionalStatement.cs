@@ -40,7 +40,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 this._Contents.Parts[this._SelectedContent], ref this._Children, this._Parent.Arguments);
         }
 
-        public void Render(string requesterUniqueID)
+        public void Render(string requesterUniqueId)
         {
             this._Settings.Bind.Parameters.Prepare(
                 (parameter) =>
@@ -58,7 +58,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                         query = this._Parameters[paramIndex];
                     }
 
-                    return DirectiveHelper.RenderProperty(this._Parent, query, this._Parent.Arguments, requesterUniqueID);
+                    return DirectiveHelper.RenderProperty(this._Parent, query, this._Parent.Arguments, requesterUniqueId);
                 }
             );
 
@@ -101,7 +101,7 @@ namespace Xeora.Web.Directives.Controls.Elements
 
             if (this._SelectedContent > -1)
             {
-                this._Children.Render(requesterUniqueID);
+                this._Children.Render(requesterUniqueId);
                 this._Parent.Deliver(RenderStatus.Rendered, this._Parent.Result);
             }
         }

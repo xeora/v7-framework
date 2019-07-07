@@ -32,14 +32,14 @@ namespace Xeora.Web.Deployment
 
         public string DomainRootPath { get; private set; }
         public string ChildrenRegistration => Path.Combine(this.DomainRootPath, "Addons");
-        public string ContentsRegistration(string languageID) => string.Format("\\Contents\\{0}\\", languageID);
+        public string ContentsRegistration(string languageId) => string.Format("\\Contents\\{0}\\", languageId);
         public string ExecutablesRegistration => Path.Combine(this.DomainRootPath, "Executables");
         public string TemplatesRegistration => "\\Templates\\";
         public string LanguagesRegistration => "\\Languages\\";
 
         private Decompiler Decompiler { get; set; }
 
-        public void ProvideContentFileStream(string languageID, string requestedFilePath, out Stream outputStream)
+        public void ProvideContentFileStream(string languageId, string requestedFilePath, out Stream outputStream)
         {
             outputStream = null;
 
@@ -63,7 +63,7 @@ namespace Xeora.Web.Deployment
             FileEntry fileEntry =
                 this.Decompiler.Get(
                     string.Concat(
-                        this.ContentsRegistration(languageID),
+                        this.ContentsRegistration(languageId),
                         requestPath
                     ),
                     requestFile
@@ -156,10 +156,10 @@ namespace Xeora.Web.Deployment
             }
         }
 
-        public string ProvideLanguageContent(string languageID)
+        public string ProvideLanguageContent(string languageId)
         {
             FileEntry fileEntry =
-                this.Decompiler.Get(this.LanguagesRegistration, string.Format("{0}.xml", languageID));
+                this.Decompiler.Get(this.LanguagesRegistration, string.Format("{0}.xml", languageId));
 
             if (fileEntry.Index == -1)
                 return string.Empty;
@@ -209,7 +209,7 @@ namespace Xeora.Web.Deployment
         {
             get
             {
-                List<string> languageIDs =
+                List<string> languageIds =
                     new List<string>();
 
                 FileEntry[] searchResult =
@@ -217,11 +217,11 @@ namespace Xeora.Web.Deployment
 
                 foreach (FileEntry fileEntry in searchResult)
                 {
-                    languageIDs.Add(
+                    languageIds.Add(
                         Path.GetFileNameWithoutExtension(fileEntry.FileName));
                 }
 
-                return languageIDs.ToArray();
+                return languageIds.ToArray();
             }
         }
 

@@ -17,45 +17,45 @@ namespace Xeora.Web.Directives
 
         public void Register(IDirective directive)
         {
-            this._Directives.AddOrUpdate(directive.UniqueID, directive, (cUniqueID, cController) => directive);
+            this._Directives.AddOrUpdate(directive.UniqueId, directive, (cUniqueId, cController) => directive);
 
             if (!(directive is INamable)) return;
 
-            string directiveID = ((INamable)directive).DirectiveID;
+            string directiveId = ((INamable)directive).DirectiveId;
 
-            this._NamingMap.AddOrUpdate(directiveID, new List<string>() { directive.UniqueID }, (cKey, cValue) => { cValue.Add(directive.UniqueID); return cValue; });
+            this._NamingMap.AddOrUpdate(directiveId, new List<string>() { directive.UniqueId }, (cKey, cValue) => { cValue.Add(directive.UniqueId); return cValue; });
         }
 
-        public void GetByUniqueID(string uniqueID, out IDirective directive) =>
-            this._Directives.TryGetValue(uniqueID, out directive);
+        public void GetByUniqueId(string uniqueId, out IDirective directive) =>
+            this._Directives.TryGetValue(uniqueId, out directive);
 
-        public void GetByDirectiveID(string directiveID, out IDirective[] directives)
+        public void GetByDirectiveId(string directiveId, out IDirective[] directives)
         {
             directives = null;
 
-            if (!this._NamingMap.TryGetValue(directiveID, out List<string> uniqueIDs)) return;
+            if (!this._NamingMap.TryGetValue(directiveId, out List<string> uniqueIds)) return;
 
             List<IDirective> _directives = new List<IDirective>();
 
-            foreach (string uniqueID in uniqueIDs)
+            foreach (string uniqueId in uniqueIds)
             {
-                if (!this._Directives.TryGetValue(uniqueID, out IDirective directive)) continue;
+                if (!this._Directives.TryGetValue(uniqueId, out IDirective directive)) continue;
                 _directives.Add(directive);
             }
 
             directives = _directives.ToArray();
         }
 
-        public void Unregister(string uniqueID)
+        public void Unregister(string uniqueId)
         {
-            this._Directives.TryRemove(uniqueID, out IDirective directive);
+            this._Directives.TryRemove(uniqueId, out IDirective directive);
 
             if (!(directive is INamable)) return;
 
-            string directiveID = ((INamable)directive).DirectiveID;
+            string directiveId = ((INamable)directive).DirectiveId;
 
-            this._NamingMap.TryGetValue(directiveID, out List<string> uniqueIDs);
-            uniqueIDs.Remove(uniqueID);
+            this._NamingMap.TryGetValue(directiveId, out List<string> uniqueIds);
+            uniqueIds.Remove(uniqueId);
         }
     }
 }

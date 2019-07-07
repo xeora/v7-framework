@@ -5,10 +5,10 @@
         public WorkingPathFormat()
         {
             this.WorkingPath = string.Empty;
-            this.WorkingPathID = string.Empty;
+            this.WorkingPathId = string.Empty;
         }
 
         public string WorkingPath { get; internal set; }
-        public string WorkingPathID { get; internal set; }
+        public string WorkingPathId { get; internal set; }
     }
 }

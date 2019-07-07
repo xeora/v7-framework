@@ -4,11 +4,11 @@ namespace Xeora.Web.Site.Service
 {
     internal class TaskInfo
     {
-        private readonly Guid _ID;
+        private readonly Guid _Id;
 
         public TaskInfo(Action<object[]> callBack, object[] callBackParams, DateTime executionTime)
         {
-            this._ID = Guid.NewGuid();
+            this._Id = Guid.NewGuid();
 
             this.CallBack = callBack;
             this.CallBackParams = callBackParams;
@@ -16,7 +16,7 @@ namespace Xeora.Web.Site.Service
             this.ExecutionTime = executionTime;
         }
 
-        public string ID => this._ID.ToString();
+        public string Id => this._Id.ToString();
         public Action<object[]> CallBack { get; private set; }
         public object[] CallBackParams { get; private set; }
         public DateTime ExecutionTime { get; private set; }

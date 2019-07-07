@@ -2,7 +2,7 @@
 {
     public class SystemMessages
     {
-        public const string IDMUSTBESET = "ID must be set";
+        public const string IDMUSTBESET = "Id must be set";
         public const string PATH_NOTEXISTS = "Path is not Exists";
         public const string PATH_WRONGSTRUCTURE = "Path Structure is Wrong";
 
@@ -17,7 +17,7 @@
 
         public const string TEMPLATE_AUTH = "This Template Requires Authentication";
         public const string TEMPLATE_NOTFOUND = "{0} Named Template file is not found";
-        public const string TEMPLATE_IDMUSTBESET = "ServiceID must be set";
+        public const string TEMPLATE_IDMUSTBESET = "ServiceId must be set";
 
         public const string XSERVICE_AUTH = "This xService Requires Authentication";
 

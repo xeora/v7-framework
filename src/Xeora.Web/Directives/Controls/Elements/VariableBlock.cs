@@ -37,7 +37,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 this._SelectedContent == -1 ? this._Contents.MessageTemplate : this._Contents.Parts[0], ref this._Children, this._Parent.Arguments);
         }
 
-        public void Render(string requesterUniqueID)
+        public void Render(string requesterUniqueId)
         {
             // Execution preparation should be done at the same level with it's parent. Because of that, send parent as parameters
             this._Settings.Bind.Parameters.Prepare(
@@ -56,7 +56,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                         query = this._Parameters[paramIndex];
                     }
 
-                    return DirectiveHelper.RenderProperty(this._Parent.Parent, query, this._Parent.Parent.Arguments, requesterUniqueID);
+                    return DirectiveHelper.RenderProperty(this._Parent.Parent, query, this._Parent.Parent.Arguments, requesterUniqueId);
                 }
             );
 
@@ -80,7 +80,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                     this._Parent.Arguments.AppendKeyWithValue("Message", invokeResult.Result.Message.Content);
 
                     this.Parse();
-                    this._Children.Render(requesterUniqueID);
+                    this._Children.Render(requesterUniqueId);
                     this._Parent.Deliver(RenderStatus.Rendered, this._Parent.Result);
                 }
 
@@ -95,7 +95,7 @@ namespace Xeora.Web.Directives.Controls.Elements
 
             this._SelectedContent = 0;
             this.Parse();
-            this._Children.Render(requesterUniqueID);
+            this._Children.Render(requesterUniqueId);
             this._Parent.Deliver(RenderStatus.Rendered, this._Parent.Result);
         }
     }

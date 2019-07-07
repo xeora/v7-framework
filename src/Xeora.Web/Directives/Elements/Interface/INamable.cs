@@ -2,6 +2,6 @@
 {
     public interface INamable
     {
-        string DirectiveID { get; }
+        string DirectiveId { get; }
     }
 }

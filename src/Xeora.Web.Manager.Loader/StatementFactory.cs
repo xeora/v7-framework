@@ -21,7 +21,7 @@ namespace Xeora.Web.Manager
         private StatementFactory()
         {
             this._StatementExecutables = new ConcurrentDictionary<string, string>();
-            this._ParamRegEx = new Regex("\\$(?<ID>\\d+)", RegexOptions.Multiline | RegexOptions.Compiled);
+            this._ParamRegEx = new Regex("\\$(?<Id>\\d+)", RegexOptions.Multiline | RegexOptions.Compiled);
             this._GetLock = new object();
         }
 
@@ -46,15 +46,15 @@ namespace Xeora.Web.Manager
             }
         }
 
-        public static StatementExecutable CreateExecutable(string[] domainIDAccessTree, string statementBlockID, string statement, bool parametric, bool cache)
+        public static StatementExecutable CreateExecutable(string[] domainIdAccessTree, string statementBlockId, string statement, bool parametric, bool cache)
         {
             try
             {
                 string blockKey =
                     string.Format(
                         "BLOCKCALL_{0}_{1}",
-                        string.Join<string>("_", domainIDAccessTree),
-                        statementBlockID.Replace('.', '_')
+                        string.Join<string>("_", domainIdAccessTree),
+                        statementBlockId.Replace('.', '_')
                     );
 
                 string executableName =
@@ -116,12 +116,12 @@ namespace Xeora.Web.Manager
 
             codeBlock.AppendFormat("public class {0} : IDomainExecutable {{", executableName);
             codeBlock.AppendLine("public void Initialize() {}");
-            codeBlock.AppendLine("public void PreExecute(string executionID, ref MethodInfo mI) {}");
-            codeBlock.AppendLine("public void PostExecute(string executionID, ref object result) {}");
+            codeBlock.AppendLine("public void PreExecute(string executionId, ref MethodInfo mI) {}");
+            codeBlock.AppendLine("public void PostExecute(string executionId, ref object result) {}");
             codeBlock.AppendLine("public void Terminate() {}");
             codeBlock.AppendLine("public ResolutionResult ResolveURL(string requestFilePath) => null;");
             codeBlock.AppendLine("public PermissionResult EnsurePermission(string permissionKey) => null;");
-            codeBlock.AppendLine("public TranslationResult Translate(string languageCode, string translationID) => null;");
+            codeBlock.AppendLine("public TranslationResult Translate(string languageCode, string translationId) => null;");
             codeBlock.AppendLine("} /* class */");
 
             codeBlock.AppendFormat("public class {0} {{", blockKey);
@@ -143,7 +143,7 @@ namespace Xeora.Web.Manager
                         lastIndex = paramMatch.Index;
                     }
 
-                    codeBlock.AppendFormat("p[{0}]", paramMatch.Result("${ID}"));
+                    codeBlock.AppendFormat("p[{0}]", paramMatch.Result("${Id}"));
 
                     lastIndex = (paramMatch.Index + paramMatch.Length);
                 }

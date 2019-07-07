@@ -7,26 +7,26 @@ namespace Xeora.Web.Service.Context
     {
         private Basics.Session.IHttpSession _Session;
 
-        public HttpContext(string contextID, ref Basics.Context.IHttpRequest request)
+        public HttpContext(string contextId, ref Basics.Context.IHttpRequest request)
         {
             string sessionCookieKey = Basics.Configurations.Xeora.Session.CookieKey;
 
             this.Request = request;
-            this.Response = new HttpResponse(contextID);
+            this.Response = new HttpResponse(contextId);
 
-            string sessionID = string.Empty;
-            Basics.Context.IHttpCookieInfo sessionIDCookie =
+            string sessionId = string.Empty;
+            Basics.Context.IHttpCookieInfo sessionIdCookie =
                 this.Request.Header.Cookie[sessionCookieKey];
-            if (sessionIDCookie != null)
+            if (sessionIdCookie != null)
             {
-                sessionID = sessionIDCookie.Value;
+                sessionId = sessionIdCookie.Value;
 
                 // Remove sessioncookie from the request object
                 ((HttpCookie)this.Request.Header.Cookie).Remove(sessionCookieKey);
             }
 
             SessionManager.Current.Acquire(
-                sessionID,
+                sessionId,
                 out this._Session);
 
             ((HttpResponse)this.Response).SessionCookieRequested +=
@@ -35,19 +35,19 @@ namespace Xeora.Web.Service.Context
                     if (skip)
                         return null;
 
-                    if (string.Compare(sessionID, this._Session.SessionID) == 0)
+                    if (string.Compare(sessionId, this._Session.SessionId) == 0)
                         return null;
 
                     if (this._Session.Keys.Length == 0)
                         return null;
 
                     // Create SessionCookie
-                    sessionIDCookie =
+                    sessionIdCookie =
                         this.Response.Header.Cookie.CreateNewCookie(sessionCookieKey);
-                    sessionIDCookie.Value = this._Session.SessionID;
-                    sessionIDCookie.HttpOnly = true;
+                    sessionIdCookie.Value = this._Session.SessionId;
+                    sessionIdCookie.HttpOnly = true;
 
-                    return sessionIDCookie;
+                    return sessionIdCookie;
                 };
 
             this.Application = ApplicationContainer.Current;

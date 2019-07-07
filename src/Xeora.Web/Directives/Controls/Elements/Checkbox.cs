@@ -21,17 +21,17 @@ namespace Xeora.Web.Directives.Controls.Elements
         public void Parse()
         { }
 
-        public void Render(string requesterUniqueID)
+        public void Render(string requesterUniqueId)
         {
             this.Parse();
 
-            if (this._Parent.Mother.UpdateBlockIDStack.Count > 0)
-                this._Settings.Updates.Setup(this._Parent.Mother.UpdateBlockIDStack.Peek());
+            if (this._Parent.Mother.UpdateBlockIdStack.Count > 0)
+                this._Settings.Updates.Setup(this._Parent.Mother.UpdateBlockIdStack.Peek());
 
             this._Parent.Bag.Add("text", this._Settings.Text, this._Parent.Arguments);
             foreach (Attribute item in this._Settings.Attributes)
                 this._Parent.Bag.Add(item.Key, item.Value, this._Parent.Arguments);
-            this._Parent.Bag.Render(requesterUniqueID);
+            this._Parent.Bag.Render(requesterUniqueId);
 
             string renderedText = this._Parent.Bag["text"].Result;
 
@@ -44,24 +44,24 @@ namespace Xeora.Web.Directives.Controls.Elements
 
             string itemIndex = 
                 System.Convert.ToString(this._Parent.Arguments["_sys_ItemIndex"]);
-            string checkBoxID = this._Parent.DirectiveID;
+            string checkBoxId = this._Parent.DirectiveId;
 
             if (!string.IsNullOrEmpty(itemIndex))
-                checkBoxID = string.Format("{0}_{1}", this._Parent.DirectiveID, itemIndex);
+                checkBoxId = string.Format("{0}_{1}", this._Parent.DirectiveId, itemIndex);
             string checkBoxLabel = 
-                string.Format("<label for=\"{0}\">{1}</label>", checkBoxID, renderedText);
+                string.Format("<label for=\"{0}\">{1}</label>", checkBoxId, renderedText);
 
             // Define OnClick Server event for Button
             if (this._Settings.Bind != null)
             {
                 // Render Bind Parameters
                 this._Settings.Bind.Parameters.Prepare(
-                    (parameter) => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueID)
+                    (parameter) => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueId)
                 );
 
                 string xeoraCall;
 
-                if (this._Parent.Mother.UpdateBlockIDStack.Count > 0)
+                if (this._Parent.Mother.UpdateBlockIdStack.Count > 0)
                 {
                     xeoraCall = string.Format(
                         "__XeoraJS.update('{1}', '{0}')",
@@ -106,8 +106,8 @@ namespace Xeora.Web.Directives.Controls.Elements
                     RenderStatus.Rendered,
                     string.Format(
                         "<input type=\"checkbox\" name=\"{0}\" id=\"{1}\"{2}>{3}",
-                        this._Parent.DirectiveID,
-                        checkBoxID,
+                        this._Parent.DirectiveId,
+                        checkBoxId,
                         this._Settings.Attributes.ToString(),
                         checkBoxLabel
                     )

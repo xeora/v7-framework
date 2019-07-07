@@ -9,23 +9,23 @@ namespace Xeora.Web.Service.Session
         public StoreManager(short expireInMinutes) =>
             this._ExpireInMinutes = expireInMinutes;
 
-        public void Acquire(string sessionID, out Basics.Session.IHttpSession sessionObject)
+        public void Acquire(string sessionId, out Basics.Session.IHttpSession sessionObject)
         {
             sessionObject = null;
 
-            if (string.IsNullOrEmpty(sessionID))
+            if (string.IsNullOrEmpty(sessionId))
             {
-                sessionID = Guid.NewGuid().ToString();
-                sessionID = sessionID.Replace("-", string.Empty);
-                sessionID = sessionID.ToLowerInvariant();
+                sessionId = Guid.NewGuid().ToString();
+                sessionId = sessionId.Replace("-", string.Empty);
+                sessionId = sessionId.ToLowerInvariant();
             }
 
-            DSS.DSSManager.Current.Reserve(sessionID, this._ExpireInMinutes, out Basics.DSS.IDSS reservation);
+            Dss.DssManager.Current.Reserve(sessionId, this._ExpireInMinutes, out Basics.Dss.IDss reservation);
 
             if (reservation == null)
                 throw new SessionCreationException();
 
-            ReservationEnclosure enclosure = new ReservationEnclosure(sessionID, ref reservation);
+            ReservationEnclosure enclosure = new ReservationEnclosure(sessionId, ref reservation);
 
             if (enclosure.IsExpired)
                 return;

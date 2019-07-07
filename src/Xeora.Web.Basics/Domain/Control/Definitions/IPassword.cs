@@ -3,6 +3,6 @@
     public interface IPassword : IBase, IUpdates, IHasAttributes
     {
         string Text { get; }
-        string DefaultButtonID { get; }
+        string DefaultButtonId { get; }
     }
 }

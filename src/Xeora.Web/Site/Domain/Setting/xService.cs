@@ -52,7 +52,7 @@ namespace Xeora.Web.Site.Setting
             return rObject;
         }
 
-        public Basics.RenderResult Render(string executeIn, string serviceID)
+        public Basics.RenderResult Render(string executeIn, string serviceId)
         {
             // call = Calling Function Providing in Query String
             Basics.Execution.Bind bind =
@@ -60,7 +60,7 @@ namespace Xeora.Web.Site.Setting
                     string.Format(
                         "{0}?{1}.{2},~xParams",
                         executeIn,
-                        serviceID,
+                        serviceId,
                         Basics.Helpers.Context.Request.QueryString["call"]
                     )
                 );

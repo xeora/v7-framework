@@ -2,7 +2,7 @@
 {
     public interface IDirective
     {
-        string UniqueID { get; }
+        string UniqueId { get; }
 
         IMother Mother { get; set; }
         IDirective Parent { get; set; }
@@ -18,7 +18,7 @@
         RenderStatus Status { get; }
 
         void Parse();
-        void Render(string requesterUniqueID);
+        void Render(string requesterUniqueId);
 
         void Deliver(RenderStatus status, string result);
         string Result { get; }

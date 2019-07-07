@@ -5,6 +5,6 @@ namespace Xeora.Web.Basics.Domain
 {
     public interface IControls : IDisposable
     {
-        IBase Select(string controlID);
+        IBase Select(string controlId);
     }
 }

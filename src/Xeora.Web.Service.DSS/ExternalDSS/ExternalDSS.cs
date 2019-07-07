@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
-namespace Xeora.Web.Service.DSS
+namespace Xeora.Web.Service.Dss
 {
-    internal class ExternalDSS : Basics.DSS.IDSS, IDSSService
+    internal class ExternalDss : Basics.Dss.IDss, IDssService
     {
         private readonly RequestHandler _RequestHandler;
         private readonly ResponseHandler _ResponseHandler;
 
-        public ExternalDSS(ref RequestHandler requestHandler, ref ResponseHandler responseHandler, string uniqueID, DateTime expireDate)
+        public ExternalDss(ref RequestHandler requestHandler, ref ResponseHandler responseHandler, string uniqueId, DateTime expireDate)
         {
             this._RequestHandler = requestHandler;
             this._ResponseHandler = responseHandler;
 
-            this.UniqueID = uniqueID;
+            this.UniqueId = uniqueId;
             this.Expires = expireDate;
         }
 
@@ -40,7 +40,7 @@ namespace Xeora.Web.Service.DSS
             }
         }
 
-        public string UniqueID { get; private set; }
+        public string UniqueId { get; private set; }
         public DateTime Expires { get; private set; }
         public string[] Keys => this.GetKeys();
 
@@ -48,7 +48,7 @@ namespace Xeora.Web.Service.DSS
         {
             byte[] responseBytes = null;
 
-            long requestID;
+            long requestId;
 
             // Make Request
             BinaryWriter binaryWriter = null;
@@ -64,13 +64,13 @@ namespace Xeora.Web.Service.DSS
                  */
 
                 binaryWriter.Write("GET".ToCharArray());
-                binaryWriter.Write((byte)this.UniqueID.Length);
-                binaryWriter.Write(this.UniqueID.ToCharArray());
+                binaryWriter.Write((byte)this.UniqueId.Length);
+                binaryWriter.Write(this.UniqueId.ToCharArray());
                 binaryWriter.Write((byte)key.Length);
                 binaryWriter.Write(key.ToCharArray());
                 binaryWriter.Flush();
 
-                requestID = this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
+                requestId = this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
             }
             finally
             {
@@ -84,7 +84,7 @@ namespace Xeora.Web.Service.DSS
                 }
             }
 
-            responseBytes = this._ResponseHandler.WaitForMessage(requestID);
+            responseBytes = this._ResponseHandler.WaitForMessage(requestId);
             if (responseBytes == null || responseBytes.Length == 0)
                 return null;
             
@@ -147,23 +147,23 @@ namespace Xeora.Web.Service.DSS
                     throw new OverflowException("Value is too big to store");
 
                 binaryWriter.Write("SET".ToCharArray());
-                binaryWriter.Write((byte)this.UniqueID.Length);
-                binaryWriter.Write(this.UniqueID.ToCharArray());
+                binaryWriter.Write((byte)this.UniqueId.Length);
+                binaryWriter.Write(this.UniqueId.ToCharArray());
                 binaryWriter.Write((byte)key.Length);
                 binaryWriter.Write(key.ToCharArray());
                 binaryWriter.Write(valueBytes.Length);
                 binaryWriter.Write(valueBytes, 0, valueBytes.Length);
                 binaryWriter.Flush();
 
-                long requestID =
+                long requestId =
                     this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
 
-                byte[] responseBytes = this._ResponseHandler.WaitForMessage(requestID);
+                byte[] responseBytes = this._ResponseHandler.WaitForMessage(requestId);
                 if (responseBytes == null || responseBytes.Length == 0)
                     return;
 
                 if (responseBytes[0] != 1)
-                    throw new DSSValueException();
+                    throw new DssValueException();
             }
             finally
             {
@@ -183,7 +183,7 @@ namespace Xeora.Web.Service.DSS
             List<string> keys = new List<string>();
 
             byte[] responseBytes = null;
-            long requestID;
+            long requestId;
 
             // Make Request
             BinaryWriter binaryWriter = null;
@@ -199,11 +199,11 @@ namespace Xeora.Web.Service.DSS
                  */
 
                 binaryWriter.Write("KYS".ToCharArray());
-                binaryWriter.Write((byte)this.UniqueID.Length);
-                binaryWriter.Write(this.UniqueID.ToCharArray());
+                binaryWriter.Write((byte)this.UniqueId.Length);
+                binaryWriter.Write(this.UniqueId.ToCharArray());
                 binaryWriter.Flush();
 
-                requestID = this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
+                requestId = this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
             }
             catch
             {
@@ -221,7 +221,7 @@ namespace Xeora.Web.Service.DSS
                 }
             }
 
-            responseBytes = this._ResponseHandler.WaitForMessage(requestID);
+            responseBytes = this._ResponseHandler.WaitForMessage(requestId);
             if (responseBytes == null || responseBytes.Length == 0)
                 return keys.ToArray();
             

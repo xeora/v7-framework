@@ -2,10 +2,10 @@
 {
     public class Domain
     {
-        public Domain(DeploymentTypes deploymentType, string ID, Language[] languages)
+        public Domain(DeploymentTypes deploymentType, string Id, Language[] languages)
         {
             this.DeploymentType = deploymentType;
-            this.ID = ID;
+            this.Id = Id;
             this.Languages = languages;
             this.Children = new DomainCollection();
         }
@@ -20,7 +20,7 @@
         /// Gets the domain identifier
         /// </summary>
         /// <value>The domain identifier</value>
-        public string ID { get; private set; }
+        public string Id { get; private set; }
 
         /// <summary>
         /// Gets the available languages for the domain

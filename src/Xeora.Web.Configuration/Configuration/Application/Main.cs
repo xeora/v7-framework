@@ -110,7 +110,7 @@ namespace Xeora.Web.Configuration
                             wPath = wPath.Insert(match.Index, "_");
                         }
                     }
-                    ((WorkingPathFormat)this._WorkingPathFormat).WorkingPathID = wPath;
+                    ((WorkingPathFormat)this._WorkingPathFormat).WorkingPathId = wPath;
                 }
 
                 return this._WorkingPathFormat;

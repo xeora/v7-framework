@@ -2,9 +2,9 @@
 {
     public class Language
     {
-        public Language(string ID, string name)
+        public Language(string Id, string name)
         {
-            this.ID = ID;
+            this.Id = Id;
             this.Name = name;
         }
 
@@ -12,7 +12,7 @@
         /// Gets the language identifier
         /// </summary>
         /// <value>The language identifier</value>
-        public string ID { get; private set; }
+        public string Id { get; private set; }
 
         /// <summary>
         /// Gets the language human readable name

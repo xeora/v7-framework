@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Concurrent;
 
-namespace Xeora.Web.Service.DSS
+namespace Xeora.Web.Service.Dss
 {
-    internal class MemoryDSS : Basics.DSS.IDSS, IDSSService
+    internal class MemoryDss : Basics.Dss.IDss, IDssService
     {
         private readonly ConcurrentDictionary<string, object> _Items;
         private readonly int _ExpiresInMinute;
 
-        public MemoryDSS(string uniqueID, int expiresInMinutes)
+        public MemoryDss(string uniqueId, int expiresInMinutes)
         {
-            this.UniqueID = uniqueID;
+            this.UniqueId = uniqueId;
             this._ExpiresInMinute = expiresInMinutes;
             this._Items = new ConcurrentDictionary<string, object>();
             this.Extend();
@@ -41,7 +41,7 @@ namespace Xeora.Web.Service.DSS
             }
         }
 
-        public string UniqueID { get; private set; }
+        public string UniqueId { get; private set; }
         public DateTime Expires { get; private set; }
 
         public string[] Keys

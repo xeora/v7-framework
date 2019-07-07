@@ -1,5 +1,4 @@
 ﻿using System;
-using Xeora.Web.Basics.Mapping;
 
 namespace Xeora.Web.Basics.Domain
 {

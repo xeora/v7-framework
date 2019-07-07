@@ -43,7 +43,7 @@ namespace Xeora.Web.Global
 
             if (colonIndex == -1) // Special Directive such as PC, MB, XF, AG
                 isSpecialDirective = true;
-            else // Common Directive such as DirectiveType:DirectiveID
+            else // Common Directive such as DirectiveType:DirectiveId
             {
                 blockContent = blockContent.Substring(colonIndex + 1);
                 firstContentEndIndex -= colonIndex + 2; // 2 = 1: make it length + 1: skip colon
@@ -51,12 +51,12 @@ namespace Xeora.Web.Global
 
             blockContent = this.CleanupParameters(firstContentEndIndex, blockContent);
 
-            // ControlIDWithIndex is Like ControlID~INDEX
-            string controlIDWithIndex = 
+            // ControlIdWithIndex is Like ControlId~INDEX
+            string controlIdWithIndex = 
                 blockContent.Substring(0, blockContent.IndexOf(":{", System.StringComparison.InvariantCulture));
 
-            string openingTag = string.Format("{0}:{{", controlIDWithIndex);
-            string closingTag = string.Format("}}:{0}", controlIDWithIndex);
+            string openingTag = string.Format("{0}:{{", controlIdWithIndex);
+            string closingTag = string.Format("}}:{0}", controlIdWithIndex);
 
             int idxCoreContStart =
                 blockContent.IndexOf(openingTag, System.StringComparison.InvariantCulture) + openingTag.Length;
@@ -71,9 +71,9 @@ namespace Xeora.Web.Global
             if (isSpecialDirective)
                 coreContent = coreContent.Trim();
 
-            if (this.TryCacheToPrepare(controlIDWithIndex, coreContent)) return;
+            if (this.TryCacheToPrepare(controlIdWithIndex, coreContent)) return;
 
-            this.PrepareDesciption(coreContent, controlIDWithIndex, isSpecialDirective);
+            this.PrepareDesciption(coreContent, controlIdWithIndex, isSpecialDirective);
         }
 
         private string CleanupParameters(int firstContentEndIndex, string blockContent)
@@ -87,9 +87,9 @@ namespace Xeora.Web.Global
             return blockContent.Remove(parameterBeginIndex, firstContentEndIndex - parameterBeginIndex);
         }
 
-        private bool TryCacheToPrepare(string controlIDWithIndex, string coreContent)
+        private bool TryCacheToPrepare(string controlIdWithIndex, string coreContent)
         {
-            if (!ContentDescription._PartsCache.TryGetValue(controlIDWithIndex, out PartCache partCache))
+            if (!ContentDescription._PartsCache.TryGetValue(controlIdWithIndex, out PartCache partCache))
                 return false;
 
             if (string.Compare(partCache.Content, coreContent) != 0)
@@ -101,10 +101,10 @@ namespace Xeora.Web.Global
             return true;
         }
 
-        private void PrepareDesciption(string content, string controlIDWithIndex, bool isSpecialDirective)
+        private void PrepareDesciption(string content, string controlIdWithIndex, bool isSpecialDirective)
         {
             string searchString =
-                string.Format("}}:{0}:{{", controlIDWithIndex);
+                string.Format("}}:{0}:{{", controlIdWithIndex);
             int sIdx, cIdx = 0;
 
             do
@@ -139,7 +139,7 @@ namespace Xeora.Web.Global
                 throw new Exception.EmptyBlockException();
 
             ContentDescription._PartsCache.TryAdd(
-                controlIDWithIndex,
+                controlIdWithIndex,
                 new PartCache
                 {
                     Content = content,

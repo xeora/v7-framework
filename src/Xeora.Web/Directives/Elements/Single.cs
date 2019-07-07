@@ -33,7 +33,7 @@ namespace Xeora.Web.Directives
             this.Mother.RequestParsing(this._Contents.Parts[0], ref this._Children, this.Arguments);
         }
 
-        public override void Render(string requesterUniqueID)
+        public override void Render(string requesterUniqueId)
         {
             this.Parse();
 
@@ -41,7 +41,7 @@ namespace Xeora.Web.Directives
                 return;
             this.Status = RenderStatus.Rendering;
 
-            this.Children.Render(this.UniqueID);
+            this.Children.Render(this.UniqueId);
             this.Deliver(RenderStatus.Rendered, this.Result);
         }
     }

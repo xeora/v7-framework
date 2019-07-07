@@ -5,14 +5,14 @@ namespace Xeora.Web.Directives
 {
     internal class PartialCacheObject
     {
-        public PartialCacheObject(string cacheID, string content)
+        public PartialCacheObject(string cacheId, string content)
         {
-            this.CacheID = cacheID;
+            this.CacheId = cacheId;
             this.Content = content;
             this.Date = DateTime.Now;
         }
 
-        public static string CreateUniqueCacheID(int positionID, PartialCache partialCache, ref Basics.Domain.IDomain instance)
+        public static string CreateUniqueCacheId(int positionId, PartialCache partialCache, ref Basics.Domain.IDomain instance)
         {
             if (partialCache == null)
                 throw new ArgumentNullException(nameof(partialCache));
@@ -24,7 +24,7 @@ namespace Xeora.Web.Directives
             {
                 if (workingObject is Template)
                 {
-                    serviceFullPath = ((Template)workingObject).DirectiveID;
+                    serviceFullPath = ((Template)workingObject).DirectiveId;
 
                     break;
                 }
@@ -32,13 +32,13 @@ namespace Xeora.Web.Directives
                 workingObject = workingObject.Parent;
             } while (workingObject != null);
 
-            if (string.IsNullOrEmpty(instance.Languages.Current.Info.ID) || string.IsNullOrEmpty(serviceFullPath) || positionID == -1)
+            if (string.IsNullOrEmpty(instance.Languages.Current.Info.Id) || string.IsNullOrEmpty(serviceFullPath) || positionId == -1)
                 throw new Exception.ParseException();
 
-            return string.Format("{0}_{1}_{2}", instance.Languages.Current.Info.ID, serviceFullPath, positionID);
+            return string.Format("{0}_{1}_{2}", instance.Languages.Current.Info.Id, serviceFullPath, positionId);
         }
 
-        public string CacheID { get; private set; }
+        public string CacheId { get; private set; }
         public string Content { get; private set; }
         public DateTime Date { get; private set; }
     }

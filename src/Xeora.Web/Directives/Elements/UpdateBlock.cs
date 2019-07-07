@@ -14,11 +14,11 @@ namespace Xeora.Web.Directives.Elements
         public UpdateBlock(string rawValue, ArgumentCollection arguments) : 
             base(DirectiveTypes.UpdateBlock, arguments)
         {
-            this.DirectiveID = DirectiveHelper.CaptureDirectiveID(rawValue);
+            this.DirectiveId = DirectiveHelper.CaptureDirectiveId(rawValue);
             this._Contents = new ContentDescription(rawValue);
         }
 
-        public string DirectiveID { get; private set; }
+        public string DirectiveId { get; private set; }
 
         public override bool Searchable => true;
         public override bool CanAsync => false;
@@ -37,7 +37,7 @@ namespace Xeora.Web.Directives.Elements
 
             if (blockContent.IndexOf(RENDER_ON_REQUEST_MARKER, System.StringComparison.InvariantCulture) == 0)
             {
-                if (!this.Mother.UpdateBlockIDStack.Contains(this.DirectiveID))
+                if (!this.Mother.UpdateBlockIdStack.Contains(this.DirectiveId))
                 {
                     this._RenderOnRequest = true;
 
@@ -54,7 +54,7 @@ namespace Xeora.Web.Directives.Elements
             this.Mother.RequestParsing(blockContent, ref this._Children, this.Arguments);
         }
 
-        public override void Render(string requesterUniqueID)
+        public override void Render(string requesterUniqueId)
         {
             this.Parse();
 
@@ -64,18 +64,18 @@ namespace Xeora.Web.Directives.Elements
 
             if (!this._RenderOnRequest)
             {
-                this.Mother.UpdateBlockIDStack.Push(this.DirectiveID);
+                this.Mother.UpdateBlockIdStack.Push(this.DirectiveId);
                 try
                 {
-                    this.Children.Render(this.UniqueID);
+                    this.Children.Render(this.UniqueId);
                 }
                 finally
                 {
-                    this.Mother.UpdateBlockIDStack.Pop();
+                    this.Mother.UpdateBlockIdStack.Pop();
                 }
             }
 
-            this.Deliver(RenderStatus.Rendered, string.Format("<div id=\"{0}\">{1}</div>", this.DirectiveID, this.Result));
+            this.Deliver(RenderStatus.Rendered, string.Format("<div id=\"{0}\">{1}</div>", this.DirectiveId, this.Result));
         }
     }
 }

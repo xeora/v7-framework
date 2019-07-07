@@ -22,11 +22,11 @@ namespace Xeora.Web.Directives.Elements
         public PermissionBlock(string rawValue, ArgumentCollection arguments) :
             base(DirectiveTypes.PermissionBlock, arguments)
         {
-            this.DirectiveID = DirectiveHelper.CaptureDirectiveID(rawValue);
+            this.DirectiveId = DirectiveHelper.CaptureDirectiveId(rawValue);
             this._Contents = new ContentDescription(rawValue);
         }
 
-        public string DirectiveID { get; private set; }
+        public string DirectiveId { get; private set; }
 
         public override bool Searchable => true;
         public override bool CanAsync => false;
@@ -67,7 +67,7 @@ namespace Xeora.Web.Directives.Elements
             this.Mother.RequestParsing(statementContent, ref this._Children, this.Arguments);
         }
 
-        public override void Render(string requesterUniqueID)
+        public override void Render(string requesterUniqueId)
         {
             if (this.Status != RenderStatus.None)
                 return;
@@ -80,7 +80,7 @@ namespace Xeora.Web.Directives.Elements
                 permissionResult.Result == PermissionResult.Results.Allowed ? ContentTypes.Allowed : ContentTypes.Forbidden;
             this.Parse();
 
-            this.Children.Render(this.UniqueID);
+            this.Children.Render(this.UniqueId);
 
             this.Scheduler.Fire();
         }
@@ -95,7 +95,7 @@ namespace Xeora.Web.Directives.Elements
 
             Basics.Execution.Bind permissionBind =
                 Basics.Execution.Bind.Make(string.Format("{0}?EnsurePermission,p1", instance.Settings.Configurations.SecurityExecutable));
-            permissionBind.Parameters.Prepare(parameter => this.DirectiveID);
+            permissionBind.Parameters.Prepare(parameter => this.DirectiveId);
             permissionBind.InstanceExecution = true;
 
             Basics.Execution.InvokeResult<PermissionResult> permissionInvokeResult =

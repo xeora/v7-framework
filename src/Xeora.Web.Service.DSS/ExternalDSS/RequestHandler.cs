@@ -2,29 +2,29 @@
 using System.Net.Sockets;
 using System.Threading;
 
-namespace Xeora.Web.Service.DSS
+namespace Xeora.Web.Service.Dss
 {
     public class RequestHandler
     {
-        private readonly TcpClient _DSSServiceClient;
+        private readonly TcpClient _DssServiceClient;
 
-        private long _LastRequestID = 0;
+        private long _LastRequestId = 0;
         private readonly object _StreamLock;
 
         public RequestHandler(ref TcpClient dssServiceClient)
         {
-            this._DSSServiceClient = dssServiceClient;
+            this._DssServiceClient = dssServiceClient;
 
-            this._LastRequestID = 0;
+            this._LastRequestId = 0;
             this._StreamLock = new object();
         }
 
         private long PrepareRequest(ref byte[] requestBytes)
         {
-            this._LastRequestID++;
+            this._LastRequestId++;
 
             long contentLength = requestBytes.Length;
-            long head = this._LastRequestID << 24;
+            long head = this._LastRequestId << 24;
             head |= contentLength;
 
             byte[] headBytes = BitConverter.GetBytes(head);
@@ -35,7 +35,7 @@ namespace Xeora.Web.Service.DSS
 
             requestBytes = newRequestBytes;
 
-            return this._LastRequestID;
+            return this._LastRequestId;
         }
 
         public long MakeRequest(byte[] requestBytes)
@@ -44,12 +44,12 @@ namespace Xeora.Web.Service.DSS
             try
             {
                 // PrepareRequest always under lock!
-                long requestID = 
+                long requestId = 
                     this.PrepareRequest(ref requestBytes);
 
-                this._DSSServiceClient.GetStream().Write(requestBytes, 0, requestBytes.Length);
+                this._DssServiceClient.GetStream().Write(requestBytes, 0, requestBytes.Length);
 
-                return requestID;
+                return requestId;
             }
             catch
             {

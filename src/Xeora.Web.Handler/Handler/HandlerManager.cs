@@ -70,12 +70,12 @@ namespace Xeora.Web.Handler
             return handler;
         }
 
-        public Basics.IHandler Get(string handlerID)
+        public Basics.IHandler Get(string handlerId)
         {
-            if (string.IsNullOrEmpty(handlerID))
+            if (string.IsNullOrEmpty(handlerId))
                 return null;
 
-            if (!this._Handlers.TryGetValue(handlerID, out HandlerContainer handlerContainer))
+            if (!this._Handlers.TryGetValue(handlerId, out HandlerContainer handlerContainer))
                 return null;
 
             return handlerContainer.Handler;
@@ -89,25 +89,25 @@ namespace Xeora.Web.Handler
             HandlerContainer handlerContainer =
                 new HandlerContainer(ref handler);
 
-            if (!this._Handlers.TryAdd(handler.HandlerID, handlerContainer))
+            if (!this._Handlers.TryAdd(handler.HandlerId, handlerContainer))
                 this.Add(ref handler);
         }
 
-        public void Mark(string handlerID)
+        public void Mark(string handlerId)
         {
-            if (!this._Handlers.TryGetValue(handlerID, out HandlerContainer handlerContainer))
+            if (!this._Handlers.TryGetValue(handlerId, out HandlerContainer handlerContainer))
                 return;
 
             handlerContainer.Removable = false;
         }
 
-        public void UnMark(string handlerID)
+        public void UnMark(string handlerId)
         {
-            if (!this._Handlers.TryGetValue(handlerID, out HandlerContainer handlerContainer))
+            if (!this._Handlers.TryGetValue(handlerId, out HandlerContainer handlerContainer))
                 return;
 
             if (handlerContainer.Removable)
-                this._Handlers.TryRemove(handlerID, out handlerContainer);
+                this._Handlers.TryRemove(handlerId, out handlerContainer);
             else
                 handlerContainer.Removable = true;
         }

@@ -6,16 +6,16 @@ namespace Xeora.Web.Service.Context
 {
     public class HttpRequestBody : Basics.Context.IHttpRequestBody
     {
-        private readonly string _ContextID;
+        private readonly string _ContextId;
 
         private readonly Basics.Context.IHttpRequestHeader _Header;
         private readonly Net.NetworkStream _StreamEnclosure;
 
         private Stream _ContentStream;
 
-        public HttpRequestBody(string contextID, Basics.Context.IHttpRequestHeader header, Net.NetworkStream streamEnclosure)
+        public HttpRequestBody(string contextId, Basics.Context.IHttpRequestHeader header, Net.NetworkStream streamEnclosure)
         {
-            this._ContextID = contextID;
+            this._ContextId = contextId;
 
             this._Header = header;
             this._StreamEnclosure = streamEnclosure;
@@ -361,7 +361,7 @@ namespace Xeora.Web.Service.Context
             // if the request size smaller than 3,5 MB, use the memory.
             HttpRequestFileInfo requestFI =
                 new HttpRequestFileInfo(
-                    this._ContextID, 
+                    this._ContextId, 
                     contentHeader.ContentType, 
                     contentHeader.ContentEncoding, 
                     contentHeader.FileName, 

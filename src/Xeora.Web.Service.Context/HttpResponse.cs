@@ -11,7 +11,7 @@ namespace Xeora.Web.Service.Context
     {
         public static readonly char[] NEWLINE = { '\r', '\n' };
 
-        private readonly string _ContextID;
+        private readonly string _ContextId;
         private readonly string _TempLocation;
         private readonly Stream _ResponseOutput;
 
@@ -19,13 +19,13 @@ namespace Xeora.Web.Service.Context
 
         public event SessionCookieRequestedHandler SessionCookieRequested;
 
-        public HttpResponse(string contextID)
+        public HttpResponse(string contextId)
         {
-            this._ContextID = contextID;
+            this._ContextId = contextId;
             this._TempLocation = 
                 Path.Combine(
                     Configurations.Xeora.Application.Main.TemporaryRoot, 
-                    string.Format("rs-{0}.bin", this._ContextID)
+                    string.Format("rs-{0}.bin", this._ContextId)
                 );
 
             this._ResponseOutput = 

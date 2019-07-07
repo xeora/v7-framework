@@ -45,12 +45,12 @@ namespace Xeora.Web.Deployment
 
         public string DomainRootPath { get; private set; }
         public string ChildrenRegistration => Path.Combine(this.DomainRootPath, "Addons");
-        public string ContentsRegistration(string languageID) => Path.Combine(this.DomainRootPath, "Contents", languageID);
+        public string ContentsRegistration(string languageId) => Path.Combine(this.DomainRootPath, "Contents", languageId);
         public string ExecutablesRegistration => Path.Combine(this.DomainRootPath, "Executables");
         public string TemplatesRegistration => Path.Combine(this.DomainRootPath, "Templates");
         public string LanguagesRegistration => Path.Combine(this.DomainRootPath, "Languages");
 
-        public void ProvideContentFileStream(string languageID, string requestedFilePath, out Stream outputStream)
+        public void ProvideContentFileStream(string languageId, string requestedFilePath, out Stream outputStream)
         {
             outputStream = null;
 
@@ -62,7 +62,7 @@ namespace Xeora.Web.Deployment
                 requestedFilePath = requestedFilePath.Substring(1);
 
             string requestedFileFullPath =
-                Path.Combine(this.ContentsRegistration(languageID), requestedFilePath);
+                Path.Combine(this.ContentsRegistration(languageId), requestedFilePath);
 
             if (!File.Exists(requestedFileFullPath))
                 throw new FileNotFoundException();
@@ -115,10 +115,10 @@ namespace Xeora.Web.Deployment
             }
         }
 
-        public string ProvideLanguageContent(string languageID)
+        public string ProvideLanguageContent(string languageId)
         {
             string languageFile =
-                Path.Combine(this.LanguagesRegistration, string.Format("{0}.xml", languageID));
+                Path.Combine(this.LanguagesRegistration, string.Format("{0}.xml", languageId));
 
             return this.ReadFileAsString(languageFile);
         }
@@ -162,16 +162,16 @@ namespace Xeora.Web.Deployment
         {
             get
             {
-                List<string> languageIDs =
+                List<string> languageIds =
                     new List<string>();
 
                 DirectoryInfo languagesDI = 
                     new DirectoryInfo(this.LanguagesRegistration);
 
                 foreach (FileInfo tFI in languagesDI.GetFiles())
-                    languageIDs.Add(Path.GetFileNameWithoutExtension(tFI.Name));
+                    languageIds.Add(Path.GetFileNameWithoutExtension(tFI.Name));
 
-                return languageIDs.ToArray();
+                return languageIds.ToArray();
             }
         }
 

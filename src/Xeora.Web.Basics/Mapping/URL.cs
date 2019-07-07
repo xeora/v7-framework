@@ -41,7 +41,7 @@ namespace Xeora.Web.Basics.Mapping
             get
             {
                 URL urlInstance = null;
-                if (!URL._Mappings.TryGetValue(Helpers.CurrentDomainInstance.IDAccessTree, out urlInstance))
+                if (!URL._Mappings.TryGetValue(Helpers.CurrentDomainInstance.IdAccessTree, out urlInstance))
                 {
                     urlInstance =
                         new URL(
@@ -50,7 +50,7 @@ namespace Xeora.Web.Basics.Mapping
                             Helpers.CurrentDomainInstance.Settings.Mappings.Items.ToArray()
                         );
 
-                    if (!URL._Mappings.TryAdd(Helpers.CurrentDomainInstance.IDAccessTree, urlInstance))
+                    if (!URL._Mappings.TryAdd(Helpers.CurrentDomainInstance.IdAccessTree, urlInstance))
                         return URL.Current;
                 }
 
@@ -88,8 +88,8 @@ namespace Xeora.Web.Basics.Mapping
                             {
                                 resolveItemValue = string.Empty;
 
-                                if (!string.IsNullOrEmpty(resolveItem.ID))
-                                    resolveItemValue = rqMatch.Groups[resolveItem.ID].Value;
+                                if (!string.IsNullOrEmpty(resolveItem.Id))
+                                    resolveItemValue = rqMatch.Groups[resolveItem.Id].Value;
 
                                 resolutionResult.QueryString[resolveItem.QueryStringKey] =
                                     string.IsNullOrEmpty(resolveItemValue) ? resolveItem.DefaultValue : resolveItemValue;

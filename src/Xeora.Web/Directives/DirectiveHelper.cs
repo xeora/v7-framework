@@ -5,35 +5,35 @@ namespace Xeora.Web.Directives
 {
     public static class DirectiveHelper
     {
-        private static readonly Regex _BoundDirectiveIDRegEx =
+        private static readonly Regex _BoundDirectiveIdRegEx =
             new Regex("\\[[\\.\\w\\-]+\\]", RegexOptions.Compiled);
-        public static string CaptureBoundDirectiveID(string value)
+        public static string CaptureBoundDirectiveId(string value)
         {
             string[] controlValueSplitted = value.Split(':');
 
-            Match cpIDMatch =
-                DirectiveHelper._BoundDirectiveIDRegEx.Match(controlValueSplitted[0]);
+            Match cpIdMatch =
+                DirectiveHelper._BoundDirectiveIdRegEx.Match(controlValueSplitted[0]);
 
-            if (cpIDMatch.Success)
+            if (cpIdMatch.Success)
             {
                 // Trim [ and ] characters from match result
-                return cpIDMatch.Value.Substring(1, cpIDMatch.Length - 2);
+                return cpIdMatch.Value.Substring(1, cpIdMatch.Length - 2);
             }
 
             return string.Empty;
         }
 
-        private static readonly Regex _DirectiveIDRegEx =
+        private static readonly Regex _DirectiveIdRegEx =
             new Regex("[\\/\\.\\w\\-]+", RegexOptions.Compiled);
-        public static string CaptureDirectiveID(string rawValue)
+        public static string CaptureDirectiveId(string rawValue)
         {
             string[] controlValueSplitted = rawValue.Split(':');
 
-            Match cpIDMatch =
-                DirectiveHelper._DirectiveIDRegEx.Match(controlValueSplitted[1]);
+            Match cpIdMatch =
+                DirectiveHelper._DirectiveIdRegEx.Match(controlValueSplitted[1]);
 
-            if (cpIDMatch.Success)
-                return cpIDMatch.Value;
+            if (cpIdMatch.Success)
+                return cpIdMatch.Value;
 
             return string.Empty;
         }
@@ -44,14 +44,14 @@ namespace Xeora.Web.Directives
         {
             string[] controlValueSplitted = value.Split(':');
 
-            Match cpIDMatch =
+            Match cpIdMatch =
                 DirectiveHelper._ControlParametersRegEx.Match(controlValueSplitted[1]);
 
-            if (cpIDMatch.Success)
+            if (cpIdMatch.Success)
             {
                 // Trim ( and ) character from match result
                 string rawParameters =
-                    cpIDMatch.Value.Substring(1, cpIDMatch.Length - 2);
+                    cpIdMatch.Value.Substring(1, cpIdMatch.Length - 2);
 
                 return rawParameters.Split('|');
             }
@@ -79,11 +79,11 @@ namespace Xeora.Web.Directives
             if (string.IsNullOrEmpty(rawValue))
                 return DirectiveTypes.Undefined;
 
-            Match cpIDMatch = DirectiveHelper._DirectiveTypeRegEx.Match(rawValue);
+            Match cpIdMatch = DirectiveHelper._DirectiveTypeRegEx.Match(rawValue);
 
-            if (cpIDMatch.Success)
+            if (cpIdMatch.Success)
             {
-                string DirectiveType = cpIDMatch.Result("${DirectiveType}");
+                string DirectiveType = cpIdMatch.Result("${DirectiveType}");
 
                 switch (DirectiveType)
                 {
@@ -121,7 +121,7 @@ namespace Xeora.Web.Directives
             return DirectiveTypes.Property;
         }
 
-        public static object RenderProperty(IDirective parent, string rawValue, Global.ArgumentCollection arguments, string requesterUniqueID)
+        public static object RenderProperty(IDirective parent, string rawValue, Global.ArgumentCollection arguments, string requesterUniqueId)
         {
             DirectiveCollection directives = 
                 new DirectiveCollection(parent.Mother, parent);
@@ -129,7 +129,7 @@ namespace Xeora.Web.Directives
             Property property = new Property(rawValue, arguments);
 
             directives.Add(property);
-            directives.Render(requesterUniqueID);
+            directives.Render(requesterUniqueId);
 
             parent.Deliver(RenderStatus.Rendering, string.Empty);
 

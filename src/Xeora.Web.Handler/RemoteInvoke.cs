@@ -7,12 +7,12 @@ namespace Xeora.Web.Handler
 {
     public class RemoteInvoke
     {
-        public static IHandler GetHandler(string handlerID) =>
-            HandlerManager.Current.Get(handlerID);
+        public static IHandler GetHandler(string handlerId) =>
+            HandlerManager.Current.Get(handlerId);
 
-        public static IVariablePool GetVariablePool(string sessionID, string keyID)
+        public static IVariablePool GetVariablePool(string sessionId, string keyId)
         {
-            PoolFactory.Get(sessionID, keyID, out IVariablePool rVP);
+            PoolFactory.Get(sessionId, keyId, out IVariablePool rVP);
 
             return rVP;
         }
@@ -35,8 +35,8 @@ namespace Xeora.Web.Handler
             return RemoteInvoke._ScheduledTaskEngine;
         }
 
-        public static void TransferVariablePool(string keyID, string fromSessionID, string toSessionID) =>
-            PoolFactory.Copy(keyID, fromSessionID, toSessionID);
+        public static void TransferVariablePool(string keyId, string fromSessionId, string toSessionId) =>
+            PoolFactory.Copy(keyId, fromSessionId, toSessionId);
 
         public static Basics.Configuration.IXeora XeoraSettings => 
             Configuration.ConfigurationManager.Current.Configuration;

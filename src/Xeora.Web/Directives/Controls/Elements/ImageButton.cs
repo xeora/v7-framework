@@ -21,17 +21,17 @@ namespace Xeora.Web.Directives.Controls.Elements
         public void Parse()
         { }
 
-        public void Render(string requesterUniqueID)
+        public void Render(string requesterUniqueId)
         {
             this.Parse();
 
-            if (this._Parent.Mother.UpdateBlockIDStack.Count > 0)
-                this._Settings.Updates.Setup(this._Parent.Mother.UpdateBlockIDStack.Peek());
+            if (this._Parent.Mother.UpdateBlockIdStack.Count > 0)
+                this._Settings.Updates.Setup(this._Parent.Mother.UpdateBlockIdStack.Peek());
 
             this._Parent.Bag.Add("source", this._Settings.Source, this._Parent.Arguments);
             foreach (Attribute item in this._Settings.Attributes)
                 this._Parent.Bag.Add(item.Key, item.Value, this._Parent.Arguments);
-            this._Parent.Bag.Render(requesterUniqueID);
+            this._Parent.Bag.Render(requesterUniqueId);
 
             string renderedSource = this._Parent.Bag["source"].Result;
 
@@ -52,12 +52,12 @@ namespace Xeora.Web.Directives.Controls.Elements
             {
                 // Render Bind Parameters
                 this._Settings.Bind.Parameters.Prepare(
-                    (parameter) => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueID)
+                    (parameter) => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueId)
                 );
 
                 string xeoraCall;
 
-                if (this._Parent.Mother.UpdateBlockIDStack.Count > 0)
+                if (this._Parent.Mother.UpdateBlockIdStack.Count > 0)
                 {
                     xeoraCall = string.Format(
                         "__XeoraJS.update('{1}', '{0}')",
@@ -102,7 +102,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                     RenderStatus.Rendered,
                     string.Format(
                         "<img name=\"{0}\" alt=\"\" id=\"{0}\"{1} />",
-                        this._Parent.DirectiveID, this._Settings.Attributes
+                        this._Parent.DirectiveId, this._Settings.Attributes
                     )
                 );
             }

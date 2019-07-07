@@ -20,7 +20,7 @@ namespace Xeora.Web.Directives
             base.Add(label, single);
         }
 
-        public void Render(string requesterUniqueID)
+        public void Render(string requesterUniqueId)
         {
             IEnumerator<KeyValuePair<string, Single>> bagEnum = 
                 this.GetEnumerator();
@@ -30,7 +30,7 @@ namespace Xeora.Web.Directives
                 KeyValuePair<string, Single> item = 
                     bagEnum.Current;
 
-                item.Value.Render(requesterUniqueID);
+                item.Value.Render(requesterUniqueId);
             }
         }
     }

@@ -3,6 +3,6 @@
     public interface ITextbox : IBase, IUpdates, IHasAttributes
     {
         string Text { get; }
-        string DefaultButtonID { get; }
+        string DefaultButtonId { get; }
     }
 }

@@ -7,7 +7,7 @@ namespace Xeora.Web.Directives
     {
         protected Directive(DirectiveTypes type, ArgumentCollection arguments)
         {
-            this.UniqueID = Guid.NewGuid().ToString();
+            this.UniqueId = Guid.NewGuid().ToString();
 
             this.Mother = null;
             this.Parent = null;
@@ -19,18 +19,18 @@ namespace Xeora.Web.Directives
 
             this.Scheduler =
                 new DirectiveScheduler(
-                    (uniqueID) =>
+                    (uniqueId) =>
                     {
-                        this.Mother.Pool.GetByUniqueID(uniqueID, out IDirective directive);
+                        this.Mother.Pool.GetByUniqueId(uniqueId, out IDirective directive);
 
-                        if (directive != null) directive.Render(this.UniqueID);
+                        if (directive != null) directive.Render(this.UniqueId);
                     }
                 );
 
             this.Result = string.Empty;
         }
 
-        public string UniqueID { get; private set; }
+        public string UniqueId { get; private set; }
 
         public IMother Mother { get; set; }
         public IDirective Parent { get; set; }
@@ -46,7 +46,7 @@ namespace Xeora.Web.Directives
         public RenderStatus Status { get; protected set; }
 
         public abstract void Parse();
-        public abstract void Render(string requesterUniqueID);
+        public abstract void Render(string requesterUniqueId);
 
         public void Deliver(RenderStatus status, string result)
         {

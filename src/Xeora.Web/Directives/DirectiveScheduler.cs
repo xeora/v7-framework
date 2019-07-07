@@ -25,30 +25,30 @@ namespace Xeora.Web.Directives
             this._CallBack = callback;
         }
 
-        public void Register(string uniqueID)
+        public void Register(string uniqueId)
         {
             lock (this._RegisterLock)
             {
-                if (this._ScheduledItems.ContainsKey(uniqueID))
+                if (this._ScheduledItems.ContainsKey(uniqueId))
                     return;
 
-                this._Queue.Enqueue(uniqueID);
+                this._Queue.Enqueue(uniqueId);
             }
         }
 
         public void Fire()
         {
-            string handlerID = Helpers.CurrentHandlerID;
+            string handlerId = Helpers.CurrentHandlerId;
             List<Task> callbackJobs = new List<Task>();
 
-            while (this._Queue.TryDequeue(out string uniqueID))
+            while (this._Queue.TryDequeue(out string uniqueId))
             {
                 callbackJobs.Add(
                     Task.Factory.StartNew(() =>
                     {
-                        Helpers.AssignHandlerID(handlerID);
+                        Helpers.AssignHandlerId(handlerId);
 
-                        this._CallBack(uniqueID);
+                        this._CallBack(uniqueId);
                     })
                 );
             }

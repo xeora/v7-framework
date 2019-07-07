@@ -4,17 +4,17 @@ namespace Xeora.Web.Basics.Mapping
 {
     public class ResolveItemCollection : List<ResolveItem>
     {
-        public ResolveItem this[string ID]
+        public ResolveItem this[string Id]
         {
             get
             {
                 foreach (ResolveItem resolveItem in this)
                 {
-                    if (string.Compare(resolveItem.ID, ID, true) == 0)
+                    if (string.Compare(resolveItem.Id, Id, true) == 0)
                         return resolveItem;
                 }
 
-                return new ResolveItem(ID);
+                return new ResolveItem(Id);
             }
         }
     }

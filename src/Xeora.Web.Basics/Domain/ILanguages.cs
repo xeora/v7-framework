@@ -6,8 +6,8 @@ namespace Xeora.Web.Basics.Domain
     public interface ILanguages : IEnumerable<string>, IDisposable
     {
         ILanguage Current { get; }
-        void Use(string languageID);
+        void Use(string languageId);
 
-        ILanguageDefinition this[string languageID] { get; }
+        ILanguageDefinition this[string languageId] { get; }
     }
 }

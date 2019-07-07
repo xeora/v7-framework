@@ -7,12 +7,12 @@ namespace Xeora.Web.Site.Setting
     public class Languages : ILanguages
     {
         private readonly Dictionary<string, ILanguage> _Languages;
-        private string _DefaultID;
+        private string _DefaultId;
 
         public Languages()
         {
             this._Languages = new Dictionary<string, ILanguage>();
-            this._DefaultID = string.Empty;
+            this._DefaultId = string.Empty;
         }
 
         public void Add(ILanguage item)
@@ -20,37 +20,37 @@ namespace Xeora.Web.Site.Setting
             if (item == null)
                 return;
 
-            this._Languages[item.Info.ID] = item;
+            this._Languages[item.Info.Id] = item;
             if (item.Default)
-                this._DefaultID = item.Info.ID;
+                this._DefaultId = item.Info.Id;
         }
 
-        public ILanguageDefinition this[string languageID]
+        public ILanguageDefinition this[string languageId]
         {
             get
             {
-                if (!this._Languages.ContainsKey(languageID))
+                if (!this._Languages.ContainsKey(languageId))
                     return null;
 
-                return this._Languages[languageID];
+                return this._Languages[languageId];
             }
         }
 
         public ILanguage Current { get; private set; }
 
-        public void Use(string languageID)
+        public void Use(string languageId)
         {
-            if (string.IsNullOrEmpty(languageID))
-                languageID = this._DefaultID;
+            if (string.IsNullOrEmpty(languageId))
+                languageId = this._DefaultId;
 
-            if (!this._Languages.ContainsKey(languageID))
+            if (!this._Languages.ContainsKey(languageId))
             {
                 this.Current = null;
 
                 return;
             }
             
-            this.Current = this._Languages[languageID];
+            this.Current = this._Languages[languageId];
         }
 
         IEnumerator<string> IEnumerable<string>.GetEnumerator() =>
@@ -61,8 +61,8 @@ namespace Xeora.Web.Site.Setting
 
         public void Dispose()
         {
-            foreach (string languageID in this)
-                this._Languages[languageID].Dispose();
+            foreach (string languageId in this)
+                this._Languages[languageId].Dispose();
         }
     }
 }

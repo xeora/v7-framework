@@ -2,8 +2,8 @@
 {
     public interface IVariablePool
     {
-        string SessionID { get; }
-        string KeyID { get; }
+        string SessionId { get; }
+        string KeyId { get; }
 
         byte[] Get(string name);
         void Set(string name, byte[] serializedValue);

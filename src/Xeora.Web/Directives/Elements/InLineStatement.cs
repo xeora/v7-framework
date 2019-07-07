@@ -17,17 +17,17 @@ namespace Xeora.Web.Directives.Elements
         public InLineStatement(string rawValue, ArgumentCollection arguments) :
             base(DirectiveTypes.InLineStatement, arguments)
         {
-            this.DirectiveID = DirectiveHelper.CaptureDirectiveID(rawValue);
-            this.BoundDirectiveID = DirectiveHelper.CaptureBoundDirectiveID(rawValue);
+            this.DirectiveId = DirectiveHelper.CaptureDirectiveId(rawValue);
+            this.BoundDirectiveId = DirectiveHelper.CaptureBoundDirectiveId(rawValue);
 
             this._Contents = new ContentDescription(rawValue);
             this._Cache = true;
             this._ParametersDefinition = null;
         }
 
-        public string DirectiveID { get; private set; }
-        public string BoundDirectiveID { get; private set; }
-        public bool HasBound => !string.IsNullOrEmpty(this.BoundDirectiveID);
+        public string DirectiveId { get; private set; }
+        public string BoundDirectiveId { get; private set; }
+        public bool HasBound => !string.IsNullOrEmpty(this.BoundDirectiveId);
 
         public override bool Searchable => false;
         public override bool CanAsync => false;
@@ -53,19 +53,19 @@ namespace Xeora.Web.Directives.Elements
             this.Mother.RequestParsing(statementContent, ref this._Children, this.Arguments);
         }
 
-        public override void Render(string requesterUniqueID)
+        public override void Render(string requesterUniqueId)
         {
             this.Parse();
 
-            string uniqueID =
-                string.IsNullOrEmpty(requesterUniqueID) ? this.UniqueID : requesterUniqueID;
+            string uniqueId =
+                string.IsNullOrEmpty(requesterUniqueId) ? this.UniqueId : requesterUniqueId;
 
             if (this.HasBound)
             {
-                if (string.IsNullOrEmpty(requesterUniqueID))
+                if (string.IsNullOrEmpty(requesterUniqueId))
                     return;
 
-                this.Mother.Pool.GetByDirectiveID(this.BoundDirectiveID, out IDirective[] directives);
+                this.Mother.Pool.GetByDirectiveId(this.BoundDirectiveId, out IDirective[] directives);
 
                 if (directives == null) return;
 
@@ -73,12 +73,12 @@ namespace Xeora.Web.Directives.Elements
                 {
                     if (!(directive is INamable)) return;
 
-                    string directiveID = ((INamable)directive).DirectiveID;
-                    if (string.Compare(directiveID, this.BoundDirectiveID) != 0) return;
+                    string directiveId = ((INamable)directive).DirectiveId;
+                    if (string.Compare(directiveId, this.BoundDirectiveId) != 0) return;
 
                     if (directive.Status != RenderStatus.Rendered)
                     {
-                        directive.Scheduler.Register(this.UniqueID);
+                        directive.Scheduler.Register(this.UniqueId);
                         return;
                     }
                 }
@@ -88,13 +88,13 @@ namespace Xeora.Web.Directives.Elements
                 return;
             this.Status = RenderStatus.Rendering;
 
-            this.Children.Render(this.UniqueID);
-            this.ExecuteStatement(uniqueID);
+            this.Children.Render(this.UniqueId);
+            this.ExecuteStatement(uniqueId);
 
             this.Scheduler.Fire();
         }
 
-        private void ExecuteStatement(string requesterUniqueID)
+        private void ExecuteStatement(string requesterUniqueId)
         {
             Basics.Domain.IDomain instance = null;
             this.Mother.RequestInstance(ref instance);
@@ -107,7 +107,7 @@ namespace Xeora.Web.Directives.Elements
                 throw new Exception.EmptyBlockException();
 
             object methodResultInfo =
-                Manager.AssemblyCore.ExecuteStatement(instance.IDAccessTree, this.DirectiveID, result, this.RenderParameters(requesterUniqueID), this._Cache);
+                Manager.AssemblyCore.ExecuteStatement(instance.IdAccessTree, this.DirectiveId, result, this.RenderParameters(requesterUniqueId), this._Cache);
 
             if (methodResultInfo != null && methodResultInfo is System.Exception)
                 throw new Exception.ExecutionException(((System.Exception)methodResultInfo).Message, ((System.Exception)methodResultInfo).InnerException);
@@ -215,7 +215,7 @@ namespace Xeora.Web.Directives.Elements
             return paramDefinition.Substring(8, paramDefinition.Length - 9);
         }
 
-        public object[] RenderParameters(string requesterUniqueID)
+        public object[] RenderParameters(string requesterUniqueId)
         {
             if (string.IsNullOrEmpty(this._ParametersDefinition))
                 return null;
@@ -226,7 +226,7 @@ namespace Xeora.Web.Directives.Elements
 
             foreach (string paramDef in paramDefs)
                 parameters.Add(
-                    DirectiveHelper.RenderProperty(this, paramDef, this.Arguments, requesterUniqueID));
+                    DirectiveHelper.RenderProperty(this, paramDef, this.Arguments, requesterUniqueId));
 
             return parameters.ToArray();
         }

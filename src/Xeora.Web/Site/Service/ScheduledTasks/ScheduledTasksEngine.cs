@@ -22,13 +22,13 @@ namespace Xeora.Web.Site.Service
 
         public string RegisterTask(Action<object[]> scheduledCallBack, object[] @params, DateTime executionTime)
         {
-            long executionID = Helper.DateTime.Format(executionTime);
+            long executionId = Helper.DateTime.Format(executionTime);
 
-            if (!this._ExecutionList.TryGetValue(executionID, out ConcurrentQueue<TaskInfo> queue))
+            if (!this._ExecutionList.TryGetValue(executionId, out ConcurrentQueue<TaskInfo> queue))
             {
                 queue = new ConcurrentQueue<TaskInfo>();
 
-                if (!this._ExecutionList.TryAdd(executionID, queue))
+                if (!this._ExecutionList.TryAdd(executionId, queue))
                     return this.RegisterTask(scheduledCallBack, @params, executionTime);
             }
 
@@ -36,7 +36,7 @@ namespace Xeora.Web.Site.Service
 
             queue.Enqueue(taskInfo);
 
-            return taskInfo.ID;
+            return taskInfo.Id;
         }
 
         public string RegisterTask(Action<object[]> scheduledCallBack, object[] @params, TimeSpan executionTime)
@@ -51,9 +51,9 @@ namespace Xeora.Web.Site.Service
 
         private void Execute(object sender, EventArgs args)
         {
-            long executionID = Helper.DateTime.Format();
+            long executionId = Helper.DateTime.Format();
 
-            if (this._ExecutionList.TryRemove(executionID, out ConcurrentQueue<TaskInfo> queue))
+            if (this._ExecutionList.TryRemove(executionId, out ConcurrentQueue<TaskInfo> queue))
                 ThreadPool.QueueUserWorkItem(new WaitCallback(this.ExecutionThread), queue);
         }
 
@@ -65,7 +65,7 @@ namespace Xeora.Web.Site.Service
             {
                 if (queue.TryDequeue(out TaskInfo taskInfo))
                 {
-                    if (!this._ListOfCanceled.TryRemove(taskInfo.ID, out bool dummy))
+                    if (!this._ListOfCanceled.TryRemove(taskInfo.Id, out bool dummy))
                         ThreadPool.QueueUserWorkItem(
                             (taskState) =>
                             {

@@ -1,5 +1,5 @@
-﻿namespace Xeora.Web.Service.DSS
+﻿namespace Xeora.Web.Service.Dss
 {
-    public class DSSValueException : System.Exception
+    public class DssValueException : System.Exception
     {}
 }

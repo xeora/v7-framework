@@ -15,7 +15,7 @@ namespace Xeora.Web.Manager
             this._CacheRootLocation =
                 System.IO.Path.Combine(
                     Basics.Configurations.Xeora.Application.Main.TemporaryRoot,
-                    Basics.Configurations.Xeora.Application.Main.WorkingPath.WorkingPathID
+                    Basics.Configurations.Xeora.Application.Main.WorkingPath.WorkingPathId
                 );
 
             if (!Directory.Exists(this._CacheRootLocation))
@@ -51,9 +51,9 @@ namespace Xeora.Web.Manager
             */
         }
 
-        public string ID { get; private set; }
+        public string Id { get; private set; }
         public string Path =>
-            System.IO.Path.Combine(this._CacheRootLocation, this.ID);
+            System.IO.Path.Combine(this._CacheRootLocation, this.Id);
 
         public static Loader Current { get; private set; }
         public static void Initialize(Action libraryChanged)
@@ -66,9 +66,9 @@ namespace Xeora.Web.Manager
         {
             try
             {
-                this.ID = Guid.NewGuid().ToString();
+                this.Id = Guid.NewGuid().ToString();
                 string applicationLocation =
-                    System.IO.Path.Combine(this._CacheRootLocation, this.ID);
+                    System.IO.Path.Combine(this._CacheRootLocation, this.Id);
                 if (!Directory.Exists(applicationLocation))
                     Directory.CreateDirectory(applicationLocation);
 
@@ -154,7 +154,7 @@ namespace Xeora.Web.Manager
             foreach (DirectoryInfo applicationDI in cacheRootDI.GetDirectories())
             {
                 if (applicationDI.Name.Equals("PoolSessions") ||
-                    applicationDI.Name.Equals(this.ID))
+                    applicationDI.Name.Equals(this.Id))
                     continue;
 
                 if (this.AvailableToDelete(applicationDI))

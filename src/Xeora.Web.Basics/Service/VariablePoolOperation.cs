@@ -13,11 +13,11 @@ namespace Xeora.Web.Basics.Service
         private static object _Lock = new object();
         private static IVariablePool _Cache;
 
-        private readonly string _SessionID;
-        private readonly string _KeyID;
-        private readonly string _SessionKeyID;
+        private readonly string _SessionId;
+        private readonly string _KeyId;
+        private readonly string _SessionKeyId;
 
-        public VariablePoolOperation(string sessionID, string keyID)
+        public VariablePoolOperation(string sessionId, string keyId)
         {
             Monitor.Enter(VariablePoolOperation._Lock);
             try
@@ -27,7 +27,7 @@ namespace Xeora.Web.Basics.Service
                     try
                     {
                         VariablePoolOperation._Cache =
-                            (IVariablePool)TypeCache.Current.RemoteInvoke.InvokeMember("GetVariablePool", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { sessionID, keyID });
+                            (IVariablePool)TypeCache.Current.RemoteInvoke.InvokeMember("GetVariablePool", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { sessionId, keyId });
                     }
                     catch (Exception ex)
                     {
@@ -40,9 +40,9 @@ namespace Xeora.Web.Basics.Service
                 Monitor.Exit(VariablePoolOperation._Lock);
             }
 
-            this._SessionID = sessionID;
-            this._KeyID = keyID;
-            this._SessionKeyID = string.Format("{0}_{1}", sessionID, keyID);
+            this._SessionId = sessionId;
+            this._KeyId = keyId;
+            this._SessionKeyId = string.Format("{0}_{1}", sessionId, keyId);
         }
 
         public void Set(string name, object value)
@@ -73,12 +73,12 @@ namespace Xeora.Web.Basics.Service
             return default(T);
         }
 
-        public void Transfer(string fromSessionID) =>
-            this.TransferRegistrations(string.Format("{0}_{1}", fromSessionID, this._KeyID));
+        public void Transfer(string fromSessionId) =>
+            this.TransferRegistrations(string.Format("{0}_{1}", fromSessionId, this._KeyId));
 
         private object GetVariableFromPool(string name)
         {
-            object rObject = VariablePoolPreCache.GetCachedVariable(this._SessionKeyID, name);
+            object rObject = VariablePoolPreCache.GetCachedVariable(this._SessionKeyId, name);
 
             if (rObject == null)
             {
@@ -97,7 +97,7 @@ namespace Xeora.Web.Basics.Service
 
                         rObject = binFormater.Deserialize(forStream);
 
-                        VariablePoolPreCache.CacheVariable(this._SessionKeyID, name, rObject);
+                        VariablePoolPreCache.CacheVariable(this._SessionKeyId, name, rObject);
                     }
                     catch (Exception)
                     {
@@ -119,7 +119,7 @@ namespace Xeora.Web.Basics.Service
 
         private void RegisterVariableToPool(string name, object value)
         {
-            VariablePoolPreCache.CleanCachedVariables(this._SessionKeyID, name);
+            VariablePoolPreCache.CleanCachedVariables(this._SessionKeyId, name);
 
             byte[] serializedValue;
             Stream forStream = null;
@@ -150,19 +150,19 @@ namespace Xeora.Web.Basics.Service
 
         private void UnRegisterVariableFromPool(string name)
         {
-            VariablePoolPreCache.CleanCachedVariables(this._SessionKeyID, name);
+            VariablePoolPreCache.CleanCachedVariables(this._SessionKeyId, name);
 
             // Unregister Variable From Pool Immidiately. 
             // Otherwise it will cause cache reload in the same domain call
             VariablePoolOperation._Cache.Set(name, null);
         }
 
-        private void TransferRegistrations(string fromSessionID)
+        private void TransferRegistrations(string fromSessionId)
         {
             try
             {
                 VariablePoolOperation._Cache =
-                    (IVariablePool)TypeCache.Current.RemoteInvoke.InvokeMember("TransferVariablePool", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { this._KeyID, fromSessionID, this._SessionID });
+                    (IVariablePool)TypeCache.Current.RemoteInvoke.InvokeMember("TransferVariablePool", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { this._KeyId, fromSessionId, this._SessionId });
             }
             catch (Exception ex)
             {
@@ -260,9 +260,9 @@ namespace Xeora.Web.Basics.Service
                 }
             }
 
-            public static object GetCachedVariable(string sessionKeyID, string name)
+            public static object GetCachedVariable(string sessionKeyId, string name)
             {
-                if (VariablePoolPreCache.VariablePreCache.TryGetValue(sessionKeyID, out ConcurrentDictionary<string, object> nameValuePairs))
+                if (VariablePoolPreCache.VariablePreCache.TryGetValue(sessionKeyId, out ConcurrentDictionary<string, object> nameValuePairs))
                 {
                     if (nameValuePairs.TryGetValue(name, out object value) && value != null)
                         return value;
@@ -271,15 +271,15 @@ namespace Xeora.Web.Basics.Service
                 return null;
             }
 
-            public static void CacheVariable(string sessionKeyID, string name, object value)
+            public static void CacheVariable(string sessionKeyId, string name, object value)
             {
-                if (!VariablePoolPreCache.VariablePreCache.TryGetValue(sessionKeyID, out ConcurrentDictionary<string, object> nameValuePairs))
+                if (!VariablePoolPreCache.VariablePreCache.TryGetValue(sessionKeyId, out ConcurrentDictionary<string, object> nameValuePairs))
                 {
                     nameValuePairs = new ConcurrentDictionary<string, object>();
 
-                    if (!VariablePoolPreCache.VariablePreCache.TryAdd(sessionKeyID, nameValuePairs))
+                    if (!VariablePoolPreCache.VariablePreCache.TryAdd(sessionKeyId, nameValuePairs))
                     {
-                        VariablePoolPreCache.CacheVariable(sessionKeyID, name, value);
+                        VariablePoolPreCache.CacheVariable(sessionKeyId, name, value);
 
                         return;
                     }
@@ -291,9 +291,9 @@ namespace Xeora.Web.Basics.Service
                     nameValuePairs.AddOrUpdate(name, value, (cName, cValue) => value);
             }
 
-            public static void CleanCachedVariables(string sessionKeyID, string name)
+            public static void CleanCachedVariables(string sessionKeyId, string name)
             {
-                if (VariablePoolPreCache.VariablePreCache.TryGetValue(sessionKeyID, out ConcurrentDictionary<string, object> nameValuePairs))
+                if (VariablePoolPreCache.VariablePreCache.TryGetValue(sessionKeyId, out ConcurrentDictionary<string, object> nameValuePairs))
                     nameValuePairs.TryRemove(name, out object dummy);
             }
         }

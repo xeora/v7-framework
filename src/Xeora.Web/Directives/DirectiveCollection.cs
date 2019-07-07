@@ -43,9 +43,9 @@ namespace Xeora.Web.Directives
                 this.Add(item);
         }
 
-        public void Render(string requesterUniqueID)
+        public void Render(string requesterUniqueId)
         {
-            string currentHandlerID = Helpers.CurrentHandlerID;
+            string currentHandlerId = Helpers.CurrentHandlerId;
 
             List<Task> tasks = new List<Task>();
 
@@ -55,13 +55,13 @@ namespace Xeora.Web.Directives
 
                 if (!directive.CanAsync)
                 {
-                    this.Render(currentHandlerID, requesterUniqueID, directive);
+                    this.Render(currentHandlerId, requesterUniqueId, directive);
                     continue;
                 }
 
                 tasks.Add(
                     Task.Factory.StartNew(
-                        (d) => this.Render(currentHandlerID, requesterUniqueID, (IDirective)d),
+                        (d) => this.Render(currentHandlerId, requesterUniqueId, (IDirective)d),
                         directive,
                         TaskCreationOptions.DenyChildAttach
                     )
@@ -79,25 +79,25 @@ namespace Xeora.Web.Directives
             this._Parent.Deliver(RenderStatus.Rendering, resultContainer.ToString());
         }
 
-        private void Render(string handlerID, string requesterUniqueID, IDirective directive)
+        private void Render(string handlerId, string requesterUniqueId, IDirective directive)
         {
-            Helpers.AssignHandlerID(handlerID);
+            Helpers.AssignHandlerId(handlerId);
 
             try
             {
                 // Analytics Calculator
                 DateTime renderBegins = DateTime.Now;
 
-                directive.Render(requesterUniqueID);
+                directive.Render(requesterUniqueId);
 
                 if (directive.Parent != null)
                     directive.Parent.HasInlineError |= directive.HasInlineError;
 
                 if (Configurations.Xeora.Application.Main.PrintAnalytics)
                 {
-                    string analyticOutput = directive.UniqueID;
+                    string analyticOutput = directive.UniqueId;
                     if (directive is INamable)
-                        analyticOutput = string.Format("{0} - {1}", analyticOutput, ((INamable)directive).DirectiveID);
+                        analyticOutput = string.Format("{0} - {1}", analyticOutput, ((INamable)directive).DirectiveId);
                     Basics.Console.Push(
                         string.Format("analytic - {0}", directive.GetType().Name),
                         string.Format("{0}ms {{{1}}}", DateTime.Now.Subtract(renderBegins).TotalMilliseconds, analyticOutput),
@@ -138,10 +138,10 @@ namespace Xeora.Web.Directives
             }
         }
 
-        public IDirective Find(string directiveID) => 
-            this.Find(this, directiveID);
+        public IDirective Find(string directiveId) => 
+            this.Find(this, directiveId);
 
-        private IDirective Find(DirectiveCollection directives, string directiveID)
+        private IDirective Find(DirectiveCollection directives, string directiveId)
         {
             foreach (IDirective directive in directives)
             {
@@ -151,7 +151,7 @@ namespace Xeora.Web.Directives
                 if (!(directive is INamable))
                     continue;
 
-                if (string.Compare(((INamable)directive).DirectiveID, directiveID) == 0)
+                if (string.Compare(((INamable)directive).DirectiveId, directiveId) == 0)
                     return directive;
 
                 if (directive is Control control)
@@ -160,7 +160,7 @@ namespace Xeora.Web.Directives
                     {
                         case Basics.Domain.Control.ControlTypes.ConditionalStatement:
                         case Basics.Domain.Control.ControlTypes.VariableBlock:
-                            directive.Render(directives._Parent?.UniqueID);
+                            directive.Render(directives._Parent?.UniqueId);
 
                             break;
                     }
@@ -170,7 +170,7 @@ namespace Xeora.Web.Directives
                     switch (directive.Type)
                     {
                         case DirectiveTypes.PermissionBlock:
-                            directive.Render(directive.Parent?.UniqueID);
+                            directive.Render(directive.Parent?.UniqueId);
 
                             break;
                         default:
@@ -184,7 +184,7 @@ namespace Xeora.Web.Directives
                     ((IHasChildren)directive).Children;
 
                 IDirective result =
-                    this.Find(children, directiveID);
+                    this.Find(children, directiveId);
 
                 if (result != null)
                     return result;

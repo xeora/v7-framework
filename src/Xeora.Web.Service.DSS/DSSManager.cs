@@ -1,24 +1,24 @@
 ﻿using System.Threading;
 
-namespace Xeora.Web.Service.DSS
+namespace Xeora.Web.Service.Dss
 {
-    public class DSSManager
+    public class DssManager
     {
-        private IDSSManager _DSSManager;
+        private IDssManager _DssManager;
 
-        public DSSManager()
+        public DssManager()
         {
-            switch (Basics.Configurations.Xeora.DSS.ServiceType)
+            switch (Basics.Configurations.Xeora.Dss.ServiceType)
             {
-                case Basics.Configuration.DSSServiceTypes.External:
-                    this._DSSManager = 
+                case Basics.Configuration.DssServiceTypes.External:
+                    this._DssManager = 
                         new ExternalManager(
-                            Basics.Configurations.Xeora.DSS.ServiceEndPoint
+                            Basics.Configurations.Xeora.Dss.ServiceEndPoint
                         );
 
                     break;
                 default:
-                    this._DSSManager =
+                    this._DssManager =
                         new MemoryManager();
                     
                     break;
@@ -26,23 +26,23 @@ namespace Xeora.Web.Service.DSS
         }
 
         private static object _Lock = new object();
-        private static DSSManager _Current = null;
-        public static IDSSManager Current
+        private static DssManager _Current = null;
+        public static IDssManager Current
         {
             get 
             {
-                Monitor.Enter(DSSManager._Lock);
+                Monitor.Enter(DssManager._Lock);
                 try
                 {
-                    if (DSSManager._Current == null)
-                        DSSManager._Current = new DSSManager();
+                    if (DssManager._Current == null)
+                        DssManager._Current = new DssManager();
                 }
                 finally
                 {
-                    Monitor.Exit(DSSManager._Lock);
+                    Monitor.Exit(DssManager._Lock);
                 }
 
-                return DSSManager._Current._DSSManager;
+                return DssManager._Current._DssManager;
             }
         }
     }

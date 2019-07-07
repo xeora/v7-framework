@@ -1,10 +1,10 @@
 ﻿using System;
 
-namespace Xeora.Web.Basics.DSS
+namespace Xeora.Web.Basics.Dss
 {
-    public interface IDSS
+    public interface IDss
     {
-        string UniqueID { get; }
+        string UniqueId { get; }
         DateTime Expires { get; }
         object this[string key] { get; set; }
         string[] Keys { get; }

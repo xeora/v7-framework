@@ -1,7 +1,7 @@
-﻿namespace Xeora.Web.Service.DSS
+﻿namespace Xeora.Web.Service.Dss
 {
-    public interface IDSSManager
+    public interface IDssManager
     {
-        void Reserve(string uniqueID, int reservationTimeout, out Basics.DSS.IDSS reservationObject);
+        void Reserve(string uniqueId, int reservationTimeout, out Basics.Dss.IDss reservationObject);
     }
 }

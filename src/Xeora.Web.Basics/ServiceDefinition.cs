@@ -7,12 +7,12 @@ namespace Xeora.Web.Basics
         public ServiceDefinition() : this(string.Empty, false)
         { }
 
-        private ServiceDefinition(string serviceID, bool mapped)
+        private ServiceDefinition(string serviceId, bool mapped)
         {
             this.Mapped = mapped;
 
             this.PathTree = new LinkedList<string>();
-            this.ServiceID = serviceID;
+            this.ServiceId = serviceId;
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Xeora.Web.Basics
         /// Gets the service identifier
         /// </summary>
         /// <value>The service identifier</value>
-        public string ServiceID { get; private set; }
+        public string ServiceId { get; private set; }
 
         private string _FullPath = null;
         /// <summary>
@@ -52,7 +52,7 @@ namespace Xeora.Web.Basics
                     if (!string.IsNullOrEmpty(this._FullPath))
                         this._FullPath = string.Concat(this._FullPath, "/");
 
-                    this._FullPath = string.Concat(this._FullPath, this.ServiceID);
+                    this._FullPath = string.Concat(this._FullPath, this.ServiceId);
                 }
 
                 return this._FullPath;

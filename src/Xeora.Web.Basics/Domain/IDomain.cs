@@ -4,7 +4,7 @@ namespace Xeora.Web.Basics.Domain
 {
     public interface IDomain
     {
-        string[] IDAccessTree { get; }
+        string[] IdAccessTree { get; }
         Info.DeploymentTypes DeploymentType { get; }
 
         IDomain Parent { get; }
@@ -22,8 +22,8 @@ namespace Xeora.Web.Basics.Domain
         /// <param name="outputStream">Output stream</param>
         void ProvideFileStream(string requestedFilePath, out Stream outputStream);
 
-        RenderResult Render(ServiceDefinition serviceDefinition, ControlResult.Message messageResult, string[] updateBlockControlIDStack = null);
-        RenderResult Render(string xeoraContent, ControlResult.Message messageResult, string[] updateBlockControlIDStack = null);
+        RenderResult Render(ServiceDefinition serviceDefinition, ControlResult.Message messageResult, string[] updateBlockControlIdStack = null);
+        RenderResult Render(string xeoraContent, ControlResult.Message messageResult, string[] updateBlockControlIdStack = null);
         void ClearCache();
     }
 }

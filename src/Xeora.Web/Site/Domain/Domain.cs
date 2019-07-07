@@ -12,27 +12,27 @@ namespace Xeora.Web.Site
     {
         private LanguagesHolder _LanguagesHolder;
 
-        public Domain(string[] domainIDAccessTree) :
-            this(domainIDAccessTree, null)
+        public Domain(string[] domainIdAccessTree) :
+            this(domainIdAccessTree, null)
         { }
 
-        public Domain(string[] domainIDAccessTree, string languageID) =>
-            this.BuildDomain(domainIDAccessTree, languageID);
+        public Domain(string[] domainIdAccessTree, string languageId) =>
+            this.BuildDomain(domainIdAccessTree, languageId);
 
-        private void BuildDomain(string[] domainIDAccessTree, string languageID)
+        private void BuildDomain(string[] domainIdAccessTree, string languageId)
         {
-            if (domainIDAccessTree == null)
-                domainIDAccessTree = Basics.Configurations.Xeora.Application.Main.DefaultDomain;
+            if (domainIdAccessTree == null)
+                domainIdAccessTree = Basics.Configurations.Xeora.Application.Main.DefaultDomain;
 
             try
             {
-                this.Deployment = Web.Deployment.InstanceFactory.Current.GetOrCreate(domainIDAccessTree);
+                this.Deployment = Web.Deployment.InstanceFactory.Current.GetOrCreate(domainIdAccessTree);
             }
             catch (Exception.DomainNotExistsException)
             {
                 // Try with the default one if requested one is not the default one
                 if (string.Compare(
-                    string.Join("\\", domainIDAccessTree),
+                    string.Join("\\", domainIdAccessTree),
                     string.Join("\\", Basics.Configurations.Xeora.Application.Main.DefaultDomain)) != 0)
                     this.Deployment =
                         Web.Deployment.InstanceFactory.Current.GetOrCreate(
@@ -45,22 +45,34 @@ namespace Xeora.Web.Site
                 throw;
             }
 
-            if (domainIDAccessTree.Length > 1)
+            if (domainIdAccessTree.Length > 1)
             {
-                string[] ParentDomainIDAccessTree = new string[domainIDAccessTree.Length - 1];
-                Array.Copy(domainIDAccessTree, 0, ParentDomainIDAccessTree, 0, ParentDomainIDAccessTree.Length);
+                string[] ParentDomainIdAccessTree = new string[domainIdAccessTree.Length - 1];
+                Array.Copy(domainIdAccessTree, 0, ParentDomainIdAccessTree, 0, ParentDomainIdAccessTree.Length);
 
-                this.Parent = new Domain(ParentDomainIDAccessTree);
+                this.Parent = new Domain(ParentDomainIdAccessTree);
             }
 
             this._LanguagesHolder = new LanguagesHolder(this, this.Deployment.Languages);
-            this._LanguagesHolder.Use(languageID);
+
+            try
+            {
+                this._LanguagesHolder.Use(languageId);
+            }
+            catch (Exception.LanguageFileException)
+            {
+                this._LanguagesHolder.Use(this.Deployment.Settings.Configurations.DefaultLanguage);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
         }
 
         public void SetLanguageChangedListener(Action<Basics.Domain.ILanguage> languageChangedListener) =>
             this._LanguagesHolder.LanguageChangedListener = languageChangedListener;
 
-        public string[] IDAccessTree => this.Deployment.DomainIDAccessTree;
+        public string[] IdAccessTree => this.Deployment.DomainIdAccessTree;
         public Basics.Domain.Info.DeploymentTypes DeploymentType => this.Deployment.DeploymentType;
         internal Deployment.Domain Deployment { get; private set; }
 
@@ -71,8 +83,8 @@ namespace Xeora.Web.Site
             string.Format(
                 "{0}{1}_{2}",
                 Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation,
-                string.Join<string>("-", this.Deployment.DomainIDAccessTree),
-                this._LanguagesHolder.Current.Info.ID
+                string.Join<string>("-", this.Deployment.DomainIdAccessTree),
+                this._LanguagesHolder.Current.Info.Id
             );
 
         public Basics.Domain.ISettings Settings => this.Deployment.Settings;
@@ -86,7 +98,7 @@ namespace Xeora.Web.Site
             try
             {
                 this.Deployment.ProvideContentFileStream(
-                    this.Languages.Current.Info.ID,
+                    this.Languages.Current.Info.Id,
                     requestedFilePath,
                     out outputStream
                 );
@@ -101,13 +113,13 @@ namespace Xeora.Web.Site
                 this.Parent.ProvideFileStream(requestedFilePath, out outputStream);
         }
 
-        public Basics.RenderResult Render(Basics.ServiceDefinition serviceDefinition, Basics.ControlResult.Message messageResult, string[] updateBlockControlIDStack = null) =>
-            this.Render(string.Format("$T:{0}$", serviceDefinition.FullPath), messageResult, updateBlockControlIDStack);
+        public Basics.RenderResult Render(Basics.ServiceDefinition serviceDefinition, Basics.ControlResult.Message messageResult, string[] updateBlockControlIdStack = null) =>
+            this.Render(string.Format("$T:{0}$", serviceDefinition.FullPath), messageResult, updateBlockControlIdStack);
 
-        public Basics.RenderResult Render(string xeoraContent, Basics.ControlResult.Message messageResult, string[] updateBlockControlIDStack = null)
+        public Basics.RenderResult Render(string xeoraContent, Basics.ControlResult.Message messageResult, string[] updateBlockControlIdStack = null)
         {
             Mother mother =
-                new Mother(xeoraContent, messageResult, updateBlockControlIDStack);
+                new Mother(xeoraContent, messageResult, updateBlockControlIdStack);
             mother.ParseRequested += this.OnParseRequest;
             mother.InstanceRequested += this.OnInstanceRequest;
             mother.DeploymentAccessRequested += this.OnDeploymentAccessRequest;
@@ -145,9 +157,9 @@ namespace Xeora.Web.Site
 
         private static readonly ConcurrentDictionary<string, IBase> _ControlsCache =
             new ConcurrentDictionary<string, IBase>();
-        private void OnControlResolveRequest(string controlID, ref Basics.Domain.IDomain domain, out IBase control)
+        private void OnControlResolveRequest(string controlId, ref Basics.Domain.IDomain domain, out IBase control)
         {
-            if (Domain._ControlsCache.TryGetValue(controlID, out IBase intactControl))
+            if (Domain._ControlsCache.TryGetValue(controlId, out IBase intactControl))
             {
                 control = intactControl.Clone();
                 return;
@@ -156,11 +168,11 @@ namespace Xeora.Web.Site
             do
             {
                 intactControl =
-                    ((Domain)domain).Controls.Select(controlID);
+                    ((Domain)domain).Controls.Select(controlId);
 
                 if (intactControl.Type != Basics.Domain.Control.ControlTypes.Unknown)
                 {
-                    Domain._ControlsCache.TryAdd(controlID, intactControl);
+                    Domain._ControlsCache.TryAdd(controlId, intactControl);
                     control = intactControl.Clone();
 
                     return;

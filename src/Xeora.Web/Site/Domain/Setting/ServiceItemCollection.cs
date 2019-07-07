@@ -4,11 +4,11 @@ namespace Xeora.Web.Site.Setting
 {
     public class ServiceItemCollection : List<ServiceItem>, Basics.Domain.IServiceItemCollection
     {
-        public Basics.Domain.IServiceItem GetServiceItem(string ID)
+        public Basics.Domain.IServiceItem GetServiceItem(string Id)
         {
             foreach (ServiceItem sI in this)
             {
-                if (string.Compare(sI.ID, ID, true) == 0)
+                if (string.Compare(sI.Id, Id, true) == 0)
                     return sI;
             }
 

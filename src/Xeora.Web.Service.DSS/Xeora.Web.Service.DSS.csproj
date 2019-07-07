@@ -51,6 +51,6 @@
     <ProjectReference Include="..\Xeora.Web.Basics\Xeora.Web.Basics.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="ExternalDSS\" />
+    <Folder Include="ExternalDss\" />
   </ItemGroup>
 </Project>

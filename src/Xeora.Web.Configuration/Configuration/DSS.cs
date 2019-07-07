@@ -5,14 +5,14 @@ using Xeora.Web.Basics.Configuration;
 
 namespace Xeora.Web.Configuration
 {
-    public class DSS : IDSS
+    public class Dss : IDss
     {
-        public DSS() =>
-            this.ServiceType = DSSServiceTypes.BuiltIn;
+        public Dss() =>
+            this.ServiceType = DssServiceTypes.BuiltIn;
 
-        [DefaultValue(DSSServiceTypes.BuiltIn)]
+        [DefaultValue(DssServiceTypes.BuiltIn)]
         [JsonProperty(PropertyName = "serviceType", DefaultValueHandling = DefaultValueHandling.Populate)]
-        public DSSServiceTypes ServiceType { get; private set; }
+        public DssServiceTypes ServiceType { get; private set; }
 
         [DefaultValue("127.0.0.1:5531")]
         [JsonProperty(PropertyName = "serviceEndPoint", DefaultValueHandling = DefaultValueHandling.Populate)]

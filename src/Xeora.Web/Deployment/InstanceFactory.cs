@@ -31,17 +31,17 @@ namespace Xeora.Web.Deployment
             }
         }
 
-        public Domain GetOrCreate(string[] domainIDAccessTree)
+        public Domain GetOrCreate(string[] domainIdAccessTree)
         {
             string instancenKey = 
-                string.Join<string>("-", domainIDAccessTree);
+                string.Join<string>("-", domainIdAccessTree);
 
             if (!this._Instances.TryGetValue(instancenKey, out Domain domain))
             {
-                domain = new Domain(domainIDAccessTree);
+                domain = new Domain(domainIdAccessTree);
 
                 if (!this._Instances.TryAdd(instancenKey, domain))
-                    return this.GetOrCreate(domainIDAccessTree);
+                    return this.GetOrCreate(domainIdAccessTree);
             }
             else
                 domain.Reload();

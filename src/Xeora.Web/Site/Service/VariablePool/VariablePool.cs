@@ -5,18 +5,18 @@ namespace Xeora.Web.Site.Service
     [Serializable]
     public class VariablePool : Basics.Service.IVariablePool
     {
-        private readonly Basics.DSS.IDSS _Reservation;
+        private readonly Basics.Dss.IDss _Reservation;
 
-        public VariablePool(string sessionID, string keyID, ref Basics.DSS.IDSS reservation)
+        public VariablePool(string sessionId, string keyId, ref Basics.Dss.IDss reservation)
         {
-            this.SessionID = sessionID;
-            this.KeyID = keyID;
+            this.SessionId = sessionId;
+            this.KeyId = keyId;
 
             this._Reservation = reservation;
         }
 
-        public string SessionID { get; private set; }
-        public string KeyID { get; private set; }
+        public string SessionId { get; private set; }
+        public string KeyId { get; private set; }
 
         public void Set(string name, byte[] serializedValue) =>
             this._Reservation[name] = serializedValue;

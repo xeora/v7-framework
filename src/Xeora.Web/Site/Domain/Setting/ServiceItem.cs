@@ -2,9 +2,9 @@
 {
     public class ServiceItem : Basics.Domain.IServiceItem
     {
-        public ServiceItem(string ID)
+        public ServiceItem(string Id)
         {
-            this.ID = ID;
+            this.Id = Id;
             this.MimeType = "text/html; charset=utf-8";
             this.ServiceType = Basics.Domain.ServiceTypes.Template;
             this.ExecuteIn = string.Empty;
@@ -14,7 +14,7 @@
             this.Overridable = false;
         }
 
-        public string ID { get; set; }
+        public string Id { get; set; }
         public string MimeType { get; set; }
         public bool Authentication { get; set; }
         public string[] AuthenticationKeys { get; set; }

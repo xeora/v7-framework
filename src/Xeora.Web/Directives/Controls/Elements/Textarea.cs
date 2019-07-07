@@ -20,14 +20,14 @@ namespace Xeora.Web.Directives.Controls.Elements
         public void Parse()
         { }
 
-        public void Render(string requesterUniqueID)
+        public void Render(string requesterUniqueId)
         {
             this.Parse();
 
             this._Parent.Bag.Add("content", this._Settings.Content, this._Parent.Arguments);
             foreach (Attribute item in this._Settings.Attributes)
                 this._Parent.Bag.Add(item.Key, item.Value, this._Parent.Arguments);
-            this._Parent.Bag.Render(requesterUniqueID);
+            this._Parent.Bag.Render(requesterUniqueId);
 
             string renderedContent = this._Parent.Bag["content"].Result;
 
@@ -47,7 +47,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                     RenderStatus.Rendered,
                     string.Format(
                         "<textarea name=\"{0}\" id=\"{0}\"{1}>{2}</textarea>",
-                        this._Parent.DirectiveID, this._Settings.Attributes, renderedContent
+                        this._Parent.DirectiveId, this._Settings.Attributes, renderedContent
                     )
                 );
             }

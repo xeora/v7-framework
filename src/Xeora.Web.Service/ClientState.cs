@@ -12,7 +12,7 @@ namespace Xeora.Web.Service
     {
         public static void Handle(IPAddress remoteAddr, Net.NetworkStream streamEnclosure)
         {
-            string stateID = Guid.NewGuid().ToString();
+            string stateId = Guid.NewGuid().ToString();
 
             Basics.Context.IHttpContext context = null;
             try
@@ -20,10 +20,10 @@ namespace Xeora.Web.Service
                 DateTime wholeProcessBegins = DateTime.Now;
 
                 Basics.Context.IHttpRequest request = new HttpRequest(remoteAddr);
-                if (!((HttpRequest)request).Build(stateID, streamEnclosure))
+                if (!((HttpRequest)request).Build(stateId, streamEnclosure))
                     return;
 
-                context = new HttpContext(stateID, ref request);
+                context = new HttpContext(stateId, ref request);
 
                 DateTime xeoraHandlerProcessBegins = DateTime.Now;
 
@@ -48,7 +48,7 @@ namespace Xeora.Web.Service
 
                 ((HttpResponse)context.Response).Flush(streamEnclosure);
 
-                Handler.HandlerManager.Current.UnMark(xeoraHandler.HandlerID);
+                Handler.HandlerManager.Current.UnMark(xeoraHandler.HandlerId);
 
                 if (Configurations.Xeora.Application.Main.PrintAnalytics)
                 {

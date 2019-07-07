@@ -16,7 +16,7 @@ namespace Xeora.Web.Directives.Controls.Elements
         public void Parse()
         { }
 
-        public void Render(string requesterUniqueID) =>
-            throw new NotSupportedException(string.Format("Unknown Custom Control Type! ControlID: {0}", this._Parent.DirectiveID));
+        public void Render(string requesterUniqueId) =>
+            throw new NotSupportedException(string.Format("Unknown Custom Control Type! ControlId: {0}", this._Parent.DirectiveId));
     }
 }

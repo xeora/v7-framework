@@ -15,13 +15,13 @@ namespace Xeora.Web.Site
             string staticVariableRegEx = "\\=[\\S]*";
             string objectVariableRegEx = "@([#]+|[\\-])?([" + characterGroup + "]+\\.)[\\." + characterGroup + "]+";
             string variableRegEx = simpleVariableRegEx + "|" + staticVariableRegEx + "|" + objectVariableRegEx;
-            string directiveIDRegEx = "[\\.\\-" + characterGroup + "]+";
-            string directiveIDWithSlashRegEx = "[\\/\\.\\-" + characterGroup + "]+"; // for template capturing
+            string directiveIdRegEx = "[\\.\\-" + characterGroup + "]+";
+            string directiveIdWithSlashRegEx = "[\\/\\.\\-" + characterGroup + "]+"; // for template capturing
             string directivePointerRegEx = "(A)?[A-Z]";
             string levelingRegEx = "\\#\\d+(\\+)?";
-            string parentingRegEx = "\\[" + directiveIDRegEx + "\\]";
+            string parentingRegEx = "\\[" + directiveIdRegEx + "\\]";
             string parametersRegEx = "\\(((\\|)?(" + variableRegEx + ")?)+\\)";
-            string procedureRegEx = directiveIDRegEx + "\\?" + directiveIDRegEx + "(\\,((\\|)?(" + variableRegEx + ")?)*)?";
+            string procedureRegEx = directiveIdRegEx + "\\?" + directiveIdRegEx + "(\\,((\\|)?(" + variableRegEx + ")?)*)?";
 
             string singleRegEx =
                 "\\$" +
@@ -30,14 +30,14 @@ namespace Xeora.Web.Site
                     "|" +
                     directivePointerRegEx + "(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:" + // Capture Directive with Leveling and Parenting
                     "(" +
-                        directiveIDWithSlashRegEx + "\\$" + // Capture Control without content
+                        directiveIdWithSlashRegEx + "\\$" + // Capture Control without content
                         "|" +
                         procedureRegEx + "\\$" + // Capture Procedure
                     ")" + 
                 ")";
-            string contentOpeningRegEx = "\\$((?<DirectiveID>" + directiveIDRegEx + ")|(?<DirectiveType>" + directivePointerRegEx + ")(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:(?<DirectiveID>" + directiveIDRegEx + ")(" + parametersRegEx + ")?)\\:\\{";
-            string contentSeparatorRegEx = "\\}:(?<DirectiveID>" + directiveIDRegEx + ")\\:\\{";
-            string contentClosingRegEx = "\\}:(?<DirectiveID>" + directiveIDRegEx + ")\\$";
+            string contentOpeningRegEx = "\\$((?<DirectiveId>" + directiveIdRegEx + ")|(?<DirectiveType>" + directivePointerRegEx + ")(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:(?<DirectiveId>" + directiveIdRegEx + ")(" + parametersRegEx + ")?)\\:\\{";
+            string contentSeparatorRegEx = "\\}:(?<DirectiveId>" + directiveIdRegEx + ")\\:\\{";
+            string contentClosingRegEx = "\\}:(?<DirectiveId>" + directiveIdRegEx + ")\\$";
 
             this.SpecificContentOpeningRegEx = "\\$(({0})|({1})(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:({0}))";
             // !---
@@ -78,7 +78,7 @@ namespace Xeora.Web.Site
         public Regex ContentSeparatorPattern { get; private set; }
         public Regex ContentClosingPattern { get; private set; }
 
-        private string CorrectDirectiveIDForRegex(string input) =>
+        private string CorrectDirectiveIdForRegex(string input) =>
             input
                 .Replace(".", "\\.");
 
@@ -95,7 +95,7 @@ namespace Xeora.Web.Site
             }
         }
 
-        public Regex SpecificContentOpeningPattern(string directiveID, string directiveType) =>
-            new Regex(string.Format(this.SpecificContentOpeningRegEx, this.CorrectDirectiveIDForRegex(directiveID), this.CorrectDirectiveTypeForRegex(directiveType)),RegexOptions.Singleline);
+        public Regex SpecificContentOpeningPattern(string directiveId, string directiveType) =>
+            new Regex(string.Format(this.SpecificContentOpeningRegEx, this.CorrectDirectiveIdForRegex(directiveId), this.CorrectDirectiveTypeForRegex(directiveType)),RegexOptions.Singleline);
     }
 }

@@ -11,10 +11,10 @@ namespace Xeora.Web.Service.Context
 
         private readonly string _TempLocation;
 
-        public HttpRequestFileInfo(string contextID, string contentType, Encoding contentEncoding, string fileName, bool keepInMemory)
+        public HttpRequestFileInfo(string contextId, string contentType, Encoding contentEncoding, string fileName, bool keepInMemory)
         {
             this._TempLocation = 
-                Path.Combine(Configurations.Xeora.Application.Main.TemporaryRoot, string.Format("fs-{0}.bin", contextID));
+                Path.Combine(Configurations.Xeora.Application.Main.TemporaryRoot, string.Format("fs-{0}.bin", contextId));
 
             if (keepInMemory)
                 this._ContentStream = new MemoryStream();

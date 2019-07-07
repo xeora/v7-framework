@@ -2,9 +2,9 @@
 
 namespace Xeora.Web.Basics.Configuration
 {
-    public interface IDSS
+    public interface IDss
     {
-        DSSServiceTypes ServiceType { get; }
+        DssServiceTypes ServiceType { get; }
         IPEndPoint ServiceEndPoint { get; }
     }
 }

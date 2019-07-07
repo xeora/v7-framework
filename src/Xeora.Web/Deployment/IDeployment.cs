@@ -7,18 +7,18 @@ namespace Xeora.Web.Deployment
         string DomainRootPath { get; }
 
         string ChildrenRegistration { get; }
-        string ContentsRegistration(string languageID);
+        string ContentsRegistration(string languageId);
         string ExecutablesRegistration { get; }
         string TemplatesRegistration { get; }
         string LanguagesRegistration { get; }
 
         string[] Languages { get; }
 
-        void ProvideContentFileStream(string languageID, string requestedFilePath, out Stream outputStream);
+        void ProvideContentFileStream(string languageId, string requestedFilePath, out Stream outputStream);
         string ProvideTemplateContent(string serviceFullPath);
         string ProvideControlsContent();
         string ProvideConfigurationContent();
-        string ProvideLanguageContent(string languageID);
+        string ProvideLanguageContent(string languageId);
 
         bool Reload();
     }

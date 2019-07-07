@@ -43,7 +43,7 @@ namespace Xeora.Web.Directives.Elements
             this.Mother.RequestParsing(executionContent, ref this._Children, this.Arguments);
         }
 
-        public override void Render(string requesterUniqueID)
+        public override void Render(string requesterUniqueId)
         {
             this.Parse();
 
@@ -51,7 +51,7 @@ namespace Xeora.Web.Directives.Elements
                 return;
             this.Status = RenderStatus.Rendering;
 
-            this.Children.Render(this.UniqueID);
+            this.Children.Render(this.UniqueId);
 
             string result = this.Result;
 
@@ -67,13 +67,13 @@ namespace Xeora.Web.Directives.Elements
                 return;
             }
 
-            if (this.Mother.UpdateBlockIDStack.Count > 0)
+            if (this.Mother.UpdateBlockIdStack.Count > 0)
             {
                 this.Deliver(
                     RenderStatus.Rendered,
                     string.Format(
                         "javascript:__XeoraJS.update('{0}', '{1}');",
-                        this.Mother.UpdateBlockIDStack.Peek(),
+                        this.Mother.UpdateBlockIdStack.Peek(),
                         Manager.AssemblyCore.EncodeFunction(Basics.Helpers.Context.HashCode, this.Result)
                     )
                 );

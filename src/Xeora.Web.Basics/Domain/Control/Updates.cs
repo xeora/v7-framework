@@ -15,20 +15,20 @@ namespace Xeora.Web.Basics.Domain.Control
         public bool Local { get; private set; }
         public string[] Blocks { get; private set; }
 
-        public void Setup(string parentBlockID)
+        public void Setup(string parentBlockId)
         {
-            if (string.IsNullOrEmpty(parentBlockID))
+            if (string.IsNullOrEmpty(parentBlockId))
                 return;
 
             if (!this.Local)
                 return;
 
-            if (!string.IsNullOrEmpty(parentBlockID) &&
-                Array.IndexOf<string>(this.Blocks, parentBlockID) == -1)
+            if (!string.IsNullOrEmpty(parentBlockId) &&
+                Array.IndexOf<string>(this.Blocks, parentBlockId) == -1)
             {
                 string[] blocks = new string[this.Blocks.Length + 1];
                 Array.Copy(this.Blocks, blocks, this.Blocks.Length);
-                blocks[blocks.Length - 1] = parentBlockID;
+                blocks[blocks.Length - 1] = parentBlockId;
 
                 this.Blocks = blocks;
             }

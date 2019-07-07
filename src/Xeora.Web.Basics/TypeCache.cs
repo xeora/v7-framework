@@ -30,12 +30,12 @@ namespace Xeora.Web.Basics
 
         private ConcurrentDictionary<string, Assembly> _LoadedAssemblies =
             new ConcurrentDictionary<string, Assembly>();
-        private Assembly GetAssembly(string assemblyID)
+        private Assembly GetAssembly(string assemblyId)
         {
-            if (!this._LoadedAssemblies.TryGetValue(assemblyID, out Assembly rAssembly))
+            if (!this._LoadedAssemblies.TryGetValue(assemblyId, out Assembly rAssembly))
             {
-                rAssembly = Assembly.Load(assemblyID);
-                this._LoadedAssemblies.TryAdd(assemblyID, rAssembly);
+                rAssembly = Assembly.Load(assemblyId);
+                this._LoadedAssemblies.TryAdd(assemblyId, rAssembly);
             }
 
             return rAssembly;

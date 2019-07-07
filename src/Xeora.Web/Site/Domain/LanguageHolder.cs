@@ -16,33 +16,33 @@ namespace Xeora.Web.Site
         public bool Default => this._Language.Default;
         public Basics.Domain.Info.Language Info => this._Language.Info;
 
-        public string Get(string translationID)
+        public string Get(string translationId)
         {
             try
             {
                 Basics.TranslationResult translationResult =
-                    this.Translate(translationID);
+                    this.Translate(translationId);
 
                 if (translationResult.Translated)
                     return translationResult.Translation;
 
-                return this._Language.Get(translationID);
+                return this._Language.Get(translationId);
             }
             catch (Exception.TranslationNotFoundException)
             {
                 if (this._Owner.Parent != null)
                 {
-                    this._Owner.Parent.Languages.Use(this.Info.ID);
+                    this._Owner.Parent.Languages.Use(this.Info.Id);
 
                     if (this._Owner.Parent.Languages.Current != null)
-                        return this._Owner.Parent.Languages.Current.Get(translationID);
+                        return this._Owner.Parent.Languages.Current.Get(translationId);
                 }
             }
 
             return string.Empty;
         }
 
-        private Basics.TranslationResult Translate(string translationID)
+        private Basics.TranslationResult Translate(string translationId)
         {
             if (string.IsNullOrEmpty(this._Owner.Settings.Configurations.LanguageExecutable))
                 return new Basics.TranslationResult(false, string.Empty);
@@ -55,9 +55,9 @@ namespace Xeora.Web.Site
                      switch(parameter.Key)
                      {
                          case "p1":
-                             return this._Language.Info.ID;
+                             return this._Language.Info.Id;
                          case "p2":
-                             return translationID;
+                             return translationId;
                          default:
                              return string.Empty;
                      }

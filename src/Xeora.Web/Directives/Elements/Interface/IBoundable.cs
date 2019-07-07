@@ -3,6 +3,6 @@
     public interface IBoundable
     {
         bool HasBound { get; }
-        string BoundDirectiveID { get; }
+        string BoundDirectiveId { get; }
     }
 }

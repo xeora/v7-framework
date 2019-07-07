@@ -16,8 +16,8 @@ namespace Xeora.Web.Directives.Elements
             base(DirectiveTypes.Control, arguments)
         {
             this._RawValue = rawValue;
-            this.DirectiveID = DirectiveHelper.CaptureDirectiveID(rawValue);
-            this.BoundDirectiveID = DirectiveHelper.CaptureBoundDirectiveID(rawValue);
+            this.DirectiveId = DirectiveHelper.CaptureDirectiveId(rawValue);
+            this.BoundDirectiveId = DirectiveHelper.CaptureBoundDirectiveId(rawValue);
             this.Leveling = LevelingInfo.Create(rawValue);
         }
 
@@ -25,7 +25,7 @@ namespace Xeora.Web.Directives.Elements
         {
             IDomain instance = null;
             this.Mother.RequestInstance(ref instance);
-            this.Mother.RequestControlResolve(this.DirectiveID, ref instance, out IBase control);
+            this.Mother.RequestControlResolve(this.DirectiveId, ref instance, out IBase control);
 
             switch (control.Type)
             {
@@ -100,9 +100,9 @@ namespace Xeora.Web.Directives.Elements
             this.Type = control.Type;
         }
 
-        public string DirectiveID { get; private set; }
-        public string BoundDirectiveID { get; private set; }
-        public bool HasBound => !string.IsNullOrEmpty(this.BoundDirectiveID);
+        public string DirectiveId { get; private set; }
+        public string BoundDirectiveId { get; private set; }
+        public bool HasBound => !string.IsNullOrEmpty(this.BoundDirectiveId);
         public LevelingInfo Leveling { get; private set; }
         public new ControlTypes Type { get; private set; }
 
@@ -116,14 +116,14 @@ namespace Xeora.Web.Directives.Elements
         public override void Parse() =>
             this._Control.Parse();
 
-        public override void Render(string requesterUniqueID)
+        public override void Render(string requesterUniqueId)
         {
             if (this.HasBound)
             {
-                if (string.IsNullOrEmpty(requesterUniqueID))
+                if (string.IsNullOrEmpty(requesterUniqueId))
                     return;
 
-                this.Mother.Pool.GetByDirectiveID(this.BoundDirectiveID, out IDirective[] directives);
+                this.Mother.Pool.GetByDirectiveId(this.BoundDirectiveId, out IDirective[] directives);
 
                 if (directives == null) return;
 
@@ -131,12 +131,12 @@ namespace Xeora.Web.Directives.Elements
                 {
                     if (!(directive is INamable)) return;
 
-                    string directiveID = ((INamable)directive).DirectiveID;
-                    if (string.Compare(directiveID, this.BoundDirectiveID) != 0) return;
+                    string directiveId = ((INamable)directive).DirectiveId;
+                    if (string.Compare(directiveId, this.BoundDirectiveId) != 0) return;
 
                     if (directive.Status != RenderStatus.Rendered)
                     {
-                        directive.Scheduler.Register(this.UniqueID);
+                        directive.Scheduler.Register(this.UniqueId);
                         return;
                     }
                 }
@@ -170,7 +170,7 @@ namespace Xeora.Web.Directives.Elements
                 return;
             this.Status = RenderStatus.Rendering;
 
-            this._Control.Render(requesterUniqueID);
+            this._Control.Render(requesterUniqueId);
 
             this.Scheduler.Fire();
         }

@@ -5,12 +5,12 @@ namespace Xeora.Web.Directives.Elements
 {
     public class HashCodePointedTemplate : Directive
     {
-        private readonly string _TemplateID;
+        private readonly string _TemplateId;
 
         public HashCodePointedTemplate(string rawValue, ArgumentCollection arguments) : 
             base(DirectiveTypes.HashCodePointedTemplate, arguments)
         {
-            this._TemplateID = DirectiveHelper.CaptureDirectiveID(rawValue);
+            this._TemplateId = DirectiveHelper.CaptureDirectiveId(rawValue);
         }
 
         public override bool Searchable => false;
@@ -19,7 +19,7 @@ namespace Xeora.Web.Directives.Elements
         public override void Parse()
         { }
 
-        public override void Render(string requesterUniqueID)
+        public override void Render(string requesterUniqueId)
         {
             this.Parse();
 
@@ -29,7 +29,7 @@ namespace Xeora.Web.Directives.Elements
 
             this.Deliver(
                 RenderStatus.Rendered,
-                string.Format("{0}/{1}", Helpers.Context.HashCode, this._TemplateID)
+                string.Format("{0}/{1}", Helpers.Context.HashCode, this._TemplateId)
             );
         }
     }

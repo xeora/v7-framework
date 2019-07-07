@@ -135,35 +135,35 @@ namespace Xeora.Web.Basics
         /// Creates the new domain instance
         /// </summary>
         /// <returns>The new domain instance</returns>
-        /// <param name="domainIDAccessTree">DomainID Access tree</param>
-        public static Domain.IDomain CreateNewDomainInstance(string[] domainIDAccessTree) =>
-            Helpers.CreateNewDomainInstance(domainIDAccessTree, null);
+        /// <param name="domainIdAccessTree">DomainId Access tree</param>
+        public static Domain.IDomain CreateNewDomainInstance(string[] domainIdAccessTree) =>
+            Helpers.CreateNewDomainInstance(domainIdAccessTree, null);
 
         /// <summary>
         /// Creates the new domain instance with a specific language
         /// </summary>
         /// <returns>The new domain instance</returns>
-        /// <param name="domainIDAccessTree">DomainID Access tree</param>
-        /// <param name="domainLanguageID">Domain language identifier</param>
-        public static Domain.IDomain CreateNewDomainInstance(string[] domainIDAccessTree, string domainLanguageID) =>
-            (Domain.IDomain)Activator.CreateInstance(TypeCache.Current.Domain, new object[] { domainIDAccessTree, domainLanguageID });
+        /// <param name="domainIdAccessTree">DomainId Access tree</param>
+        /// <param name="domainLanguageId">Domain language identifier</param>
+        public static Domain.IDomain CreateNewDomainInstance(string[] domainIdAccessTree, string domainLanguageId) =>
+            (Domain.IDomain)Activator.CreateInstance(TypeCache.Current.Domain, new object[] { domainIdAccessTree, domainLanguageId });
 
         /// <summary>
         /// Gets the current thread handler identifier
         /// </summary>
         /// <value>The current handler identifier</value>
-        public static string CurrentHandlerID =>
-            (string)AppDomain.CurrentDomain.GetData(string.Format("HandlerID_{0}", Thread.CurrentThread.ManagedThreadId));
+        public static string CurrentHandlerId =>
+            (string)AppDomain.CurrentDomain.GetData(string.Format("HandlerId_{0}", Thread.CurrentThread.ManagedThreadId));
 
         /// <summary>
         /// Assigns the handler identifier for the current thread
         /// </summary>
-        /// <param name="handlerID">Handler identifier</param>
-        public static void AssignHandlerID(string handlerID) =>
-            AppDomain.CurrentDomain.SetData(string.Format("HandlerID_{0}", Thread.CurrentThread.ManagedThreadId), handlerID);
+        /// <param name="handlerId">Handler identifier</param>
+        public static void AssignHandlerId(string handlerId) =>
+            AppDomain.CurrentDomain.SetData(string.Format("HandlerId_{0}", Thread.CurrentThread.ManagedThreadId), handlerId);
 
         internal static IHandler HandlerInstance =>
-            (IHandler)TypeCache.Current.RemoteInvoke.InvokeMember("GetHandler", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { Helpers.CurrentHandlerID });
+            (IHandler)TypeCache.Current.RemoteInvoke.InvokeMember("GetHandler", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { Helpers.CurrentHandlerId });
 
         /// <summary>
         /// Gets the Http Context
@@ -261,7 +261,7 @@ namespace Xeora.Web.Basics
         /// </summary>
         /// <value>Variable pool instance</value>
         public static Service.VariablePoolOperation VariablePool =>
-            new Service.VariablePoolOperation(Helpers.Context.Session.SessionID, Helpers.Context.HashCode);
+            new Service.VariablePoolOperation(Helpers.Context.Session.SessionId, Helpers.Context.HashCode);
 
         /// <summary>
         /// Gets the variable pool for xService

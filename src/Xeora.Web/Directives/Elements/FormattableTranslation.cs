@@ -13,11 +13,11 @@ namespace Xeora.Web.Directives.Elements
         public FormattableTranslation(string rawValue, ArgumentCollection arguments) :
             base(DirectiveTypes.FormattableTranslation, arguments)
         {
-            this.DirectiveID = DirectiveHelper.CaptureDirectiveID(rawValue);
+            this.DirectiveId = DirectiveHelper.CaptureDirectiveId(rawValue);
             this._Contents = new ContentDescription(rawValue);
         }
 
-        public string DirectiveID { get; private set; }
+        public string DirectiveId { get; private set; }
 
         public override bool Searchable => false;
         public override bool CanAsync => false;
@@ -45,7 +45,7 @@ namespace Xeora.Web.Directives.Elements
 
         private static Regex _FormatIndexRegEx =
             new Regex("\\{(?<index>\\d+)\\}", RegexOptions.Compiled);
-        public override void Render(string requesterUniqueID)
+        public override void Render(string requesterUniqueId)
         {
             this.Parse();
 
@@ -53,13 +53,13 @@ namespace Xeora.Web.Directives.Elements
                 return;
             this.Status = RenderStatus.Rendering;
 
-            this.Children.Render(this.UniqueID);
+            this.Children.Render(this.UniqueId);
 
             IDomain instance = null;
             this.Mother.RequestInstance(ref instance);
 
             string translationValue =
-                instance.Languages.Current.Get(this.DirectiveID);
+                instance.Languages.Current.Get(this.DirectiveId);
             string[] parameters = this.Result.Split('|');
 
             MatchCollection matches =

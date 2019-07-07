@@ -28,7 +28,7 @@ namespace Xeora.Web.Handler
             this._ForceRefresh = forceRefresh;
 
             this.Context = context ?? throw new System.Exception("Context is required!");
-            this.HandlerID = Guid.NewGuid().ToString();
+            this.HandlerId = Guid.NewGuid().ToString();
 
             // Check URL contains ApplicationRootPath (~) or SiteRootPath (¨) modifiers
             string RootPath =
@@ -55,10 +55,10 @@ namespace Xeora.Web.Handler
             }
             // !--
 
-            Helpers.AssignHandlerID(this.HandlerID);
+            Helpers.AssignHandlerId(this.HandlerId);
         }
 
-        public string HandlerID { get; private set; }
+        public string HandlerId { get; private set; }
         public IHttpContext Context { get; private set; }
         public IDomainControl DomainControl => this._DomainControl;
 
@@ -129,7 +129,7 @@ namespace Xeora.Web.Handler
                         this.Context.AddOrUpdate("RedirectLocation", redirectLocation);
                     }
 
-                    if (this.Context.Request.Header["X-BlockRenderingID"] == null)
+                    if (this.Context.Request.Header["X-BlockRenderingId"] == null)
                         this.Context.Response.Redirect((string)this.Context["RedirectLocation"]);
                     else
                     {
@@ -159,7 +159,7 @@ namespace Xeora.Web.Handler
             {
                 // This is also not a request for default DomainContents
 
-                // Extract the ChildDomainIDAccessTree and LanguageID using RequestPath
+                // Extract the ChildDomainIdAccessTree and LanguageId using RequestPath
                 string requestedDomainWebPath = requestedFileVirtualPath;
                 string browserImplementation =
                     Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation;
@@ -180,13 +180,13 @@ namespace Xeora.Web.Handler
 
                         if (splittedRequestedDomainWebPath.Length == 2)
                         {
-                            string[] childDomainIDAccessTree = null;
-                            string childDomainLanguageID = string.Empty;
+                            string[] childDomainIdAccessTree = null;
+                            string childDomainLanguageId = string.Empty;
 
-                            childDomainIDAccessTree = splittedRequestedDomainWebPath[0].Split('-');
-                            childDomainLanguageID = splittedRequestedDomainWebPath[1];
+                            childDomainIdAccessTree = splittedRequestedDomainWebPath[0].Split('-');
+                            childDomainLanguageId = splittedRequestedDomainWebPath[1];
 
-                            this._DomainControl.OverrideDomain(childDomainIDAccessTree, childDomainLanguageID);
+                            this._DomainControl.OverrideDomain(childDomainIdAccessTree, childDomainLanguageId);
 
                             domainContentsPath = this._DomainControl.Domain.ContentsVirtualPath;
                             dcpIndex = requestedFileVirtualPath.IndexOf(domainContentsPath, StringComparison.InvariantCulture);
@@ -736,11 +736,11 @@ namespace Xeora.Web.Handler
 
         private void CreateTemplateResult(Message messageResult, string methodResult)
         {
-            string updateBlockControlID =
-                this.Context.Request.Header["X-BlockRenderingID"];
+            string updateBlockControlId =
+                this.Context.Request.Header["X-BlockRenderingId"];
 
-            if (!string.IsNullOrEmpty(updateBlockControlID))
-                this._DomainControl.RenderService(messageResult, updateBlockControlID.Split('>'));
+            if (!string.IsNullOrEmpty(updateBlockControlId))
+                this._DomainControl.RenderService(messageResult, updateBlockControlId.Split('>'));
             else
                 this._DomainControl.RenderService(messageResult, null);
 
@@ -765,7 +765,7 @@ namespace Xeora.Web.Handler
             }
 
             if (!this._DomainControl.IsWorkingAsStandAlone &&
-                string.IsNullOrEmpty(updateBlockControlID))
+                string.IsNullOrEmpty(updateBlockControlId))
             {
                 StringWriter writer = null;
                 try

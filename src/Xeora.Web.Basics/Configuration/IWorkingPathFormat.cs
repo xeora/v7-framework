@@ -3,6 +3,6 @@
     public interface IWorkingPathFormat
     {
         string WorkingPath { get; }
-        string WorkingPathID { get; }
+        string WorkingPathId { get; }
     }
 }

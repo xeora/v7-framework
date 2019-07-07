@@ -5,12 +5,12 @@ namespace Xeora.Web.Directives.Elements
 {
     public class Translation : Directive
     {
-        private readonly string _TranslationID;
+        private readonly string _TranslationId;
 
         public Translation(string rawValue, ArgumentCollection arguments) :
             base(DirectiveTypes.Translation, arguments)
         {
-            this._TranslationID = DirectiveHelper.CaptureDirectiveID(rawValue);
+            this._TranslationId = DirectiveHelper.CaptureDirectiveId(rawValue);
         }
 
         public override bool Searchable => false;
@@ -19,7 +19,7 @@ namespace Xeora.Web.Directives.Elements
         public override void Parse()
         { }
 
-        public override void Render(string requesterUniqueID)
+        public override void Render(string requesterUniqueId)
         {
             this.Parse();
 
@@ -30,7 +30,7 @@ namespace Xeora.Web.Directives.Elements
             IDomain instance = null;
             this.Mother.RequestInstance(ref instance);
 
-            this.Deliver(RenderStatus.Rendered, instance.Languages.Current.Get(this._TranslationID));
+            this.Deliver(RenderStatus.Rendered, instance.Languages.Current.Get(this._TranslationId));
         }
 
     }

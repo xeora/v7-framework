@@ -38,13 +38,13 @@ namespace Xeora.Web.Site.Setting
             }
         }
 
-        public IBase Select(string controlID)
+        public IBase Select(string controlId)
         {
-            if (string.IsNullOrEmpty(controlID))
+            if (string.IsNullOrEmpty(controlId))
                 return new Unknown();
 
             XPathNavigator xPathControlNav =
-                this._XPathNavigator.SelectSingleNode(string.Format("/Controls/Control[@id='{0}']", controlID));
+                this._XPathNavigator.SelectSingleNode(string.Format("/Controls/Control[@id='{0}']", controlId));
 
             if (xPathControlNav == null)
                 return new Unknown();

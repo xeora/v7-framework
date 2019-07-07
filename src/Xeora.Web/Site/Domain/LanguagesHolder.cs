@@ -14,24 +14,24 @@ namespace Xeora.Web.Site
         {
             this._Languages = new Languages();
 
-            foreach (string languageID in languages)
+            foreach (string languageId in languages)
             {
                 ILanguage holder =
-                    new LanguageHolder(owner, (ILanguage)languages[languageID]);
+                    new LanguageHolder(owner, (ILanguage)languages[languageId]);
 
                 ((Languages)this._Languages).Add(holder);
             }
         }
 
-        public ILanguageDefinition this[string languageID] => this._Languages[languageID];
+        public ILanguageDefinition this[string languageId] => this._Languages[languageId];
         public ILanguage Current => this._Languages.Current;
 
         public Action<ILanguage> LanguageChangedListener { get; set; }
 
-        public void Use(string languageID)
+        public void Use(string languageId)
         {
-            this._Languages.Use(languageID);
-
+            this._Languages.Use(languageId);
+            
             if (this._Languages.Current == null)
                 throw new Exception.LanguageFileException();
             

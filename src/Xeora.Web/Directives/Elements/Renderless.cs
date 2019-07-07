@@ -22,7 +22,7 @@ namespace Xeora.Web.Directives.Elements
 
         private static Regex _RootPathRegEx =
             new Regex("[\"']+(~|¨)/", RegexOptions.Compiled | RegexOptions.Multiline);
-        public override void Render(string requesterUniqueID)
+        public override void Render(string requesterUniqueId)
         {
             this.Parse();
 

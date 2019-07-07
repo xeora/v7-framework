@@ -6,6 +6,6 @@
         bool LinkArguments { get; }
 
         void Parse();
-        void Render(string requesterUniqueID);
+        void Render(string requesterUniqueId);
     }
 }

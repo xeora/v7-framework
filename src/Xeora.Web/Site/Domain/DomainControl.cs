@@ -41,18 +41,18 @@ namespace Xeora.Web.Site
             // Check has ever user changed the Language
             this._CookieSearchKeyForLanguage =
                 string.Format(
-                    "{0}_LanguageID",
+                    "{0}_LanguageId",
                     Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation.Replace('/', '_'));
 
-            string languageID = string.Empty;
+            string languageId = string.Empty;
             Basics.Context.IHttpCookieInfo languageCookie =
                 this._Context.Request.Header.Cookie[this._CookieSearchKeyForLanguage];
 
             if (languageCookie != null && !string.IsNullOrEmpty(languageCookie.Value))
-                languageID = languageCookie.Value;
+                languageId = languageCookie.Value;
             // !---
 
-            this.SelectDomain(languageID);
+            this.SelectDomain(languageId);
 
             this.MetaRecord = new MetaRecord();
         }
@@ -79,7 +79,7 @@ namespace Xeora.Web.Site
                     if (languageCookie == null)
                         languageCookie = this._Context.Response.Header.Cookie.CreateNewCookie(this._CookieSearchKeyForLanguage);
 
-                    languageCookie.Value = language.Info.ID;
+                    languageCookie.Value = language.Info.Id;
                     languageCookie.Expires = DateTime.Now.AddDays(30);
 
                     this._Context.Response.Header.Cookie.AddOrUpdate(languageCookie);
@@ -99,15 +99,15 @@ namespace Xeora.Web.Site
 
         public string XeoraJSVersion => "1.0.018";
 
-        private void SelectDomain(string languageID)
+        private void SelectDomain(string languageId)
         {
-            string requestedServiceID =
-                this.GetRequestedServiceID(this._Context.Request.Header.URL);
+            string requestedServiceId =
+                this.GetRequestedServiceId(this._Context.Request.Header.URL);
 
-            if (string.IsNullOrEmpty(requestedServiceID))
+            if (string.IsNullOrEmpty(requestedServiceId))
             {
                 this.Domain =
-                    new Domain(Basics.Configurations.Xeora.Application.Main.DefaultDomain, languageID);
+                    new Domain(Basics.Configurations.Xeora.Application.Main.DefaultDomain, languageId);
                 this.PrepareService(this._Context.Request.Header.URL, false);
 
                 if (this.ServiceDefinition != null)
@@ -120,7 +120,7 @@ namespace Xeora.Web.Site
             foreach (Basics.Domain.Info.Domain dI in this.GetAvailableDomains())
             {
                 this.Domain =
-                    new Domain(new string[] { dI.ID }, languageID);
+                    new Domain(new string[] { dI.Id }, languageId);
                 this.PrepareService(this._Context.Request.Header.URL, false);
 
                 if (this.ServiceDefinition != null)
@@ -131,7 +131,7 @@ namespace Xeora.Web.Site
             foreach (Basics.Domain.Info.Domain dI in this.GetAvailableDomains())
             {
                 this.Domain =
-                    new Domain(new string[] { dI.ID }, languageID);
+                    new Domain(new string[] { dI.Id }, languageId);
                 this.PrepareService(this._Context.Request.Header.URL, true);
 
                 if (this.ServiceDefinition != null)
@@ -139,7 +139,7 @@ namespace Xeora.Web.Site
             }
         }
 
-        private string GetRequestedServiceID(Basics.Context.IURL url)
+        private string GetRequestedServiceId(Basics.Context.IURL url)
         {
             string requestFilePath =
                 url.RelativePath;
@@ -312,8 +312,8 @@ namespace Xeora.Web.Site
                             {
                                 medItemValue = string.Empty;
 
-                                if (!string.IsNullOrEmpty(resolveItem.ID))
-                                    medItemValue = rqMatch.Groups[resolveItem.ID].Value;
+                                if (!string.IsNullOrEmpty(resolveItem.Id))
+                                    medItemValue = rqMatch.Groups[resolveItem.Id].Value;
                                 else
                                     medItemValue = this._Context.Request.QueryString[resolveItem.QueryStringKey];
 
@@ -344,14 +344,14 @@ namespace Xeora.Web.Site
             // first test if it is domain content path
             if (url.RelativePath.IndexOf(currentDomainContentPath) != 0)
             {
-                string requestFilePath = this.GetRequestedServiceID(url);
+                string requestFilePath = this.GetRequestedServiceId(url);
 
                 if (!string.IsNullOrEmpty(requestFilePath))
                 {
                     Basics.ServiceDefinition rServiceDefinition =
                         Basics.ServiceDefinition.Parse(requestFilePath, false);
 
-                    if (string.IsNullOrEmpty(rServiceDefinition.ServiceID))
+                    if (string.IsNullOrEmpty(rServiceDefinition.ServiceId))
                         return null;
 
                     return rServiceDefinition;
@@ -368,21 +368,21 @@ namespace Xeora.Web.Site
             if (workingInstance == null)
                 return null;
 
-            List<string> childDomainIDAccessTree = new List<string>();
-            childDomainIDAccessTree.AddRange(workingInstance.IDAccessTree);
+            List<string> childDomainIdAccessTree = new List<string>();
+            childDomainIdAccessTree.AddRange(workingInstance.IdAccessTree);
 
             foreach (Basics.Domain.Info.Domain childDI in workingInstance.Children)
             {
-                childDomainIDAccessTree.Add(childDI.ID);
+                childDomainIdAccessTree.Add(childDI.Id);
 
                 Basics.Domain.IDomain rDomainInstance =
-                    new Domain(childDomainIDAccessTree.ToArray(), this.Domain.Languages.Current.Info.ID);
+                    new Domain(childDomainIdAccessTree.ToArray(), this.Domain.Languages.Current.Info.Id);
 
                 Basics.ServiceDefinition serviceDefinition =
                     this.TryResolveURL(ref rDomainInstance, url);
                 if (serviceDefinition == null)
                 {
-                    childDomainIDAccessTree.RemoveAt(childDomainIDAccessTree.Count - 1);
+                    childDomainIdAccessTree.RemoveAt(childDomainIdAccessTree.Count - 1);
 
                     continue;
                 }
@@ -407,7 +407,7 @@ namespace Xeora.Web.Site
                 else
                     return rDomainInstance;
 
-                childDomainIDAccessTree.RemoveAt(childDomainIDAccessTree.Count - 1);
+                childDomainIdAccessTree.RemoveAt(childDomainIdAccessTree.Count - 1);
             }
 
             return null;
@@ -427,8 +427,8 @@ namespace Xeora.Web.Site
             this._Context.Request.RewritePath(requestURL);
         }
 
-        public void OverrideDomain(string[] domainIDAccessTree, string languageID) =>
-            this.Domain = new Domain(domainIDAccessTree, languageID);
+        public void OverrideDomain(string[] domainIdAccessTree, string languageId) =>
+            this.Domain = new Domain(domainIdAccessTree, languageId);
 
         public void ProvideXeoraJSStream(ref Stream outputStream)
         {
@@ -448,7 +448,7 @@ namespace Xeora.Web.Site
             return rBind;
         }
 
-        public void RenderService(Basics.ControlResult.Message messageResult, string[] updateBlockControlIDStack)
+        public void RenderService(Basics.ControlResult.Message messageResult, string[] updateBlockControlIdStack)
         {
             if (this.ServiceDefinition == null)
                 throw new System.Exception(Global.SystemMessages.TEMPLATE_IDMUSTBESET + "!");
@@ -457,7 +457,7 @@ namespace Xeora.Web.Site
             {
                 case Basics.Domain.ServiceTypes.Template:
                     this.ServiceResult = 
-                        this.Domain.Render(this.ServiceDefinition, messageResult, updateBlockControlIDStack);
+                        this.Domain.Render(this.ServiceDefinition, messageResult, updateBlockControlIdStack);
 
                     break;
                 case Basics.Domain.ServiceTypes.xService:
@@ -484,7 +484,7 @@ namespace Xeora.Web.Site
                     }
 
                     if (!this.IsAuthenticationRequired)
-                        this.ServiceResult = this.Domain.xService.Render(this._ExecuteIn, this.ServiceDefinition.ServiceID);
+                        this.ServiceResult = this.Domain.xService.Render(this._ExecuteIn, this.ServiceDefinition.ServiceId);
                     else
                     {
                         object MethodResult = new SecurityException(Global.SystemMessages.XSERVICE_AUTH);
@@ -575,8 +575,8 @@ namespace Xeora.Web.Site
                     List<Basics.Domain.Info.Language> languages =
                         new List<Basics.Domain.Info.Language>();
 
-                    foreach (string languageID in deployment.Languages)
-                        languages.Add(deployment.Languages[languageID].Info);
+                    foreach (string languageId in deployment.Languages)
+                        languages.Add(deployment.Languages[languageId].Info);
 
                     Basics.Domain.Info.Domain domainInfo =
                         new Basics.Domain.Info.Domain(deployment.DeploymentType, dI.Name, languages.ToArray());
@@ -606,7 +606,7 @@ namespace Xeora.Web.Site
             Deployment.InstanceFactory.Current.Reset();
 
             // Clear Partial Block Cache
-            PartialCachePool.Current.Reset(this.Domain.IDAccessTree);
+            PartialCachePool.Current.Reset(this.Domain.IdAccessTree);
         }
     }
 }

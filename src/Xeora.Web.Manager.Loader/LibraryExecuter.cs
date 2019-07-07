@@ -210,11 +210,11 @@ namespace Xeora.Web.Manager
                 string.Format("Executable Execution Error! RequestInfo: {0}", compileErrorObject), innerException);
         }
 
-        private void InvokePreExecution(object executeObject, string executionID, MethodInfo assemblyMethod)
+        private void InvokePreExecution(object executeObject, string executionId, MethodInfo assemblyMethod)
         {
             try
             {
-                executeObject.GetType().GetMethod("PreExecute").Invoke(executeObject, new object[] { executionID, assemblyMethod });
+                executeObject.GetType().GetMethod("PreExecute").Invoke(executeObject, new object[] { executionId, assemblyMethod });
             }
             catch (System.Exception)
             {
@@ -222,11 +222,11 @@ namespace Xeora.Web.Manager
             }
         }
 
-        private void InvokePostExecution(object executeObject, string executionID, object result)
+        private void InvokePostExecution(object executeObject, string executionId, object result)
         {
             try
             {
-                executeObject.GetType().GetMethod("PostExecute").Invoke(executeObject, new object[] { executionID, result });
+                executeObject.GetType().GetMethod("PostExecute").Invoke(executeObject, new object[] { executionId, result });
             }
             catch (System.Exception)
             {
@@ -544,7 +544,7 @@ namespace Xeora.Web.Manager
             if (functionParams == null)
                 functionParams = new object[] { };
 
-            string executionID = Guid.NewGuid().ToString();
+            string executionId = Guid.NewGuid().ToString();
             object result = null;
 
             object executeObject =
@@ -567,7 +567,7 @@ namespace Xeora.Web.Manager
                 if (assemblyMethod == null)
                     return this.GetMethodException(httpMethod, classNames, functionName, functionParams);
 
-                this.InvokePreExecution(executeObject, executionID, assemblyMethod);
+                this.InvokePreExecution(executeObject, executionId, assemblyMethod);
 
                 result = this.InvokeMethod(instanceExecute, assemblyObject, assemblyMethod, functionParams);
 
@@ -579,7 +579,7 @@ namespace Xeora.Web.Manager
             }
             finally
             {
-                this.InvokePostExecution(executeObject, executionID, result);
+                this.InvokePostExecution(executeObject, executionId, result);
             }
         }
 

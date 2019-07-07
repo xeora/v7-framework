@@ -8,12 +8,12 @@ namespace Xeora.Web.Deployment
     {
         private Basics.Domain.Info.DomainCollection _Children;
 
-        public Domain(string[] domainIDAccessTree)
+        public Domain(string[] domainIdAccessTree)
         {
-            this.DomainIDAccessTree = domainIDAccessTree;
+            this.DomainIdAccessTree = domainIdAccessTree;
 
-            if (this.DomainIDAccessTree == null ||
-                this.DomainIDAccessTree.Length == 0)
+            if (this.DomainIdAccessTree == null ||
+                this.DomainIdAccessTree.Length == 0)
                 throw new Exception.DeploymentException(Global.SystemMessages.IDMUSTBESET);
 
             string domainRootPath =
@@ -49,16 +49,16 @@ namespace Xeora.Web.Deployment
             this.LoadDomain();
         }
 
-        public string[] DomainIDAccessTree { get; private set; }
+        public string[] DomainIdAccessTree { get; private set; }
         public Basics.Domain.Info.DeploymentTypes DeploymentType { get; private set; }
         private IDeployment Deployment { get; set; }
 
         private string CreateDomainAccessPathString()
         {
-            string rDomainAccessPath = this.DomainIDAccessTree[0];
+            string rDomainAccessPath = this.DomainIdAccessTree[0];
 
-            for (int iC = 1; iC < this.DomainIDAccessTree.Length; iC++)
-                rDomainAccessPath = Path.Combine(rDomainAccessPath, "Addons", this.DomainIDAccessTree[iC]);
+            for (int iC = 1; iC < this.DomainIdAccessTree.Length; iC++)
+                rDomainAccessPath = Path.Combine(rDomainAccessPath, "Addons", this.DomainIdAccessTree[iC]);
 
             return rDomainAccessPath;
         }
@@ -69,18 +69,18 @@ namespace Xeora.Web.Deployment
                 new Site.Setting.Settings(this.Deployment.ProvideConfigurationContent());
 
             // Setup Languages
-            string[] languageIDs = this.Deployment.Languages;
-            if (languageIDs.Length == 0)
+            string[] languageIds = this.Deployment.Languages;
+            if (languageIds.Length == 0)
                 throw new Exception.LanguageFileException();
 
             this.Languages = new Site.Setting.Languages();
 
-            foreach (string languageID in languageIDs)
+            foreach (string languageId in languageIds)
             {
                 ((Site.Setting.Languages)this.Languages).Add(
                     new Site.Setting.Language(
-                        this.Deployment.ProvideLanguageContent(languageID),
-                        string.Compare(languageID, this.Settings.Configurations.DefaultLanguage) == 0
+                        this.Deployment.ProvideLanguageContent(languageId),
+                        string.Compare(languageId, this.Settings.Configurations.DefaultLanguage) == 0
                     )
                 );
             }
@@ -107,8 +107,8 @@ namespace Xeora.Web.Deployment
             foreach (DirectoryInfo childDI in childrenDI.GetDirectories())
             {
                 string[] childAccessTree =
-                    new string[this.DomainIDAccessTree.Length + 1];
-                Array.Copy(this.DomainIDAccessTree, 0, childAccessTree, 0, this.DomainIDAccessTree.Length);
+                    new string[this.DomainIdAccessTree.Length + 1];
+                Array.Copy(this.DomainIdAccessTree, 0, childAccessTree, 0, this.DomainIdAccessTree.Length);
                 childAccessTree[childAccessTree.Length - 1] = childDI.Name;
 
                 Domain childDomain = 
@@ -117,8 +117,8 @@ namespace Xeora.Web.Deployment
                 List<Basics.Domain.Info.Language> languages =
                     new List<Basics.Domain.Info.Language>();
 
-                foreach (string languageID in childDomain.Languages)
-                    languages.Add(childDomain.Languages[languageID].Info);
+                foreach (string languageId in childDomain.Languages)
+                    languages.Add(childDomain.Languages[languageId].Info);
 
                 Basics.Domain.Info.Domain domainInfo =
                     new Basics.Domain.Info.Domain(
@@ -140,16 +140,16 @@ namespace Xeora.Web.Deployment
         public Basics.Domain.IxService xService { get; private set; }
         public Basics.Domain.Info.DomainCollection Children => this._Children;
 
-        public void ProvideContentFileStream(string languageID, string requestedFilePath, out Stream outputStream) =>
-            this.Deployment.ProvideContentFileStream(languageID, requestedFilePath, out outputStream);
+        public void ProvideContentFileStream(string languageId, string requestedFilePath, out Stream outputStream) =>
+            this.Deployment.ProvideContentFileStream(languageId, requestedFilePath, out outputStream);
 
         public string ProvideTemplateContent(string serviceFullPath) => 
             this.Deployment.ProvideTemplateContent(serviceFullPath);
 
-        public static void ExtractApplication(string[] domainIDAccessTree, string extractLocation)
+        public static void ExtractApplication(string[] domainIdAccessTree, string extractLocation)
         {
             Domain domain =
-                InstanceFactory.Current.GetOrCreate(domainIDAccessTree);
+                InstanceFactory.Current.GetOrCreate(domainIdAccessTree);
             string executablesPath = domain.Deployment.ExecutablesRegistration;
             domain.Dispose();
 

@@ -4,12 +4,12 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace Xeora.Web.Service.DSS
+namespace Xeora.Web.Service.Dss
 {
-    public class ExternalManager : IDSSManager
+    public class ExternalManager : IDssManager
     {
         private readonly object _ConnectionLock;
-        private TcpClient _DSSServiceClient;
+        private TcpClient _DssServiceClient;
 
         private readonly IPEndPoint _ServiceEndPoint;
 
@@ -19,7 +19,7 @@ namespace Xeora.Web.Service.DSS
         public ExternalManager(IPEndPoint serviceEndPoint)
         {
             this._ConnectionLock = new object();
-            this._DSSServiceClient = null;
+            this._DssServiceClient = null;
 
             this._ServiceEndPoint = serviceEndPoint;
         }
@@ -29,14 +29,14 @@ namespace Xeora.Web.Service.DSS
             Monitor.Enter(this._ConnectionLock);
             try
             {
-                if (this._DSSServiceClient != null &&
-                   this._DSSServiceClient.Connected)
+                if (this._DssServiceClient != null &&
+                   this._DssServiceClient.Connected)
                     return;
                 
-                this._DSSServiceClient = new TcpClient();
-                this._DSSServiceClient.Connect(this._ServiceEndPoint);
+                this._DssServiceClient = new TcpClient();
+                this._DssServiceClient.Connect(this._ServiceEndPoint);
 
-                if (!this._DSSServiceClient.Connected)
+                if (!this._DssServiceClient.Connected)
                     throw new ExternalCommunicationException();
             }
             finally
@@ -44,12 +44,12 @@ namespace Xeora.Web.Service.DSS
                 Monitor.Exit(this._ConnectionLock);
             }
 
-            this._RequestHandler = new RequestHandler(ref this._DSSServiceClient);
-            this._ResponseHandler = new ResponseHandler(ref this._DSSServiceClient);
+            this._RequestHandler = new RequestHandler(ref this._DssServiceClient);
+            this._ResponseHandler = new ResponseHandler(ref this._DssServiceClient);
             this._ResponseHandler.HandleAsync();
         }
 
-        public void Reserve(string uniqueID, int reservationTimeout, out Basics.DSS.IDSS reservationObject)
+        public void Reserve(string uniqueId, int reservationTimeout, out Basics.Dss.IDss reservationObject)
         {
             this.MakeConnection();
 
@@ -68,15 +68,15 @@ namespace Xeora.Web.Service.DSS
 
                 binaryWriter.Write("ACQ".ToCharArray());
                 binaryWriter.Write(reservationTimeout);
-                binaryWriter.Write((byte)uniqueID.Length);
-                binaryWriter.Write(uniqueID.ToCharArray());
+                binaryWriter.Write((byte)uniqueId.Length);
+                binaryWriter.Write(uniqueId.ToCharArray());
                 binaryWriter.Flush();
 
-                long requestID =
+                long requestId =
                     this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
 
                 byte[] responseBytes =
-                    this._ResponseHandler.WaitForMessage(requestID);
+                    this._ResponseHandler.WaitForMessage(requestId);
 
                 this.ParseResponse(responseBytes, out reservationObject);
             }
@@ -93,7 +93,7 @@ namespace Xeora.Web.Service.DSS
             }
         }
 
-        private void ParseResponse(byte[] responseBytes, out Basics.DSS.IDSS reservationObject)
+        private void ParseResponse(byte[] responseBytes, out Basics.Dss.IDss reservationObject)
         {
             reservationObject = null;
 
@@ -114,13 +114,13 @@ namespace Xeora.Web.Service.DSS
             if (binaryReader.ReadByte() == 2)
                 throw new ReservationCreationException();
 
-            byte reservationIDLength = binaryReader.ReadByte();
-            string reservationID =
-                new string(binaryReader.ReadChars(reservationIDLength));
+            byte reservationIdLength = binaryReader.ReadByte();
+            string reservationId =
+                new string(binaryReader.ReadChars(reservationIdLength));
             DateTime expireDate =
                 new DateTime(binaryReader.ReadInt64());
 
-            reservationObject = new ExternalDSS(ref this._RequestHandler, ref this._ResponseHandler, reservationID, expireDate);
+            reservationObject = new ExternalDss(ref this._RequestHandler, ref this._ResponseHandler, reservationId, expireDate);
         }
     }
 }

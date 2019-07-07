@@ -13,14 +13,14 @@ namespace Xeora.Web.Basics.Domain.Info
         {
             base.Add(value);
 
-            this._NameIndexMap.Add(value.ID, base.Count - 1);
+            this._NameIndexMap.Add(value.Id, base.Count - 1);
         }
 
-        public void Remove(string ID)
+        public void Remove(string Id)
         {
-            if (this._NameIndexMap.ContainsKey(ID))
+            if (this._NameIndexMap.ContainsKey(Id))
             {
-                base.RemoveAt(this._NameIndexMap[ID]);
+                base.RemoveAt(this._NameIndexMap[Id]);
 
                 this._NameIndexMap.Clear();
 
@@ -28,7 +28,7 @@ namespace Xeora.Web.Basics.Domain.Info
                 int Index = 0;
                 foreach (Domain item in this)
                 {
-                    this._NameIndexMap.Add(item.ID, Index);
+                    this._NameIndexMap.Add(item.Id, Index);
 
                     Index += 1;
                 }
@@ -36,7 +36,7 @@ namespace Xeora.Web.Basics.Domain.Info
         }
 
         public new void Remove(Domain value) =>
-            this.Remove(value.ID);
+            this.Remove(value.Id);
 
         public new Domain this[int index]
         {
@@ -49,23 +49,23 @@ namespace Xeora.Web.Basics.Domain.Info
             }
             set
             {
-                this.Remove(value.ID);
+                this.Remove(value.Id);
                 this.Add(value);
             }
         }
 
-        public Domain this[string ID]
+        public Domain this[string Id]
         {
             get
             {
-                if (this._NameIndexMap.ContainsKey(ID))
-                    return base[this._NameIndexMap[ID]];
+                if (this._NameIndexMap.ContainsKey(Id))
+                    return base[this._NameIndexMap[Id]];
 
                 return null;
             }
             set
             {
-                this.Remove(value.ID);
+                this.Remove(value.Id);
                 this.Add(value);
             }
         }

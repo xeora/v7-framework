@@ -2,6 +2,6 @@
 {
     public interface IHttpSessionManager
     {
-        void Acquire(string sessionID, out Basics.Session.IHttpSession sessionObject);
+        void Acquire(string sessionId, out Basics.Session.IHttpSession sessionObject);
     }
 }

@@ -75,7 +75,7 @@ XeoraJS.prototype.update = function (updateLocation, assemblyInfo, indicatorCall
     this.httprequests[httprequestIndex].onreadystatechange = function () { __XeoraJS.processstate(updateLocationPathParts, nextUpdateLocations, assemblyInfo, indicatorCallback, httprequestIndex); };
     this.httprequests[httprequestIndex].open("POST", document.forms[0].action, true);
     this.httprequests[httprequestIndex].setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-    this.httprequests[httprequestIndex].setRequestHeader('X-BlockRenderingID', updateLocationPath);
+    this.httprequests[httprequestIndex].setRequestHeader('X-BlockRenderingId', updateLocationPath);
 
     var postContent = "";
     if (assemblyInfo != null && assemblyInfo != "")
@@ -104,7 +104,7 @@ XeoraJS.prototype.update = function (updateLocation, assemblyInfo, indicatorCall
     this.httprequests[httprequestIndex].send(postContent);
 };
 
-XeoraJS.prototype.processstate = function (updateLocationPathParts, nextDivIDs, assemblyInfo, indicatorCallback, httprequestindex) {
+XeoraJS.prototype.processstate = function (updateLocationPathParts, nextDivIds, assemblyInfo, indicatorCallback, httprequestindex) {
     if (this.httprequests[httprequestindex].readyState != 4) {
         return;
     }
@@ -139,8 +139,8 @@ XeoraJS.prototype.processstate = function (updateLocationPathParts, nextDivIDs, 
 
     this.httprequests[httprequestindex] = null;
 
-    if (continueOperation && nextDivIDs != null && nextDivIDs != "")
-    { this.update(nextDivIDs, assemblyInfo); }
+    if (continueOperation && nextDivIds != null && nextDivIds != "")
+    { this.update(nextDivIds, assemblyInfo); }
 };
 
 XeoraJS.prototype.prepareTargetObject = function (updateLocationPathParts) {
@@ -166,8 +166,8 @@ XeoraJS.prototype.prepareTargetObject = function (updateLocationPathParts) {
     return targetObject;
 };
 
-XeoraJS.prototype.findObjectById = function (searchObject, searchID) {
-    if (searchObject.id == searchID) {
+XeoraJS.prototype.findObjectById = function (searchObject, searchId) {
+    if (searchObject.id == searchId) {
         return searchObject;
     }
 
@@ -176,7 +176,7 @@ XeoraJS.prototype.findObjectById = function (searchObject, searchID) {
     }
 
     for (var cC = 0; cC < searchObject.childNodes.length; cC++) {
-        returnObject = this.findObjectById(searchObject.childNodes[cC], searchID);
+        returnObject = this.findObjectById(searchObject.childNodes[cC], searchId);
         if (returnObject != null) { return returnObject }
     }
 

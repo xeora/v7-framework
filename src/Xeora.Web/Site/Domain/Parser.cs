@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Xeora.Web.Directives;
 using Xeora.Web.Directives.Elements;
-using Xeora.Web.Exception;
 using Xeora.Web.Global;
 
 namespace Xeora.Web.Site
@@ -48,7 +47,7 @@ namespace Xeora.Web.Site
 
         private class Content
         {
-            public string DirectiveID { get; set; }
+            public string DirectiveId { get; set; }
             public string DirectiveType { get; set; }
 
             public string Value { get; set; }
@@ -108,12 +107,12 @@ namespace Xeora.Web.Site
 
             string modifierText = 
                 string.Format("~{0}", this._SingleCache.Length + index);
-            string directiveID =
-                coMatch.Result("${DirectiveID}");
+            string directiveId =
+                coMatch.Result("${DirectiveId}");
             string directiveType =
                 coMatch.Result("${DirectiveType}");
             Regex openingPattern =
-                RegularExpression.Current.SpecificContentOpeningPattern(directiveID, directiveType);
+                RegularExpression.Current.SpecificContentOpeningPattern(directiveId, directiveType);
 
             this._ContentCache.Append(
                 line.Substring(coMatch.Index, coMatch.Length)
@@ -125,7 +124,7 @@ namespace Xeora.Web.Site
             line = line.Substring(coMatch.Index + coMatch.Length);
 
             int nestedCount = 0;
-            while (!this.FindContentTail(ref nestedCount, line, directiveID, modifierText, openingPattern))
+            while (!this.FindContentTail(ref nestedCount, line, directiveId, modifierText, openingPattern))
             {
                 if (this._Reader.Peek() == -1)
                     return null;
@@ -133,24 +132,24 @@ namespace Xeora.Web.Site
                 line = this._Reader.ReadLine();
             }
 
-            int seperatorIndex = this.SearchForContentSeparator(this._ContentCache.ToString(), directiveID, openingPattern);
+            int seperatorIndex = this.SearchForContentSeparator(this._ContentCache.ToString(), directiveId, openingPattern);
             if (seperatorIndex > -1)
-                this._ContentCache.Insert(seperatorIndex + directiveID.Length + 2, modifierText);
+                this._ContentCache.Insert(seperatorIndex + directiveId.Length + 2, modifierText);
 
             return new Content
             {
-                DirectiveID = directiveID,
+                DirectiveId = directiveId,
                 DirectiveType = directiveType,
             };
         }
 
-        private bool FindContentTail(ref int nestedCount, string line, string directiveID, string modifierText, Regex openingPattern)
+        private bool FindContentTail(ref int nestedCount, string line, string directiveId, string modifierText, Regex openingPattern)
         {
             if (string.IsNullOrEmpty(line))
                 return false;
 
             int ccIndex =
-                this.SearchForContentClosing(ref nestedCount, line, directiveID, openingPattern);
+                this.SearchForContentClosing(ref nestedCount, line, directiveId, openingPattern);
             if (ccIndex > -1 && nestedCount == 0)
             {
                 this._ContentCache.Append(line, 0, ccIndex);
@@ -168,10 +167,10 @@ namespace Xeora.Web.Site
             return false;
         }
         
-        private int SearchForContentSeparator(string capturedContent, string directiveID, Regex openingPattern)
+        private int SearchForContentSeparator(string capturedContent, string directiveId, Regex openingPattern)
         {
             string ccSearch =
-                string.Format("}}:{0}:{{", directiveID);
+                string.Format("}}:{0}:{{", directiveId);
             int ccIndex = capturedContent.IndexOf(ccSearch, StringComparison.InvariantCulture);
 
             if (ccIndex == -1)
@@ -212,12 +211,12 @@ namespace Xeora.Web.Site
             return ccIndex;
         }
 
-        private int SearchForContentClosing(ref int nestedCount, string line, string directiveID, Regex openingPattern)
+        private int SearchForContentClosing(ref int nestedCount, string line, string directiveId, Regex openingPattern)
         {
             Match coMatch =
                 openingPattern.Match(line);
             string ccSearch =
-                string.Format("}}:{0}$", directiveID);
+                string.Format("}}:{0}$", directiveId);
             int ccIndex = line.IndexOf(ccSearch, StringComparison.InvariantCulture);
 
             if (coMatch.Success && (ccIndex == -1 || ccIndex > coMatch.Index))
@@ -319,7 +318,7 @@ namespace Xeora.Web.Site
                 this._ContentCache.ToString();
             rawValue = this.ClearTags(rawValue);
 
-            string directiveRawValue = string.Format("${0}:", (string.IsNullOrEmpty(content.DirectiveType) ? content.DirectiveID : content.DirectiveType));
+            string directiveRawValue = string.Format("${0}:", (string.IsNullOrEmpty(content.DirectiveType) ? content.DirectiveId : content.DirectiveType));
             switch (DirectiveHelper.CaptureDirectiveType(directiveRawValue))
             {
                 case DirectiveTypes.Control:

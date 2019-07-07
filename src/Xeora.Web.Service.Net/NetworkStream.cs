@@ -13,7 +13,6 @@ namespace Xeora.Web.Service.Net
         private readonly ConcurrentStack<byte[]> _Residual;
 
         private bool _Disposed;
-        private readonly Thread _StreamListenerThread;
 
         public NetworkStream(ref Stream remoteStream)
         {
@@ -22,12 +21,12 @@ namespace Xeora.Web.Service.Net
             this._IncomeCache = new ConcurrentQueue<byte[]>();
             this._Residual = new ConcurrentStack<byte[]>();
 
-            this._StreamListenerThread = new Thread(this.StreamListener)
+            Thread streamListenerThread = new Thread(this.StreamListener)
             {
                 IsBackground = true,
                 Priority = ThreadPriority.BelowNormal
             };
-            this._StreamListenerThread.Start();
+            streamListenerThread.Start();
         }
 
         private void StreamListener() 

@@ -46,7 +46,7 @@ namespace Xeora.Web.Site.Setting
                     int priority = 0;
                     string request = string.Empty;
 
-                    string reverseID = string.Empty, reverseMapped = string.Empty;
+                    string reverseId = string.Empty, reverseMapped = string.Empty;
                     Basics.Mapping.ResolveItemCollection reverseMappedItems = null;
                     bool overridable = false;
 
@@ -73,10 +73,10 @@ namespace Xeora.Web.Site.Setting
 
                                         break;
                                     case "Reverse":
-                                        reverseID = xPathIterSub.Current.GetAttribute("id", xPathIterSub.Current.BaseURI);
+                                        reverseId = xPathIterSub.Current.GetAttribute("id", xPathIterSub.Current.BaseURI);
 
                                         XPathNodeIterator xPathIter_servicetest = 
-                                            this._XPathNavigator.Select(string.Format("//Services/Item[@id='{0}']", reverseID));
+                                            this._XPathNavigator.Select(string.Format("//Services/Item[@id='{0}']", reverseId));
 
                                         if (xPathIter_servicetest.MoveNext())
                                             bool.TryParse(
@@ -93,7 +93,7 @@ namespace Xeora.Web.Site.Setting
                                                 switch (xPathIterSub.Current.Name)
                                                 {
                                                     case "MappedItem":
-                                                        string mappedItemID =
+                                                        string mappedItemId =
                                                             xPathIterSub.Current.GetAttribute("id", xPathIterSub.Current.BaseURI);
                                                         string mappedItemQueryStringKey =
                                                             xPathIterSub.Current.GetAttribute("key", xPathIterSub.Current.BaseURI);
@@ -101,7 +101,7 @@ namespace Xeora.Web.Site.Setting
                                                             xPathIterSub.Current.GetAttribute("defaultValue", xPathIterSub.Current.BaseURI);
 
                                                         Basics.Mapping.ResolveItem resolveItem =
-                                                            new Basics.Mapping.ResolveItem(mappedItemID)
+                                                            new Basics.Mapping.ResolveItem(mappedItemId)
                                                             {
                                                                 QueryStringKey = mappedItemQueryStringKey,
                                                                 DefaultValue = mappedItemDefaultValue
@@ -129,7 +129,7 @@ namespace Xeora.Web.Site.Setting
 
                         Basics.Mapping.ResolveEntry resolveEntry =
                             new Basics.Mapping.ResolveEntry(
-                                Basics.ServiceDefinition.Parse(reverseID, true))
+                                Basics.ServiceDefinition.Parse(reverseId, true))
                             {
                                 MapFormat = reverseMapped
                             };

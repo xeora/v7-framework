@@ -12,16 +12,16 @@ namespace Xeora.Web.Basics
         /// <summary>
         /// PreExecute Procedure has been called right before the Xeora Executable Call
         /// </summary>
-        /// <param name="executionID">A Unique ID to tracked the Execution between PreExecute and PostExecute</param>
+        /// <param name="executionId">A Unique Id to tracked the Execution between PreExecute and PostExecute</param>
         /// <param name="mI">The MethodInfo that will be called after PreExecute function. Modifications will effect the Executable Call</param>
-        void PreExecute(string executionID, ref MethodInfo mI);
+        void PreExecute(string executionId, ref MethodInfo mI);
 
         /// <summary>
         /// PostExecute Procedure has been called right after the Xeora Executable Call
         /// </summary>
-        /// <param name="executionID">A Unique ID to tracked the Execution between PreExecute and PostExecute</param>
+        /// <param name="executionId">A Unique Id to tracked the Execution between PreExecute and PostExecute</param>
         /// <param name="result">The Result of the Xeora Executable Call (If any, otherwise null). Result will be changable</param>
-        void PostExecute(string executionID, ref object result);
+        void PostExecute(string executionId, ref object result);
 
         /// <summary>
         /// Terminate Procedure has been called right before the Xeora Domain unload.
@@ -54,8 +54,8 @@ namespace Xeora.Web.Basics
         /// If you have any dynamic translation definitions, do it in this function and return the result.
         /// </summary>
         /// <param name="languageCode">Requested Language for translation</param>
-        /// <param name="translationID">Requested TranslationID</param>
+        /// <param name="translationId">Requested TranslationId</param>
         /// <returns>Return Translation Text</returns>
-        TranslationResult Translate(string languageCode, string translationID);
+        TranslationResult Translate(string languageCode, string translationId);
     }
 }

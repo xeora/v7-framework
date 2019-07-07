@@ -4,7 +4,7 @@ namespace Xeora.Web.Basics
 {
     public interface IHandler
     {
-        string HandlerID { get; }
+        string HandlerId { get; }
         IHttpContext Context { get; }
         IDomainControl DomainControl { get; }
     }
