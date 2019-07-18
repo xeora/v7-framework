@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -7,7 +7,7 @@
     <Version>7.2.0</Version>
     <Authors>Tuna Celik</Authors>
     <Company>JakPark Solutions</Company>
-    <Product>XeoraCube - Web Development Framework DSS</Product>
+    <Product>XeoraCube - Web Development Framework Dss</Product>
     <Description>XeoraCube - Web Development Framework Dss</Description>
     <Copyright>Copyright © Tuna Celik 2003 - 2019</Copyright>
     <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
