@@ -279,7 +279,7 @@ namespace Xeora.Web.Site
                         break;
                     case DirectiveTypes.Control:
                         this._ResultHandler.Invoke(
-                            new Control(rawValue, null));
+                            new Control(singleValue, null));
 
                         break;
                     case DirectiveTypes.Template:
