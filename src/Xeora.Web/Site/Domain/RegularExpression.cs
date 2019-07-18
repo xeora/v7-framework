@@ -39,7 +39,7 @@ namespace Xeora.Web.Site
             string contentSeparatorRegEx = "\\}:(?<DirectiveId>" + directiveIdRegEx + ")\\:\\{";
             string contentClosingRegEx = "\\}:(?<DirectiveId>" + directiveIdRegEx + ")\\$";
 
-            this.SpecificContentOpeningRegEx = "\\$(({0})|({1})(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:({0}))";
+            this.SpecificContentOpeningRegEx = "\\$(({0})|({1})(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:({0}))(\\(|\\:)";
             // !---
 
             this.SingleCapturePattern =
