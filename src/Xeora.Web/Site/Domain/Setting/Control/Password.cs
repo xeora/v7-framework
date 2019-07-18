@@ -22,9 +22,17 @@ namespace Xeora.Web.Site.Setting.Control
 
         public override IBase Clone()
         {
-            base.Bind.Clone(out Bind bind);
+            Bind bind = null;
 
-            return new Password(bind, base.Security, this.Text, this.DefaultButtonId, this.Updates, this.Attributes);
+            if (base.Bind != null)
+                base.Bind.Clone(out bind);
+
+            SecurityDefinition security = null;
+
+            if (base.Security != null)
+                base.Security.Clone(out security);
+
+            return new Password(bind, security, this.Text, this.DefaultButtonId, this.Updates.Clone(), this.Attributes.Clone());
         }
     }
 }

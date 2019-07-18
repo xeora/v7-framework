@@ -12,9 +12,17 @@ namespace Xeora.Web.Site.Setting.Control
 
         public override IBase Clone()
         {
-            base.Bind.Clone(out Bind bind);
+            Bind bind = null;
 
-            return new ConditionalStatement(bind, base.Security);
+            if (base.Bind != null)
+                base.Bind.Clone(out bind);
+
+            SecurityDefinition security = null;
+
+            if (base.Security != null)
+                base.Security.Clone(out security);
+
+            return new ConditionalStatement(bind, security);
         }
     }
 }
