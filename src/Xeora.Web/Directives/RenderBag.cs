@@ -14,6 +14,7 @@ namespace Xeora.Web.Directives
         {
             Single single = new Single(rawValue, arguments)
             {
+                Mother = this._Parent.Mother,
                 Parent = this._Parent
             };
 
