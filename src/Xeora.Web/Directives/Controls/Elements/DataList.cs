@@ -42,6 +42,9 @@ namespace Xeora.Web.Directives.Controls.Elements
 
         public void Render(string requesterUniqueId)
         {
+            if (this._Settings.Bind == null)
+                throw new System.ArgumentNullException(nameof(this._Settings.Bind));
+
             // Execution preparation should be done at the same level with it's parent. Because of that, send parent as parameters
             this._Settings.Bind.Parameters.Prepare(
                 (parameter) =>
