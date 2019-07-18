@@ -136,7 +136,11 @@ namespace Xeora.Web.Global
             } while (sIdx != content.Length);
 
             if (!this.HasParts)
-                throw new Exception.EmptyBlockException();
+            {
+                this.Parts.Add(string.Empty);
+
+                Basics.Console.Push("WARNING (ContentDescriptor)", $"Empty Block is detected! [{controlIdWithIndex}]", string.Empty, true);
+            }
 
             ContentDescription._PartsCache.TryAdd(
                 controlIdWithIndex,
