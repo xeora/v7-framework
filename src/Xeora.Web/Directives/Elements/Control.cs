@@ -106,7 +106,20 @@ namespace Xeora.Web.Directives.Elements
         public LevelingInfo Leveling { get; private set; }
         public new ControlTypes Type { get; private set; }
 
-        public override bool Searchable => this._Control.Children != null;
+        public override bool Searchable
+        {
+            get
+            {
+                switch (this.Type)
+                {
+                    case ControlTypes.ConditionalStatement:
+                    case ControlTypes.VariableBlock:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        }
         public override bool CanAsync => false;
 
         public DirectiveCollection Children => this._Control.Children;
