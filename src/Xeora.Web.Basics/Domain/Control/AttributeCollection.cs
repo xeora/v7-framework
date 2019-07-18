@@ -67,5 +67,16 @@ namespace Xeora.Web.Basics.Domain.Control
 
             return rSB.ToString();
         }
+
+        public AttributeCollection Clone()
+        {
+            AttributeCollection attributes =
+                new AttributeCollection();
+
+            foreach (Attribute attribute in this)
+                attributes.Add(new Attribute(attribute.Key, attribute.Value));
+
+            return attributes;
+        }
     }
 }

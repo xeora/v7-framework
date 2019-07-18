@@ -4,6 +4,12 @@ namespace Xeora.Web.Basics.Domain.Control
 {
     public class Updates
     {
+        public Updates()
+        {
+            this.Local = true;
+            this.Blocks = new string[] { };
+        }
+
         public Updates(bool local, string[] blocks)
         {
             this.Local = local;
@@ -33,5 +39,8 @@ namespace Xeora.Web.Basics.Domain.Control
                 this.Blocks = blocks;
             }
         }
+
+        public Updates Clone() =>
+            new Updates(this.Local, this.Blocks);
     }
 }
