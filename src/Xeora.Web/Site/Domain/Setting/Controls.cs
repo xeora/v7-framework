@@ -148,19 +148,18 @@ namespace Xeora.Web.Site.Setting
 
             if (target == null || !target.MoveToFirstChild())
                 return attributes;
-
-            XPathNavigator readerAttrs = xPathControlNav.Clone();
-
-            if (!readerAttrs.MoveToFirstChild())
-                return attributes;
-
             do
             {
-                attributes.Add(
-                    readerAttrs.GetAttribute("key", readerAttrs.BaseURI).ToLower(),
-                    readerAttrs.Value
-                );
-            } while (readerAttrs.MoveToNext());
+                XPathNavigator readerAttrs = target.Clone();
+
+                string key =
+                    readerAttrs.GetAttribute("key", readerAttrs.BaseURI).ToLower();
+
+                if (!readerAttrs.MoveToFirstChild())
+                    return attributes;
+
+                attributes.Add(key, readerAttrs.Value);
+            } while (target.MoveToNext());
 
             return attributes;
         }
@@ -224,12 +223,12 @@ namespace Xeora.Web.Site.Setting
                 xPathControlNav.SelectSingleNode("*[translate(local-name(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = 'updates']");
 
             if (target == null || !target.MoveToFirstChild())
-                return null;
+                return new Updates();
 
             XPathNavigator readerUpdates = xPathControlNav.Clone();
 
             if (!readerUpdates.MoveToFirstChild())
-                return null;
+                return new Updates();
 
             if (!bool.TryParse(xPathControlNav.GetAttribute("local", xPathControlNav.BaseURI), out bool local))
                 local = true;
