@@ -16,7 +16,7 @@ namespace Xeora.Web.Deployment
         {
             if (!Directory.Exists(this.LanguagesRegistration) ||
                 !Directory.Exists(this.TemplatesRegistration))
-                throw new Exception.DeploymentException(string.Format("Domain {0}", Global.SystemMessages.PATH_WRONGSTRUCTURE));
+                throw new Exception.DeploymentException($"Domain {Global.SystemMessages.PATH_WRONGSTRUCTURE}");
 
             // Control Domain Language and Template Folders
             DirectoryInfo domainLanguagesDI =
@@ -25,25 +25,25 @@ namespace Xeora.Web.Deployment
             foreach (DirectoryInfo domainLanguageDI in domainLanguagesDI.GetDirectories())
             {
                 if (!Directory.Exists(this.ContentsRegistration(domainLanguageDI.Name)))
-                    throw new Exception.DeploymentException(string.Format("Domain {0}", Global.SystemMessages.PATH_WRONGSTRUCTURE));
+                    throw new Exception.DeploymentException($"Domain {Global.SystemMessages.PATH_WRONGSTRUCTURE}");
             }
             // !--
 
             // -- Control Those System Essential Files are Exists! --
-            string controlsXML =
+            string controlsXml =
                 Path.Combine(this.TemplatesRegistration, "Controls.xml");
-            string configurationXML =
+            string configurationXml =
                 Path.Combine(this.TemplatesRegistration, "Configuration.xml");
 
-            if (!File.Exists(configurationXML))
+            if (!File.Exists(configurationXml))
                 throw new Exception.DeploymentException(Global.SystemMessages.ESSENTIAL_CONFIGURATIONNOTFOUND + "!");
 
-            if (!File.Exists(controlsXML))
+            if (!File.Exists(controlsXml))
                 throw new Exception.DeploymentException(Global.SystemMessages.ESSENTIAL_CONTROLSXMLNOTFOUND + "!");
             // !--
         }
 
-        public string DomainRootPath { get; private set; }
+        public string DomainRootPath { get; }
         public string ChildrenRegistration => Path.Combine(this.DomainRootPath, "Addons");
         public string ContentsRegistration(string languageId) => Path.Combine(this.DomainRootPath, "Contents", languageId);
         public string ExecutablesRegistration => Path.Combine(this.DomainRootPath, "Executables");
@@ -73,7 +73,7 @@ namespace Xeora.Web.Deployment
         public string ProvideTemplateContent(string serviceFullPath)
         {
             string templateFile =
-                Path.Combine(this.TemplatesRegistration, string.Format("{0}.xchtml", serviceFullPath));
+                Path.Combine(this.TemplatesRegistration, $"{serviceFullPath}.xchtml");
 
             try
             {
@@ -87,12 +87,12 @@ namespace Xeora.Web.Deployment
 
         public string ProvideControlsContent()
         {
-            string controlsXMLFile =
+            string controlsXmlFile =
                 Path.Combine(this.TemplatesRegistration, "Controls.xml");
 
             try
             {
-                return this.ReadFileAsString(controlsXMLFile);
+                return this.ReadFileAsString(controlsXmlFile);
             }
             catch (FileNotFoundException ex)
             {
@@ -118,7 +118,7 @@ namespace Xeora.Web.Deployment
         public string ProvideLanguageContent(string languageId)
         {
             string languageFile =
-                Path.Combine(this.LanguagesRegistration, string.Format("{0}.xml", languageId));
+                Path.Combine(this.LanguagesRegistration, $"{languageId}.xml");
 
             return this.ReadFileAsString(languageFile);
         }
@@ -126,7 +126,6 @@ namespace Xeora.Web.Deployment
         private string ReadFileAsString(string fileLocation)
         {
             byte[] buffer = new byte[102400];
-            int rB = 0;
 
             Stream fileStream = null;
             try
@@ -137,6 +136,7 @@ namespace Xeora.Web.Deployment
                     this.DetectEncoding(ref fileStream);
                 StringBuilder fileContent = new StringBuilder();
 
+                int rB;
                 do
                 {
                     rB = fileStream.Read(buffer, 0, buffer.Length);
@@ -147,14 +147,9 @@ namespace Xeora.Web.Deployment
 
                 return fileContent.ToString();
             }
-            catch (System.Exception)
-            {
-                throw;
-            }
             finally
             {
-                if (fileStream != null)
-                    fileStream.Close();
+                fileStream?.Close();
             }
         }
 
@@ -168,8 +163,8 @@ namespace Xeora.Web.Deployment
                 DirectoryInfo languagesDI = 
                     new DirectoryInfo(this.LanguagesRegistration);
 
-                foreach (FileInfo tFI in languagesDI.GetFiles())
-                    languageIds.Add(Path.GetFileNameWithoutExtension(tFI.Name));
+                foreach (FileInfo fI in languagesDI.GetFiles())
+                    languageIds.Add(Path.GetFileNameWithoutExtension(fI.Name));
 
                 return languageIds.ToArray();
             }
@@ -181,10 +176,10 @@ namespace Xeora.Web.Deployment
         {
             inStream.Seek(0, SeekOrigin.Begin);
 
-            int bC = 0;
-            byte[] buffer = new byte[4];
-
-            bC = inStream.Read(buffer, 0, buffer.Length);
+            byte[] buffer = 
+                new byte[4];
+            int bC = 
+                inStream.Read(buffer, 0, buffer.Length);
 
             if (bC == 0)
                 return Encoding.UTF8;

@@ -11,7 +11,7 @@ namespace Xeora.Web.Deployment
     internal class Decompiler
     {
         private readonly string _DomainFileLocation;
-        private readonly byte[] _PasswordHash = null;
+        private readonly byte[] _PasswordHash;
 
         private readonly ConcurrentDictionary<string, FileEntry> _DomainFileEntryListCache;
         private readonly ConcurrentDictionary<string, byte[]> _DomainFileEntryBytesCache;
@@ -33,11 +33,11 @@ namespace Xeora.Web.Deployment
                 this._PasswordHash = null;
 
                 byte[] securedHash = new byte[16];
-                Stream passwordFS = null;
+                Stream passwordStream = null;
                 try
                 {
-                    passwordFS = new FileStream(domainPasswordFileLocation, FileMode.Open, FileAccess.Read);
-                    passwordFS.Read(securedHash, 0, securedHash.Length);
+                    passwordStream = new FileStream(domainPasswordFileLocation, FileMode.Open, FileAccess.Read);
+                    passwordStream.Read(securedHash, 0, securedHash.Length);
                 }
                 catch (System.Exception)
                 {
@@ -45,18 +45,17 @@ namespace Xeora.Web.Deployment
                 }
                 finally
                 {
-                    if (passwordFS != null)
-                        passwordFS.Close();
+                    passwordStream?.Close();
                 }
 
-                byte[] fileHash = null;
-                Stream contentFS = null;
+                byte[] fileHash;
+                Stream contentStream = null;
                 try
                 {
-                    contentFS = new FileStream(this._DomainFileLocation, FileMode.Open, FileAccess.Read);
+                    contentStream = new FileStream(this._DomainFileLocation, FileMode.Open, FileAccess.Read);
 
                     MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
-                    fileHash = md5.ComputeHash(contentFS);
+                    fileHash = md5.ComputeHash(contentStream);
                 }
                 catch (System.Exception)
                 {
@@ -64,8 +63,7 @@ namespace Xeora.Web.Deployment
                 }
                 finally
                 {
-                    if (contentFS != null)
-                        contentFS.Close();
+                    contentStream?.Close();
                 }
 
                 if (securedHash != null && (fileHash != null))
@@ -93,7 +91,7 @@ namespace Xeora.Web.Deployment
             return new FileEntry(-1, null, null, -1, -1);
         }
 
-        public FileEntry[] Search(string registrationPath, string fileName)
+        public IEnumerable<FileEntry> Search(string registrationPath, string fileName)
         {
             List<FileEntry> result = new List<FileEntry>();
 
@@ -103,11 +101,10 @@ namespace Xeora.Web.Deployment
             foreach (string key in keys)
             {
                 if (key.IndexOf(
-                        FileEntry.CreateSearchKey(registrationPath, fileName)) == 0)
-                {
-                    if (this._DomainFileEntryListCache.TryGetValue(key, out FileEntry fileEntry))
-                        result.Add(fileEntry);
-                }
+                        FileEntry.CreateSearchKey(registrationPath, fileName), StringComparison.Ordinal) != 0) continue;
+                
+                if (this._DomainFileEntryListCache.TryGetValue(key, out FileEntry fileEntry))
+                    result.Add(fileEntry);
             }
 
             return result.ToArray();
@@ -124,7 +121,7 @@ namespace Xeora.Web.Deployment
 
             // Search in Cache First
             string searchKey =
-                string.Format("{0}$i:{1}.l:{2}", this._DomainFileLocation, index, length);
+                $"{this._DomainFileLocation}$i:{index}.l:{length}";
 
             if (this._DomainFileEntryBytesCache.TryGetValue(searchKey, out byte[] buffer))
             {
@@ -150,23 +147,23 @@ namespace Xeora.Web.Deployment
 
                 // FILE PROTECTION
                 if (this._PasswordHash != null)
-                    for (int pBC = 0; pBC < buffer.Length; pBC++)
-                        buffer[pBC] = (byte)(buffer[pBC] ^ this._PasswordHash[pBC % this._PasswordHash.Length]);
+                    for (int i = 0; i < buffer.Length; i++)
+                        buffer[i] = (byte)(buffer[i] ^ this._PasswordHash[i % this._PasswordHash.Length]);
                 // !--
 
                 gzipHelperStream = new MemoryStream(buffer, 0, buffer.Length, false);
                 gzipCStream = new GZipStream(gzipHelperStream, CompressionMode.Decompress, false);
 
-                byte[] rbuffer = new byte[512];
-                int bC = 0, total = 0;
+                byte[] rBuffer = new byte[512];
+                int bC, total = 0;
 
                 do
                 {
-                    bC = gzipCStream.Read(rbuffer, 0, rbuffer.Length);
+                    bC = gzipCStream.Read(rBuffer, 0, rBuffer.Length);
                     total += bC;
 
                     if (bC > 0)
-                        outputStream.Write(rbuffer, 0, bC);
+                        outputStream.Write(rBuffer, 0, bC);
                 } while (bC > 0);
 
                 // Cache What You Read
@@ -192,23 +189,9 @@ namespace Xeora.Web.Deployment
             }
             finally
             {
-                if (domainFileStream != null)
-                {
-                    domainFileStream.Close();
-                    GC.SuppressFinalize(domainFileStream);
-                }
-
-                if (gzipCStream != null)
-                {
-                    gzipCStream.Close();
-                    GC.SuppressFinalize(gzipCStream);
-                }
-
-                if (gzipHelperStream != null)
-                {
-                    gzipHelperStream.Close();
-                    GC.SuppressFinalize(gzipHelperStream);
-                }
+                domainFileStream?.Close();
+                gzipCStream?.Close();
+                gzipHelperStream?.Close();
             }
         }
 
@@ -217,19 +200,15 @@ namespace Xeora.Web.Deployment
             FileInfo domainFI =
                 new FileInfo(this._DomainFileLocation);
 
-            if (domainFI.Exists)
-            {
-                if (DateTime.Compare(this._CacheDate, DateTime.MinValue) == 0 ||
-                    DateTime.Compare(this._CacheDate, domainFI.CreationTime) != 0)
-                {
-                    this.PrepareFileList();
-                    this._CacheDate = domainFI.CreationTime;
+            if (!domainFI.Exists) return false;
+            if (DateTime.Compare(this._CacheDate, DateTime.MinValue) != 0 &&
+                DateTime.Compare(this._CacheDate, domainFI.CreationTime) == 0) return false;
+            
+            this.PrepareFileList();
+            this._CacheDate = domainFI.CreationTime;
 
-                    return true;
-                }
-            }
+            return true;
 
-            return false;
         }
 
         private void PrepareFileList()
@@ -237,29 +216,25 @@ namespace Xeora.Web.Deployment
             this._DomainFileEntryListCache.Clear();
             this._DomainFileEntryBytesCache.Clear();
 
-            long index = -1, length = -1, compressedLength = -1;
-            string localRegistrationPath = null, localFileName = null;
-
-            Stream fileStream = null;
             BinaryReader fileReader = null;
             try
             {
-                fileStream =
+                Stream fileStream = 
                     new FileStream(this._DomainFileLocation, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 fileReader = new BinaryReader(fileStream, Encoding.UTF8);
 
                 int readC = 0;
-                long indexTotal = 0, movedIndex = fileReader.ReadInt64();
+                long movedIndex = fileReader.ReadInt64();
 
                 do
                 {
-                    indexTotal = fileReader.BaseStream.Position;
+                    long indexTotal = fileReader.BaseStream.Position;
 
-                    index = fileReader.ReadInt64() + movedIndex + 8;
-                    localRegistrationPath = fileReader.ReadString();
-                    localFileName = fileReader.ReadString();
-                    length = fileReader.ReadInt64();
-                    compressedLength = fileReader.ReadInt64();
+                    long index = fileReader.ReadInt64() + movedIndex + 8;
+                    string localRegistrationPath = fileReader.ReadString();
+                    string localFileName = fileReader.ReadString();
+                    long length = fileReader.ReadInt64();
+                    long compressedLength = fileReader.ReadInt64();
 
                     readC += (int)(fileReader.BaseStream.Position - indexTotal);
 
@@ -271,11 +246,7 @@ namespace Xeora.Web.Deployment
             }
             finally
             {
-                if (fileReader != null)
-                {
-                    fileReader.Close();
-                    GC.SuppressFinalize(fileReader);
-                }
+                fileReader?.Close();
             }
         }
     }

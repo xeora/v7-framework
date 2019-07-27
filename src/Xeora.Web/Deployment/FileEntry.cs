@@ -11,14 +11,14 @@
             this.CompressedLength = compressedLength;
         }
 
-        public long Index { get; private set; }
-        public string RegistrationPath { get; private set; }
-        public string FileName { get; private set; }
+        public long Index { get; }
+        public string RegistrationPath { get; }
+        public string FileName { get; }
         public string SearchKey => FileEntry.CreateSearchKey(this.RegistrationPath, this.FileName);
-        public long Length { get; private set; }
-        public long CompressedLength { get; private set; }
+        public long Length { get; }
+        public long CompressedLength { get; }
 
         public static string CreateSearchKey(string registrationPath, string fileName) =>
-            string.Format("{0}${1}", registrationPath, fileName);
+            $"{registrationPath}${fileName}";
     }
 }

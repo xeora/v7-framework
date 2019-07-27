@@ -29,7 +29,7 @@ namespace Xeora.Web.Deployment
             if (!Directory.Exists(domainRootPath))
                 throw new Exception.DomainNotExistsException(
                     Global.SystemMessages.PATH_NOTEXISTS,
-                    new DirectoryNotFoundException(string.Format("DomainRootPath: {0}", domainRootPath))
+                    new DirectoryNotFoundException($"DomainRootPath: {domainRootPath}")
                 );
 
             string releaseTestPath =
@@ -49,8 +49,8 @@ namespace Xeora.Web.Deployment
             this.LoadDomain();
         }
 
-        public string[] DomainIdAccessTree { get; private set; }
-        public Basics.Domain.Info.DeploymentTypes DeploymentType { get; private set; }
+        public string[] DomainIdAccessTree { get; }
+        public Basics.Domain.Info.DeploymentTypes DeploymentType { get; }
         private IDeployment Deployment { get; set; }
 
         private string CreateDomainAccessPathString()
@@ -66,29 +66,29 @@ namespace Xeora.Web.Deployment
         private void LoadDomain()
         {
             this.Settings =
-                new Site.Setting.Settings(this.Deployment.ProvideConfigurationContent());
+                new Application.Domain.Configurations.Settings(this.Deployment.ProvideConfigurationContent());
 
             // Setup Languages
             string[] languageIds = this.Deployment.Languages;
             if (languageIds.Length == 0)
                 throw new Exception.LanguageFileException();
 
-            this.Languages = new Site.Setting.Languages();
+            this.Languages = new Application.Domain.Configurations.Languages();
 
             foreach (string languageId in languageIds)
             {
-                ((Site.Setting.Languages)this.Languages).Add(
-                    new Site.Setting.Language(
+                ((Application.Domain.Configurations.Languages)this.Languages).Add(
+                    new Application.Domain.Configurations.Language(
                         this.Deployment.ProvideLanguageContent(languageId),
-                        string.Compare(languageId, this.Settings.Configurations.DefaultLanguage) == 0
+                        string.CompareOrdinal(languageId, this.Settings.Configurations.DefaultLanguage) == 0
                     )
                 );
             }
             // !---
 
             this.Controls =
-                new Site.Setting.Controls(this.Deployment.ProvideControlsContent());
-            this.xService = new Site.Setting.xService();
+                new Application.Domain.ControlManager(this.Deployment.ProvideControlsContent());
+            this.xService = new Application.Domain.Configurations.xService();
 
             // Compile Children Domains
             this._Children =
@@ -182,13 +182,9 @@ namespace Xeora.Web.Deployment
 
         public void Dispose()
         {
-            if (this.Settings != null)
-                this.Settings.Dispose();
-            if (this.Languages != null)
-                this.Languages.Dispose();
-            if (this.Controls != null)
-                this.Controls.Dispose();
-            GC.SuppressFinalize(this);
+            Settings?.Dispose();
+            Languages?.Dispose();
+            Controls?.Dispose();
         }
     }
 }

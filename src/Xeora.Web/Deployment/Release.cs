@@ -17,7 +17,7 @@ namespace Xeora.Web.Deployment
         private void CheckIntegrity()
         {
             // -- Control Those System Essential Files are Exists! --
-            FileEntry controlsXMLFileEntry =
+            FileEntry controlsXmlFileEntry =
                 this.Decompiler.Get(this.TemplatesRegistration, "Controls.xml");
             FileEntry configurationFileEntry =
                 this.Decompiler.Get(this.TemplatesRegistration, "Configuration.xml");
@@ -25,14 +25,14 @@ namespace Xeora.Web.Deployment
             if (configurationFileEntry.Index == -1)
                 throw new Exception.DeploymentException(Global.SystemMessages.ESSENTIAL_CONFIGURATIONNOTFOUND + "!");
 
-            if (controlsXMLFileEntry.Index == -1)
+            if (controlsXmlFileEntry.Index == -1)
                 throw new Exception.DeploymentException(Global.SystemMessages.ESSENTIAL_CONTROLSXMLNOTFOUND + "!");
             // !--
         }
 
         public string DomainRootPath { get; private set; }
         public string ChildrenRegistration => Path.Combine(this.DomainRootPath, "Addons");
-        public string ContentsRegistration(string languageId) => string.Format("\\Contents\\{0}\\", languageId);
+        public string ContentsRegistration(string languageId) => $"\\Contents\\{languageId}\\";
         public string ExecutablesRegistration => Path.Combine(this.DomainRootPath, "Executables");
         public string TemplatesRegistration => "\\Templates\\";
         public string LanguagesRegistration => "\\Languages\\";
@@ -98,14 +98,14 @@ namespace Xeora.Web.Deployment
             {
                 int idx = fileName.LastIndexOf('/');
 
-                registrationPath = string.Format("{0}{1}", registrationPath, fileName.Substring(0, idx + 1).Replace('/', '\\'));
+                registrationPath = $"{registrationPath}{fileName.Substring(0, idx + 1).Replace('/', '\\')}";
                 fileName = fileName.Substring(idx + 1);
             }
             // !--
 
             FileEntry fileEntry =
                 this.Decompiler.Get(
-                    registrationPath, string.Format("{0}.xchtml", fileName));
+                    registrationPath, $"{fileName}.xchtml");
 
             if (fileEntry.Index == -1)
                 return string.Empty;
@@ -159,12 +159,9 @@ namespace Xeora.Web.Deployment
         public string ProvideLanguageContent(string languageId)
         {
             FileEntry fileEntry =
-                this.Decompiler.Get(this.LanguagesRegistration, string.Format("{0}.xml", languageId));
+                this.Decompiler.Get(this.LanguagesRegistration, $"{languageId}.xml");
 
-            if (fileEntry.Index == -1)
-                return string.Empty;
-
-            return this.ReadFileAsString(fileEntry);
+            return fileEntry.Index == -1 ? string.Empty : this.ReadFileAsString(fileEntry);
         }
 
         private string ReadFileAsString(FileEntry fileEntry)
@@ -191,17 +188,9 @@ namespace Xeora.Web.Deployment
 
                 return string.Empty;
             }
-            catch (System.Exception)
-            {
-                throw;
-            }
             finally
             {
-                if (contentStream != null)
-                {
-                    contentStream.Close();
-                    GC.SuppressFinalize(contentStream);
-                }
+                contentStream?.Close();
             }
         }
 
@@ -212,7 +201,7 @@ namespace Xeora.Web.Deployment
                 List<string> languageIds =
                     new List<string>();
 
-                FileEntry[] searchResult =
+                IEnumerable<FileEntry> searchResult =
                     this.Decompiler.Search(this.LanguagesRegistration, string.Empty);
 
                 foreach (FileEntry fileEntry in searchResult)

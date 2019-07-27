@@ -7,16 +7,16 @@ namespace Xeora.Web.Deployment
     {
         private readonly ConcurrentDictionary<string, Domain> _Instances;
 
-        public InstanceFactory() =>
+        private InstanceFactory() =>
             this._Instances = new ConcurrentDictionary<string, Domain>();
 
-        private static object _Lock = new object();
+        private static readonly object Lock = new object();
         private static InstanceFactory _Current;
         public static InstanceFactory Current
         {
             get
             {
-                Monitor.Enter(InstanceFactory._Lock);
+                Monitor.Enter(InstanceFactory.Lock);
                 try
                 {
                     if (InstanceFactory._Current == null)
@@ -24,7 +24,7 @@ namespace Xeora.Web.Deployment
                 }
                 finally
                 {
-                    Monitor.Exit(InstanceFactory._Lock);
+                    Monitor.Exit(InstanceFactory.Lock);
                 }
 
                 return InstanceFactory._Current;
@@ -33,14 +33,14 @@ namespace Xeora.Web.Deployment
 
         public Domain GetOrCreate(string[] domainIdAccessTree)
         {
-            string instancenKey = 
+            string instanceKey = 
                 string.Join<string>("-", domainIdAccessTree);
 
-            if (!this._Instances.TryGetValue(instancenKey, out Domain domain))
+            if (!this._Instances.TryGetValue(instanceKey, out Domain domain))
             {
                 domain = new Domain(domainIdAccessTree);
 
-                if (!this._Instances.TryAdd(instancenKey, domain))
+                if (!this._Instances.TryAdd(instanceKey, domain))
                     return this.GetOrCreate(domainIdAccessTree);
             }
             else
@@ -54,9 +54,7 @@ namespace Xeora.Web.Deployment
             foreach (string key in this._Instances.Keys)
             {
                 this._Instances.TryRemove(key, out Domain domain);
-
-                if (domain != null)
-                    domain.Dispose();
+                domain?.Dispose();
             }
         }
 
