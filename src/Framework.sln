@@ -22,8 +22,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xeora.Web.Basics", "Xeora.W
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xeora.Web.Configuration", "Xeora.Web.Configuration\Xeora.Web.Configuration.csproj", "{AFE97936-28FA-4309-8A96-1BFFEA63584F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xeora.Web.Engine.Standard", "Xeora.Web.Engine.Standard\Xeora.Web.Engine.Standard.csproj", "{4F481C0A-030B-40A4-B111-ED54AA7DEC41}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xeora.Web.Service.Net", "Xeora.Web.Service.Net\Xeora.Web.Service.Net.csproj", "{31CD53A5-44B8-4135-A3D2-5467E0A1847C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xeora.Web.Service.Dss", "Xeora.Web.Service.Dss\Xeora.Web.Service.Dss.csproj", "{4EE43A4C-CE6F-41C6-85BF-714FCB5B24D2}"
@@ -158,18 +156,6 @@ Global
 		{AFE97936-28FA-4309-8A96-1BFFEA63584F}.Release|x64.Build.0 = Release|x64
 		{AFE97936-28FA-4309-8A96-1BFFEA63584F}.Release|x86.ActiveCfg = Release|x86
 		{AFE97936-28FA-4309-8A96-1BFFEA63584F}.Release|x86.Build.0 = Release|x86
-		{4F481C0A-030B-40A4-B111-ED54AA7DEC41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4F481C0A-030B-40A4-B111-ED54AA7DEC41}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4F481C0A-030B-40A4-B111-ED54AA7DEC41}.Debug|x64.ActiveCfg = Debug|x64
-		{4F481C0A-030B-40A4-B111-ED54AA7DEC41}.Debug|x64.Build.0 = Debug|x64
-		{4F481C0A-030B-40A4-B111-ED54AA7DEC41}.Debug|x86.ActiveCfg = Debug|x86
-		{4F481C0A-030B-40A4-B111-ED54AA7DEC41}.Debug|x86.Build.0 = Debug|x86
-		{4F481C0A-030B-40A4-B111-ED54AA7DEC41}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4F481C0A-030B-40A4-B111-ED54AA7DEC41}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4F481C0A-030B-40A4-B111-ED54AA7DEC41}.Release|x64.ActiveCfg = Release|x64
-		{4F481C0A-030B-40A4-B111-ED54AA7DEC41}.Release|x64.Build.0 = Release|x64
-		{4F481C0A-030B-40A4-B111-ED54AA7DEC41}.Release|x86.ActiveCfg = Release|x86
-		{4F481C0A-030B-40A4-B111-ED54AA7DEC41}.Release|x86.Build.0 = Release|x86
 		{31CD53A5-44B8-4135-A3D2-5467E0A1847C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{31CD53A5-44B8-4135-A3D2-5467E0A1847C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{31CD53A5-44B8-4135-A3D2-5467E0A1847C}.Debug|x64.ActiveCfg = Debug|x64
