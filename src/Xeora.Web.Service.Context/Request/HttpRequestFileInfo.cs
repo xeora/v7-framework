@@ -39,8 +39,6 @@ namespace Xeora.Web.Service.Context
 
             if (File.Exists(this._TempLocation))
                 File.Delete(this._TempLocation);
-
-            GC.SuppressFinalize(this._ContentStream);
         }
     }
 }

@@ -180,11 +180,7 @@ namespace Xeora.Web.Service.Context
             }
             finally
             {
-                if (contentStream != null)
-                {
-                    contentStream.Close();
-                    GC.SuppressFinalize(contentStream);
-                }
+                contentStream?.Close();
             }
         }
 

@@ -163,11 +163,7 @@ namespace Xeora.Web.Service.Context
             }
             finally
             {
-                if (contentStream != null)
-                {
-                    contentStream.Close();
-                    GC.SuppressFinalize(contentStream);
-                }
+                contentStream?.Close();
             }
         }
 
@@ -214,11 +210,7 @@ namespace Xeora.Web.Service.Context
             }
             finally
             {
-                if (contentStream != null)
-                {
-                    contentStream.Close();
-                    GC.SuppressFinalize(contentStream);
-                }
+                contentStream?.Close();
             }
         }
 
@@ -342,17 +334,8 @@ namespace Xeora.Web.Service.Context
                 }
                 finally
                 {
-                    if (sR != null)
-                    {
-                        sR.Close();
-                        GC.SuppressFinalize(sR);
-                    }
-
-                    if (contentStream != null)
-                    {
-                        contentStream.Close();
-                        GC.SuppressFinalize(contentStream);
-                    }
+                    sR?.Close();
+                    contentStream?.Close();
                 }
 
                 return;
@@ -461,11 +444,7 @@ namespace Xeora.Web.Service.Context
             }
             finally
             {
-                if (contentStream != null)
-                {
-                    contentStream.Close();
-                    GC.SuppressFinalize(contentStream);
-                }
+                contentStream?.Close();
             }
         }
 
@@ -485,11 +464,7 @@ namespace Xeora.Web.Service.Context
         {
             ((HttpRequestFile)this.File).Dispose();
 
-            if (this._ContentStream != null)
-            {
-                this._ContentStream.Close();
-                GC.SuppressFinalize(this._ContentStream);
-            }
+            _ContentStream?.Close();
         }
     }
 }
