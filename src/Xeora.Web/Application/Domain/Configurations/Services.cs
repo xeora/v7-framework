@@ -85,7 +85,7 @@ namespace Xeora.Web.Application.Domain.Configurations
                     rCollection.Add(tServiceItem);
                 }
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 // Just Handle Exceptions
             }

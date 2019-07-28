@@ -16,7 +16,7 @@ namespace Xeora.Web.Deployment
         {
             if (!Directory.Exists(this.LanguagesRegistration) ||
                 !Directory.Exists(this.TemplatesRegistration))
-                throw new Exception.DeploymentException($"Domain {Global.SystemMessages.PATH_WRONGSTRUCTURE}");
+                throw new Exceptions.DeploymentException($"Domain {Global.SystemMessages.PATH_WRONGSTRUCTURE}");
 
             // Control Domain Language and Template Folders
             DirectoryInfo domainLanguagesDI =
@@ -25,7 +25,7 @@ namespace Xeora.Web.Deployment
             foreach (DirectoryInfo domainLanguageDI in domainLanguagesDI.GetDirectories())
             {
                 if (!Directory.Exists(this.ContentsRegistration(domainLanguageDI.Name)))
-                    throw new Exception.DeploymentException($"Domain {Global.SystemMessages.PATH_WRONGSTRUCTURE}");
+                    throw new Exceptions.DeploymentException($"Domain {Global.SystemMessages.PATH_WRONGSTRUCTURE}");
             }
             // !--
 
@@ -36,10 +36,10 @@ namespace Xeora.Web.Deployment
                 Path.Combine(this.TemplatesRegistration, "Configuration.xml");
 
             if (!File.Exists(configurationXml))
-                throw new Exception.DeploymentException(Global.SystemMessages.ESSENTIAL_CONFIGURATIONNOTFOUND + "!");
+                throw new Exceptions.DeploymentException(Global.SystemMessages.ESSENTIAL_CONFIGURATIONNOTFOUND + "!");
 
             if (!File.Exists(controlsXml))
-                throw new Exception.DeploymentException(Global.SystemMessages.ESSENTIAL_CONTROLSXMLNOTFOUND + "!");
+                throw new Exceptions.DeploymentException(Global.SystemMessages.ESSENTIAL_CONTROLSXMLNOTFOUND + "!");
             // !--
         }
 
@@ -81,7 +81,7 @@ namespace Xeora.Web.Deployment
             }
             catch (FileNotFoundException)
             {
-                throw new Exception.DeploymentException(string.Format(Global.SystemMessages.TEMPLATE_NOTFOUND + "!", serviceFullPath));
+                throw new Exceptions.DeploymentException(string.Format(Global.SystemMessages.TEMPLATE_NOTFOUND + "!", serviceFullPath));
             }
         }
 
@@ -96,7 +96,7 @@ namespace Xeora.Web.Deployment
             }
             catch (FileNotFoundException ex)
             {
-                throw new Exception.DeploymentException(Global.SystemMessages.ESSENTIAL_CONTROLSXMLNOTFOUND, ex);
+                throw new Exceptions.DeploymentException(Global.SystemMessages.ESSENTIAL_CONTROLSXMLNOTFOUND, ex);
             }
         }
 
@@ -111,7 +111,7 @@ namespace Xeora.Web.Deployment
             }
             catch (FileNotFoundException ex)
             {
-                throw new Exception.DeploymentException(Global.SystemMessages.ESSENTIAL_CONFIGURATIONNOTFOUND, ex);
+                throw new Exceptions.DeploymentException(Global.SystemMessages.ESSENTIAL_CONFIGURATIONNOTFOUND, ex);
             }
         }
 

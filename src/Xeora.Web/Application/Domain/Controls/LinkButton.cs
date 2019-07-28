@@ -10,13 +10,13 @@ namespace Xeora.Web.Application.Domain.Controls
             base(ControlTypes.LinkButton, bind, security)
         {
             this.Text = text;
-            this.URL = url;
+            this.Url = url;
             this.Updates = updates;
             this.Attributes = attributes;
         }
 
         public string Text { get; }
-        public string URL { get; }
+        public string Url { get; }
         public Updates Updates { get; }
         public AttributeCollection Attributes { get; }
 
@@ -32,7 +32,7 @@ namespace Xeora.Web.Application.Domain.Controls
             if (base.Security != null)
                 base.Security.Clone(out security);
 
-            return new LinkButton(bind, security, this.Text, this.URL, this.Updates.Clone(), this.Attributes.Clone());
+            return new LinkButton(bind, security, this.Text, this.Url, this.Updates.Clone(), this.Attributes.Clone());
         }
     }
 }

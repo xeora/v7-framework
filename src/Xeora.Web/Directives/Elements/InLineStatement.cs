@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using Xeora.Web.Basics;
+using Xeora.Web.Basics.ControlResult;
 using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives.Elements
 {
-    public class InLineStatement : Directive, INamable, IBoundable
+    public class InLineStatement : Directive, INameable, IBoundable
     {
         private readonly ContentDescription _Contents;
         private DirectiveCollection _Children;
@@ -49,7 +50,7 @@ namespace Xeora.Web.Directives.Elements
 
             string statementContent = this._Contents.Parts[0];
             if (string.IsNullOrEmpty(statementContent))
-                throw new Exception.EmptyBlockException();
+                throw new Exceptions.EmptyBlockException();
 
             this.Mother.RequestParsing(statementContent, ref this._Children, this.Arguments);
         }
@@ -72,9 +73,9 @@ namespace Xeora.Web.Directives.Elements
 
                 foreach (IDirective directive in directives)
                 {
-                    if (!(directive is INamable)) return;
+                    if (!(directive is INameable)) return;
 
-                    string directiveId = ((INamable)directive).DirectiveId;
+                    string directiveId = ((INameable)directive).DirectiveId;
                     if (string.CompareOrdinal(directiveId, this.BoundDirectiveId) != 0) return;
 
                     if (directive.Status == RenderStatus.Rendered) continue;
@@ -104,20 +105,20 @@ namespace Xeora.Web.Directives.Elements
             this.ExtractSubDirectives(ref result);
 
             if (!this._Cache && string.IsNullOrEmpty(result))
-                throw new Exception.EmptyBlockException();
+                throw new Exceptions.EmptyBlockException();
 
             object methodResultInfo =
                 Manager.AssemblyCore.ExecuteStatement(instance.IdAccessTree, this.DirectiveId, result, this.RenderParameters(requesterUniqueId), this._Cache);
 
-            if (methodResultInfo != null && methodResultInfo is System.Exception)
-                throw new Exception.ExecutionException(((System.Exception)methodResultInfo).Message, ((System.Exception)methodResultInfo).InnerException);
+            if (methodResultInfo is Exception exception)
+                throw new Exceptions.ExecutionException(exception.Message, exception.InnerException);
 
             if (methodResultInfo != null)
             {
                 string renderResult = string.Empty;
 
-                if (methodResultInfo is Basics.ControlResult.RedirectOrder)
-                    Helpers.Context.AddOrUpdate("RedirectLocation", ((Basics.ControlResult.RedirectOrder)methodResultInfo).Location);
+                if (methodResultInfo is RedirectOrder redirectOrder)
+                    Helpers.Context.AddOrUpdate("RedirectLocation", redirectOrder.Location);
                 else
                     renderResult = Manager.AssemblyCore.GetPrimitiveValue(methodResultInfo);
 
@@ -155,7 +156,7 @@ namespace Xeora.Web.Directives.Elements
             // Sub Directive Test
             if (blockContent.IndexOf('!') == 0)
             {
-                string directives;
+                string directives = string.Empty;
                 StringReader sR = null;
                 try
                 {
@@ -164,17 +165,19 @@ namespace Xeora.Web.Directives.Elements
 
                     blockContent = sR.ReadToEnd();
                 }
-                catch (Exception.GrammerException)
+                catch (Exceptions.GrammerException)
                 {
                     throw;
                 }
-                catch (System.Exception)
+                catch (Exception)
                 {
-                    directives = string.Empty;
+                    // Just Handle Exceptions
                 }
                 finally
                 {
                     sR?.Close();
+
+                    if (string.IsNullOrEmpty(directives)) directives = string.Empty;
                 }
 
                 foreach (string key in subDirectives.Keys)
@@ -201,7 +204,7 @@ namespace Xeora.Web.Directives.Elements
 
             int closeBracketIdx = directives.LastIndexOf(")", System.StringComparison.InvariantCulture);
             if (closeBracketIdx == -1)
-                throw new Exception.GrammerException();
+                throw new Exceptions.GrammerException();
             closeBracketIdx++;
 
             string paramDefinition =

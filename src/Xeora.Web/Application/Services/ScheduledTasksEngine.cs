@@ -22,7 +22,7 @@ namespace Xeora.Web.Application.Services
 
         public string RegisterTask(Action<object[]> scheduledCallBack, object[] @params, DateTime executionTime)
         {
-            long executionId = Helper.DateTime.Format(executionTime);
+            long executionId = Tools.DateTime.Format(executionTime);
 
             if (!this._ExecutionList.TryGetValue(executionId, out ConcurrentQueue<TaskInfo> queue))
             {
@@ -51,7 +51,7 @@ namespace Xeora.Web.Application.Services
 
         private void Execute(object sender, EventArgs args)
         {
-            long executionId = Helper.DateTime.Format();
+            long executionId = Tools.DateTime.Format();
 
             if (this._ExecutionList.TryRemove(executionId, out ConcurrentQueue<TaskInfo> queue))
                 ThreadPool.QueueUserWorkItem(this.ExecutionThread, queue);
@@ -73,9 +73,9 @@ namespace Xeora.Web.Application.Services
                             {
                                 ((TaskInfo)taskState).Execute();
                             }
-                            catch (System.Exception ex)
+                            catch (Exception ex)
                             {
-                                Helper.EventLogger.Log(ex);
+                                Tools.EventLogger.Log(ex);
                             }
                         },
                         taskInfo

@@ -25,7 +25,7 @@ namespace Xeora.Web.Application.Domain
 
                 return translationResult.Translated ? translationResult.Translation : this._Language.Get(translationId);
             }
-            catch (Exception.TranslationNotFoundException)
+            catch (Exceptions.TranslationNotFoundException)
             {
                 if (this._Owner.Parent == null) return string.Empty;
                 

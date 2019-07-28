@@ -44,31 +44,31 @@ namespace Xeora.Web.Directives.Controls.Elements
         public void Render(string requesterUniqueId)
         {
             if (this._Settings.Bind == null)
-                throw new System.ArgumentNullException(nameof(this._Settings.Bind));
+                throw new ArgumentNullException(nameof(this._Settings.Bind));
 
             // Execution preparation should be done at the same level with it's parent. Because of that, send parent as parameters
             this._Settings.Bind.Parameters.Prepare(
                 parameter =>
                 {
                     string query = parameter.Query;
-
                     int paramIndex =
                         DirectiveHelper.CaptureParameterPointer(query);
 
-                    if (paramIndex <= -1)
+                    if (paramIndex < 0)
                         return DirectiveHelper.RenderProperty(
-                            this._Parent.Parent, 
-                            query, 
+                            this._Parent.Parent, query, 
                             this._Parent.Parent.Arguments,
                             requesterUniqueId
                         );
                     
                     if (paramIndex >= this._Parameters.Length)
-                        throw new Exception.FormatIndexOutOfRangeException();
+                        throw new Exceptions.FormatIndexOutOfRangeException();
 
-                    query = this._Parameters[paramIndex];
-
-                    return DirectiveHelper.RenderProperty(this._Parent.Parent, query, this._Parent.Parent.Arguments, requesterUniqueId);
+                    return DirectiveHelper.RenderProperty(
+                            this._Parent.Parent, this._Parameters[paramIndex], 
+                            this._Parent.Parent.Arguments, 
+                            requesterUniqueId
+                        );
                 }
             );
 
@@ -76,7 +76,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 Manager.AssemblyCore.InvokeBind<Basics.ControlResult.IDataSource>(Basics.Helpers.Context.Request.Header.Method, this._Settings.Bind, Manager.ExecuterTypes.Control);
 
             if (invokeResult.Exception != null)
-                throw new Exception.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);
+                throw new Exceptions.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);
 
             this._Parent.Parent.Arguments.AppendKeyWithValue(
                 this._Parent.DirectiveId,
@@ -273,11 +273,11 @@ namespace Xeora.Web.Directives.Controls.Elements
 
                 this._Parent.Deliver(RenderStatus.Rendered, this.Result);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 this.RenderError(requesterUniqueId, Basics.ControlResult.Message.Types.Error, ex.Message);
 
-                Helper.EventLogger.Log(ex);
+                Tools.EventLogger.Log(ex);
             }
             finally
             {

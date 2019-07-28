@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
-using Xeora.Web.Directives.Elements;
+﻿using System;
+using System.Collections.Generic;
 using Xeora.Web.Global;
+using Single = Xeora.Web.Directives.Elements.Single;
 
 namespace Xeora.Web.Directives
 {
@@ -27,12 +28,19 @@ namespace Xeora.Web.Directives
             IEnumerator<KeyValuePair<string, Single>> bagEnum = 
                 this.GetEnumerator();
 
-            while (bagEnum.MoveNext())
+            try
             {
-                KeyValuePair<string, Single> item = 
-                    bagEnum.Current;
+                while (bagEnum.MoveNext())
+                {
+                    KeyValuePair<string, Single> item = 
+                        bagEnum.Current;
 
-                item.Value.Render(requesterUniqueId);
+                    item.Value.Render(requesterUniqueId);
+                }
+            }
+            finally
+            {
+                bagEnum.Dispose();
             }
         }
     }

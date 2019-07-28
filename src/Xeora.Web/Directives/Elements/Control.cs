@@ -8,7 +8,7 @@ using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives.Elements
 {
-    public class Control : Directive, INamable, IBoundable, ILevelable, IHasChildren
+    public class Control : Directive, INameable, IBoundable, ILevelable, IHasChildren
     {
         private readonly string _RawValue;
         private IControl _Control;
@@ -143,9 +143,9 @@ namespace Xeora.Web.Directives.Elements
 
                 foreach (IDirective directive in directives)
                 {
-                    if (!(directive is INamable)) return;
+                    if (!(directive is INameable)) return;
 
-                    string directiveId = ((INamable)directive).DirectiveId;
+                    string directiveId = ((INameable)directive).DirectiveId;
                     if (string.CompareOrdinal(directiveId, this.BoundDirectiveId) != 0) return;
 
                     if (directive.Status == RenderStatus.Rendered) continue;
@@ -163,11 +163,10 @@ namespace Xeora.Web.Directives.Elements
                 leveledParentDirective = leveledParentDirective.Parent;
                 level--;
 
-                if (leveledParentDirective == null)
-                {
-                    leveledParentDirective = this.Parent;
-                    break;
-                }
+                if (leveledParentDirective != null) continue;
+                
+                leveledParentDirective = this.Parent;
+                break;
             }
 
             if (!this.Leveling.ExecutionOnly)

@@ -27,7 +27,7 @@ namespace Xeora.Web.Application.Domain.Configurations
                     this._XPathNavigator.Select("/language");
 
                 if (!xPathIter.MoveNext())
-                    throw new Exception.LanguageFileException();
+                    throw new Exceptions.LanguageFileException();
 
                 this.Default = @default;
                 this.Info =
@@ -57,9 +57,9 @@ namespace Xeora.Web.Application.Domain.Configurations
                 if (xPathIter.MoveNext())
                     return xPathIter.Current?.Value;
 
-                throw new Exception.TranslationNotFoundException();
+                throw new Exceptions.TranslationNotFoundException();
             }
-            catch (Exception.TranslationNotFoundException)
+            catch (Exceptions.TranslationNotFoundException)
             {
                 throw;
             }

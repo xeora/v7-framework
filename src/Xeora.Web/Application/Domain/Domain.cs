@@ -24,7 +24,7 @@ namespace Xeora.Web.Application.Domain
             {
                 this.Deployment = Web.Deployment.InstanceFactory.Current.GetOrCreate(domainIdAccessTree);
             }
-            catch (Exception.DomainNotExistsException)
+            catch (Exceptions.DomainNotExistsException)
             {
                 // Try with the default one if requested one is not the default one
                 if (string.CompareOrdinal(
@@ -51,7 +51,7 @@ namespace Xeora.Web.Application.Domain
             {
                 this._LanguagesHolder.Use(languageId);
             }
-            catch (Exception.LanguageFileException)
+            catch (Exceptions.LanguageFileException)
             {
                 this._LanguagesHolder.Use(this.Deployment.Settings.Configurations.DefaultLanguage);
             }

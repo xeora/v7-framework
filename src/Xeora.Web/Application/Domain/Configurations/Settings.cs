@@ -36,7 +36,7 @@ namespace Xeora.Web.Application.Domain.Configurations
 
         public Basics.Domain.IConfigurations Configurations { get; }
         public Basics.Domain.IServices Services { get; }
-        public Basics.Domain.IURL Mappings { get; }
+        public Basics.Domain.IUrl Mappings { get; }
 
         public void Dispose() => _XPathStream?.Close();
     }

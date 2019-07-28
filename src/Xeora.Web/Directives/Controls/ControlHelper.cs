@@ -9,7 +9,7 @@ namespace Xeora.Web.Directives.Controls
             if (string.IsNullOrEmpty(input))
                 return input;
 
-            string javascriptSignature = "javascript:";
+            const string javascriptSignature = "javascript:";
 
             if (input.IndexOf(javascriptSignature, StringComparison.Ordinal) == 0)
                 input = input.Substring(javascriptSignature.Length);

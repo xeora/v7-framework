@@ -31,7 +31,7 @@ namespace Xeora.Web.Global
 
             // Parse Block Content
             int firstContentEndIndex =
-                rawValue.IndexOf($"{modifier}:{{", System.StringComparison.InvariantCulture);
+                rawValue.IndexOf($"{modifier}:{{", StringComparison.InvariantCulture);
             if (firstContentEndIndex == -1) return;
 
             string directiveIdentifier =
@@ -54,18 +54,18 @@ namespace Xeora.Web.Global
 
             // ControlIdWithIndex is Like ControlId~INDEX
             string controlIdWithIndex = 
-                blockContent.Substring(0, blockContent.IndexOf(":{", System.StringComparison.InvariantCulture));
+                blockContent.Substring(0, blockContent.IndexOf(":{", StringComparison.InvariantCulture));
 
             string openingTag = $"{controlIdWithIndex}:{{";
             string closingTag = $"}}:{controlIdWithIndex}";
 
             int idxCoreContStart =
-                blockContent.IndexOf(openingTag, System.StringComparison.InvariantCulture) + openingTag.Length;
+                blockContent.IndexOf(openingTag, StringComparison.InvariantCulture) + openingTag.Length;
             int idxCoreContEnd =
-                blockContent.LastIndexOf(closingTag, blockContent.Length, System.StringComparison.InvariantCulture);
+                blockContent.LastIndexOf(closingTag, blockContent.Length, StringComparison.InvariantCulture);
 
             if (idxCoreContStart != openingTag.Length || idxCoreContEnd != blockContent.Length - openingTag.Length)
-                throw new Exception.ParseException();
+                throw new Exceptions.ParseException();
 
             string coreContent = 
                 blockContent.Substring(idxCoreContStart, idxCoreContEnd - idxCoreContStart);
@@ -90,7 +90,7 @@ namespace Xeora.Web.Global
             if (!ContentDescription.PartsCache.TryGetValue(controlIdWithIndex, out PartCache partCache))
                 return false;
 
-            if (String.CompareOrdinal(partCache.Content, coreContent) != 0)
+            if (string.CompareOrdinal(partCache.Content, coreContent) != 0)
                 return false;
 
             this.MessageTemplate = partCache.MessageTemplate;
@@ -121,7 +121,7 @@ namespace Xeora.Web.Global
                 if (contentPart.IndexOf(ContentDescription.MESSAGE_TEMPLATE_POINTER_TEXT, StringComparison.InvariantCulture) == 0)
                 {
                     if (!string.IsNullOrEmpty(this.MessageTemplate))
-                        throw new Exception.MultipleBlockException("Only One Message Template Block Allowed!");
+                        throw new Exceptions.MultipleBlockException("Only One Message Template Block Allowed!");
 
                     this.MessageTemplate = contentPart.Substring(ContentDescription.MESSAGE_TEMPLATE_POINTER_TEXT.Length);
 

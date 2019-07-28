@@ -36,7 +36,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             this._Settings.Attributes.Remove("href");
             this._Settings.Attributes.Remove("value");
 
-            string parsedUrl = this._Settings.URL;
+            string parsedUrl = this._Settings.Url;
 
             if (!string.IsNullOrEmpty(parsedUrl))
             {
@@ -52,7 +52,6 @@ namespace Xeora.Web.Directives.Controls.Elements
                 }
 
                 this._Parent.Bag.Add("url", parsedUrl, this._Parent.Arguments);
-
             }
 
             this._Parent.Bag.Render(requesterUniqueId);
@@ -65,7 +64,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             if (!string.IsNullOrEmpty(renderedUrl))
                 this._Settings.Attributes["href"] = renderedUrl;
             else
-                renderedUrl = "#_action0";
+                this._Settings.Attributes["href"] = "#_action0";
 
             for (int aC = 0; aC < this._Settings.Attributes.Count; aC++)
             {
@@ -77,7 +76,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             // Define OnClick Server event for Button
             if (this._Settings.Bind != null)
             {
-                renderedUrl = "#_action1";
+                this._Settings.Attributes["href"] = "#_action1";
 
                 // Render Bind Parameters
                 this._Settings.Bind.Parameters.Prepare(

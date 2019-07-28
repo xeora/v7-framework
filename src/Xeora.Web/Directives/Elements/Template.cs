@@ -7,7 +7,7 @@ using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives.Elements
 {
-    public class Template : Directive, INamable, IHasChildren
+    public class Template : Directive, INameable, IHasChildren
     {
         private DirectiveCollection _Children;
         private bool _Authenticated;

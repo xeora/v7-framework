@@ -78,7 +78,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                         );
 
                 if (string.IsNullOrEmpty(this._Settings.Attributes["onclick"]))
-                    this._Settings.Attributes["onclick"] = string.Format("javascript:{0};", xeoraCall);
+                    this._Settings.Attributes["onclick"] = $"javascript:{xeoraCall};";
                 else
                 {
                     this._Settings.Attributes["onclick"] = 
@@ -93,19 +93,20 @@ namespace Xeora.Web.Directives.Controls.Elements
             }
             // !--
 
-            if (this._Settings.Security.Disabled.Set && 
+            if (this._Settings.Security.Disabled.Set &&
                 this._Settings.Security.Disabled.Type == SecurityDefinition.DisabledDefinition.Types.Dynamic)
-                this._Parent.Deliver(RenderStatus.Rendered, this._Settings.Security.Disabled.Value);
-            else
             {
-                this._Parent.Deliver(
-                    RenderStatus.Rendered,
-                    string.Format(
-                        "<img name=\"{0}\" alt=\"\" id=\"{0}\"{1} />",
-                        this._Parent.DirectiveId, this._Settings.Attributes
-                    )
-                );
+                this._Parent.Deliver(RenderStatus.Rendered, this._Settings.Security.Disabled.Value);
+                return;
             }
+            
+            this._Parent.Deliver(
+                RenderStatus.Rendered,
+                string.Format(
+                    "<img name=\"{0}\" alt=\"\" id=\"{0}\"{1} />",
+                    this._Parent.DirectiveId, this._Settings.Attributes
+                )
+            );
         }
     }
 }

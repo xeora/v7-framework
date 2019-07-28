@@ -45,9 +45,9 @@ namespace Xeora.Web.Directives.Elements
 
                 foreach (IDirective directive in directives)
                 {
-                    if (!(directive is INamable)) return;
+                    if (!(directive is INameable)) return;
 
-                    string directiveId = ((INamable)directive).DirectiveId;
+                    string directiveId = ((INameable)directive).DirectiveId;
                     if (string.CompareOrdinal(directiveId, this.BoundDirectiveId) != 0) return;
 
                     if (directive.Status == RenderStatus.Rendered) continue;
@@ -95,7 +95,7 @@ namespace Xeora.Web.Directives.Elements
                 Manager.AssemblyCore.InvokeBind<object>(Helpers.Context.Request.Header.Method, bind, Manager.ExecuterTypes.Other);
 
             if (invokeResult.Exception != null)
-                throw new Exception.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);
+                throw new Exceptions.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);
 
             if (invokeResult.Result is Basics.ControlResult.RedirectOrder redirectOrder)
             {

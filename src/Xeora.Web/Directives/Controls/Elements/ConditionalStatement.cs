@@ -49,19 +49,24 @@ namespace Xeora.Web.Directives.Controls.Elements
                 parameter =>
                 {
                     string query = parameter.Query;
-
                     int paramIndex = 
                         DirectiveHelper.CaptureParameterPointer(query);
 
-                    if (paramIndex > -1)
-                    { 
-                        if (paramIndex >= this._Parameters.Length)
-                            throw new Exception.FormatIndexOutOfRangeException();
+                    if (paramIndex < 0)
+                        return DirectiveHelper.RenderProperty(
+                                this._Parent, query, 
+                                this._Parent.Arguments,
+                                requesterUniqueId
+                            );
+                    
+                    if (paramIndex >= this._Parameters.Length)
+                        throw new Exceptions.FormatIndexOutOfRangeException();
 
-                        query = this._Parameters[paramIndex];
-                    }
-
-                    return DirectiveHelper.RenderProperty(this._Parent, query, this._Parent.Arguments, requesterUniqueId);
+                    return DirectiveHelper.RenderProperty(
+                            this._Parent, this._Parameters[paramIndex], 
+                            this._Parent.Arguments, 
+                            requesterUniqueId
+                        );
                 }
             );
 
@@ -69,7 +74,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 Manager.AssemblyCore.InvokeBind<Basics.ControlResult.Conditional>(Basics.Helpers.Context.Request.Header.Method, this._Settings.Bind, Manager.ExecuterTypes.Control);
 
             if (invokeResult.Exception != null)
-                throw new Exception.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);
+                throw new Exceptions.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);
             // ----
 
             if (invokeResult.Result == null)
@@ -102,11 +107,10 @@ namespace Xeora.Web.Directives.Controls.Elements
                     break;
             }
 
-            if (this._SelectedContent > -1)
-            {
-                this._Children.Render(requesterUniqueId);
-                this._Parent.Deliver(RenderStatus.Rendered, this._Parent.Result);
-            }
+            if (this._SelectedContent <= -1) return;
+            
+            this._Children.Render(requesterUniqueId);
+            this._Parent.Deliver(RenderStatus.Rendered, this._Parent.Result);
         }
     }
 }

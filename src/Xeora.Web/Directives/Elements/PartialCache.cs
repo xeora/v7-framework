@@ -17,11 +17,11 @@ namespace Xeora.Web.Directives.Elements
             base(DirectiveTypes.PartialCache, arguments)
         {
             this._PositionId = -1;
-            Match matchMI =
+            Match match =
                 PartialCache.PositionRegEx.Match(rawValue);
 
-            if (matchMI.Success)
-                int.TryParse(matchMI.Result("${PositionId}"), out this._PositionId);
+            if (match.Success)
+                int.TryParse(match.Result("${PositionId}"), out this._PositionId);
 
             this._Contents = new ContentDescription(rawValue);
         }

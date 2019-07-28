@@ -57,7 +57,7 @@ namespace Xeora.Web.Deployment
                     MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
                     fileHash = md5.ComputeHash(contentStream);
                 }
-                catch (System.Exception)
+                catch (Exception)
                 {
                     fileHash = null;
                 }
@@ -183,7 +183,7 @@ namespace Xeora.Web.Deployment
             {
                 return RequestResults.ContentNotExists;
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 return RequestResults.PasswordError;
             }
@@ -208,7 +208,6 @@ namespace Xeora.Web.Deployment
             this._CacheDate = domainFI.CreationTime;
 
             return true;
-
         }
 
         private void PrepareFileList()

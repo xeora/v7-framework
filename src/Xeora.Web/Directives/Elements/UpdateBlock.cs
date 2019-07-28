@@ -2,7 +2,7 @@
 
 namespace Xeora.Web.Directives.Elements
 {
-    public class UpdateBlock : Directive, INamable, IHasChildren
+    public class UpdateBlock : Directive, INameable, IHasChildren
     {
         private const string RENDER_ON_REQUEST_MARKER = "!RENDERONREQUEST";
 

@@ -45,6 +45,9 @@ namespace Xeora.Web.Directives
 
             while (this._Queue.TryDequeue(out string uniqueId))
             {
+                if (this._ScheduledItems.ContainsKey(uniqueId))
+                    this._ScheduledItems.TryRemove(uniqueId, out bool _);
+                
                 string uId = uniqueId;
                 
                 callbackJobs.Add(

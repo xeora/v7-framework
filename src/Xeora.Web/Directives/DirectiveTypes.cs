@@ -14,11 +14,11 @@
         PermissionBlock,
         Template,
         Translation,
-        FormattableTranslation,
+        ReplaceableTranslation,
         UpdateBlock,
 
         Property,
-        Renderless,
+        Static,
         Single,
         Undefined
     }

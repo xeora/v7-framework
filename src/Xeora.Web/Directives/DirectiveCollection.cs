@@ -96,20 +96,20 @@ namespace Xeora.Web.Directives
                 if (Configurations.Xeora.Application.Main.PrintAnalytics)
                 {
                     string analyticOutput = directive.UniqueId;
-                    if (directive is INamable namable)
-                        analyticOutput = $"{analyticOutput} - {namable.DirectiveId}";
+                    if (directive is INameable nameable)
+                        analyticOutput = $"{analyticOutput} - {nameable.DirectiveId}";
                     Basics.Console.Push(
                         $"analytic - {directive.GetType().Name}",
                         $"{DateTime.Now.Subtract(renderBegins).TotalMilliseconds}ms {{{analyticOutput}}}",
                         string.Empty, false);
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 if (directive.Parent != null)
                     directive.Parent.HasInlineError = true;
 
-                Helper.EventLogger.Log(ex);
+                Tools.EventLogger.Log(ex);
 
                 if (Configurations.Xeora.Application.Main.Debugging)
                 {
@@ -148,10 +148,10 @@ namespace Xeora.Web.Directives
                 if (!directive.Searchable)
                     continue;
 
-                if (!(directive is INamable))
+                if (!(directive is INameable))
                     continue;
 
-                if (string.CompareOrdinal(((INamable)directive).DirectiveId, directiveId) == 0)
+                if (string.CompareOrdinal(((INameable)directive).DirectiveId, directiveId) == 0)
                     return directive;
 
                 if (directive is Control control)

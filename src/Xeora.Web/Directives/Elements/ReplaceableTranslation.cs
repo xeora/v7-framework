@@ -4,14 +4,14 @@ using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives.Elements
 {
-    public class FormattableTranslation : Directive, INamable, IHasChildren
+    public class ReplaceableTranslation : Directive, INameable, IHasChildren
     {
         private readonly ContentDescription _Contents;
         private DirectiveCollection _Children;
         private bool _Parsed;
 
-        public FormattableTranslation(string rawValue, ArgumentCollection arguments) :
-            base(DirectiveTypes.FormattableTranslation, arguments)
+        public ReplaceableTranslation(string rawValue, ArgumentCollection arguments) :
+            base(DirectiveTypes.ReplaceableTranslation, arguments)
         {
             this.DirectiveId = DirectiveHelper.CaptureDirectiveId(rawValue);
             this._Contents = new ContentDescription(rawValue);
@@ -32,13 +32,13 @@ namespace Xeora.Web.Directives.Elements
 
             this._Children = new DirectiveCollection(this.Mother, this);
 
-            // FormattableTranslation needs to link ContentArguments of its parent.
+            // ReplaceableTranslation needs to link ContentArguments of its parent.
             if (this.Parent != null)
                 this.Arguments.Replace(this.Parent.Arguments);
 
             string formatContent = this._Contents.Parts[0];
             if (string.IsNullOrEmpty(formatContent))
-                throw new Exception.EmptyBlockException();
+                throw new Exceptions.EmptyBlockException();
 
             this.Mother.RequestParsing(formatContent, ref this._Children, this.Arguments);
         }
@@ -63,7 +63,7 @@ namespace Xeora.Web.Directives.Elements
             string[] parameters = this.Result.Split('|');
 
             MatchCollection matches =
-                FormattableTranslation.FormatIndexRegEx.Matches(translationValue);
+                ReplaceableTranslation.FormatIndexRegEx.Matches(translationValue);
 
             for (int c = matches.Count - 1; c >= 0; c--)
             {
@@ -72,7 +72,7 @@ namespace Xeora.Web.Directives.Elements
                     int.Parse(current.Groups["index"].Value);
 
                 if (formatIndex >= parameters.Length)
-                    throw new Exception.FormatIndexOutOfRangeException();
+                    throw new Exceptions.FormatIndexOutOfRangeException();
 
                 translationValue =
                     translationValue.Remove(current.Index, current.Length);

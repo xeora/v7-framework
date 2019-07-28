@@ -23,7 +23,7 @@ namespace Xeora.Web.Application.Services
         public static void Get(string sessionId, string keyId, out IVariablePool variablePool)
         {
             if (PoolFactory._Current == null)
-                throw new Exception.VariablePoolNotReadyException();
+                throw new Exceptions.VariablePoolNotReadyException();
 
             PoolFactory._Current.ProvideVariablePool(sessionId, keyId, out variablePool);
         }
@@ -31,7 +31,7 @@ namespace Xeora.Web.Application.Services
         public static void Copy(string keyId, string fromSessionId, string toSessionId)
         {
             if (PoolFactory._Current == null)
-                throw new Exception.VariablePoolNotReadyException();
+                throw new Exceptions.VariablePoolNotReadyException();
 
             PoolFactory._Current.CopyVariablePool(keyId, fromSessionId, toSessionId);
         }
@@ -42,7 +42,7 @@ namespace Xeora.Web.Application.Services
         {
             string poolKey = this.CreatePoolKey(sessionId, keyId);
 
-            DssManager.Current.Reserve(poolKey, this._ExpiresInMinutes, out Basics.Dss.IDss reservation);
+            Service.Dss.Manager.Current.Reserve(poolKey, this._ExpiresInMinutes, out Basics.Dss.IDss reservation);
 
             variablePool = new VariablePool(sessionId, keyId, ref reservation);
         }

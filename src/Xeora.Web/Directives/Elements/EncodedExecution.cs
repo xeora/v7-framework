@@ -39,7 +39,7 @@ namespace Xeora.Web.Directives.Elements
 
             string executionContent = this._Contents.Parts[0];
             if (string.IsNullOrEmpty(executionContent))
-                throw new Exception.EmptyBlockException();
+                throw new Exceptions.EmptyBlockException();
 
             this.Mother.RequestParsing(executionContent, ref this._Children, this.Arguments);
         }
@@ -117,17 +117,19 @@ namespace Xeora.Web.Directives.Elements
 
                     blockContent = sR.ReadToEnd();
                 }
-                catch (Exception.GrammerException)
+                catch (Exceptions.GrammerException)
                 {
                     throw;
                 }
-                catch (System.Exception)
+                catch (Exception)
                 {
                     // Just Handle Exceptions
                 }
                 finally
                 {
                     sR?.Close();
+                    
+                    if (string.IsNullOrEmpty(directives)) directives = string.Empty;
                 }
 
                 foreach (string key in subDirectives.Keys)

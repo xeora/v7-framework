@@ -4,12 +4,12 @@ using System.Text.RegularExpressions;
 
 namespace Xeora.Web.Directives.Elements
 {
-    public class Renderless : Directive
+    public class Static : Directive
     {
         private readonly string _RawValue;
 
-        public Renderless(string rawValue) :
-            base(DirectiveTypes.Renderless, null)
+        public Static(string rawValue) :
+            base(DirectiveTypes.Static, null)
         {
             this._RawValue = rawValue;
         }
@@ -31,7 +31,7 @@ namespace Xeora.Web.Directives.Elements
             this.Status = RenderStatus.Rendering;
 
             // Change ~/ values with the exact application root path
-            MatchCollection rootPathMatches = Renderless.RootPathRegEx.Matches(this._RawValue);
+            MatchCollection rootPathMatches = Static.RootPathRegEx.Matches(this._RawValue);
             string applicationRoot =
                 Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation;
             string virtualRoot = Basics.Configurations.Xeora.Application.Main.VirtualRoot;

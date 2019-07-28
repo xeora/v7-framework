@@ -14,7 +14,7 @@ namespace Xeora.Web.Deployment
 
             if (this.DomainIdAccessTree == null ||
                 this.DomainIdAccessTree.Length == 0)
-                throw new Exception.DeploymentException(Global.SystemMessages.IDMUSTBESET);
+                throw new Exceptions.DeploymentException(Global.SystemMessages.IDMUSTBESET);
 
             string domainRootPath =
                 Path.GetFullPath(
@@ -27,7 +27,7 @@ namespace Xeora.Web.Deployment
                 );
 
             if (!Directory.Exists(domainRootPath))
-                throw new Exception.DomainNotExistsException(
+                throw new Exceptions.DomainNotExistsException(
                     Global.SystemMessages.PATH_NOTEXISTS,
                     new DirectoryNotFoundException($"DomainRootPath: {domainRootPath}")
                 );
@@ -71,7 +71,7 @@ namespace Xeora.Web.Deployment
             // Setup Languages
             string[] languageIds = this.Deployment.Languages;
             if (languageIds.Length == 0)
-                throw new Exception.LanguageFileException();
+                throw new Exceptions.LanguageFileException();
 
             this.Languages = new Application.Domain.Configurations.Languages();
 
@@ -158,18 +158,17 @@ namespace Xeora.Web.Deployment
 
             foreach (FileInfo fI in dI.GetFiles())
             {
-                if (!File.Exists(
-                        Path.Combine(extractLocation, fI.Name)))
+                if (File.Exists(
+                    Path.Combine(extractLocation, fI.Name))) continue;
+                
+                try
                 {
-                    try
-                    {
-                        fI.CopyTo(
-                            Path.Combine(extractLocation, fI.Name));
-                    }
-                    catch (System.Exception)
-                    {
-                        // Just Handle Exceptions
-                    }
+                    fI.CopyTo(
+                        Path.Combine(extractLocation, fI.Name));
+                }
+                catch (Exception)
+                {
+                    // Just Handle Exceptions
                 }
             }
         }

@@ -158,10 +158,8 @@ namespace Xeora.Web.Directives.Elements
                             if (searchArgValue == null)
                                 searchArgValue = Helpers.Context.Request.QueryString[searchArgKey];
 
-                            if (searchArgValue != null)
-                                this.Deliver(RenderStatus.Rendered, searchArgValue.ToString());
-                            else
-                                this.Deliver(RenderStatus.Rendered, string.Empty);
+                            this.Deliver(RenderStatus.Rendered,
+                                searchArgValue != null ? searchArgValue.ToString() : string.Empty);
                             this.ObjectResult = searchArgValue;
 
                             break;
@@ -225,8 +223,8 @@ namespace Xeora.Web.Directives.Elements
 
             // File Post is not supporting XML Http Requests
             string[] keys = Helpers.Context.Request.Body.File.Keys;
-            List<Basics.Context.IHttpRequestFileInfo> requestFileObjects =
-                new List<Basics.Context.IHttpRequestFileInfo>();
+            List<Basics.Context.Request.IHttpRequestFileInfo> requestFileObjects =
+                new List<Basics.Context.Request.IHttpRequestFileInfo>();
 
             foreach (string key in keys)
             {
@@ -340,10 +338,7 @@ namespace Xeora.Web.Directives.Elements
         {
             object poolValue = Helpers.VariablePool.Get(this._RawValue);
 
-            if (poolValue != null)
-                this.Deliver(RenderStatus.Rendered, poolValue.ToString());
-            else
-                this.Deliver(RenderStatus.Rendered, string.Empty);
+            this.Deliver(RenderStatus.Rendered, poolValue != null ? poolValue.ToString() : string.Empty);
             this.ObjectResult = poolValue;
         }
 
@@ -353,7 +348,7 @@ namespace Xeora.Web.Directives.Elements
             string[] objectPaths = objectPath.Split('.');
 
             if (objectPaths.Length < 2)
-                throw new Exception.GrammerException();
+                throw new Exceptions.GrammerException();
 
             string objectItemKey = objectPaths[0];
             object objectItem = null;
@@ -379,10 +374,10 @@ namespace Xeora.Web.Directives.Elements
 
                     if (objectItem == null) break; ;
 
-                    if (objectItem is DataListOutputInfo)
+                    if (objectItem is DataListOutputInfo outputInfo)
                     {
                         string uniqueId =
-                            ((DataListOutputInfo)objectItem).UniqueId;
+                            outputInfo.UniqueId;
                         this.Mother.Pool.GetByUniqueId(uniqueId, out IDirective directive);
 
                         if (directive.Status != RenderStatus.Rendered)
@@ -416,7 +411,7 @@ namespace Xeora.Web.Directives.Elements
 
                 objectValue = objectItem;
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 objectValue = null;
             }

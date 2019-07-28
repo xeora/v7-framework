@@ -72,11 +72,11 @@ namespace Xeora.Web.Application.Domain.Configurations
 
                     try
                     {
-                        serviceParameterCol.ParseXML(
+                        serviceParameterCol.ParseXml(
                             Basics.Helpers.Context.Request.Body.Form[parameter.Key]);                            
                     }
-                    catch (System.Exception)
-                    { }
+                    catch
+                    { /* Just handle Exceptions */ }
 
                     return serviceParameterCol;
                 }
@@ -85,10 +85,10 @@ namespace Xeora.Web.Application.Domain.Configurations
             Basics.Execution.InvokeResult<object> invokeResult =
                 Manager.AssemblyCore.InvokeBind<object>(Basics.Helpers.Context.Request.Header.Method, bind, Manager.ExecuterTypes.Undefined);
 
-            return this.GenerateXML(invokeResult.Result);
+            return this.GenerateXml(invokeResult.Result);
         }
 
-        public Basics.RenderResult GenerateXML(object result)
+        public Basics.RenderResult GenerateXml(object result)
         {
             StringWriter xmlStream = new StringWriter();
             XmlTextWriter xmlWriter = new XmlTextWriter(xmlStream);
@@ -167,7 +167,7 @@ namespace Xeora.Web.Application.Domain.Configurations
                 }
                 else if (result is Basics.ControlResult.DirectDataAccess)
                 {
-                    System.Exception ex = new System.Exception("DirectDataAccess is not a transferable object!");
+                    Exception ex = new Exception("DirectDataAccess is not a transferable object!");
 
                     xmlWriter.WriteAttributeString("type", ex.GetType().FullName);
                     xmlWriter.WriteCData(ex.Message);
@@ -175,7 +175,7 @@ namespace Xeora.Web.Application.Domain.Configurations
                 else if (result is Basics.ControlResult.ObjectFeed)
                 {
                     // TODO: Object Feed xService Implementation should be done!
-                    System.Exception ex = new NotImplementedException();
+                    Exception ex = new NotImplementedException();
 
                     xmlWriter.WriteAttributeString("type", ex.GetType().FullName);
                     xmlWriter.WriteCData(ex.Message);
@@ -226,7 +226,7 @@ namespace Xeora.Web.Application.Domain.Configurations
                         xmlWriter.WriteEndElement();
                     }
                 }
-                else if (result is System.Exception exception)
+                else if (result is Exception exception)
                 {
                     xmlWriter.WriteAttributeString("type", result.GetType().FullName);
                     xmlWriter.WriteCData(exception.Message);
@@ -242,12 +242,13 @@ namespace Xeora.Web.Application.Domain.Configurations
                     {
                         try
                         {
-                            string serializedValue = Helper.Serialization.Quick.BinaryToBase64Serialize(result);
+                            string serializedValue = 
+                                Tools.Serialization.Quick.BinaryToBase64Serialize(result);
 
                             xmlWriter.WriteAttributeString("type", result.GetType().FullName);
                             xmlWriter.WriteCData(serializedValue);
                         }
-                        catch (System.Exception ex)
+                        catch (Exception ex)
                         {
                             xmlWriter.WriteAttributeString("type", ex.GetType().FullName);
                             xmlWriter.WriteCData(ex.Message);

@@ -19,9 +19,9 @@ namespace Xeora.Web.Directives
         {
             this._Directives.AddOrUpdate(directive.UniqueId, directive, (cUniqueId, cController) => directive);
 
-            if (!(directive is INamable)) return;
+            if (!(directive is INameable)) return;
 
-            string directiveId = ((INamable)directive).DirectiveId;
+            string directiveId = ((INameable)directive).DirectiveId;
 
             this._NamingMap.AddOrUpdate(directiveId, new List<string> { directive.UniqueId }, (cKey, cValue) => { cValue.Add(directive.UniqueId); return cValue; });
         }
@@ -50,9 +50,9 @@ namespace Xeora.Web.Directives
         {
             this._Directives.TryRemove(uniqueId, out IDirective directive);
 
-            if (!(directive is INamable)) return;
+            if (!(directive is INameable)) return;
 
-            string directiveId = ((INamable)directive).DirectiveId;
+            string directiveId = ((INameable)directive).DirectiveId;
 
             this._NamingMap.TryGetValue(directiveId, out List<string> uniqueIds);
             uniqueIds?.Remove(uniqueId);

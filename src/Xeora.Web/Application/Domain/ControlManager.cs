@@ -19,7 +19,7 @@ namespace Xeora.Web.Application.Domain
         internal ControlManager(string xmlContent)
         {
             if (xmlContent == null || xmlContent.Trim().Length == 0)
-                throw new System.Exception(Global.SystemMessages.CONTROLSCONTENT + "!");
+                throw new Exception(Global.SystemMessages.CONTROLSCONTENT + "!");
 
             try
             {
@@ -30,7 +30,7 @@ namespace Xeora.Web.Application.Domain
                 this._XPathNavigator = xPathDoc.CreateNavigator();
                 // !--
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 this.Dispose();
 

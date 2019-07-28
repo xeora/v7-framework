@@ -49,8 +49,6 @@ namespace Xeora.Web.Application.Domain
         {
             public string DirectiveId { get; set; }
             public string DirectiveType { get; set; }
-
-            public string Value { get; set; }
         }
 
         private void Parse()
@@ -138,7 +136,7 @@ namespace Xeora.Web.Application.Domain
             return new Content
             {
                 DirectiveId = directiveId,
-                DirectiveType = directiveType,
+                DirectiveType = directiveType
             };
         }
 
@@ -245,7 +243,7 @@ namespace Xeora.Web.Application.Domain
             if (singlesMatches.Count == 0)
             {
                 this._ResultHandler.Invoke(
-                    new Renderless(rawValue));
+                    new Static(rawValue));
                 return;
             }
 
@@ -259,7 +257,7 @@ namespace Xeora.Web.Application.Domain
 
                 if (singleMatch.Index - lastIndex > 0)
                     this._ResultHandler.Invoke(
-                        new Renderless(rawValue.Substring(lastIndex, singleMatch.Index - lastIndex)));
+                        new Static(rawValue.Substring(lastIndex, singleMatch.Index - lastIndex)));
 
                 string singleValue = this.ClearTags(singleMatch.Value);
 
@@ -302,7 +300,7 @@ namespace Xeora.Web.Application.Domain
 
             if (rawValue.Length - lastIndex > 1)
                 this._ResultHandler.Invoke(
-                    new Renderless(rawValue.Substring(lastIndex)));
+                    new Static(rawValue.Substring(lastIndex)));
         }
 
         private void HandleContent(Content content)
@@ -354,9 +352,9 @@ namespace Xeora.Web.Application.Domain
                         new PartialCache(rawValue, null));
 
                     break;
-                case DirectiveTypes.FormattableTranslation:
+                case DirectiveTypes.ReplaceableTranslation:
                     this._ResultHandler.Invoke(
-                        new FormattableTranslation(rawValue, null));
+                        new ReplaceableTranslation(rawValue, null));
 
                     break;
                 case DirectiveTypes.AsyncGroup:

@@ -2,7 +2,7 @@
 
 namespace Xeora.Web.Application.Domain.Configurations
 {
-    public class Mappings : Basics.Domain.IURL
+    public class Mappings : Basics.Domain.IUrl
     {
         private readonly XPathNavigator _XPathNavigator;
 
@@ -81,7 +81,7 @@ namespace Xeora.Web.Application.Domain.Configurations
                                         bool.TryParse(
                                             xPathIter.Current?.GetAttribute("overridable", xPathIter.Current.BaseURI), out overridable);
 
-                                    // TODO: mapped is not in use. The logic was creating the formatted URL from resolved request.
+                                    // TODO: mapped is not in use. The logic was creating the formatted Url from resolved request.
                                     reverseMapped = xPathIterSub.Current.GetAttribute("mapped", xPathIterSub.Current.BaseURI);
                                     reverseMappedItems = new Basics.Mapping.ResolveItemCollection();
 

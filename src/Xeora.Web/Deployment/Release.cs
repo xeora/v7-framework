@@ -23,10 +23,10 @@ namespace Xeora.Web.Deployment
                 this.Decompiler.Get(this.TemplatesRegistration, "Configuration.xml");
 
             if (configurationFileEntry.Index == -1)
-                throw new Exception.DeploymentException(Global.SystemMessages.ESSENTIAL_CONFIGURATIONNOTFOUND + "!");
+                throw new Exceptions.DeploymentException(Global.SystemMessages.ESSENTIAL_CONFIGURATIONNOTFOUND + "!");
 
             if (controlsXmlFileEntry.Index == -1)
-                throw new Exception.DeploymentException(Global.SystemMessages.ESSENTIAL_CONTROLSXMLNOTFOUND + "!");
+                throw new Exceptions.DeploymentException(Global.SystemMessages.ESSENTIAL_CONTROLSXMLNOTFOUND + "!");
             // !--
         }
 
@@ -82,7 +82,7 @@ namespace Xeora.Web.Deployment
                 case RequestResults.ContentNotExists:
                     throw new FileNotFoundException();
                 case RequestResults.PasswordError:
-                    throw new Exception.DeploymentException(Global.SystemMessages.PASSWORD_WRONG, new SecurityException());
+                    throw new Exceptions.DeploymentException(Global.SystemMessages.PASSWORD_WRONG, new SecurityException());
             }
         }
 
@@ -116,7 +116,7 @@ namespace Xeora.Web.Deployment
             }
             catch (FileNotFoundException)
             {
-                throw new Exception.DeploymentException(string.Format(Global.SystemMessages.TEMPLATE_NOTFOUND + "!", serviceFullPath));
+                throw new Exceptions.DeploymentException(string.Format(Global.SystemMessages.TEMPLATE_NOTFOUND + "!", serviceFullPath));
             }
         }
 
@@ -134,7 +134,7 @@ namespace Xeora.Web.Deployment
             }
             catch (FileNotFoundException)
             {
-                throw new Exception.DeploymentException(Global.SystemMessages.ESSENTIAL_CONTROLSXMLNOTFOUND, new FileNotFoundException());
+                throw new Exceptions.DeploymentException(Global.SystemMessages.ESSENTIAL_CONTROLSXMLNOTFOUND, new FileNotFoundException());
             }
         }
 
@@ -152,7 +152,7 @@ namespace Xeora.Web.Deployment
             }
             catch (FileNotFoundException)
             {
-                throw new Exception.DeploymentException(Global.SystemMessages.ESSENTIAL_CONFIGURATIONNOTFOUND, new FileNotFoundException());
+                throw new Exceptions.DeploymentException(Global.SystemMessages.ESSENTIAL_CONFIGURATIONNOTFOUND, new FileNotFoundException());
             }
         }
 
@@ -183,7 +183,7 @@ namespace Xeora.Web.Deployment
                     case RequestResults.ContentNotExists:
                         throw new FileNotFoundException();
                     case RequestResults.PasswordError:
-                        throw new Exception.DeploymentException(Global.SystemMessages.PASSWORD_WRONG, new SecurityException());
+                        throw new Exceptions.DeploymentException(Global.SystemMessages.PASSWORD_WRONG, new SecurityException());
                 }
 
                 return string.Empty;

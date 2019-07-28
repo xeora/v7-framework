@@ -33,7 +33,7 @@ namespace Xeora.Web.Application.Domain
             this._Languages.Use(languageId);
             
             if (this._Languages.Current == null)
-                throw new Exception.LanguageFileException();
+                throw new Exceptions.LanguageFileException();
             
             LanguageChangedListener?.Invoke(this._Languages.Current);
         }

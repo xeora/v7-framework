@@ -56,7 +56,7 @@ namespace Xeora.Web.Application.Domain
         }
 
         public string SiteTitle { get; set; }
-        public string SiteIconURL { get; set; }
+        public string SiteIconUrl { get; set; }
         public Basics.IMetaRecordCollection MetaRecord { get; private set; }
 
         public Basics.Domain.IDomain Domain
@@ -100,13 +100,13 @@ namespace Xeora.Web.Application.Domain
         private void SelectDomain(string languageId)
         {
             string requestedServiceId =
-                this.GetRequestedServiceId(this._Context.Request.Header.URL);
+                this.GetRequestedServiceId(this._Context.Request.Header.Url);
 
             if (string.IsNullOrEmpty(requestedServiceId))
             {
                 this.Domain =
                     new Domain(Basics.Configurations.Xeora.Application.Main.DefaultDomain, languageId);
-                this.PrepareService(this._Context.Request.Header.URL, false);
+                this.PrepareService(this._Context.Request.Header.Url, false);
 
                 if (this.ServiceDefinition != null)
                     return;
@@ -119,7 +119,7 @@ namespace Xeora.Web.Application.Domain
             {
                 this.Domain =
                     new Domain(new [] { dI.Id }, languageId);
-                this.PrepareService(this._Context.Request.Header.URL, false);
+                this.PrepareService(this._Context.Request.Header.Url, false);
 
                 if (this.ServiceDefinition != null)
                     return;
@@ -130,14 +130,14 @@ namespace Xeora.Web.Application.Domain
             {
                 this.Domain =
                     new Domain(new [] { dI.Id }, languageId);
-                this.PrepareService(this._Context.Request.Header.URL, true);
+                this.PrepareService(this._Context.Request.Header.Url, true);
 
                 if (this.ServiceDefinition != null)
                     return;
             }
         }
 
-        private string GetRequestedServiceId(Basics.Context.IURL url)
+        private string GetRequestedServiceId(Basics.Context.IUrl url)
         {
             string requestFilePath =
                 url.RelativePath;
@@ -155,7 +155,7 @@ namespace Xeora.Web.Application.Domain
             return requestFilePath;
         }
 
-        private void PrepareService(Basics.Context.IURL url, bool activateChildrenSearch)
+        private void PrepareService(Basics.Context.IUrl url, bool activateChildrenSearch)
         {
             Basics.Domain.IDomain workingInstance = this.Domain;
 
@@ -283,7 +283,7 @@ namespace Xeora.Web.Application.Domain
             }
         }
 
-        private Basics.ServiceDefinition TryResolveUrl(ref Basics.Domain.IDomain workingInstance, Basics.Context.IURL url)
+        private Basics.ServiceDefinition TryResolveUrl(ref Basics.Domain.IDomain workingInstance, Basics.Context.IUrl url)
         {
             if (workingInstance.Settings.Mappings.Active)
             {
@@ -347,7 +347,7 @@ namespace Xeora.Web.Application.Domain
             return string.IsNullOrEmpty(rServiceDefinition.ServiceId) ? null : rServiceDefinition;
         }
 
-        private Basics.Domain.IDomain SearchChildrenThatOverrides(ref Basics.Domain.IDomain workingInstance, ref Basics.Context.IURL url)
+        private Basics.Domain.IDomain SearchChildrenThatOverrides(ref Basics.Domain.IDomain workingInstance, ref Basics.Context.IUrl url)
         {
             if (workingInstance == null)
                 return null;
@@ -383,7 +383,7 @@ namespace Xeora.Web.Application.Domain
 
                     if (serviceDefinition.Mapped)
                     {
-                        url = this._Context.Request.Header.URL;
+                        url = this._Context.Request.Header.Url;
 
                         return workingInstance;
                     }
@@ -408,7 +408,7 @@ namespace Xeora.Web.Application.Domain
             if (resolutionResult.QueryString.Count > 0)
                 requestUrl = string.Concat(requestUrl, "?", resolutionResult.QueryString.ToString());
 
-            // Let the server understand what this URL is about...
+            // Let the server understand what this Url is about...
             this._Context.Request.RewritePath(requestUrl);
         }
 
@@ -417,6 +417,9 @@ namespace Xeora.Web.Application.Domain
 
         public void ProvideXeoraJsStream(ref Stream outputStream)
         {
+            if (outputStream == null)
+                throw new NullReferenceException();
+            
             outputStream =
                 Assembly.GetExecutingAssembly().GetManifestResourceStream(
                     $"Xeora.Web._sps_v{this.XeoraJSVersion}.js");
@@ -436,7 +439,7 @@ namespace Xeora.Web.Application.Domain
         public void RenderService(Basics.ControlResult.Message messageResult, string[] updateBlockControlIdStack)
         {
             if (this.ServiceDefinition == null)
-                throw new System.Exception(Global.SystemMessages.TEMPLATE_IDMUSTBESET + "!");
+                throw new Exception(Global.SystemMessages.TEMPLATE_IDMUSTBESET + "!");
 
             switch (this.ServiceType)
             {
@@ -450,7 +453,7 @@ namespace Xeora.Web.Application.Domain
                     {
                         Basics.X.ServiceParameterCollection serviceParameterCol =
                             new Basics.X.ServiceParameterCollection();
-                        serviceParameterCol.ParseXML(this._Context.Request.Body.Form["xParams"]);
+                        serviceParameterCol.ParseXml(this._Context.Request.Body.Form["xParams"]);
 
                         if (serviceParameterCol.PublicKey != null)
                         {
@@ -472,14 +475,14 @@ namespace Xeora.Web.Application.Domain
                     {
                         object methodResult = new SecurityException(Global.SystemMessages.XSERVICE_AUTH);
 
-                        this.ServiceResult = this.Domain.xService.GenerateXML(methodResult);
+                        this.ServiceResult = this.Domain.xService.GenerateXml(methodResult);
                     }
 
                     break;
             }
         }
 
-        public Basics.Mapping.ResolutionResult ResolveURL(string requestFilePath)
+        public Basics.Mapping.ResolutionResult ResolveUrl(string requestFilePath)
         {
             Basics.Domain.IDomain dummy = null;
             return this.ResolveUrl(ref dummy, requestFilePath);
@@ -565,9 +568,9 @@ namespace Xeora.Web.Application.Domain
 
                     rDomainInfoCollection.Add(domainInfo);
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
-                    Helper.EventLogger.Log(ex);
+                    Tools.EventLogger.Log(ex);
                 }
             }
             DomainControl._AvailableDomains = rDomainInfoCollection;

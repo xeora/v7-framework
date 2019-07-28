@@ -1,6 +1,6 @@
 ﻿namespace Xeora.Web.Directives.Elements
 {
-    public interface INamable
+    public interface INameable
     {
         string DirectiveId { get; }
     }

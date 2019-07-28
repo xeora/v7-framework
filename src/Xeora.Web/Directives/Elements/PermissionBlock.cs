@@ -4,7 +4,7 @@ using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives.Elements
 {
-    public class PermissionBlock : Directive, INamable, IHasChildren
+    public class PermissionBlock : Directive, INameable, IHasChildren
     {
         private enum ContentTypes
         {

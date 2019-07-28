@@ -9,7 +9,6 @@ namespace Xeora.Web.Directives
         {
             this.CacheId = cacheId;
             this.Content = content;
-            this.Date = DateTime.Now;
         }
 
         public static string CreateUniqueCacheId(int positionId, PartialCache partialCache, ref Basics.Domain.IDomain instance)
@@ -32,13 +31,12 @@ namespace Xeora.Web.Directives
             } while (workingObject != null);
 
             if (string.IsNullOrEmpty(instance.Languages.Current.Info.Id) || string.IsNullOrEmpty(serviceFullPath) || positionId == -1)
-                throw new Exception.ParseException();
+                throw new Exceptions.ParseException();
 
             return $"{instance.Languages.Current.Info.Id}_{serviceFullPath}_{positionId}";
         }
 
         public string CacheId { get; }
         public string Content { get; }
-        public DateTime Date { get; }
     }
 }

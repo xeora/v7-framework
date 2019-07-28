@@ -49,7 +49,7 @@ namespace Xeora.Web.Application.Domain
 
                 return xPathIter.MoveNext() ? xPathIter.Current?.GetAttribute("value", xPathIter.Current.BaseURI) : null;
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 return null;
             }
