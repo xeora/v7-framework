@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using Xeora.Web.Basics;
 using Xeora.Web.Basics.Service;
-using Xeora.Web.Site.Service;
+using Xeora.Web.Application.Services;
 
 namespace Xeora.Web.Handler
 {

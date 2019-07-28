@@ -10,7 +10,7 @@ using Xeora.Web.Basics.ControlResult;
 using Xeora.Web.Basics.X;
 using Xeora.Web.Directives;
 using Xeora.Web.Directives.Elements;
-using Xeora.Web.Site;
+using Xeora.Web.Application.Domain;
 
 namespace Xeora.Web.Handler
 {
@@ -526,11 +526,7 @@ namespace Xeora.Web.Handler
                 }
                 finally
                 {
-                    if (requestFileStream != null)
-                    {
-                        requestFileStream.Close();
-                        GC.SuppressFinalize(requestFileStream);
-                    }
+                    requestFileStream?.Close();
                 }
 
                 this.Context.AddOrUpdate("RedirectLocation", null);
@@ -604,11 +600,7 @@ namespace Xeora.Web.Handler
             }
             finally
             {
-                if (requestFileStream != null)
-                {
-                    requestFileStream.Close();
-                    GC.SuppressFinalize(requestFileStream);
-                }
+                requestFileStream?.Close();
             }
 
             this.Context.AddOrUpdate("RedirectLocation", null);
@@ -640,11 +632,7 @@ namespace Xeora.Web.Handler
             }
             finally
             {
-                if (requestFileStream != null)
-                {
-                    requestFileStream.Close();
-                    GC.SuppressFinalize(requestFileStream);
-                }
+                requestFileStream?.Close();
             }
 
             this.Context.AddOrUpdate("RedirectLocation", null);
@@ -653,7 +641,7 @@ namespace Xeora.Web.Handler
         private void PostBuildInJavaScriptToClient()
         {
             Stream requestFileStream = null;
-            this._DomainControl.ProvideXeoraJSStream(ref requestFileStream);
+            this._DomainControl.ProvideXeoraJsStream(ref requestFileStream);
 
             try
             {
@@ -669,11 +657,7 @@ namespace Xeora.Web.Handler
             }
             finally
             {
-                if (requestFileStream != null)
-                {
-                    requestFileStream.Close();
-                    GC.SuppressFinalize(requestFileStream);
-                }
+                requestFileStream?.Close();
             }
 
             this.Context.AddOrUpdate("RedirectLocation", null);
@@ -1026,11 +1010,7 @@ namespace Xeora.Web.Handler
             }
             finally
             {
-                if (gzipCompression != null)
-                {
-                    gzipCompression.Close();
-                    GC.SuppressFinalize(gzipCompression);
-                }
+                gzipCompression?.Close();
             }
         }
 
@@ -1054,11 +1034,7 @@ namespace Xeora.Web.Handler
             }
             finally
             {
-                if (outputStream != null)
-                {
-                    outputStream.Close();
-                    GC.SuppressFinalize(outputStream);
-                }
+                outputStream?.Close();
             }
         }
 
@@ -1087,11 +1063,7 @@ namespace Xeora.Web.Handler
                 }
                 finally
                 {
-                    if (gzippedStream != null)
-                    {
-                        gzippedStream.Close();
-                        GC.SuppressFinalize(gzippedStream);
-                    }
+                    gzippedStream?.Close();
                 }
             }
 
