@@ -28,14 +28,14 @@ namespace Xeora.Web.Service
                 DateTime xeoraHandlerProcessBegins = DateTime.Now;
 
                 IHandler xeoraHandler =
-                    Handler.HandlerManager.Current.Create(ref context);
+                    Handler.Manager.Current.Create(ref context);
                 ((Handler.XeoraHandler)xeoraHandler).Handle();
 
                 if (Configurations.Xeora.Application.Main.PrintAnalytics)
                 {
                     Basics.Console.Push(
                         "analytic - xeora handler",
-                        string.Format("{0}ms", DateTime.Now.Subtract(xeoraHandlerProcessBegins).TotalMilliseconds), 
+                        $"{DateTime.Now.Subtract(xeoraHandlerProcessBegins).TotalMilliseconds}ms", 
                         string.Empty, false);
                 }
 
@@ -48,30 +48,30 @@ namespace Xeora.Web.Service
 
                 ((HttpResponse)context.Response).Flush(streamEnclosure);
 
-                Handler.HandlerManager.Current.UnMark(xeoraHandler.HandlerId);
+                Handler.Manager.Current.UnMark(xeoraHandler.HandlerId);
 
                 if (Configurations.Xeora.Application.Main.PrintAnalytics)
                 {
                     Basics.Console.Push(
                         "analytic - response flush",
-                        string.Format("{0}ms", DateTime.Now.Subtract(responseFlushBegins).TotalMilliseconds), 
+                        $"{DateTime.Now.Subtract(responseFlushBegins).TotalMilliseconds}ms", 
                         string.Empty, false);
 
                     Basics.Console.Push(
                         "analytic - whole process",
-                        string.Format("{0}ms", DateTime.Now.Subtract(wholeProcessBegins).TotalMilliseconds), 
+                        $"{DateTime.Now.Subtract(wholeProcessBegins).TotalMilliseconds}ms", 
                         string.Empty, false);
                 }
 
                 StatusTracker.Current.Increase(context.Response.Header.Status.Code);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 // Skip SocketExceptions
                 if (ex is IOException && ex.InnerException is SocketException)
                     return;
 
-                Helper.EventLogger.Log(ex);
+                Tools.EventLogger.Log(ex);
 
                 if (Configurations.Xeora.Service.Print)
                     Basics.Console.Push("SYSTEM ERROR", string.Empty, ex.ToString(), false);
@@ -82,8 +82,7 @@ namespace Xeora.Web.Service
             }
             finally
             {
-                if (context != null)
-                    context.Dispose();
+                context?.Dispose();
             }
         }
 
@@ -94,14 +93,14 @@ namespace Xeora.Web.Service
                 StringBuilder sB = new StringBuilder();
 
                 sB.Append("HTTP/1.1 500 Internal Server Error");
-                sB.Append(HttpResponse.NEWLINE);
+                sB.Append(HttpResponse.Newline);
                 sB.Append("Connection: close");
-                sB.Append(HttpResponse.NEWLINE);
+                sB.Append(HttpResponse.Newline);
 
                 byte[] buffer = Encoding.ASCII.GetBytes(sB.ToString());
                 streamEnclosure.Write(buffer, 0, buffer.Length);
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 // Just Handle Exceptions
             }

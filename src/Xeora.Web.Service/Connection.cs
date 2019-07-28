@@ -22,11 +22,11 @@ namespace Xeora.Web.Service
 
         public void Process()
         {
-            IPEndPoint remoteIPEndPoint =
+            IPEndPoint remoteIpEndPoint =
                 (IPEndPoint)this._RemoteClient.Client.RemoteEndPoint;
             Stream remoteStream = this._RemoteClient.GetStream();
 
-            this.Handle(remoteIPEndPoint, ref remoteStream);
+            this.Handle(remoteIpEndPoint, ref remoteStream);
 
             remoteStream.Close();
             remoteStream.Dispose();
@@ -35,10 +35,10 @@ namespace Xeora.Web.Service
             this._RemoteClient.Dispose();
         }
 
-        private void Handle(IPEndPoint remoteIPEndPoint, ref Stream remoteStream)
+        private void Handle(IPEndPoint remoteIpEndPoint, ref Stream remoteStream)
         {
-            if (ConfigurationManager.Current.Configuration.Service.Ssl &&
-                !this.MakeSecure(ref remoteStream, remoteIPEndPoint)) return;
+            if (Configuration.Manager.Current.Configuration.Service.Ssl &&
+                !this.MakeSecure(ref remoteStream, remoteIpEndPoint)) return;
 
             // If reads create problems and put the loop to infinite. drop the connection.
             // that's why, 5 seconds timeout should be set to remoteStream
@@ -48,12 +48,12 @@ namespace Xeora.Web.Service
             Net.NetworkStream streamEnclosure = 
                 new Net.NetworkStream(ref remoteStream);
 
-            Basics.Console.Push("Connection is accepted from", string.Format("{0} ({1})", remoteIPEndPoint, ConfigurationManager.Current.Configuration.Service.Ssl ? "Secure" : "Basic"), string.Empty, true);
+            Basics.Console.Push("Connection is accepted from", string.Format("{0} ({1})", remoteIpEndPoint, Configuration.Manager.Current.Configuration.Service.Ssl ? "Secure" : "Basic"), string.Empty, true);
 
-            ClientState.Handle(remoteIPEndPoint.Address, streamEnclosure);
+            ClientState.Handle(remoteIpEndPoint.Address, streamEnclosure);
         }
 
-        private bool MakeSecure(ref Stream remoteStream, IPEndPoint remoteIPEndPoint)
+        private bool MakeSecure(ref Stream remoteStream, IPEndPoint remoteIpEndPoint)
         {
             remoteStream = new SslStream(remoteStream, false);
 
@@ -65,7 +65,7 @@ namespace Xeora.Web.Service
             }
             catch (IOException ex)
             {
-                Basics.Console.Push("Connection is rejected from", string.Format("{0} ({1})", remoteIPEndPoint, ex.Message), string.Empty, true);
+                Basics.Console.Push("Connection is rejected from", $"{remoteIpEndPoint} ({ex.Message})", string.Empty, true);
 
                 return false;
             }

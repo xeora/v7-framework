@@ -10,13 +10,13 @@ namespace Xeora.Web.Service
         private StatusTracker() =>
             this._Status = new ConcurrentDictionary<short, int>();
 
-        private static object _Lock = new object();
-        private static StatusTracker _Current = null;
+        private static readonly object Lock = new object();
+        private static StatusTracker _Current;
         public static StatusTracker Current 
         { 
             get
             {
-                Monitor.Enter(StatusTracker._Lock);
+                Monitor.Enter(StatusTracker.Lock);
                 try
                 {
                     if (StatusTracker._Current == null)
@@ -24,7 +24,7 @@ namespace Xeora.Web.Service
                 }
                 finally
                 {
-                    Monitor.Exit(StatusTracker._Lock);
+                    Monitor.Exit(StatusTracker.Lock);
                 }
 
                 return StatusTracker._Current;

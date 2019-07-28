@@ -45,19 +45,19 @@ namespace Xeora.Web.Service
 
             try
             {
-                ConfigurationManager.Initialize(this._ConfigurationPath, this._ConfigurationFile);
+                Configuration.Manager.Initialize(this._ConfigurationPath, this._ConfigurationFile);
 
-                IPEndPoint serviceIPEndPoint =
+                IPEndPoint serviceIpEndPoint =
                     new IPEndPoint(
-                        ConfigurationManager.Current.Configuration.Service.Address,
-                        ConfigurationManager.Current.Configuration.Service.Port
+                        Configuration.Manager.Current.Configuration.Service.Address,
+                        Configuration.Manager.Current.Configuration.Service.Port
                     );
 
-                if (ConfigurationManager.Current.Configuration.Service.Ssl)
+                if (Configuration.Manager.Current.Configuration.Service.Ssl)
                 {
                     this._Certificate = new X509Certificate2(
                         Path.Combine(this._ConfigurationPath, "server.p12"),
-                        ConfigurationManager.Current.Configuration.Service.CertificatePassword
+                        Configuration.Manager.Current.Configuration.Service.CertificatePassword
                     );
 
                     System.Text.StringBuilder sslDetails = new System.Text.StringBuilder();
@@ -72,16 +72,16 @@ namespace Xeora.Web.Service
                     Basics.Console.Push("SSL Certificate Information", string.Empty, sslDetails.ToString(), false);
                 }
 
-                this._TcpListener = new TcpListener(serviceIPEndPoint);
+                this._TcpListener = new TcpListener(serviceIpEndPoint);
                 this._TcpListener.Start(100);
 
-                Basics.Console.Push("XeoraEngine is started at", string.Format("{0} ({1})", serviceIPEndPoint, ConfigurationManager.Current.Configuration.Service.Ssl ? "Secure" : "Basic"), string.Empty, false);
+                Basics.Console.Push("XeoraEngine is started at", string.Format("{0} ({1})", serviceIpEndPoint, Configuration.Manager.Current.Configuration.Service.Ssl ? "Secure" : "Basic"), string.Empty, false);
             }
             catch (System.Exception ex)
             {
                 string message = ex.Message;
                 if (ex.InnerException != null)
-                    message = string.Format("{0} ({1})", message, ex.InnerException.Message);
+                    message = $"{message} ({ex.InnerException.Message})";
 
 				Basics.Console.Push("XeoraEngine is FAILED!", message, string.Empty, false, true);
 
@@ -114,14 +114,10 @@ namespace Xeora.Web.Service
                     return;
                 }
                 catch (SocketException)
-                {
-                    continue;
-                }
-                catch (System.Exception ex)
+                { /* Just Handle Exception */ }
+                catch (Exception ex)
                 {
                     Basics.Console.Push("Connection isn't established", ex.Message, string.Empty, false);
-
-                    continue;
                 }
             }
         }
@@ -137,26 +133,26 @@ namespace Xeora.Web.Service
             Console.WriteLine("|____||____|'.__.' '.__.' [___]   \\'-;__/ ");
 
             Console.WriteLine();
-            Console.WriteLine(string.Format("Web Development Framework, v{0}", WebServer.GetVersionText()));
+            Console.WriteLine($"Web Development Framework, v{WebServer.GetVersionText()}");
             Console.WriteLine();
         }
 
         internal static string GetVersionText()
         {
             Version vI = Assembly.GetExecutingAssembly().GetName().Version;
-            return string.Format("{0}.{1}.{2}", vI.Major, vI.Minor, vI.Build);
+            return $"{vI.Major}.{vI.Minor}.{vI.Build}";
         }
 
         private void OnUnhandledExceptions(object source, UnhandledExceptionEventArgs args)
         {
-            if (args != null && args.ExceptionObject != null)
+            if (args?.ExceptionObject != null)
             {
                 Console.WriteLine();
                 Console.WriteLine();
                 Console.WriteLine("----------- !!! --- Unhandled Exception --- !!! ------------");
                 Console.WriteLine("------------------------------------------------------------");
-                if (args.ExceptionObject is System.Exception)
-                    Console.WriteLine(((System.Exception)args.ExceptionObject).ToString());
+                if (args.ExceptionObject is Exception exception)
+                    Console.WriteLine(exception.ToString());
                 else
                     Console.WriteLine(args.ExceptionObject.ToString());
                 Console.WriteLine("------------------------------------------------------------");
@@ -167,7 +163,7 @@ namespace Xeora.Web.Service
             Environment.Exit(500);
         }
 
-        private bool _Terminating = false;
+        private bool _Terminating;
         private void OnTerminateSignal(object source, ConsoleCancelEventArgs args)
         {
             if (this._Terminating)
