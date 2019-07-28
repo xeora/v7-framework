@@ -74,14 +74,8 @@ namespace Xeora.Web.Service.Dss
             }
             finally
             {
-                if (binaryWriter != null)
-                    binaryWriter.Close();
-
-                if (requestStream != null)
-                {
-                    requestStream.Close();
-                    GC.SuppressFinalize(requestStream);
-                }
+                binaryWriter?.Close();
+                requestStream?.Close();
             }
 
             responseBytes = this._ResponseHandler.WaitForMessage(requestId);
@@ -116,14 +110,8 @@ namespace Xeora.Web.Service.Dss
             }
             finally
             {
-                if (binaryReader != null)
-                    binaryReader.Close();
-
-                if (responseStream != null)
-                {
-                    responseStream.Close();
-                    GC.SuppressFinalize(responseStream);
-                }
+                binaryReader?.Close();
+                responseStream?.Close();
             }
         }
 
@@ -167,14 +155,8 @@ namespace Xeora.Web.Service.Dss
             }
             finally
             {
-                if (binaryWriter != null)
-                    binaryWriter.Close();
-
-                if (requestStream != null)
-                {
-                    requestStream.Close();
-                    GC.SuppressFinalize(requestStream);
-                }
+                binaryWriter?.Close();
+                requestStream?.Close();
             }
         }
 
@@ -211,14 +193,8 @@ namespace Xeora.Web.Service.Dss
             }
             finally
             {
-                if (binaryWriter != null)
-                    binaryWriter.Close();
-
-                if (requestStream != null)
-                {
-                    requestStream.Close();
-                    GC.SuppressFinalize(requestStream);
-                }
+                binaryWriter?.Close();
+                requestStream?.Close();
             }
 
             responseBytes = this._ResponseHandler.WaitForMessage(requestId);
@@ -253,14 +229,8 @@ namespace Xeora.Web.Service.Dss
             }
             finally
             {
-                if (binaryReader != null)
-                    binaryReader.Close();
-
-                if (responseStream != null)
-                {
-                    responseStream.Close();
-                    GC.SuppressFinalize(responseStream);
-                }
+                binaryReader?.Close();
+                responseStream?.Close();
             }
 
             return keys.ToArray();
@@ -284,11 +254,7 @@ namespace Xeora.Web.Service.Dss
             }
             finally
             {
-                if (forStream != null)
-                {
-                    forStream.Close();
-                    GC.SuppressFinalize(forStream);
-                }
+                forStream?.Close();
             }
         }
 
@@ -309,11 +275,7 @@ namespace Xeora.Web.Service.Dss
             }
             finally
             {
-                if (forStream != null)
-                {
-                    forStream.Close();
-                    GC.SuppressFinalize(forStream);
-                }
+                forStream?.Close();
             }
         }
 

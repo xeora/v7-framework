@@ -104,11 +104,7 @@ namespace Xeora.Web.Service.Dss
             }
             finally
             {
-                if (contentStream != null)
-                {
-                    contentStream.Close();
-                    GC.SuppressFinalize(contentStream);
-                }
+                contentStream?.Close();
             }
         }
     }

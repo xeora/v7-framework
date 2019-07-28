@@ -82,14 +82,8 @@ namespace Xeora.Web.Service.Dss
             }
             finally
             {
-                if (binaryWriter != null)
-                    binaryWriter.Close();
-
-                if (requestStream != null)
-                {
-                    requestStream.Close();
-                    GC.SuppressFinalize(requestStream);
-                }
+                binaryWriter?.Close();
+                requestStream?.Close();
             }
         }
 
