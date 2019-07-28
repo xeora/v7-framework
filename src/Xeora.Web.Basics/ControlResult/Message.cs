@@ -18,7 +18,7 @@ namespace Xeora.Web.Basics.ControlResult
             this.Type = type;
         }
 
-        public string Content { get; private set; }
-        public Types Type { get; private set; }
+        public string Content { get; }
+        public Types Type { get; }
     }
 }

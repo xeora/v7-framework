@@ -9,8 +9,8 @@
             this.ResolveItems = new ResolveItemCollection();
         }
 
-        public ServiceDefinition ServiceDefinition { get; private set; }
+        public ServiceDefinition ServiceDefinition { get; }
         public string MapFormat { get; set; }
-        public ResolveItemCollection ResolveItems { get; private set; }
+        public ResolveItemCollection ResolveItems { get; }
     }
 }

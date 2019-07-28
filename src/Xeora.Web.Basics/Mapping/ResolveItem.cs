@@ -2,14 +2,14 @@
 {
     public class ResolveItem
     {
-        public ResolveItem(string Id)
+        public ResolveItem(string id)
         {
-            this.Id = Id;
+            this.Id = id;
             this.DefaultValue = string.Empty;
-            this.QueryStringKey = Id;
+            this.QueryStringKey = id;
         }
 
-        public string Id { get; private set; }
+        public string Id { get; }
         public string DefaultValue { get; set; }
         public string QueryStringKey { get; set; }
     }

@@ -21,7 +21,7 @@ namespace Xeora.Web.Basics.ControlResult
             this._Objects = objects;
         }
 
-        public DataSourceTypes Type { get; private set; }
+        public DataSourceTypes Type { get; }
         public Message Message { get; set; }
         public long Count => this._Objects.Length;
 

@@ -2,13 +2,13 @@
 {
     public class HttpMethodAttribute : System.Attribute
     {
-        public HttpMethodAttribute() : this(Context.HttpMethod.GET, string.Empty)
+        public HttpMethodAttribute() : this(Context.Request.HttpMethod.GET, string.Empty)
         { }
 
-        public HttpMethodAttribute(Context.HttpMethod method) : this(method, string.Empty)
+        public HttpMethodAttribute(Context.Request.HttpMethod method) : this(method, string.Empty)
         { }
 
-        public HttpMethodAttribute(Context.HttpMethod method, string bindProcedureName)
+        public HttpMethodAttribute(Context.Request.HttpMethod method, string bindProcedureName)
         {
             this.Method = method;
 
@@ -17,7 +17,7 @@
             this.BindProcedureName = bindProcedureName;
         }
 
-        public Context.HttpMethod Method { get; private set; }
-        public string BindProcedureName { get; private set; }
+        public Context.Request.HttpMethod Method { get; }
+        public string BindProcedureName { get; }
     }
 }

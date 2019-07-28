@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Data;
+using System.Security.Cryptography.X509Certificates;
 using System.Xml.XPath;
 using Xeora.Web.Basics.ControlResult;
 
@@ -18,23 +19,22 @@ namespace Xeora.Web.Basics.X
         /// Authenticates to the Xeora xService
         /// </summary>
         /// <returns>The result of xService</returns>
-        /// <param name="xServiceURL">xService URL</param>
+        /// <param name="xServiceUrl">xService Url</param>
         /// <param name="authenticationFunction">Authentication function</param>
         /// <param name="parameters">Parameters</param>
         /// <param name="isAuthenticationDone">If set to <c>true</c> is authentication done</param>
-        public static object Authenticate(string xServiceURL, string authenticationFunction, ServiceParameterCollection parameters, ref bool isAuthenticationDone)
+        public static object Authenticate(string xServiceUrl, string authenticationFunction, ServiceParameterCollection parameters, ref bool isAuthenticationDone)
         {
             object methodResult =
-                Service.Call(xServiceURL, authenticationFunction, parameters);
+                Service.Call(xServiceUrl, authenticationFunction, parameters);
 
-            isAuthenticationDone = !(methodResult != null && methodResult is Exception);
+            isAuthenticationDone = !(methodResult is Exception);
 
-            if (isAuthenticationDone)
-            {
-                if (methodResult is Message &&
-                    ((Message)methodResult).Type != Message.Types.Success)
-                    isAuthenticationDone = false;
-            }
+            if (!isAuthenticationDone) return methodResult;
+            
+            if (methodResult is Message message &&
+                message.Type != Message.Types.Success)
+                isAuthenticationDone = false;
 
             return methodResult;
         }
@@ -43,41 +43,39 @@ namespace Xeora.Web.Basics.X
         /// Calls the Xeora xService. Default timeout is 60 seconds
         /// </summary>
         /// <returns>The result of xService</returns>
-        /// <param name="xServiceURL">xService URL</param>
+        /// <param name="xServiceUrl">xService Url</param>
         /// <param name="functionName">Function name</param>
         /// <param name="parameters">Parameters</param>
-        public static object Call(string xServiceURL, string functionName, ServiceParameterCollection parameters) =>
-            Service.Call(xServiceURL, functionName, parameters, 60000);
+        public static object Call(string xServiceUrl, string functionName, ServiceParameterCollection parameters) =>
+            Service.Call(xServiceUrl, functionName, parameters, 60000);
 
         /// <summary>
         /// Calls the Xeora xService with timeout
         /// </summary>
         /// <returns>The result of xService</returns>
-        /// <param name="xServiceURL">xService URL</param>
+        /// <param name="xServiceUrl">xService Url</param>
         /// <param name="functionName">Function name</param>
         /// <param name="parameters">Parameters</param>
-        /// <param name="responseTimeout">Response timeout in miliseconds</param>
-        public static object Call(string xServiceURL, string functionName, ServiceParameterCollection parameters, int responseTimeout)
+        /// <param name="responseTimeout">Response timeout in milliseconds</param>
+        public static object Call(string xServiceUrl, string functionName, ServiceParameterCollection parameters, int responseTimeout)
         {
-            HttpWebRequest httpWebRequest;
-            HttpWebResponse httpWebResponse;
-
-            Stream requestMS = null;
+            Stream requestStream = null;
             try
             {
-                requestMS = new MemoryStream(
+                requestStream = new MemoryStream(
                     System.Text.Encoding.UTF8.GetBytes(
-                        string.Format("xParams={0}", System.Web.HttpUtility.UrlEncode(parameters.ToXML()))
+                        $"xParams={System.Web.HttpUtility.UrlEncode(parameters.ToXml())}"
                     )
                 );
-                requestMS.Seek(0, SeekOrigin.Begin);
+                requestStream.Seek(0, SeekOrigin.Begin);
 
                 string responseString = null;
-                string pageURL =
-                    string.Format("{0}?call={1}", xServiceURL, functionName);
+                string pageUrl =
+                    $"{xServiceUrl}?call={functionName}";
 
                 // Prepare Service Request Connection
-                httpWebRequest = (HttpWebRequest)WebRequest.Create(pageURL);
+                HttpWebRequest httpWebRequest = 
+                    (HttpWebRequest)WebRequest.Create(pageUrl);
 
                 httpWebRequest.Method = "POST";
                 httpWebRequest.Timeout = responseTimeout;
@@ -85,33 +83,33 @@ namespace Xeora.Web.Basics.X
                 httpWebRequest.UserAgent = "Mozilla/4.0 (compatible; MSIE 5.00; Windows 98)";
                 httpWebRequest.KeepAlive = false;
                 httpWebRequest.ContentType = "application/x-www-form-urlencoded";
-                httpWebRequest.ContentLength = requestMS.Length;
+                httpWebRequest.ContentLength = requestStream.Length;
                 // !--
 
                 // Post ServiceParametersXML to the Web Service
                 byte[] buffer = new byte[512];
-                int bC = 0;
+                int bC;
                 long current = 0;
 
                 Stream transferStream = httpWebRequest.GetRequestStream();
                 do
                 {
-                    bC = requestMS.Read(buffer, 0, buffer.Length);
+                    bC = requestStream.Read(buffer, 0, buffer.Length);
 
-                    if (bC > 0)
-                    {
-                        current += bC;
+                    if (bC <= 0) continue;
+                    
+                    current += bC;
 
-                        transferStream.Write(buffer, 0, bC);
+                    transferStream.Write(buffer, 0, bC);
 
-                        OutputTransferProgress?.Invoke(current, requestMS.Length);
-                    }
+                    OutputTransferProgress?.Invoke(current, requestStream.Length);
                 } while (bC != 0);
 
                 transferStream.Close();
                 // !--
 
-                httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                HttpWebResponse httpWebResponse = 
+                    (HttpWebResponse)httpWebRequest.GetResponse();
 
                 // Read and Parse Response Datas
                 Stream resStream = httpWebResponse.GetResponseStream();
@@ -122,14 +120,13 @@ namespace Xeora.Web.Basics.X
                 {
                     bC = resStream.Read(buffer, 0, buffer.Length);
 
-                    if (bC > 0)
-                    {
-                        current += bC;
+                    if (bC <= 0) continue;
+                    
+                    current += bC;
 
-                        responseString += System.Text.Encoding.UTF8.GetString(buffer, 0, bC);
+                    responseString += System.Text.Encoding.UTF8.GetString(buffer, 0, bC);
 
-                        InputTransferProgress?.Invoke(current, httpWebResponse.ContentLength);
-                    }
+                    InputTransferProgress?.Invoke(current, httpWebResponse.ContentLength);
                 } while (bC != 0);
 
                 httpWebResponse.Close();
@@ -143,19 +140,19 @@ namespace Xeora.Web.Basics.X
             }
             finally
             {
-                requestMS?.Close();
+                requestStream?.Close();
             }
         }
 
-        private static object ParseServiceResult(string resultXML)
+        private static object ParseServiceResult(string resultXml)
         {
-            if (string.IsNullOrEmpty(resultXML))
+            if (string.IsNullOrEmpty(resultXml))
                 return new Exception("xService Response Error!");
 
             StringReader xPathTextReader = null;
             try
             {
-                xPathTextReader = new StringReader(resultXML);
+                xPathTextReader = new StringReader(resultXml);
                 XPathDocument xPathDoc = new XPathDocument(xPathTextReader);
 
                 XPathNavigator xPathNavigator = xPathDoc.CreateNavigator();
@@ -164,7 +161,7 @@ namespace Xeora.Web.Basics.X
                 if (!xPathIter.MoveNext())
                     return new Exception("xService Response Error!");
 
-                bool.TryParse(xPathIter.Current.GetAttribute("isdone", xPathIter.Current.NamespaceURI), out bool isDone);
+                bool.TryParse(xPathIter.Current?.GetAttribute("isdone", xPathIter.Current.NamespaceURI), out bool isDone);
 
                 if (!isDone)
                     return new Exception("xService End-Point Process Error!");
@@ -174,7 +171,7 @@ namespace Xeora.Web.Basics.X
                     return null;
 
                 string xType =
-                    xPathIter.Current.GetAttribute("type", xPathIter.Current.NamespaceURI);
+                    xPathIter.Current?.GetAttribute("type", xPathIter.Current.NamespaceURI);
 
                 if (string.IsNullOrEmpty(xType))
                     return null;
@@ -182,15 +179,11 @@ namespace Xeora.Web.Basics.X
                 switch (xType)
                 {
                     case "Conditional":
-                        Conditional.Conditions condition =
-                            Conditional.Conditions.Unknown;
-                        System.Enum.TryParse<Conditional.Conditions>(xPathIter.Current.Value, out condition);
+                        System.Enum.TryParse(xPathIter.Current.Value, out Conditional.Conditions condition);
 
                         return new Conditional(condition);
                     case "Message":
-                        Message.Types type =
-                            Message.Types.Error;
-                        System.Enum.TryParse<Message.Types>(xPathIter.Current.GetAttribute("messagetype", xPathIter.Current.NamespaceURI), out type);
+                        System.Enum.TryParse(xPathIter.Current.GetAttribute("messagetype", xPathIter.Current.NamespaceURI), out Message.Types type);
 
                         return new Message(xPathIter.Current.Value, type);
                     case "ObjectFeed":
@@ -212,9 +205,9 @@ namespace Xeora.Web.Basics.X
                             return Activator.CreateInstance(xTypeObject, xPathIter.Current.Value, new Exception());
 
                         if (xTypeObject.IsPrimitive ||
-                            object.ReferenceEquals(xTypeObject, typeof(short)) ||
-                            object.ReferenceEquals(xTypeObject, typeof(int)) ||
-                            object.ReferenceEquals(xTypeObject, typeof(long)))
+                            ReferenceEquals(xTypeObject, typeof(short)) ||
+                            ReferenceEquals(xTypeObject, typeof(int)) ||
+                            ReferenceEquals(xTypeObject, typeof(long)))
                         {
                             return Convert.ChangeType(
                                 xPathIter.Current.Value,
@@ -225,10 +218,7 @@ namespace Xeora.Web.Basics.X
 
                         try
                         {
-                            if (!string.IsNullOrEmpty(xPathIter.Current.Value))
-                                return Serializer.Base64ToBinary(xPathIter.Current.Value);
-
-                            return string.Empty;
+                            return !string.IsNullOrEmpty(xPathIter.Current.Value) ? Serializer.Base64ToBinary(xPathIter.Current.Value) : string.Empty;
                         }
                         catch (Exception ex)
                         {
@@ -251,73 +241,73 @@ namespace Xeora.Web.Basics.X
             PartialDataTable partialDataTable =
                 new PartialDataTable();
 
-            int.TryParse(xPathIter.Current.GetAttribute("total", xPathIter.Current.NamespaceURI), out int Total);
-            System.Globalization.CultureInfo CultureInfo =
-                new System.Globalization.CultureInfo(xPathIter.Current.GetAttribute("cultureinfo", xPathIter.Current.NamespaceURI));
+            int.TryParse(xPathIter.Current?.GetAttribute("total", xPathIter.Current.NamespaceURI), out int Total);
+            System.Globalization.CultureInfo cultureInfo =
+                new System.Globalization.CultureInfo(xPathIter.Current?.GetAttribute("cultureinfo", xPathIter.Current.NamespaceURI));
 
-            partialDataTable.Locale = CultureInfo;
+            partialDataTable.Locale = cultureInfo;
             partialDataTable.Total = Total;
 
-            if (xPathIter.Current.MoveToFirstChild())
+            if (xPathIter.Current != null && xPathIter.Current.MoveToFirstChild())
             {
-                XPathNodeIterator xPathIter_C = xPathIter.Clone();
+                XPathNodeIterator xPathIterC = xPathIter.Clone();
 
-                if (xPathIter_C.Current.MoveToFirstChild())
+                if (xPathIterC.Current != null && xPathIterC.Current.MoveToFirstChild())
                 {
                     do
                     {
                         partialDataTable.Columns.Add(
-                            xPathIter_C.Current.GetAttribute("name", xPathIter_C.Current.NamespaceURI),
+                            xPathIterC.Current.GetAttribute("name", xPathIterC.Current.NamespaceURI),
                             Service.LoadTypeFromDomain(
                                 AppDomain.CurrentDomain,
-                                xPathIter_C.Current.GetAttribute("type", xPathIter_C.Current.NamespaceURI)
+                                xPathIterC.Current.GetAttribute("type", xPathIterC.Current.NamespaceURI)
                             )
                         );
-                    } while (xPathIter_C.Current.MoveToNext());
+                    } while (xPathIterC.Current.MoveToNext());
                 }
             }
 
-            if (xPathIter.Current.MoveToNext())
+            if (xPathIter.Current != null && xPathIter.Current.MoveToNext())
             {
-                XPathNodeIterator xPathIter_R = xPathIter.Clone();
+                XPathNodeIterator xPathIterR = xPathIter.Clone();
 
-                if (xPathIter_R.Current.MoveToFirstChild())
+                if (xPathIterR.Current != null && xPathIterR.Current.MoveToFirstChild())
                 {
-                    XPathNodeIterator xPathIter_RR;
-                    DataRow tDR;
-
                     do
                     {
-                        tDR = partialDataTable.NewRow();
-                        xPathIter_RR = xPathIter_R.Clone();
+                        DataRow dR = partialDataTable.NewRow();
+                        XPathNodeIterator xPathIterRr = xPathIterR.Clone();
 
-                        if (xPathIter_RR.Current.MoveToFirstChild())
+                        if (xPathIterRr.Current != null && xPathIterRr.Current.MoveToFirstChild())
                         {
                             do
                             {
-                                tDR[xPathIter_RR.Current.GetAttribute("name", xPathIter_RR.Current.NamespaceURI)] =
-                                    xPathIter_RR.Current.Value.ToString(CultureInfo);
-                            } while (xPathIter_RR.Current.MoveToNext());
+                                string name =
+                                    xPathIterRr.Current.GetAttribute("name", xPathIterRr.Current.NamespaceURI);
+                                if (name == null) continue;
+                                
+                                dR[name] = xPathIterRr.Current.Value.ToString(cultureInfo);
+                            } while (xPathIterRr.Current.MoveToNext());
                         }
 
-                        partialDataTable.Rows.Add(tDR);
-                    } while (xPathIter_R.Current.MoveToNext());
+                        partialDataTable.Rows.Add(dR);
+                    } while (xPathIterR.Current != null && xPathIterR.Current.MoveToNext());
                 }
             }
 
-            if (xPathIter.Current.MoveToNext())
-            {
-                XPathNodeIterator xPathIter_E = xPathIter.Clone();
+            if (xPathIter.Current == null || !xPathIter.Current.MoveToNext()) return partialDataTable;
+            
+            XPathNodeIterator xPathIterE = xPathIter.Clone();
 
-                partialDataTable.Message =
-                    new Message(
-                        xPathIter_E.Current.Value.ToString(CultureInfo),
-                        (Message.Types)System.Enum.Parse(
-                            typeof(Message.Types),
-                            xPathIter_E.Current.GetAttribute("messagetype", xPathIter_E.Current.NamespaceURI)
-                        )
-                    );
-            }
+            string messageType =
+                xPathIterE.Current?.GetAttribute("messagetype", xPathIterE.Current.NamespaceURI);
+            if (string.IsNullOrEmpty(messageType)) messageType = Message.Types.Error.ToString();
+            
+            partialDataTable.Message =
+                new Message(
+                    xPathIterE.Current?.Value.ToString(cultureInfo),
+                    (Message.Types)System.Enum.Parse(typeof(Message.Types), messageType)
+                );
 
             return partialDataTable;
         }
@@ -327,30 +317,28 @@ namespace Xeora.Web.Basics.X
             VariableBlock variableBlock =
                 new VariableBlock();
 
-            System.Globalization.CultureInfo CultureInfo =
-                new System.Globalization.CultureInfo(xPathIter.Current.GetAttribute("cultureinfo", xPathIter.Current.NamespaceURI));
+            System.Globalization.CultureInfo cultureInfo =
+                new System.Globalization.CultureInfo(xPathIter.Current?.GetAttribute("cultureinfo", xPathIter.Current.NamespaceURI));
 
-            if (xPathIter.Current.MoveToFirstChild())
+            if (xPathIter.Current == null || !xPathIter.Current.MoveToFirstChild()) return variableBlock;
+            
+            XPathNodeIterator xPathIterV = xPathIter.Clone();
+
+            if (xPathIterV.Current == null || !xPathIterV.Current.MoveToFirstChild()) return variableBlock;
+            
+            do
             {
-                XPathNodeIterator xPathIter_V = xPathIter.Clone();
-
-                if (xPathIter_V.Current.MoveToFirstChild())
-                {
-                    do
-                    {
-                        variableBlock.Add(
-                            xPathIter_V.Current.GetAttribute("key", xPathIter_V.Current.NamespaceURI),
-                            Convert.ChangeType(
-                                xPathIter_V.Current.Value.ToString(CultureInfo),
-                                Service.LoadTypeFromDomain(
-                                    AppDomain.CurrentDomain,
-                                    xPathIter_V.Current.GetAttribute("type", xPathIter_V.Current.NamespaceURI)
-                                )
-                            )
-                        );
-                    } while (xPathIter_V.Current.MoveToNext());
-                }
-            }
+                variableBlock.Add(
+                    xPathIterV.Current.GetAttribute("key", xPathIterV.Current.NamespaceURI),
+                    Convert.ChangeType(
+                        xPathIterV.Current.Value.ToString(cultureInfo),
+                        Service.LoadTypeFromDomain(
+                            AppDomain.CurrentDomain,
+                            xPathIterV.Current.GetAttribute("type", xPathIterV.Current.NamespaceURI)
+                        )
+                    )
+                );
+            } while (xPathIterV.Current.MoveToNext());
 
             return variableBlock;
         }
@@ -359,11 +347,11 @@ namespace Xeora.Web.Basics.X
         {
             do
             {
-                if (object.ReferenceEquals(type, searchType))
+                if (ReferenceEquals(type, searchType))
                     return true;
 
                 type = type.BaseType;
-            } while (type != null && !object.ReferenceEquals(type, typeof(object)));
+            } while (type != null && !ReferenceEquals(type, typeof(object)));
 
             return false;
         }
@@ -375,11 +363,11 @@ namespace Xeora.Web.Basics.X
             if (typeResult != null)
                 return typeResult;
 
-            Assembly[] assms = appDomain.GetAssemblies();
+            Assembly[] assemblies = appDomain.GetAssemblies();
 
-            foreach (Assembly assm in assms)
+            foreach (Assembly assembly in assemblies)
             {
-                typeResult = assm.GetType(searchType);
+                typeResult = assembly.GetType(searchType);
 
                 if (typeResult != null)
                     return typeResult;
@@ -398,7 +386,7 @@ namespace Xeora.Web.Basics.X
                 if (@object == null)
                     return null;
 
-                System.Runtime.Serialization.Formatters.Binary.BinaryFormatter binaryFormater =
+                System.Runtime.Serialization.Formatters.Binary.BinaryFormatter binaryFormatter =
                     new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
                     {
                         Binder = new OverrideBinder()
@@ -409,7 +397,7 @@ namespace Xeora.Web.Basics.X
                 {
                     serializationStream = new MemoryStream();
 
-                    binaryFormater.Serialize(serializationStream, @object);
+                    binaryFormatter.Serialize(serializationStream, @object);
 
                     byte[] result = new byte[serializationStream.Position];
 
@@ -433,7 +421,7 @@ namespace Xeora.Web.Basics.X
 
             public static object Deserialize(byte[] serializedBytes)
             {
-                System.Runtime.Serialization.Formatters.Binary.BinaryFormatter binaryFormater =
+                System.Runtime.Serialization.Formatters.Binary.BinaryFormatter binaryFormatter =
                     new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
                     {
                         Binder = new OverrideBinder()
@@ -444,7 +432,7 @@ namespace Xeora.Web.Basics.X
                 {
                     serializationStream = new MemoryStream(serializedBytes);
 
-                    return binaryFormater.Deserialize(serializationStream);
+                    return binaryFormatter.Deserialize(serializationStream);
                 }
                 catch (Exception)
                 {

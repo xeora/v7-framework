@@ -3,6 +3,6 @@
     public interface ILinkButton : IBase, IUpdates, IHasAttributes
     {
         string Text { get; }
-        string URL { get; }
+        string Url { get; }
     }
 }

@@ -6,6 +6,6 @@ namespace Xeora.Web.Basics.Domain
     {
         IConfigurations Configurations { get; }
         IServices Services { get; }
-        IURL Mappings { get; }
+        IUrl Mappings { get; }
     }
 }

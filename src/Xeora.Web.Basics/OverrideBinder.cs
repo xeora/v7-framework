@@ -8,14 +8,14 @@ namespace Xeora.Web.Basics
 {
     internal class OverrideBinder : SerializationBinder
     {
-        private static ConcurrentDictionary<string, Assembly> _AssemblyCache = 
+        private static readonly ConcurrentDictionary<string, Assembly> AssemblyCache = 
             new ConcurrentDictionary<string, Assembly>();
 
         public override Type BindToType(string assemblyName, string typeName)
         {
             string sShortAssemblyName = assemblyName.Substring(0, assemblyName.IndexOf(','));
 
-            if (OverrideBinder._AssemblyCache.TryGetValue(sShortAssemblyName, out Assembly assembly))
+            if (OverrideBinder.AssemblyCache.TryGetValue(sShortAssemblyName, out Assembly assembly))
                 return this.GetDeserializeType(assembly, typeName);
 
             Assembly[] ayAssemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -24,7 +24,7 @@ namespace Xeora.Web.Basics
             {
                 if (sShortAssemblyName == ayAssembly.FullName.Substring(0, assemblyName.IndexOf(',')))
                 {
-                    OverrideBinder._AssemblyCache.TryAdd(sShortAssemblyName, ayAssembly);
+                    OverrideBinder.AssemblyCache.TryAdd(sShortAssemblyName, ayAssembly);
 
                     return this.GetDeserializeType(ayAssembly, typeName);
                 }
@@ -35,41 +35,39 @@ namespace Xeora.Web.Basics
 
         private Type GetDeserializeType(Assembly assembly, string typeName)
         {
-            string[] remainAssemblyNames = null;
-            string typeName_L = this.GetTypeFullNames(typeName, ref remainAssemblyNames);
+            string typeNameL = 
+                this.GetTypeFullNames(typeName, out string[] remainAssemblyNames);
 
-            Type tempType = assembly.GetType(typeName_L);
+            Type tempType = assembly.GetType(typeNameL);
 
-            if (tempType != null && tempType.IsGenericType)
+            if (tempType == null || !tempType.IsGenericType) return tempType;
+            
+            List<Type> typeParameters = new List<Type>();
+
+            foreach (string remainAssemblyName in remainAssemblyNames)
             {
-                List<Type> typeParameters = new List<Type>();
+                int eBI = remainAssemblyName.LastIndexOf(']');
+                string qAssemblyName, qTypeName;
 
-                foreach (string remainAssemblyName in remainAssemblyNames)
+                if (eBI == -1)
                 {
-                    int eBI = remainAssemblyName.LastIndexOf(']');
-                    string qAssemblyName, qTypeName;
-
-                    if (eBI == -1)
-                    {
-                        qTypeName = remainAssemblyName.Split(',')[0];
-                        qAssemblyName = remainAssemblyName.Substring(qTypeName.Length + 2);
-                    }
-                    else
-                    {
-                        qTypeName = remainAssemblyName.Substring(0, eBI + 1);
-                        qAssemblyName = remainAssemblyName.Substring(eBI + 3);
-                    }
-
-                    typeParameters.Add(this.BindToType(qAssemblyName, qTypeName));
+                    qTypeName = remainAssemblyName.Split(',')[0];
+                    qAssemblyName = remainAssemblyName.Substring(qTypeName.Length + 2);
+                }
+                else
+                {
+                    qTypeName = remainAssemblyName.Substring(0, eBI + 1);
+                    qAssemblyName = remainAssemblyName.Substring(eBI + 3);
                 }
 
-                return tempType.MakeGenericType(typeParameters.ToArray());
+                typeParameters.Add(this.BindToType(qAssemblyName, qTypeName));
             }
 
-            return tempType;
+            return tempType.MakeGenericType(typeParameters.ToArray());
+
         }
 
-        private string GetTypeFullNames(string typeName, ref string[] remainAssemblyNames)
+        private string GetTypeFullNames(string typeName, out string[] remainAssemblyNames)
         {
             int bI = typeName.IndexOf('[', 0);
 
@@ -80,40 +78,38 @@ namespace Xeora.Web.Basics
                 return typeName;
             }
 
-            List<string> fullNameList_L = new List<string>();
+            List<string> fullNameListL = new List<string>();
             string remainFullName = typeName.Substring(bI + 1, typeName.Length - (bI + 1) - 1);
 
-            int eI = 0, bIc = 0;
             bI = 0;
             do
             {
                 bI = remainFullName.IndexOf('[', bI);
 
-                if (bI > -1)
+                if (bI <= -1) continue;
+                
+                int eI = remainFullName.IndexOf(']', bI + 1);
+                int bIc = remainFullName.IndexOf('[', bI + 1);
+
+                if (bIc > -1 && bIc < eI)
                 {
-                    eI = remainFullName.IndexOf(']', bI + 1);
-                    bIc = remainFullName.IndexOf('[', bI + 1);
-
-                    if (bIc > -1 && bIc < eI)
+                    while (bIc > -1 && bIc < eI)
                     {
-                        while (bIc > -1 && bIc < eI)
-                        {
-                            bIc = remainFullName.IndexOf('[', bIc + 1);
+                        bIc = remainFullName.IndexOf('[', bIc + 1);
 
-                            if (bIc > -1 && bIc < eI)
-                                eI = remainFullName.IndexOf(']', eI + 1);
-                        }
-
-                        eI = remainFullName.IndexOf(']', eI + 1);
+                        if (bIc > -1 && bIc < eI)
+                            eI = remainFullName.IndexOf(']', eI + 1);
                     }
 
-                    fullNameList_L.Add(remainFullName.Substring(bI + 1, eI - (bI + 1)));
-
-                    bI = eI + 1;
+                    eI = remainFullName.IndexOf(']', eI + 1);
                 }
+
+                fullNameListL.Add(remainFullName.Substring(bI + 1, eI - (bI + 1)));
+
+                bI = eI + 1;
             } while (bI != -1);
 
-            remainAssemblyNames = fullNameList_L.ToArray();
+            remainAssemblyNames = fullNameListL.ToArray();
 
             return typeName.Substring(0, bI);
         }

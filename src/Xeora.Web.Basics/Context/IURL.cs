@@ -1,6 +1,6 @@
 ﻿namespace Xeora.Web.Basics.Context
 {
-    public interface IURL
+    public interface IUrl
     {
         string Raw { get; }
         string Relative { get; }

@@ -25,17 +25,11 @@ namespace Xeora.Web.Basics.ControlResult
             this._DbCommand = dbCommand;
         }
 
-        public DataSourceTypes Type { get; private set; }
+        public DataSourceTypes Type { get; }
         public Message Message { get; set; }
         public long Count => 0;
         public long Total { get; set; }
 
-        public object GetResult()
-        {
-            if (this._DbCommand == null)
-                return null;
-
-            return this._DbCommand;
-        }
+        public object GetResult() => _DbCommand;
     }
 }

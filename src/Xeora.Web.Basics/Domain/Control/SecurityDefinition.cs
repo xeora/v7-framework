@@ -18,16 +18,15 @@ namespace Xeora.Web.Basics.Domain.Control
 
         public bool Set
         {
-            get { return this._Set; }
+            get => this._Set;
             set
             {
                 this._Set = value;
 
-                if (this._Set)
-                {
-                    if (string.IsNullOrEmpty(this._FriendlyName))
-                        this._FriendlyName = "Unknown";
-                }
+                if (!this._Set) return;
+                
+                if (string.IsNullOrEmpty(this._FriendlyName))
+                    this._FriendlyName = "Unknown";
             }
         }
 
@@ -35,7 +34,7 @@ namespace Xeora.Web.Basics.Domain.Control
 
         public string FriendlyName
         {
-            get { return this._FriendlyName; }
+            get => this._FriendlyName;
             set
             {
                 this._FriendlyName = value;

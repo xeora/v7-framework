@@ -6,7 +6,7 @@ namespace Xeora.Web.Basics.Domain.Info
     {
         private readonly Dictionary<string, int> _NameIndexMap;
 
-        public DomainCollection() : base() =>
+        public DomainCollection() =>
             this._NameIndexMap = new Dictionary<string, int>();
 
         public new void Add(Domain value)
@@ -16,22 +16,20 @@ namespace Xeora.Web.Basics.Domain.Info
             this._NameIndexMap.Add(value.Id, base.Count - 1);
         }
 
-        public void Remove(string Id)
+        public void Remove(string id)
         {
-            if (this._NameIndexMap.ContainsKey(Id))
+            if (!this._NameIndexMap.ContainsKey(id)) return;
+            
+            base.RemoveAt(this._NameIndexMap[id]);
+
+            this._NameIndexMap.Clear();
+
+            // Rebuild, NameIndexMap
+            int index = 0;
+            foreach (Domain item in this)
             {
-                base.RemoveAt(this._NameIndexMap[Id]);
-
-                this._NameIndexMap.Clear();
-
-                // Rebuild, NameIndexMap
-                int Index = 0;
-                foreach (Domain item in this)
-                {
-                    this._NameIndexMap.Add(item.Id, Index);
-
-                    Index += 1;
-                }
+                this._NameIndexMap.Add(item.Id, index);
+                index += 1;
             }
         }
 
@@ -40,13 +38,7 @@ namespace Xeora.Web.Basics.Domain.Info
 
         public new Domain this[int index]
         {
-            get
-            {
-                if (index < this.Count)
-                    return base[index];
-
-                return null;
-            }
+            get => index < this.Count ? base[index] : null;
             set
             {
                 this.Remove(value.Id);
@@ -54,15 +46,9 @@ namespace Xeora.Web.Basics.Domain.Info
             }
         }
 
-        public Domain this[string Id]
+        public Domain this[string id]
         {
-            get
-            {
-                if (this._NameIndexMap.ContainsKey(Id))
-                    return base[this._NameIndexMap[Id]];
-
-                return null;
-            }
+            get => this._NameIndexMap.ContainsKey(id) ? base[this._NameIndexMap[id]] : null;
             set
             {
                 this.Remove(value.Id);

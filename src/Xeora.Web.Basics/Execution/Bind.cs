@@ -18,25 +18,25 @@ namespace Xeora.Web.Basics.Execution
         /// Gets the name of the xeora executable
         /// </summary>
         /// <value>The name of the xeora executable</value>
-        public string Executable { get; private set; }
+        public string Executable { get; }
 
         /// <summary>
         /// Gets the class tree from top to bottom
         /// </summary>
         /// <value>The class tree</value>
-        public string[] Classes { get; private set; }
+        public string[] Classes { get; }
 
         /// <summary>
         /// Gets the name of the procedure
         /// </summary>
         /// <value>The name of the procedure</value>
-        public string Procedure { get; private set; }
+        public string Procedure { get; }
 
         /// <summary>
         /// Gets the procedure parameters
         /// </summary>
         /// <value>The procedure parameters</value>
-        public ProcedureParameterCollection Parameters { get; private set; }
+        public ProcedureParameterCollection Parameters { get; }
 
         /// <summary>
         /// Gets a value indicating whether this <see cref="T:Xeora.Web.Basics.Execution.Bind"/> is ready
@@ -101,9 +101,9 @@ namespace Xeora.Web.Basics.Execution
                 string.Format("{0}?{1}{2}{3}{4}",
                     this.Executable,
                     string.Join(".", this.Classes),
-                    (this.Classes == null ? string.Empty : "."),
+                    this.Classes == null ? string.Empty : ".",
                     this.Procedure,
-                    this.Parameters.ToString()
+                    this.Parameters
                 );
         }
 

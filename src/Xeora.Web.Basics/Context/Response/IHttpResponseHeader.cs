@@ -1,4 +1,4 @@
-﻿namespace Xeora.Web.Basics.Context
+﻿namespace Xeora.Web.Basics.Context.Response
 {
     public interface IHttpResponseHeader : IKeyValueCollection<string, string>
     {

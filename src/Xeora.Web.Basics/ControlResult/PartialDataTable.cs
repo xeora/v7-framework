@@ -20,7 +20,7 @@ namespace Xeora.Web.Basics.ControlResult
             this.Replace(source);
         }
 
-        public DataSourceTypes Type { get; private set; }
+        public DataSourceTypes Type { get; }
         public Message Message { get; set; }
         public long Count => this.Rows.Count;
 
@@ -36,8 +36,7 @@ namespace Xeora.Web.Basics.ControlResult
             set => this._Total = value; 
         }
 
-        public object GetResult() =>
-            this;
+        public object GetResult() => this;
 
         public void Replace(DataTable source)
         {

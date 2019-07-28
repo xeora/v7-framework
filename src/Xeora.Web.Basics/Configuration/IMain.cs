@@ -11,8 +11,8 @@
         bool Debugging { get; }
         bool Compression { get; }
         bool PrintAnalytics { get; }
-        bool LogHTTPExceptions { get; }
-        bool UseHTML5Header { get; }
+        bool LogHttpExceptions { get; }
+        bool UseHtml5Header { get; }
         long Bandwidth { get; }
         string LoggingPath { get; }
     }

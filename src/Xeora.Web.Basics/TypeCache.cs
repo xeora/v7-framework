@@ -7,13 +7,13 @@ namespace Xeora.Web.Basics
 {
     internal class TypeCache
     {
-        private static object _Lock = new object();
+        private static readonly object Lock = new object();
         private static TypeCache _Current;
         public static TypeCache Current
         {
             get
             {
-                Monitor.Enter(TypeCache._Lock);
+                Monitor.Enter(TypeCache.Lock);
                 try
                 {
                     if (TypeCache._Current == null)
@@ -21,14 +21,14 @@ namespace Xeora.Web.Basics
                 }
                 finally
                 {
-                    Monitor.Exit(TypeCache._Lock);
+                    Monitor.Exit(TypeCache.Lock);
                 }
 
                 return TypeCache._Current;
             }
         }
 
-        private ConcurrentDictionary<string, Assembly> _LoadedAssemblies =
+        private readonly ConcurrentDictionary<string, Assembly> _LoadedAssemblies =
             new ConcurrentDictionary<string, Assembly>();
         private Assembly GetAssembly(string assemblyId)
         {
@@ -41,7 +41,7 @@ namespace Xeora.Web.Basics
             return rAssembly;
         }
 
-        private Type _RemoteInvokeType = null;
+        private Type _RemoteInvokeType;
         public Type RemoteInvoke
         {
             get
@@ -49,14 +49,16 @@ namespace Xeora.Web.Basics
                 if (this._RemoteInvokeType != null)
                     return this._RemoteInvokeType;
 
-                Assembly LoadedAssembly = this.GetAssembly("Xeora.Web.Handler");
-                this._RemoteInvokeType = LoadedAssembly.GetType("Xeora.Web.Handler.RemoteInvoke", false, true);
+                Assembly loadedAssembly = 
+                    this.GetAssembly("Xeora.Web.Handler");
+                this._RemoteInvokeType = 
+                    loadedAssembly.GetType("Xeora.Web.Handler.RemoteInvoke", false, true);
 
                 return this._RemoteInvokeType;
             }
         }
 
-        private Type _DomainType = null;
+        private Type _DomainType;
         public Type Domain
         {
             get
@@ -64,29 +66,34 @@ namespace Xeora.Web.Basics
                 if (this._DomainType != null)
                     return this._DomainType;
 
-                Assembly LoadedAssembly = this.GetAssembly("Xeora.Web");
-                this._DomainType = LoadedAssembly.GetType("Xeora.Web.Site.Domain", false, true);
+                Assembly loadedAssembly = 
+                    this.GetAssembly("Xeora.Web");
+                this._DomainType = 
+                    loadedAssembly.GetType("Xeora.Web.Application.Domain.Domain", false, true);
 
                 return this._DomainType;
             }
         }
 
-        private Type _RenderEngineType = null;
-        public Type RenderEngine
+        // TODO: RenderEngine should be fixed
+        private Type _ParseType;
+        public Type Parser
         {
             get
             {
-                if (this._RenderEngineType != null)
-                    return this._RenderEngineType;
+                if (this._ParseType != null)
+                    return this._ParseType;
 
-                Assembly LoadedAssembly = this.GetAssembly("Xeora.Web");
-                this._RenderEngineType = LoadedAssembly.GetType("Xeora.Web.Site.RenderEngine", false, true);
+                Assembly loadedAssembly = 
+                    this.GetAssembly("Xeora.Web");
+                this._ParseType = 
+                    loadedAssembly.GetType("Xeora.Web.Application.Domain.Parser", false, true);
 
-                return this._RenderEngineType;
+                return this._ParseType;
             }
         }
 
-        private Type _StatusTracker = null;
+        private Type _StatusTracker;
         public Type StatusTracker
         {
             get
@@ -94,8 +101,10 @@ namespace Xeora.Web.Basics
                 if (this._StatusTracker != null)
                     return this._StatusTracker;
 
-                Assembly LoadedAssembly = this.GetAssembly("Xeora.Web.Service");
-                this._StatusTracker = LoadedAssembly.GetType("Xeora.Web.Service.StatusTracker", false, true);
+                Assembly loadedAssembly = 
+                    this.GetAssembly("Xeora.Web.Service");
+                this._StatusTracker = 
+                    loadedAssembly.GetType("Xeora.Web.Service.StatusTracker", false, true);
 
                 return this._StatusTracker;
             }

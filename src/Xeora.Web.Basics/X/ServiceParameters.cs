@@ -12,30 +12,32 @@ namespace Xeora.Web.Basics.X
 
         public string PublicKey { get; set; }
 
-        public void ParseXML(string serviceParametersXML)
+        public void ParseXml(string serviceParametersXml)
         {
             this.Clear();
 
-            if (string.IsNullOrEmpty(serviceParametersXML))
+            if (string.IsNullOrEmpty(serviceParametersXml))
                 return;
 
             StringReader xPathTextReader = null;
             try
             {
-                xPathTextReader = new StringReader(serviceParametersXML);
+                xPathTextReader = new StringReader(serviceParametersXml);
                 XPathDocument xPathDoc = new XPathDocument(xPathTextReader);
 
                 XPathNavigator xPathNavigator = xPathDoc.CreateNavigator();
                 XPathNodeIterator xPathIter =
                     xPathNavigator.Select("/ServiceParameters/Item");
 
-                string key = null, value = null;
                 while (xPathIter.MoveNext())
                 {
-                    key = xPathIter.Current.GetAttribute("key", xPathIter.Current.NamespaceURI);
-                    value = xPathIter.Current.Value;
+                    string key = 
+                        xPathIter.Current?.GetAttribute("key", xPathIter.Current.NamespaceURI);
+                    if (string.IsNullOrEmpty(key)) continue;
+                    
+                    string value = xPathIter.Current?.Value;
 
-                    if (string.Compare(key, "PublicKey") == 0)
+                    if (string.CompareOrdinal(key, "PublicKey") == 0)
                     {
                         this.PublicKey = value;
 
@@ -55,7 +57,7 @@ namespace Xeora.Web.Basics.X
             }
         }
 
-        public string ToXML()
+        public string ToXml()
         {
             StringWriter xmlStream = null;
             System.Xml.XmlTextWriter xmlWriter = null;
@@ -76,12 +78,19 @@ namespace Xeora.Web.Basics.X
                 }
 
                 Enumerator enumerator = this.GetEnumerator();
-                while (enumerator.MoveNext())
+                try
                 {
-                    xmlWriter.WriteStartElement("Item");
-                    xmlWriter.WriteAttributeString("key", enumerator.Current.Key);
-                    xmlWriter.WriteCData(enumerator.Current.Value);
-                    xmlWriter.WriteEndElement();
+                    while (enumerator.MoveNext())
+                    {
+                        xmlWriter.WriteStartElement("Item");
+                        xmlWriter.WriteAttributeString("key", enumerator.Current.Key);
+                        xmlWriter.WriteCData(enumerator.Current.Value);
+                        xmlWriter.WriteEndElement();
+                    }
+                }
+                finally 
+                {
+                    enumerator.Dispose();
                 }
 
                 // End Document Element
@@ -96,11 +105,8 @@ namespace Xeora.Web.Basics.X
             }
             finally
             {
-                if (xmlWriter != null)
-                    xmlWriter.Close();
-
-                if (xmlStream != null)
-                    xmlStream.Close();
+                xmlWriter?.Close();
+                xmlStream?.Close();
             }
         }
     }

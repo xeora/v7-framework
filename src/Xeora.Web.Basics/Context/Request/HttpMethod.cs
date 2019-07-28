@@ -1,4 +1,4 @@
-﻿namespace Xeora.Web.Basics.Context
+﻿namespace Xeora.Web.Basics.Context.Request
 {
     public enum HttpMethod
     {

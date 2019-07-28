@@ -50,13 +50,13 @@ namespace Xeora.Web.Basics.Execution
         /// Gets the key of the parameter with operator
         /// </summary>
         /// <value>Parameter query</value>
-        public string Query { get; private set; }
+        public string Query { get; }
 
         /// <summary>
         /// Gets the key of the parameter without operator
         /// </summary>
         /// <value>Parameter key</value>
-        public string Key { get; private set; }
+        public string Key { get; }
 
         /// <summary>
         /// Gets or sets the value of the parameter

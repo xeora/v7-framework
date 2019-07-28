@@ -2,8 +2,8 @@
 {
     public interface IServiceItemCollection
     {
-        IServiceItem GetServiceItem(string Id);
-        IServiceItemCollection GetServiceItems(ServiceTypes ServiceType);
+        IServiceItem GetServiceItem(string id);
+        IServiceItemCollection GetServiceItems(ServiceTypes serviceType);
         string[] GetAuthenticationKeys();
     }
 }

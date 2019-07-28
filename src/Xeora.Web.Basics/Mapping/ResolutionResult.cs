@@ -11,21 +11,21 @@
         }
 
         /// <summary>
-        /// Gets a value indicating whether this URL Mapping is resolved
+        /// Gets a value indicating whether this Url Mapping is resolved
         /// </summary>
         /// <value><c>true</c> if is resolved; otherwise, <c>false</c></value>
-        public bool Resolved { get; private set; }
+        public bool Resolved { get; }
 
         /// <summary>
         /// Gets the Xeora service definition
         /// </summary>
         /// <value>The service definition</value>
-        public ServiceDefinition ServiceDefinition { get; private set; }
+        public ServiceDefinition ServiceDefinition { get; }
 
         /// <summary>
-        /// Gets the URL Query string dictionary
+        /// Gets the Url Query string dictionary
         /// </summary>
-        /// <value>The URL Query string dictionary</value>
-        public QueryStringDictionary QueryString { get; private set; }
+        /// <value>The Url Query string dictionary</value>
+        public QueryStringDictionary QueryString { get; }
     }
 }

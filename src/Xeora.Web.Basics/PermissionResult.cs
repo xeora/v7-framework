@@ -17,6 +17,6 @@ namespace Xeora.Web.Basics
         public PermissionResult(bool allowed) =>
             this.Result = allowed ? Results.Allowed : Results.Forbidden;
 
-        public Results Result { get; private set; }
+        public Results Result { get; }
     }
 }

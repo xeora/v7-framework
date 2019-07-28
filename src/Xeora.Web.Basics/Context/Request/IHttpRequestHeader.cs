@@ -1,11 +1,11 @@
 ﻿using System.Text;
 
-namespace Xeora.Web.Basics.Context
+namespace Xeora.Web.Basics.Context.Request
 {
     public interface IHttpRequestHeader : IKeyValueCollection<string, string>
     {
         HttpMethod Method { get; }
-        IURL URL { get; }
+        IUrl Url { get; }
         string Protocol { get; }
 
         string Host { get; }

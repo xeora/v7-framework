@@ -27,17 +27,15 @@ namespace Xeora.Web.Configuration
 
                 int colonIndex = this._ServiceEndPoint.IndexOf(':');
                 if (colonIndex == -1)
-                    this._ServiceEndPoint = string.Format("{0}:5531", this._ServiceEndPoint);
-
-                IPAddress serviceIP;
-                if (!IPAddress.TryParse(this._ServiceEndPoint.Split(':')[0], out serviceIP))
-                    serviceIP = IPAddress.Parse("127.0.0.1");
-
-                int servicePort;
-                if (!int.TryParse(this._ServiceEndPoint.Split(':')[1], out servicePort))
+                    this._ServiceEndPoint = $"{this._ServiceEndPoint}:5531";
+                
+                if (!IPAddress.TryParse(this._ServiceEndPoint.Split(':')[0], out IPAddress serviceIp))
+                    serviceIp = IPAddress.Parse("127.0.0.1");
+                
+                if (!int.TryParse(this._ServiceEndPoint.Split(':')[1], out int servicePort))
                     servicePort = 5531;
                 
-                return new IPEndPoint(serviceIP, servicePort);
+                return new IPEndPoint(serviceIp, servicePort);
             }
         }
     }

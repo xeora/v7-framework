@@ -2,12 +2,12 @@
 
 namespace Xeora.Web.Basics.Mapping
 {
-    public class URL
+    public class Url
     {
-        private static ConcurrentDictionary<string[], URL> _Mappings =
-            new ConcurrentDictionary<string[], URL>();
+        private static readonly ConcurrentDictionary<string[], Url> Mappings =
+            new ConcurrentDictionary<string[], Url>();
 
-        private URL(bool active, string resolverExecutable, MappingItem[] items)
+        private Url(bool active, string resolverExecutable, MappingItem[] items)
         {
             this.Active = active;
             this.ResolverExecutable = resolverExecutable;
@@ -15,7 +15,7 @@ namespace Xeora.Web.Basics.Mapping
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="T:Xeora.Web.Basics.Mapping.URL"/> is active
+        /// Gets or sets a value indicating whether this <see cref="T:Xeora.Web.Basics.Mapping.Url"/> is active
         /// </summary>
         /// <value><c>true</c> if is active; otherwise, <c>false</c></value>
         public bool Active { get; set; }
@@ -30,78 +30,69 @@ namespace Xeora.Web.Basics.Mapping
         /// Gets the query items
         /// </summary>
         /// <value>Query items</value>
-        public MappingItemCollection Items { get; private set; }
+        public MappingItemCollection Items { get; }
 
         /// <summary>
-        /// Gets the current URL Mapping definition instance
+        /// Gets the current Url Mapping definition instance
         /// </summary>
-        /// <value>The current URL Mapping definition instance</value>
-        public static URL Current
+        /// <value>The current Url Mapping definition instance</value>
+        public static Url Current
         {
             get
             {
-                URL urlInstance = null;
-                if (!URL._Mappings.TryGetValue(Helpers.CurrentDomainInstance.IdAccessTree, out urlInstance))
-                {
-                    urlInstance =
-                        new URL(
-                            Helpers.CurrentDomainInstance.Settings.Mappings.Active,
-                            Helpers.CurrentDomainInstance.Settings.Mappings.ResolverExecutable,
-                            Helpers.CurrentDomainInstance.Settings.Mappings.Items.ToArray()
-                        );
+                if (Url.Mappings.TryGetValue(Helpers.CurrentDomainInstance.IdAccessTree, out var urlInstance))
+                    return urlInstance;
+                
+                urlInstance =
+                    new Url(
+                        Helpers.CurrentDomainInstance.Settings.Mappings.Active,
+                        Helpers.CurrentDomainInstance.Settings.Mappings.ResolverExecutable,
+                        Helpers.CurrentDomainInstance.Settings.Mappings.Items.ToArray()
+                    );
 
-                    if (!URL._Mappings.TryAdd(Helpers.CurrentDomainInstance.IdAccessTree, urlInstance))
-                        return URL.Current;
-                }
-
-                return urlInstance;
+                return !Url.Mappings.TryAdd(Helpers.CurrentDomainInstance.IdAccessTree, urlInstance) 
+                        ? Url.Current 
+                        : urlInstance;
             }
         }
 
         /// <summary>
-        /// Resolves the URL according to the URL Mapping definitions
+        /// Resolves the Url according to the Url Mapping definitions
         /// </summary>
-        /// <returns>The URL resolution</returns>
+        /// <returns>The Url resolution</returns>
         /// <param name="requestFilePath">Request file path</param>
-        public ResolutionResult ResolveURL(string requestFilePath)
+        public ResolutionResult ResolveUrl(string requestFilePath)
         {
-            ResolutionResult resolutionResult = null;
+            if (!this.Active) return null;
+            
+            ResolutionResult resolutionResult =
+                Helpers.HandlerInstance.DomainControl.ResolveUrl(requestFilePath);
 
-            if (this.Active)
+            if (resolutionResult != null && resolutionResult.Resolved)
+                return resolutionResult;
+            
+            foreach (MappingItem item in this.Items)
             {
-                resolutionResult =
-                    Helpers.HandlerInstance.DomainControl.ResolveURL(requestFilePath);
+                System.Text.RegularExpressions.Match rqMatch =
+                    System.Text.RegularExpressions.Regex.Match(requestFilePath, item.RequestMap, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
-                if (resolutionResult == null || !resolutionResult.Resolved)
+                if (!rqMatch.Success) continue;
+                
+                resolutionResult = 
+                    new ResolutionResult(true, item.ResolveEntry.ServiceDefinition);
+                
+                foreach (ResolveItem resolveItem in item.ResolveEntry.ResolveItems)
                 {
-                    foreach (MappingItem item in this.Items)
-                    {
-                        System.Text.RegularExpressions.Match rqMatch =
-                            System.Text.RegularExpressions.Regex.Match(requestFilePath, item.RequestMap, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                    string resolveItemValue = string.Empty;
 
-                        if (rqMatch.Success)
-                        {
-                            resolutionResult = new ResolutionResult(true, item.ResolveEntry.ServiceDefinition);
+                    if (!string.IsNullOrEmpty(resolveItem.Id))
+                        resolveItemValue = rqMatch.Groups[resolveItem.Id].Value;
 
-                            string resolveItemValue;
-                            foreach (ResolveItem resolveItem in item.ResolveEntry.ResolveItems)
-                            {
-                                resolveItemValue = string.Empty;
-
-                                if (!string.IsNullOrEmpty(resolveItem.Id))
-                                    resolveItemValue = rqMatch.Groups[resolveItem.Id].Value;
-
-                                resolutionResult.QueryString[resolveItem.QueryStringKey] =
-                                    string.IsNullOrEmpty(resolveItemValue) ? resolveItem.DefaultValue : resolveItemValue;
-                            }
-
-                            break;
-                        }
-                    }
+                    resolutionResult.QueryString[resolveItem.QueryStringKey] =
+                        string.IsNullOrEmpty(resolveItemValue) ? resolveItem.DefaultValue : resolveItemValue;
                 }
 
-                if (resolutionResult == null)
-                    resolutionResult = new ResolutionResult(false, null);
+                break;
             }
 
             return resolutionResult;

@@ -12,12 +12,12 @@
         /// Gets a value indicating whether request is translated
         /// </summary>
         /// <value><c>true</c> if is translated; otherwise, <c>false</c></value>
-        public bool Translated { get; private set; }
+        public bool Translated { get; }
 
         /// <summary>
         /// Gets the Translation result
         /// </summary>
         /// <value>The Translation Result</value>
-        public string Translation { get; private set; }
+        public string Translation { get; }
     }
 }

@@ -38,7 +38,7 @@ namespace Xeora.Web.Basics
         /// </summary>
         /// <param name="requestFilePath">Requested File Path comes right after Application Root</param>
         /// <returns>Return ResolutionResult to proceed</returns>
-        Mapping.ResolutionResult ResolveURL(string requestFilePath);
+        Mapping.ResolutionResult ResolveUrl(string requestFilePath);
 
         /// <summary>
         /// EnsurePermission is called when the part of the code is enclose with EP directive

@@ -17,18 +17,18 @@ namespace Xeora.Web.Basics.X
         /// Gets the context request
         /// </summary>
         /// <value>The context request</value>
-        public Context.IHttpRequest Request { get; private set; }
+        public Context.IHttpRequest Request { get; }
 
         /// <summary>
         /// Gets the context response
         /// </summary>
         /// <value>The context response</value>
-        public Context.IHttpResponse Response { get; private set; }
+        public Context.IHttpResponse Response { get; }
 
         /// <summary>
         /// Gets the parameters defined in Configurations.xml
         /// </summary>
         /// <value>The parameters</value>
-        public SocketParameterCollection Parameters { get; private set; }
+        public SocketParameterCollection Parameters { get; }
     }
 }

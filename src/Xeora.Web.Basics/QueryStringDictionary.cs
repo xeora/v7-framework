@@ -10,7 +10,7 @@ namespace Xeora.Web.Basics
         /// </summary>
         /// <returns>The query string items</returns>
         public static QueryStringDictionary Resolve() =>
-            QueryStringDictionary.Resolve(Helpers.Context.Request.Header.URL.QueryString);
+            QueryStringDictionary.Resolve(Helpers.Context.Request.Header.Url.QueryString);
 
         /// <summary>
         /// Resolves the query string items
@@ -25,14 +25,13 @@ namespace Xeora.Web.Basics
             if (string.IsNullOrEmpty(queryString))
                 return queryStringDictionary;
 
-            string key = null, value = null;
-
             foreach (string queryStringItem in queryString.Split('&'))
             {
                 string[] splittedQueryStringItem = queryStringItem.Split('=');
 
-                key = splittedQueryStringItem[0];
-                value = string.Join("=", splittedQueryStringItem, 1, splittedQueryStringItem.Length - 1);
+                string key = splittedQueryStringItem[0];
+                string value = 
+                    string.Join("=", splittedQueryStringItem, 1, splittedQueryStringItem.Length - 1);
 
                 if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(value))
                     queryStringDictionary[key] = value;
@@ -71,21 +70,28 @@ namespace Xeora.Web.Basics
         /// <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:Xeora.Web.Basics.QueryStringDictionary"/> key values</returns>
         public override string ToString()
         {
-            StringBuilder rSB =
+            StringBuilder sB =
                 new StringBuilder();
 
             IEnumerator<KeyValuePair<string, string>> enumerator =
                 this.GetEnumerator();
 
-            while (enumerator.MoveNext())
+            try
             {
-                if (rSB.Length > 0)
-                    rSB.Append("&");
+                while (enumerator.MoveNext())
+                {
+                    if (sB.Length > 0)
+                        sB.Append("&");
 
-                rSB.AppendFormat("{0}={1}", enumerator.Current.Key, enumerator.Current.Value);
+                    sB.AppendFormat("{0}={1}", enumerator.Current.Key, enumerator.Current.Value);
+                }
+                
+                return sB.ToString();
             }
-
-            return rSB.ToString();
+            finally
+            {
+                enumerator.Dispose();
+            }
         }
     }
 }

@@ -8,15 +8,15 @@ namespace Xeora.Web.Basics
 {
     public class Console
     {
-        private readonly ConcurrentQueue<string> _Messages = null;
-        private readonly ConcurrentDictionary<string, Action<ConsoleKeyInfo>> _KeyListeners = null;
+        private readonly ConcurrentQueue<string> _Messages;
+        private readonly ConcurrentDictionary<string, Action<ConsoleKeyInfo>> _KeyListeners;
 
         private Console()
         {
             this._Messages = new ConcurrentQueue<string>();
             this._KeyListeners = new ConcurrentDictionary<string, Action<ConsoleKeyInfo>>();
 
-            ThreadPool.QueueUserWorkItem((state) => this.StartKeyListener());
+            ThreadPool.QueueUserWorkItem(state => this.StartKeyListener());
         }
 
         private void Queue(string message)
@@ -25,7 +25,7 @@ namespace Xeora.Web.Basics
             this.Flush();
         }
 
-        private bool _Flushing = false;
+        private bool _Flushing;
         private async void Flush()
         {
             if (this._Flushing)
@@ -36,8 +36,7 @@ namespace Xeora.Web.Basics
             {
                 while (!this._Messages.IsEmpty)
                 {
-                    string consoleMessage;
-                    this._Messages.TryDequeue(out consoleMessage);
+                    this._Messages.TryDequeue(out string consoleMessage);
 
                     System.Console.WriteLine(consoleMessage);
                 }
@@ -65,12 +64,19 @@ namespace Xeora.Web.Basics
                 IEnumerator<KeyValuePair<string, Action<ConsoleKeyInfo>>> enumerator =
                     this._KeyListeners.GetEnumerator();
 
-                while (enumerator.MoveNext())
+                try
                 {
-                    Action<ConsoleKeyInfo> action = 
-                        enumerator.Current.Value;
+                    while (enumerator.MoveNext())
+                    {
+                        Action<ConsoleKeyInfo> action = 
+                            enumerator.Current.Value;
 
-                    ThreadPool.QueueUserWorkItem((state) => ((Action<ConsoleKeyInfo>)state).Invoke(keyInfo), action);
+                        ThreadPool.QueueUserWorkItem((state) => ((Action<ConsoleKeyInfo>)state).Invoke(keyInfo), action);
+                    }
+                }
+                finally
+                {
+                    enumerator.Dispose();
                 }
             } while (true);
         }
@@ -82,30 +88,19 @@ namespace Xeora.Web.Basics
 
             string registrationId = Guid.NewGuid().ToString();
 
-            if (!this._KeyListeners.TryAdd(registrationId, callback))
-                return Guid.Empty.ToString();
-
-            return registrationId;
+            return !this._KeyListeners.TryAdd(registrationId, callback) ? Guid.Empty.ToString() : registrationId;
         }
 
-        private bool RemoveKeyListener(string callbackId)
-        {
-            if (string.IsNullOrEmpty(callbackId))
-                return false;
+        private bool RemoveKeyListener(string callbackId) =>
+            !string.IsNullOrEmpty(callbackId) && this._KeyListeners.TryRemove(callbackId, out Action<ConsoleKeyInfo> _);
 
-            if (!this._KeyListeners.TryRemove(callbackId, out Action<ConsoleKeyInfo> value))
-                return false;
-
-            return true;
-        }
-
-        private static object _Lock = new object();
-        private static Console _Current = null;
+        private static readonly object Lock = new object();
+        private static Console _Current;
         private static Console Current
         {
             get
             {
-                Monitor.Enter(Console._Lock);
+                Monitor.Enter(Console.Lock);
                 try
                 {
                     if (Console._Current == null)
@@ -113,7 +108,7 @@ namespace Xeora.Web.Basics
                 }
                 finally
                 {
-                    Monitor.Exit(Console._Lock);
+                    Monitor.Exit(Console.Lock);
                 }
 
                 return Console._Current;
@@ -124,9 +119,10 @@ namespace Xeora.Web.Basics
         /// Push the message to the Xeora framework console
         /// </summary>
         /// <param name="header">Message Title</param>
-        /// <param name="message">Message Content</param>
+        /// <param name="summary">Message Content</param>
+        /// <param name="details">Message Details (MultiLine)</param>
         /// <param name="applyRules">If set to <c>true</c> obey the rules defined in Xeora project settings json</param>
-        /// <param name="immediate">If set to <c>true</c> message will not be queued and print to the console immidiately</param>
+        /// <param name="immediate">If set to <c>true</c> message will not be queued and print to the console immediately</param>
         public static void Push(string header, string summary, string details, bool applyRules, bool immediate = false)
         {
             if (applyRules && !Configurations.Xeora.Service.Print)
@@ -140,12 +136,12 @@ namespace Xeora.Web.Basics
 
             header = header.PadRight(30, ' ');
 
-            string consoleMessage = string.Format("{0} {1} {2}", DateTime.Now.ToString(), header, summary);
+            string consoleMessage = $"{DateTime.Now} {header} {summary}";
             if (!string.IsNullOrEmpty(details))
             {
-                string detailsHeader = "--------------- Details ---------------";
+                const string detailsHeader = "--------------- Details ---------------";
 
-                consoleMessage = string.Format("{0}\n\n{1}\n{2}\n\n", consoleMessage, detailsHeader, details);
+                consoleMessage = $"{consoleMessage}\n\n{detailsHeader}\n{details}\n\n";
             }
 
             if (immediate)

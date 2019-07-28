@@ -21,13 +21,7 @@ namespace Xeora.Web.Basics.ControlResult
 
         public new object this[string key]
         {
-            get
-            {
-                if (base.ContainsKey(key))
-                    return base[key];
-
-                return null;
-            }
+            get => base.ContainsKey(key) ? base[key] : null;
             set => this.Add(key, value);
         }
     }

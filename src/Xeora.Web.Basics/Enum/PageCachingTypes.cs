@@ -10,7 +10,7 @@
         /// <summary>
         /// Caches all content without using cookies
         /// </summary>
-        AllContentCookiless,
+        AllContentCookieless,
 
         /// <summary>
         /// Caches only texts
@@ -20,7 +20,7 @@
         /// <summary>
         /// Caches only texts without using cookies
         /// </summary>
-        TextsOnlyCookiless,
+        TextsOnlyCookieless,
 
         /// <summary>
         /// Caches nothing
@@ -30,6 +30,6 @@
         /// <summary>
         /// Caches nothing and do not use cookies
         /// </summary>
-        NoCacheCookiless
+        NoCacheCookieless
     }
 }

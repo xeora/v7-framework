@@ -8,6 +8,6 @@ namespace Xeora.Web.Basics.ControlResult
         public RedirectOrder(string location) =>
             this.Location = location;
 
-        public string Location { get; private set; }
+        public string Location { get; }
     }
 }

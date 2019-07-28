@@ -8,10 +8,10 @@ namespace Xeora.Web.Basics
         private enum MimeLookups
         {
             Type,
-            Extention
+            Extension
         }
 
-        private static Dictionary<string, string> _ExtensionMap = null;
+        private static Dictionary<string, string> _ExtensionMap;
         private static Dictionary<string, string> MimeMapping
         {
             get
@@ -238,7 +238,7 @@ namespace Xeora.Web.Basics
                         return MimeType.MimeMapping[searchValue];
 
                     return "application/octet-stream";
-                case MimeLookups.Extention:
+                case MimeLookups.Extension:
                     if (string.IsNullOrEmpty(searchValue))
                         return ".dat";
 
@@ -246,7 +246,7 @@ namespace Xeora.Web.Basics
                     {
                         foreach (KeyValuePair<string, string> item in MimeType.MimeMapping)
                         {
-                            if (string.Compare(item.Value, searchValue) == 0)
+                            if (string.CompareOrdinal(item.Value, searchValue) == 0)
                                 return item.Key;
                         }
                     }
@@ -265,7 +265,7 @@ namespace Xeora.Web.Basics
         public static string GetMime(string fileExtension)
         {
             if (!string.IsNullOrEmpty(fileExtension) && !fileExtension.StartsWith("."))
-                fileExtension = string.Format(".{0}", fileExtension);
+                fileExtension = $".{fileExtension}";
 
             return MimeType.ResolveMime(MimeLookups.Type, fileExtension);
         }
@@ -276,6 +276,6 @@ namespace Xeora.Web.Basics
         /// <returns>The file extension</returns>
         /// <param name="mimeType">MIME type</param>
         public static string GetExtension(string mimeType) =>
-            MimeType.ResolveMime(MimeLookups.Extention, mimeType);
+            MimeType.ResolveMime(MimeLookups.Extension, mimeType);
     }
 }

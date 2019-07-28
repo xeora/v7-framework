@@ -6,32 +6,23 @@ namespace Xeora.Web.Basics.X
 {
     public class SocketParameterCollection : IEnumerable
     {
-        private Dictionary<string, object> _Parameters;
+        private readonly Dictionary<string, object> _Parameters;
 
         internal SocketParameterCollection(KeyValuePair<string, object>[] parameters)
         {
             this._Parameters = new Dictionary<string, object>(StringComparer.InvariantCultureIgnoreCase);
 
-            if (parameters != null)
+            if (parameters == null) return;
+            
+            foreach (KeyValuePair<string, object> item in parameters)
             {
-                foreach (KeyValuePair<string, object> item in parameters)
-                {
-                    if (!this._Parameters.ContainsKey(item.Key))
-                        this._Parameters.Add(item.Key, item.Value);
-                }
+                if (!this._Parameters.ContainsKey(item.Key))
+                    this._Parameters.Add(item.Key, item.Value);
             }
         }
 
-        public object this[string key]
-        {
-            get
-            {
-                if (this._Parameters.ContainsKey(key))
-                    return this._Parameters[key];
-
-                return null;
-            }
-        }
+        public object this[string key] => 
+            this._Parameters.ContainsKey(key) ? this._Parameters[key] : null;
 
         public IEnumerator GetEnumerator() =>
             this._Parameters.GetEnumerator();

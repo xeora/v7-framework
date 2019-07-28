@@ -18,6 +18,6 @@ namespace Xeora.Web.Basics.ControlResult
         public Conditional(bool result) =>
             this.Result = result ? Conditions.True : Conditions.False;
 
-        public Conditions Result { get; private set; }
+        public Conditions Result { get; }
     }
 }

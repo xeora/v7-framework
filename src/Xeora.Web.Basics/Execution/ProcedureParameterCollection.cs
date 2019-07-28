@@ -65,8 +65,8 @@ namespace Xeora.Web.Basics.Execution
             if (parameters == null)
                 return;
             
-            for (int pC = 0; pC < parameters.Length; pC++)
-                this._Parameters.Add(new ProcedureParameter(parameters[pC]));
+            foreach (var parameter in parameters)
+                this._Parameters.Add(new ProcedureParameter(parameter));
         }
 
         /// <summary>

@@ -13,12 +13,10 @@ namespace Xeora.Web.Basics.Domain.Control
         public Updates(bool local, string[] blocks)
         {
             this.Local = local;
-            this.Blocks = blocks;
-            if (this.Blocks == null)
-                this.Blocks = new string[] { };
+            this.Blocks = blocks ?? new string[] { };
         }
 
-        public bool Local { get; private set; }
+        public bool Local { get; }
         public string[] Blocks { get; private set; }
 
         public void Setup(string parentBlockId)
@@ -29,15 +27,14 @@ namespace Xeora.Web.Basics.Domain.Control
             if (!this.Local)
                 return;
 
-            if (!string.IsNullOrEmpty(parentBlockId) &&
-                Array.IndexOf<string>(this.Blocks, parentBlockId) == -1)
-            {
-                string[] blocks = new string[this.Blocks.Length + 1];
-                Array.Copy(this.Blocks, blocks, this.Blocks.Length);
-                blocks[blocks.Length - 1] = parentBlockId;
+            if (string.IsNullOrEmpty(parentBlockId) || Array.IndexOf(this.Blocks, parentBlockId) != -1) return;
+            
+            string[] blocks = 
+                new string[this.Blocks.Length + 1];
+            Array.Copy(this.Blocks, blocks, this.Blocks.Length);
+            blocks[blocks.Length - 1] = parentBlockId;
 
-                this.Blocks = blocks;
-            }
+            this.Blocks = blocks;
         }
 
         public Updates Clone() =>

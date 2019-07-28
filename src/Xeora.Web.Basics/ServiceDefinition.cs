@@ -19,21 +19,21 @@ namespace Xeora.Web.Basics
         /// Gets a value indicating whether this <see cref="T:Xeora.Web.Basics.ServiceDefinition"/> is mapped
         /// </summary>
         /// <value><c>true</c> if is mapped; otherwise, <c>false</c></value>
-        public bool Mapped { get; private set; }
+        public bool Mapped { get; }
 
         /// <summary>
         /// Gets the path tree
         /// </summary>
         /// <value>The path tree of service definition</value>
-        public LinkedList<string> PathTree { get; private set; }
+        public LinkedList<string> PathTree { get; }
 
         /// <summary>
         /// Gets the service identifier
         /// </summary>
         /// <value>The service identifier</value>
-        public string ServiceId { get; private set; }
+        public string ServiceId { get; }
 
-        private string _FullPath = null;
+        private string _FullPath;
         /// <summary>
         /// Gets the full path including service identifier
         /// </summary>
@@ -42,18 +42,17 @@ namespace Xeora.Web.Basics
         {
             get
             {
-                if (this._FullPath == null)
-                {
-                    string[] pathTreeArr = new string[this.PathTree.Count];
-                    this.PathTree.CopyTo(pathTreeArr, 0);
+                if (this._FullPath != null) return this._FullPath;
+                
+                string[] pathTreeArr = new string[this.PathTree.Count];
+                this.PathTree.CopyTo(pathTreeArr, 0);
 
-                    this._FullPath = string.Join("/", pathTreeArr);
+                this._FullPath = string.Join("/", pathTreeArr);
 
-                    if (!string.IsNullOrEmpty(this._FullPath))
-                        this._FullPath = string.Concat(this._FullPath, "/");
+                if (!string.IsNullOrEmpty(this._FullPath))
+                    this._FullPath = string.Concat(this._FullPath, "/");
 
-                    this._FullPath = string.Concat(this._FullPath, this.ServiceId);
-                }
+                this._FullPath = string.Concat(this._FullPath, this.ServiceId);
 
                 return this._FullPath;
             }

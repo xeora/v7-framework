@@ -17,7 +17,7 @@
         public bool Overridable { get; set; }
 
         /// <summary>
-        /// Gets or sets the priority of URLMappingItem on URL resolution
+        /// Gets or sets the priority of URLMappingItem on Url resolution
         /// </summary>
         /// <value>The priority</value>
         public int Priority { get; set; }

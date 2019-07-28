@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Xeora.Web.Basics.Domain.Control
@@ -12,12 +13,10 @@ namespace Xeora.Web.Basics.Domain.Control
         {
             foreach (Attribute item in this)
             {
-                if (string.Compare(key, item.Key, true) == 0)
-                {
-                    base.Remove(item);
-
-                    break;
-                }
+                if (string.Compare(key, item.Key, StringComparison.OrdinalIgnoreCase) != 0) continue;
+                
+                base.Remove(item);
+                break;
             }
         }
 
@@ -27,7 +26,7 @@ namespace Xeora.Web.Basics.Domain.Control
             {
                 foreach (Attribute aI in this)
                 {
-                    if (string.Compare(key, aI.Key, true) == 0)
+                    if (string.Compare(key, aI.Key, StringComparison.OrdinalIgnoreCase) == 0)
                         return aI.Value;
                 }
 
@@ -42,7 +41,7 @@ namespace Xeora.Web.Basics.Domain.Control
 
         public new Attribute this[int index]
         {
-            get { return base[index]; }
+            get => base[index];
             set
             {
                 this.RemoveAt(index);
@@ -52,20 +51,20 @@ namespace Xeora.Web.Basics.Domain.Control
 
         public override string ToString()
         {
-            StringBuilder rSB = new StringBuilder();
+            StringBuilder sB = new StringBuilder();
 
             foreach (Attribute aI in this)
             {
                 if (string.Compare(aI.Key, "key", System.StringComparison.InvariantCultureIgnoreCase) != 0)
                 {
                     if (aI.Key == null || aI.Key.Trim().Length == 0)
-                        rSB.AppendFormat(" {0}", aI.Value);
+                        sB.AppendFormat(" {0}", aI.Value);
                     else
-                        rSB.AppendFormat(" {0}=\"{1}\"", aI.Key, aI.Value.Replace("\"", "\\\""));
+                        sB.AppendFormat(" {0}=\"{1}\"", aI.Key, aI.Value.Replace("\"", "\\\""));
                 }
             }
 
-            return rSB.ToString();
+            return sB.ToString();
         }
 
         public AttributeCollection Clone()

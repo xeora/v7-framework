@@ -12,12 +12,12 @@
         /// Gets the content of render
         /// </summary>
         /// <value>Render Content</value>
-        public string Content { get; private set; }
+        public string Content { get; }
 
         /// <summary>
         /// Gets a value indicating whether render content has inline errors
         /// </summary>
         /// <value><c>true</c> if has error(s); otherwise, <c>false</c></value>
-        public bool HasErrors { get; private set; }
+        public bool HasErrors { get; }
     }
 }

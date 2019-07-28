@@ -4,57 +4,55 @@ using System.Collections.Generic;
 using Xeora.Web.Basics.Context;
 using Xeora.Web.Basics.Execution;
 using System.Threading;
+using Xeora.Web.Basics.Context.Request;
 
 namespace Xeora.Web.Basics
 {
     public class Helpers
     {
         /// <summary>
-        /// Creates the Xeora URL with variable pool accessibilities
+        /// Creates the Xeora Url with variable pool accessibility
         /// </summary>
-        /// <returns>Xeora URL</returns>
+        /// <returns>Xeora Url</returns>
         /// <param name="serviceFullPath">Valid Xeora Service Full Path</param>
         /// <param name="queryStrings">Query string definitions (if any)</param>
-        public static string CreateURL(string serviceFullPath, params KeyValuePair<string, string>[] queryStrings) =>
-            Helpers.CreateURL(true, serviceFullPath, queryStrings);
+        public static string CreateUrl(string serviceFullPath, params KeyValuePair<string, string>[] queryStrings) =>
+            Helpers.CreateUrl(true, serviceFullPath, queryStrings);
 
         /// <summary>
-        /// Creates the Xeora URL with variable pool accessibilities
+        /// Creates the Xeora Url with variable pool accessibility
         /// </summary>
-        /// <returns>Xeora URL</returns>
+        /// <returns>Xeora Url</returns>
         /// <param name="serviceFullPath">Valid Xeora Service Full Path</param>
         /// <param name="queryStringDictionary">Query string dictionary</param>
-        public static string CreateURL(string serviceFullPath, QueryStringDictionary queryStringDictionary = null) =>
-            Helpers.CreateURL(true, serviceFullPath, queryStringDictionary);
+        public static string CreateUrl(string serviceFullPath, QueryStringDictionary queryStringDictionary = null) =>
+            Helpers.CreateUrl(true, serviceFullPath, queryStringDictionary);
 
         /// <summary>
-        /// Creates the Xeora URL with variable pool accessibilities
+        /// Creates the Xeora Url with variable pool accessibility
         /// </summary>
-        /// <returns>Xeora URL</returns>
+        /// <returns>Xeora Url</returns>
         /// <param name="useSameVariablePool">If set to <c>true</c> uses same variable pool with the current request</param>
         /// <param name="serviceFullPath">Valid Xeora Service Full Path</param>
         /// <param name="queryStrings">Query string definitions (if any)</param>
-        public static string CreateURL(bool useSameVariablePool, string serviceFullPath, params KeyValuePair<string, string>[] queryStrings) =>
-            Helpers.CreateURL(useSameVariablePool, serviceFullPath, QueryStringDictionary.Make(queryStrings));
+        public static string CreateUrl(bool useSameVariablePool, string serviceFullPath, params KeyValuePair<string, string>[] queryStrings) =>
+            Helpers.CreateUrl(useSameVariablePool, serviceFullPath, QueryStringDictionary.Make(queryStrings));
 
         /// <summary>
-        /// Creates the Xeora URL with variable pool accessibilities
+        /// Creates the Xeora Url with variable pool accessibility
         /// </summary>
-        /// <returns>Xeora URL</returns>
+        /// <returns>Xeora Url</returns>
         /// <param name="useSameVariablePool">If set to <c>true</c> uses same variable pool with the current request</param>
         /// <param name="serviceFullPath">Valid Xeora Service Full Path</param>
         /// <param name="queryStringDictionary">Query string dictionary</param>
-        public static string CreateURL(bool useSameVariablePool, string serviceFullPath, QueryStringDictionary queryStringDictionary = null)
+        public static string CreateUrl(bool useSameVariablePool, string serviceFullPath, QueryStringDictionary queryStringDictionary = null)
         {
-            string rString = null;
-
             string applicationRoot =
                 Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation;
 
-            if (!useSameVariablePool)
-                rString = string.Format("{0}{1}", applicationRoot, serviceFullPath);
-            else
-                rString = string.Format("{0}{1}/{2}", applicationRoot, Helpers.Context.HashCode, serviceFullPath);
+            string rString = !useSameVariablePool 
+                ? $"{applicationRoot}{serviceFullPath}" 
+                : $"{applicationRoot}{Helpers.Context.HashCode}/{serviceFullPath}";
 
             if (queryStringDictionary != null && queryStringDictionary.Count > 0)
                 rString = string.Concat(rString, "?", queryStringDictionary.ToString());
@@ -63,27 +61,26 @@ namespace Xeora.Web.Basics
         }
 
         /// <summary>
-        /// Resolves the service path info from URL
+        /// Resolves the service path info from Url
         /// </summary>
         /// <returns>The service path info</returns>
         /// <param name="requestFilePath">Request file path</param>
-        public static ServiceDefinition ResolveServiceDefinitionFromURL(string requestFilePath)
+        public static ServiceDefinition ResolveServiceDefinitionFromUrl(string requestFilePath)
         {
             if (string.IsNullOrEmpty(requestFilePath))
                 return null;
 
-            Mapping.URL urlInstance = Mapping.URL.Current;
+            Mapping.Url urlInstance = Mapping.Url.Current;
 
             if (urlInstance != null &&
                 urlInstance.Active)
             {
                 Mapping.MappingItem[] mappingItems =
                     urlInstance.Items.ToArray();
-                System.Text.RegularExpressions.Match rqMatch = null;
 
                 foreach (Mapping.MappingItem mapItem in mappingItems)
                 {
-                    rqMatch =
+                    System.Text.RegularExpressions.Match rqMatch = 
                         System.Text.RegularExpressions.Regex.Match(
                             requestFilePath,
                             mapItem.RequestMap,
@@ -104,7 +101,7 @@ namespace Xeora.Web.Basics
                 Helpers.CurrentDomainInstance.ContentsVirtualPath;
 
             // first test if it is domain content path
-            if (requestFilePath.IndexOf(currentDomainContentPath) == 0)
+            if (requestFilePath.IndexOf(currentDomainContentPath, StringComparison.Ordinal) == 0)
             {
                 // This is a DomainContents Request
                 // So no Template and also no default template usage
@@ -116,7 +113,7 @@ namespace Xeora.Web.Basics
             System.Text.RegularExpressions.Match mR =
                 System.Text.RegularExpressions.Regex.Match(
                     requestFilePath,
-                    string.Format("{0}(\\d+/)?", applicationRootPath)
+                    $"{applicationRootPath}(\\d+/)?"
                 );
             if (mR.Success && mR.Index == 0)
                 requestFilePath = requestFilePath.Remove(0, mR.Length);
@@ -146,21 +143,21 @@ namespace Xeora.Web.Basics
         /// <param name="domainIdAccessTree">DomainId Access tree</param>
         /// <param name="domainLanguageId">Domain language identifier</param>
         public static Domain.IDomain CreateNewDomainInstance(string[] domainIdAccessTree, string domainLanguageId) =>
-            (Domain.IDomain)Activator.CreateInstance(TypeCache.Current.Domain, new object[] { domainIdAccessTree, domainLanguageId });
+            (Domain.IDomain)Activator.CreateInstance(TypeCache.Current.Domain, domainIdAccessTree, domainLanguageId);
 
         /// <summary>
         /// Gets the current thread handler identifier
         /// </summary>
         /// <value>The current handler identifier</value>
         public static string CurrentHandlerId =>
-            (string)AppDomain.CurrentDomain.GetData(string.Format("HandlerId_{0}", Thread.CurrentThread.ManagedThreadId));
+            (string)AppDomain.CurrentDomain.GetData($"HandlerId_{Thread.CurrentThread.ManagedThreadId}");
 
         /// <summary>
         /// Assigns the handler identifier for the current thread
         /// </summary>
         /// <param name="handlerId">Handler identifier</param>
         public static void AssignHandlerId(string handlerId) =>
-            AppDomain.CurrentDomain.SetData(string.Format("HandlerId_{0}", Thread.CurrentThread.ManagedThreadId), handlerId);
+            AppDomain.CurrentDomain.SetData($"HandlerId_{Thread.CurrentThread.ManagedThreadId}", handlerId);
 
         internal static IHandler HandlerInstance =>
             (IHandler)TypeCache.Current.RemoteInvoke.InvokeMember("GetHandler", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { Helpers.CurrentHandlerId });
@@ -182,13 +179,13 @@ namespace Xeora.Web.Basics
         }
 
         /// <summary>
-        /// Gets or sets the site favicon URL value
+        /// Gets or sets the site favicon Url value
         /// </summary>
-        /// <value>The value of site favicon URL</value>
-        public static string SiteIconURL
+        /// <value>The value of site favicon Url</value>
+        public static string SiteIconUrl
         {
-            get => Helpers.HandlerInstance.DomainControl.SiteIconURL;
-            set => Helpers.HandlerInstance.DomainControl.SiteIconURL = value;
+            get => Helpers.HandlerInstance.DomainControl.SiteIconUrl;
+            set => Helpers.HandlerInstance.DomainControl.SiteIconUrl = value;
         }
 
         /// <summary>
@@ -204,7 +201,7 @@ namespace Xeora.Web.Basics
         public static Domain.Info.DomainCollection Domains =>
             Helpers.HandlerInstance.DomainControl.GetAvailableDomains();
             
-        private static object _ScheduledTasksLock = new object();
+        private static readonly object ScheduledTasksLock = new object();
         private static Service.IScheduledTaskEngine _ScheduledTasks = null;
         /// <summary>
         /// Gets Task Scheduler Engine
@@ -214,7 +211,7 @@ namespace Xeora.Web.Basics
         {
             get
             {
-                Monitor.Enter(Helpers._ScheduledTasksLock);
+                Monitor.Enter(Helpers.ScheduledTasksLock);
                 try
                 {
                     if (Helpers._ScheduledTasks == null)
@@ -223,14 +220,14 @@ namespace Xeora.Web.Basics
                 }
                 finally
                 {
-                    Monitor.Exit(Helpers._ScheduledTasksLock);
+                    Monitor.Exit(Helpers.ScheduledTasksLock);
                 }
 
                 return Helpers._ScheduledTasks;
             }
         }
 
-        private static object _StatusTrackerLock = new object();
+        private static readonly object StatusTrackerLock = new object();
         private static IStatusTracker _StatusTracker = null;
         /// <summary>
         /// Gets Status Tracker Instance
@@ -240,7 +237,7 @@ namespace Xeora.Web.Basics
         {
             get
             {
-                Monitor.Enter(Helpers._StatusTrackerLock);
+                Monitor.Enter(Helpers.StatusTrackerLock);
                 try
                 {
                     if (Helpers._StatusTracker == null)
@@ -249,7 +246,7 @@ namespace Xeora.Web.Basics
                 }
                 finally
                 {
-                    Monitor.Exit(Helpers._StatusTrackerLock);
+                    Monitor.Exit(Helpers.StatusTrackerLock);
                 }
 
                 return Helpers._StatusTracker;
@@ -281,7 +278,7 @@ namespace Xeora.Web.Basics
         /// <typeparam name="T">Expected result Type</typeparam>
         public static InvokeResult<T> CrossCall<T>(string executable, string[] classes, string procedure, params object[] parameterValues)
         {
-            Assembly webManagerAsm = Assembly.Load("Xeora.Web");
+            Assembly webManagerAsm = Assembly.Load("Xeora.Web.Manager");
             Type assemblyCoreType =
                 webManagerAsm.GetType("Xeora.Web.Manager.AssemblyCore", false, true);
 
@@ -291,14 +288,14 @@ namespace Xeora.Web.Basics
 
             if (parameterValues == null ||
                 parameterValues.Length == 0)
-                bind = Bind.Make(string.Format("{0}?{1}.{2}", executable, string.Join(".", classes), procedure));
+                bind = Bind.Make($"{executable}?{string.Join(".", classes)}.{procedure}");
             else
             {
                 string[] parametersStructure = new string[parameterValues.Length];
 
                 for (int pC = 0; pC < parameterValues.Length; pC++)
                 {
-                    string paramName = string.Format("PARAM{0}", pC);
+                    string paramName = $"PARAM{pC}";
 
                     parametersValueMap[paramName] = parameterValues[pC];
                     parametersStructure[pC] = paramName;
@@ -316,13 +313,15 @@ namespace Xeora.Web.Basics
             }
 
             bind.Parameters.Prepare(
-                (ProcedureParameter param) => parametersValueMap[param.Key] 
+                param => parametersValueMap[param.Key] 
             );
 
             try
             {
                 MethodInfo invokeBindMethod =
-                    assemblyCoreType.GetMethod("InvokeBind", new Type[] { typeof(HttpMethod), typeof(Bind) });
+                    assemblyCoreType.GetMethod("InvokeBind", new [] { typeof(HttpMethod), typeof(Bind) });
+                if (invokeBindMethod == null) throw new ArgumentNullException();
+                
                 invokeBindMethod = invokeBindMethod.MakeGenericMethod(typeof(T));
 
                 return

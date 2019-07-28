@@ -1,4 +1,6 @@
-﻿namespace Xeora.Web.Basics
+﻿using System;
+
+namespace Xeora.Web.Basics
 {
     public class MetaRecord
     {
@@ -94,23 +96,25 @@
             if (string.IsNullOrEmpty(name))
                 name = string.Empty;
 
-            if (name.IndexOf("name::") == 0)
+            if (name.IndexOf("name::", StringComparison.Ordinal) == 0)
             {
                 name = name.Substring(6);
                 return TagSpaces.name;
             }
-            else if (name.IndexOf("httpequiv::") == 0)
+            
+            if (name.IndexOf("httpequiv::", StringComparison.Ordinal) == 0)
             {
                 name = name.Substring(11);
                 return TagSpaces.httpequiv;
             }
-            else if (name.IndexOf("property::") == 0)
+            
+            if (name.IndexOf("property::", StringComparison.Ordinal) == 0)
             {
                 name = name.Substring(10);
                 return TagSpaces.property;
             }
 
-            return default(TagSpaces);
+            return default;
         }
 
         /// <summary>

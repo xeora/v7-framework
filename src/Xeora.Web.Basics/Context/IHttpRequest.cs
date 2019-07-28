@@ -5,10 +5,10 @@ namespace Xeora.Web.Basics.Context
     public interface IHttpRequest
     {
         IPAddress RemoteAddr { get; }
-        IHttpRequestHeader Header { get; }
-        IHttpRequestQueryString QueryString { get; }
-        IHttpRequestBody Body { get; }
+        Request.IHttpRequestHeader Header { get; }
+        Request.IHttpRequestQueryString QueryString { get; }
+        Request.IHttpRequestBody Body { get; }
 
-        void RewritePath(string rawURL);
+        void RewritePath(string rawUrl);
     }
 }

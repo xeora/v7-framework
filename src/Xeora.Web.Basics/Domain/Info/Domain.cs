@@ -14,24 +14,24 @@
         /// Gets the type of the domain deployment
         /// </summary>
         /// <value>The type of the domain deployment</value>
-        public DeploymentTypes DeploymentType { get; private set; }
+        public DeploymentTypes DeploymentType { get; }
 
         /// <summary>
         /// Gets the domain identifier
         /// </summary>
         /// <value>The domain identifier</value>
-        public string Id { get; private set; }
+        public string Id { get; }
 
         /// <summary>
         /// Gets the available languages for the domain
         /// </summary>
         /// <value>The available languages</value>
-        public Language[] Languages { get; private set; }
+        public Language[] Languages { get; }
 
         /// <summary>
         /// Gets the children domains
         /// </summary>
         /// <value>The children domain collection</value>
-        public DomainCollection Children { get; private set; }
+        public DomainCollection Children { get; }
     }
 }
