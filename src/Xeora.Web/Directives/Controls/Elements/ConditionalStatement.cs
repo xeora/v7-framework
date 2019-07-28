@@ -10,11 +10,11 @@ namespace Xeora.Web.Directives.Controls.Elements
         private readonly Control _Parent;
         private readonly ContentDescription _Contents;
         private readonly string[] _Parameters;
-        private readonly Application.Domain.Controls.ConditionalStatement _Settings;
+        private readonly Application.Controls.ConditionalStatement _Settings;
         private DirectiveCollection _Children;
         private bool _Parsed;
 
-        public ConditionalStatement(Control parent, ContentDescription contents, string[] parameters, Application.Domain.Controls.ConditionalStatement settings)
+        public ConditionalStatement(Control parent, ContentDescription contents, string[] parameters, Application.Controls.ConditionalStatement settings)
         {
             this._Parent = parent;
             this._Contents = contents;

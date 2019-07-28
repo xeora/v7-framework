@@ -6,9 +6,9 @@ namespace Xeora.Web.Directives.Controls.Elements
     public class Textarea : IControl
     {
         private readonly Control _Parent;
-        private readonly Application.Domain.Controls.Textarea _Settings;
+        private readonly Application.Controls.Textarea _Settings;
 
-        public Textarea(Control parent, Application.Domain.Controls.Textarea settings)
+        public Textarea(Control parent, Application.Controls.Textarea settings)
         {
             this._Parent = parent;
             this._Settings = settings;

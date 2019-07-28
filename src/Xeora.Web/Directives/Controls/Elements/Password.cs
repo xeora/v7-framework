@@ -7,9 +7,9 @@ namespace Xeora.Web.Directives.Controls.Elements
     public class Password : IControl
     {
         private readonly Control _Parent;
-        private readonly Application.Domain.Controls.Password _Settings;
+        private readonly Application.Controls.Password _Settings;
 
-        public Password(Control parent, Application.Domain.Controls.Password settings)
+        public Password(Control parent, Application.Controls.Password settings)
         {
             this._Parent = parent;
             this._Settings = settings;

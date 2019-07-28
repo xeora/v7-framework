@@ -7,9 +7,9 @@ namespace Xeora.Web.Directives.Controls.Elements
     public class Textbox : IControl
     {
         private readonly Control _Parent;
-        private readonly Application.Domain.Controls.Textbox _Settings;
+        private readonly Application.Controls.Textbox _Settings;
 
-        public Textbox(Control parent, Application.Domain.Controls.Textbox settings)
+        public Textbox(Control parent, Application.Controls.Textbox settings)
         {
             this._Parent = parent;
             this._Settings = settings;

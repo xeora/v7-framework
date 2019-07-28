@@ -66,19 +66,19 @@ namespace Xeora.Web.Deployment
         private void LoadDomain()
         {
             this.Settings =
-                new Application.Domain.Configurations.Settings(this.Deployment.ProvideConfigurationContent());
+                new Application.Configurations.Settings(this.Deployment.ProvideConfigurationContent());
 
             // Setup Languages
             string[] languageIds = this.Deployment.Languages;
             if (languageIds.Length == 0)
                 throw new Exceptions.LanguageFileException();
 
-            this.Languages = new Application.Domain.Configurations.Languages();
+            this.Languages = new Application.Configurations.Languages();
 
             foreach (string languageId in languageIds)
             {
-                ((Application.Domain.Configurations.Languages)this.Languages).Add(
-                    new Application.Domain.Configurations.Language(
+                ((Application.Configurations.Languages)this.Languages).Add(
+                    new Application.Configurations.Language(
                         this.Deployment.ProvideLanguageContent(languageId),
                         string.CompareOrdinal(languageId, this.Settings.Configurations.DefaultLanguage) == 0
                     )
@@ -87,8 +87,8 @@ namespace Xeora.Web.Deployment
             // !---
 
             this.Controls =
-                new Application.Domain.ControlManager(this.Deployment.ProvideControlsContent());
-            this.xService = new Application.Domain.Configurations.xService();
+                new Application.ControlManager(this.Deployment.ProvideControlsContent());
+            this.xService = new Application.Configurations.xService();
 
             // Compile Children Domains
             this._Children =

@@ -184,7 +184,7 @@ namespace Xeora.Web.Directives.Elements
                 childDomainIdAccessTree.Add(childDI.Id);
 
                 IDomain rDomainInstance = 
-                    new Application.Domain.Domain(childDomainIdAccessTree.ToArray(), originalInstance.Languages.Current.Info.Id);
+                    new Application.Domain(childDomainIdAccessTree.ToArray(), originalInstance.Languages.Current.Info.Id);
                 IServiceItem serviceItem =
                     rDomainInstance.Settings.Services.ServiceItems.GetServiceItem(this.DirectiveId);
 

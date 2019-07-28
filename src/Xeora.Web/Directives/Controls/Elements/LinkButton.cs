@@ -7,9 +7,9 @@ namespace Xeora.Web.Directives.Controls.Elements
     public class LinkButton : IControl
     {
         private readonly Control _Parent;
-        private readonly Application.Domain.Controls.LinkButton _Settings;
+        private readonly Application.Controls.LinkButton _Settings;
 
-        public LinkButton(Control parent, Application.Domain.Controls.LinkButton settings)
+        public LinkButton(Control parent, Application.Controls.LinkButton settings)
         {
             this._Parent = parent;
             this._Settings = settings;

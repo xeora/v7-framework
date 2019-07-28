@@ -15,14 +15,14 @@ namespace Xeora.Web.Directives.Controls.Elements
         private readonly Control _Parent;
         private readonly ContentDescription _Contents;
         private readonly string[] _Parameters;
-        private readonly Application.Domain.Controls.DataList _Settings;
+        private readonly Application.Controls.DataList _Settings;
 
         private readonly ConcurrentQueue<Single> _RowQueue;
         private readonly List<Task> _RowRenderTasks;
         private readonly object _RenderedContentLock;
         private readonly StringBuilder _RenderedContent;
 
-        public DataList(Control parent, ContentDescription contents, string[] parameters, Application.Domain.Controls.DataList settings)
+        public DataList(Control parent, ContentDescription contents, string[] parameters, Application.Controls.DataList settings)
         {
             this._Parent = parent;
             this._Contents = contents;

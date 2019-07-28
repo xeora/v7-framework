@@ -7,9 +7,9 @@ namespace Xeora.Web.Directives.Controls.Elements
     public class ImageButton : IControl
     {
         private readonly Control _Parent;
-        private readonly Application.Domain.Controls.ImageButton _Settings;
+        private readonly Application.Controls.ImageButton _Settings;
 
-        public ImageButton(Control parent, Application.Domain.Controls.ImageButton settings)
+        public ImageButton(Control parent, Application.Controls.ImageButton settings)
         {
             this._Parent = parent;
             this._Settings = settings;

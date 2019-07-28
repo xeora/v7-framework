@@ -69,7 +69,7 @@ namespace Xeora.Web.Basics
                 Assembly loadedAssembly = 
                     this.GetAssembly("Xeora.Web");
                 this._DomainType = 
-                    loadedAssembly.GetType("Xeora.Web.Application.Domain.Domain", false, true);
+                    loadedAssembly.GetType("Xeora.Web.Application.Domain", false, true);
 
                 return this._DomainType;
             }
@@ -87,7 +87,7 @@ namespace Xeora.Web.Basics
                 Assembly loadedAssembly = 
                     this.GetAssembly("Xeora.Web");
                 this._ParseType = 
-                    loadedAssembly.GetType("Xeora.Web.Application.Domain.Parser", false, true);
+                    loadedAssembly.GetType("Xeora.Web.Application.Parser", false, true);
 
                 return this._ParseType;
             }

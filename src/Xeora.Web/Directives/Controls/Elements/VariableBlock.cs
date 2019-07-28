@@ -10,11 +10,11 @@ namespace Xeora.Web.Directives.Controls.Elements
         private readonly Control _Parent;
         private readonly ContentDescription _Contents;
         private readonly string[] _Parameters;
-        private readonly Application.Domain.Controls.VariableBlock _Settings;
+        private readonly Application.Controls.VariableBlock _Settings;
         private DirectiveCollection _Children;
         private bool _Parsed;
 
-        public VariableBlock(Control parent, ContentDescription contents, string[] parameters, Application.Domain.Controls.VariableBlock settings)
+        public VariableBlock(Control parent, ContentDescription contents, string[] parameters, Application.Controls.VariableBlock settings)
         {
             this._Parent = parent;
             this._Contents = contents;

@@ -7,9 +7,9 @@ namespace Xeora.Web.Directives.Controls.Elements
     public class Button : IControl
     {
         private readonly Control _Parent;
-        private readonly Application.Domain.Controls.Button _Settings;
+        private readonly Application.Controls.Button _Settings;
 
-        public Button(Control parent, Application.Domain.Controls.Button settings)
+        public Button(Control parent, Application.Controls.Button settings)
         {
             this._Parent = parent;
             this._Settings = settings;

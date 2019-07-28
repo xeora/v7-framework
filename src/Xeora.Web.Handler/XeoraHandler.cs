@@ -11,7 +11,7 @@ using Xeora.Web.Basics.ControlResult;
 using Xeora.Web.Basics.X;
 using Xeora.Web.Directives;
 using Xeora.Web.Directives.Elements;
-using Xeora.Web.Application.Domain;
+using Xeora.Web.Application;
 using Xeora.Web.Basics.Context.Request;
 
 namespace Xeora.Web.Handler
@@ -23,7 +23,7 @@ namespace Xeora.Web.Handler
         private DateTime _BeginRequestTime;
         private bool _SupportCompression;
 
-        private DomainControl _DomainControl = null;
+        private DomainControl _DomainControl;
 
         internal XeoraHandler(ref IHttpContext context, bool forceRefresh)
         {

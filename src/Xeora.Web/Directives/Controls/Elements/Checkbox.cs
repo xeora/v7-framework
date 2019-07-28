@@ -7,9 +7,9 @@ namespace Xeora.Web.Directives.Controls.Elements
     public class Checkbox : IControl
     {
         private readonly Control _Parent;
-        private readonly Application.Domain.Controls.Checkbox _Settings;
+        private readonly Application.Controls.Checkbox _Settings;
 
-        public Checkbox(Control parent, Application.Domain.Controls.Checkbox settings)
+        public Checkbox(Control parent, Application.Controls.Checkbox settings)
         {
             this._Parent = parent;
             this._Settings = settings;

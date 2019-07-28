@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Xeora.Web.Application.Domain.Controls;
+using Xeora.Web.Application.Controls;
 using Xeora.Web.Basics.Domain;
 using Xeora.Web.Basics.Domain.Control.Definitions;
 using Xeora.Web.Directives.Elements;

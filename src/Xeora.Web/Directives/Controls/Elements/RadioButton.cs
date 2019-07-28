@@ -7,9 +7,9 @@ namespace Xeora.Web.Directives.Controls.Elements
     public class RadioButton : IControl
     {
         private readonly Control _Parent;
-        private readonly Application.Domain.Controls.RadioButton _Settings;
+        private readonly Application.Controls.RadioButton _Settings;
 
-        public RadioButton(Control parent, Application.Domain.Controls.RadioButton settings)
+        public RadioButton(Control parent, Application.Controls.RadioButton settings)
         {
             this._Parent = parent;
             this._Settings = settings;

@@ -40,7 +40,7 @@ namespace Xeora.Web.Directives.Elements
                             this,
                             new ContentDescription(this._RawValue),
                             DirectiveHelper.CaptureControlParameters(this._RawValue),
-                            (Application.Domain.Controls.ConditionalStatement)control
+                            (Application.Controls.ConditionalStatement)control
                         );
 
                     break;
@@ -50,7 +50,7 @@ namespace Xeora.Web.Directives.Elements
                             this,
                             new ContentDescription(this._RawValue),
                             DirectiveHelper.CaptureControlParameters(this._RawValue),
-                            (Application.Domain.Controls.DataList)control
+                            (Application.Controls.DataList)control
                         );
 
                     break;
@@ -60,40 +60,40 @@ namespace Xeora.Web.Directives.Elements
                             this,
                             new ContentDescription(this._RawValue),
                             DirectiveHelper.CaptureControlParameters(this._RawValue),
-                            (Application.Domain.Controls.VariableBlock)control
+                            (Application.Controls.VariableBlock)control
                         );
 
                     break;
                 case ControlTypes.Button:
-                    this._Control = new Button(this, (Application.Domain.Controls.Button)control);
+                    this._Control = new Button(this, (Application.Controls.Button)control);
 
                     break;
                 case ControlTypes.Checkbox:
-                    this._Control = new Checkbox(this, (Application.Domain.Controls.Checkbox)control);
+                    this._Control = new Checkbox(this, (Application.Controls.Checkbox)control);
 
                     break;
                 case ControlTypes.ImageButton:
-                    this._Control = new ImageButton(this, (Application.Domain.Controls.ImageButton)control);
+                    this._Control = new ImageButton(this, (Application.Controls.ImageButton)control);
 
                     break;
                 case ControlTypes.LinkButton:
-                    this._Control = new LinkButton(this, (Application.Domain.Controls.LinkButton)control);
+                    this._Control = new LinkButton(this, (Application.Controls.LinkButton)control);
 
                     break;
                 case ControlTypes.Password:
-                    this._Control = new Password(this, (Application.Domain.Controls.Password)control);
+                    this._Control = new Password(this, (Application.Controls.Password)control);
 
                     break;
                 case ControlTypes.RadioButton:
-                    this._Control = new RadioButton(this, (Application.Domain.Controls.RadioButton)control);
+                    this._Control = new RadioButton(this, (Application.Controls.RadioButton)control);
 
                     break;
                 case ControlTypes.Textarea:
-                    this._Control = new Textarea(this, (Application.Domain.Controls.Textarea)control);
+                    this._Control = new Textarea(this, (Application.Controls.Textarea)control);
 
                     break;
                 case ControlTypes.Textbox:
-                    this._Control = new Textbox(this, (Application.Domain.Controls.Textbox)control);
+                    this._Control = new Textbox(this, (Application.Controls.Textbox)control);
 
                     break;
             }
