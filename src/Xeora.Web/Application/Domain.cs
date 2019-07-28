@@ -137,10 +137,10 @@ namespace Xeora.Web.Application
             }
         }
 
-        private void OnDeploymentAccessRequest(ref Basics.Domain.IDomain domain, ref Deployment.Domain deployment) =>
+        private void OnDeploymentAccessRequest(ref Basics.Domain.IDomain domain, out Deployment.Domain deployment) =>
             deployment = ((Domain)domain).Deployment;
 
-        private void OnInstanceRequest(ref Basics.Domain.IDomain domain) =>
+        private void OnInstanceRequest(out Basics.Domain.IDomain domain) =>
             domain = this;
 
         private static readonly ConcurrentDictionary<string, IBase> ControlsCache =

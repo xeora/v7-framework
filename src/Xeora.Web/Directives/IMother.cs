@@ -6,8 +6,8 @@ using Xeora.Web.Global;
 namespace Xeora.Web.Directives
 {
     public delegate void ParsingHandler(string rawValue, ref DirectiveCollection childrenContainer, ArgumentCollection arguments);
-    public delegate void InstanceHandler(ref IDomain instance);
-    public delegate void DeploymentAccessHandler(ref IDomain instance, ref Deployment.Domain deployment);
+    public delegate void InstanceHandler(out IDomain instance);
+    public delegate void DeploymentAccessHandler(ref IDomain instance, out Deployment.Domain deployment);
     public delegate void ControlResolveHandler(string controlId, ref IDomain instance, out IBase control);
 
     public interface IMother
@@ -18,8 +18,8 @@ namespace Xeora.Web.Directives
         Stack<string> UpdateBlockIdStack { get; }
 
         void RequestParsing(string rawValue, ref DirectiveCollection childrenContainer, ArgumentCollection arguments);
-        void RequestInstance(ref IDomain instance);
-        void RequestDeploymentAccess(ref IDomain instance, ref Deployment.Domain deployment);
+        void RequestInstance(out IDomain instance);
+        void RequestDeploymentAccess(ref IDomain instance, out Deployment.Domain deployment);
         void RequestControlResolve(string controlId, ref IDomain instance, out IBase control);
     }
 }

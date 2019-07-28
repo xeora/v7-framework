@@ -179,8 +179,7 @@ namespace Xeora.Web.Directives.Elements
 
         private void RenderDomainContents()
         {
-            Basics.Domain.IDomain instance = null;
-            this.Mother.RequestInstance(ref instance);
+            this.Mother.RequestInstance(out Basics.Domain.IDomain instance);
 
             this.Deliver(RenderStatus.Rendered, instance.ContentsVirtualPath);
             this.ObjectResult = (object)instance.ContentsVirtualPath;

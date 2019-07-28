@@ -97,8 +97,7 @@ namespace Xeora.Web.Directives.Elements
 
         private void ExecuteStatement(string requesterUniqueId)
         {
-            Basics.Domain.IDomain instance = null;
-            this.Mother.RequestInstance(ref instance);
+            this.Mother.RequestInstance(out Basics.Domain.IDomain instance);
 
             string result = this.Result;
 

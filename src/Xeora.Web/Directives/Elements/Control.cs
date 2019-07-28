@@ -24,8 +24,7 @@ namespace Xeora.Web.Directives.Elements
 
         public void Load()
         {
-            IDomain instance = null;
-            this.Mother.RequestInstance(ref instance);
+            this.Mother.RequestInstance(out IDomain instance);
             this.Mother.RequestControlResolve(this.DirectiveId, ref instance, out IBase control);
 
             switch (control.Type)

@@ -54,9 +54,8 @@ namespace Xeora.Web.Directives.Elements
             this.Status = RenderStatus.Rendering;
 
             this.Children.Render(this.UniqueId);
-
-            IDomain instance = null;
-            this.Mother.RequestInstance(ref instance);
+            
+            this.Mother.RequestInstance(out IDomain instance);
 
             string translationValue =
                 instance.Languages.Current.Get(this.DirectiveId);

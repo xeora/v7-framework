@@ -42,11 +42,17 @@ namespace Xeora.Web.Directives
         public void RequestParsing(string rawValue, ref DirectiveCollection childrenContainer, ArgumentCollection arguments) =>
             ParseRequested?.Invoke(rawValue, ref childrenContainer, arguments);
 
-        public void RequestInstance(ref IDomain instance) =>
-            InstanceRequested?.Invoke(ref instance);
+        public void RequestInstance(out IDomain instance)
+        {
+            instance = null; 
+            InstanceRequested?.Invoke(out instance);
+        }
 
-        public void RequestDeploymentAccess(ref IDomain instance, ref Deployment.Domain deployment) =>
-            DeploymentAccessRequested?.Invoke(ref instance, ref deployment);
+        public void RequestDeploymentAccess(ref IDomain instance, out Deployment.Domain deployment)
+        {
+            deployment = null;
+            DeploymentAccessRequested?.Invoke(ref instance, out deployment);
+        }
 
         public void RequestControlResolve(string controlId, ref IDomain instance, out IBase control)
         {

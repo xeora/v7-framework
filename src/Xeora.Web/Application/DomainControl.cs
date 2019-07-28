@@ -415,11 +415,8 @@ namespace Xeora.Web.Application
         public void OverrideDomain(string[] domainIdAccessTree, string languageId) =>
             this.Domain = new Domain(domainIdAccessTree, languageId);
 
-        public void ProvideXeoraJsStream(ref Stream outputStream)
+        public void ProvideXeoraJsStream(out Stream outputStream)
         {
-            if (outputStream == null)
-                throw new NullReferenceException();
-            
             outputStream =
                 Assembly.GetExecutingAssembly().GetManifestResourceStream(
                     $"Xeora.Web._sps_v{this.XeoraJSVersion}.js");

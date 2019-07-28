@@ -284,7 +284,7 @@ namespace Xeora.Web.Handler
                             new Property(parameter.Query, null);
 
                         Mother mother = new Mother(property, null, null);
-                        mother.InstanceRequested += (ref Basics.Domain.IDomain instance) => instance = this._DomainControl.Domain;
+                        mother.InstanceRequested += (out Basics.Domain.IDomain instance) => instance = this._DomainControl.Domain;
                         mother.Process();
 
                         return property.ObjectResult;
@@ -347,13 +347,13 @@ namespace Xeora.Web.Handler
                 this._DomainControl.GetxSocketBind();
 
             bind.Parameters.Prepare(
-                (parameter) =>
+                parameter =>
                 {
                     Property property =
                         new Property(parameter.Query, null);
 
                     Mother mother = new Mother(property, null, null);
-                    mother.InstanceRequested += (ref Basics.Domain.IDomain instance) => instance = this._DomainControl.Domain;
+                    mother.InstanceRequested += (out Basics.Domain.IDomain instance) => instance = this._DomainControl.Domain;
                     mother.Process();
 
                     return property.ObjectResult;
@@ -368,9 +368,9 @@ namespace Xeora.Web.Handler
             SocketObject xSocketObject =
                 new SocketObject(ref context, keyValueList.ToArray());
 
-            bind.Parameters.Override(new string[] { "xso" });
+            bind.Parameters.Override(new [] { "xso" });
             bind.Parameters.Prepare(
-                (parameter) => xSocketObject
+                parameter => xSocketObject
             );
 
             Basics.Execution.InvokeResult<object> invokeResult =
@@ -379,11 +379,10 @@ namespace Xeora.Web.Handler
             if (invokeResult.Exception != null)
                 throw new Exceptions.ServiceSocketException(invokeResult.Exception.ToString());
 
-            if (invokeResult.Result is Message messageResult)
-            {
-                if (messageResult.Type == Message.Types.Error)
-                    throw new Exceptions.ServiceSocketException(messageResult.Content);
-            }
+            if (!(invokeResult.Result is Message messageResult)) return;
+            
+            if (messageResult.Type == Message.Types.Error)
+                throw new Exceptions.ServiceSocketException(messageResult.Content);
         }
 
         private void HandleErrorLogging(Exception exception)
@@ -643,8 +642,7 @@ namespace Xeora.Web.Handler
 
         private void PostBuildInJavaScriptToClient()
         {
-            Stream requestFileStream = null;
-            this._DomainControl.ProvideXeoraJsStream(ref requestFileStream);
+            this._DomainControl.ProvideXeoraJsStream(out Stream requestFileStream);
 
             try
             {

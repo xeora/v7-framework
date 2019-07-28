@@ -53,9 +53,8 @@ namespace Xeora.Web.Directives.Elements
             if (this.Status != RenderStatus.None)
                 return;
             this.Status = RenderStatus.Rendering;
-
-            Basics.Domain.IDomain instance = null;
-            this.Mother.RequestInstance(ref instance);
+            
+            this.Mother.RequestInstance(out Basics.Domain.IDomain instance);
 
             string cacheId =
                 PartialCacheObject.CreateUniqueCacheId(this._PositionId, this, ref instance);

@@ -87,8 +87,7 @@ namespace Xeora.Web.Directives.Elements
 
         private PermissionResult EnsurePermission()
         {
-            IDomain instance = null;
-            this.Mother.RequestInstance(ref instance);
+            this.Mother.RequestInstance(out IDomain instance);
 
             if (string.IsNullOrEmpty(instance.Settings.Configurations.SecurityExecutable))
                 return new PermissionResult(PermissionResult.Results.Forbidden);

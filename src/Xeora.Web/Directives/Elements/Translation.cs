@@ -27,8 +27,7 @@ namespace Xeora.Web.Directives.Elements
                 return;
             this.Status = RenderStatus.Rendering;
 
-            IDomain instance = null;
-            this.Mother.RequestInstance(ref instance);
+            this.Mother.RequestInstance(out IDomain instance);
 
             this.Deliver(RenderStatus.Rendered, instance.Languages.Current.Get(this._TranslationId));
         }

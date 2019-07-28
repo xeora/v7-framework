@@ -34,8 +34,7 @@ namespace Xeora.Web.Directives.Elements
 
             this._Children = new DirectiveCollection(this.Mother, this);
 
-            IDomain instance = null;
-            this.Mother.RequestInstance(ref instance);
+            this.Mother.RequestInstance(out IDomain instance);
 
             IDomain workingInstance = instance;
 
@@ -62,8 +61,7 @@ namespace Xeora.Web.Directives.Elements
 
         private string LoadTemplate(ref IDomain workingInstance)
         {
-            Domain deployment = null;
-            this.Mother.RequestDeploymentAccess(ref workingInstance, ref deployment);
+            this.Mother.RequestDeploymentAccess(ref workingInstance, out Domain deployment);
 
             if (deployment == null)
                 throw new Exception("Domain Deployment access is failed!");
