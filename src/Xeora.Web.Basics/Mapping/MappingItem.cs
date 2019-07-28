@@ -10,14 +10,14 @@
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="T:Xeora.Web.Basics.URLMapping.URLMappingItem"/>
-        /// is overridable. If it is, sub domain URLMappingItem can override.
+        /// Gets or sets a value indicating whether this <see cref="T:Xeora.Web.Basics.Mapping.MappingItem"/>
+        /// is overridable. If it is, sub domain MappingItem can override.
         /// </summary>
         /// <value><c>true</c> if overridable; otherwise, <c>false</c></value>
         public bool Overridable { get; set; }
 
         /// <summary>
-        /// Gets or sets the priority of URLMappingItem on Url resolution
+        /// Gets or sets the priority of MappingItem on Url resolution
         /// </summary>
         /// <value>The priority</value>
         public int Priority { get; set; }
