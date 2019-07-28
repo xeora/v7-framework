@@ -75,24 +75,6 @@ namespace Xeora.Web.Basics
             }
         }
 
-        // TODO: RenderEngine should be fixed
-        private Type _ParseType;
-        public Type Parser
-        {
-            get
-            {
-                if (this._ParseType != null)
-                    return this._ParseType;
-
-                Assembly loadedAssembly = 
-                    this.GetAssembly("Xeora.Web");
-                this._ParseType = 
-                    loadedAssembly.GetType("Xeora.Web.Application.Parser", false, true);
-
-                return this._ParseType;
-            }
-        }
-
         private Type _StatusTracker;
         public Type StatusTracker
         {
