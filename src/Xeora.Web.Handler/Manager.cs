@@ -14,7 +14,7 @@ namespace Xeora.Web.Handler
         {
             this._Handlers = new ConcurrentDictionary<string, Container>();
 
-            Basics.Console.Register((keyInfo) => {
+            Basics.Console.Register(keyInfo => {
                 if ((keyInfo.Modifiers & ConsoleModifiers.Control) == 0 || keyInfo.Key != ConsoleKey.R)
                     return;
 
