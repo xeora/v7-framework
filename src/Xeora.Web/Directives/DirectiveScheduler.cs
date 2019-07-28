@@ -19,8 +19,10 @@ namespace Xeora.Web.Directives
         {
             this._RegisterLock = new object();
 
-            this._ScheduledItems = new ConcurrentDictionary<string, bool>();
-            this._Queue = new ConcurrentQueue<string>();
+            this._ScheduledItems = 
+                new ConcurrentDictionary<string, bool>();
+            this._Queue = 
+                new ConcurrentQueue<string>();
 
             this._CallBack = callback;
         }
@@ -43,12 +45,14 @@ namespace Xeora.Web.Directives
 
             while (this._Queue.TryDequeue(out string uniqueId))
             {
+                string uId = uniqueId;
+                
                 callbackJobs.Add(
                     Task.Factory.StartNew(() =>
                     {
                         Helpers.AssignHandlerId(handlerId);
 
-                        this._CallBack(uniqueId);
+                        this._CallBack(uId);
                     })
                 );
             }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Xeora.Web.Basics;
 using Xeora.Web.Global;
@@ -25,8 +26,8 @@ namespace Xeora.Web.Directives.Elements
             this._ParametersDefinition = null;
         }
 
-        public string DirectiveId { get; private set; }
-        public string BoundDirectiveId { get; private set; }
+        public string DirectiveId { get; }
+        public string BoundDirectiveId { get; }
         public bool HasBound => !string.IsNullOrEmpty(this.BoundDirectiveId);
 
         public override bool Searchable => false;
@@ -65,7 +66,7 @@ namespace Xeora.Web.Directives.Elements
                 if (string.IsNullOrEmpty(requesterUniqueId))
                     return;
 
-                this.Mother.Pool.GetByDirectiveId(this.BoundDirectiveId, out IDirective[] directives);
+                this.Mother.Pool.GetByDirectiveId(this.BoundDirectiveId, out IEnumerable<IDirective> directives);
 
                 if (directives == null) return;
 
@@ -74,13 +75,12 @@ namespace Xeora.Web.Directives.Elements
                     if (!(directive is INamable)) return;
 
                     string directiveId = ((INamable)directive).DirectiveId;
-                    if (string.Compare(directiveId, this.BoundDirectiveId) != 0) return;
+                    if (string.CompareOrdinal(directiveId, this.BoundDirectiveId) != 0) return;
 
-                    if (directive.Status != RenderStatus.Rendered)
-                    {
-                        directive.Scheduler.Register(this.UniqueId);
-                        return;
-                    }
+                    if (directive.Status == RenderStatus.Rendered) continue;
+                    
+                    directive.Scheduler.Register(this.UniqueId);
+                    return;
                 }
             }
 
@@ -131,34 +131,31 @@ namespace Xeora.Web.Directives.Elements
 
         private void ExtractSubDirectives(ref string blockContent)
         {
-            Dictionary<string, System.Func<string, string>> subDirectives =
-                new Dictionary<string, System.Func<string, string>>() {
+            Dictionary<string, Func<string, string>> subDirectives =
+                new Dictionary<string, Func<string, string>>() {
                     {
                         "!NOCACHE",
-                        new System.Func<string, string>(
-                            (d) =>
-                            {
-                                this._Cache = false;
-                                return d.Replace("!NOCACHE", string.Empty);
-                            }
-                        )
+                        d =>
+                        {
+                            this._Cache = false;
+                            return d.Replace("!NOCACHE", string.Empty);
+                        }
                     },
                     {
                         "!PARAMS",
-                        new System.Func<string, string>(
-                            (d) =>
-                            {
-                                this._ParametersDefinition = this.ParseParameters(ref d);
-                                return d;
-                            }
-                        )
+                        d =>
+                        {
+                            this._ParametersDefinition = 
+                                this.ParseParameters(ref d);
+                            return d;
+                        }
                     }
                 };
 
             // Sub Directive Test
             if (blockContent.IndexOf('!') == 0)
             {
-                string directives = string.Empty;
+                string directives;
                 StringReader sR = null;
                 try
                 {
@@ -173,17 +170,17 @@ namespace Xeora.Web.Directives.Elements
                 }
                 catch (System.Exception)
                 {
-                    // Just Handle Exceptions
+                    directives = string.Empty;
                 }
                 finally
                 {
-                    if (sR != null)
-                        sR.Close();
+                    sR?.Close();
                 }
 
                 foreach (string key in subDirectives.Keys)
                 {
-                    int dIdx = directives.IndexOf(key, System.StringComparison.InvariantCulture);
+                    int dIdx = 
+                        directives.IndexOf(key, StringComparison.InvariantCulture);
 
                     if (dIdx == -1)
                         continue;
@@ -198,7 +195,7 @@ namespace Xeora.Web.Directives.Elements
         {
             string paramMarker = "!PARAMS(";
 
-            int openBracketIdx = directives.IndexOf(paramMarker, System.StringComparison.InvariantCulture);
+            int openBracketIdx = directives.IndexOf(paramMarker, StringComparison.InvariantCulture);
             if (openBracketIdx == -1)
                 return null;
 

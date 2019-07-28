@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xeora.Web.Directives.Elements;
 using Xeora.Web.Global;
+using Single = Xeora.Web.Directives.Elements.Single;
 
 namespace Xeora.Web.Directives.Controls.Elements
 {
@@ -14,14 +15,14 @@ namespace Xeora.Web.Directives.Controls.Elements
         private readonly Control _Parent;
         private readonly ContentDescription _Contents;
         private readonly string[] _Parameters;
-        private readonly Site.Setting.Control.DataList _Settings;
+        private readonly Application.Domain.Controls.DataList _Settings;
 
         private readonly ConcurrentQueue<Single> _RowQueue;
         private readonly List<Task> _RowRenderTasks;
         private readonly object _RenderedContentLock;
         private readonly StringBuilder _RenderedContent;
 
-        public DataList(Control parent, ContentDescription contents, string[] parameters, Site.Setting.Control.DataList settings)
+        public DataList(Control parent, ContentDescription contents, string[] parameters, Application.Domain.Controls.DataList settings)
         {
             this._Parent = parent;
             this._Contents = contents;
@@ -47,20 +48,25 @@ namespace Xeora.Web.Directives.Controls.Elements
 
             // Execution preparation should be done at the same level with it's parent. Because of that, send parent as parameters
             this._Settings.Bind.Parameters.Prepare(
-                (parameter) =>
+                parameter =>
                 {
                     string query = parameter.Query;
 
                     int paramIndex =
                         DirectiveHelper.CaptureParameterPointer(query);
 
-                    if (paramIndex > -1)
-                    {
-                        if (paramIndex >= this._Parameters.Length)
-                            throw new Exception.FormatIndexOutOfRangeException();
+                    if (paramIndex <= -1)
+                        return DirectiveHelper.RenderProperty(
+                            this._Parent.Parent, 
+                            query, 
+                            this._Parent.Parent.Arguments,
+                            requesterUniqueId
+                        );
+                    
+                    if (paramIndex >= this._Parameters.Length)
+                        throw new Exception.FormatIndexOutOfRangeException();
 
-                        query = this._Parameters[paramIndex];
-                    }
+                    query = this._Parameters[paramIndex];
 
                     return DirectiveHelper.RenderProperty(this._Parent.Parent, query, this._Parent.Parent.Arguments, requesterUniqueId);
                 }
@@ -129,7 +135,7 @@ namespace Xeora.Web.Directives.Controls.Elements
 
             if (index == -1)
             {
-                while (this._RowQueue.TryDequeue(out Single single)) { }
+                while (this._RowQueue.TryDequeue(out Single _)) { }
                 this._RowRenderTasks.Clear();
                 this._RenderedContent.Clear();
             }
@@ -137,7 +143,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             this._RowQueue.Enqueue(rowSingle);
             this._RowRenderTasks.Add(
                 Task.Factory.StartNew(
-                    (s) =>
+                    s =>
                     {
                         object[] list = (object[])s;
 
@@ -221,7 +227,8 @@ namespace Xeora.Web.Directives.Controls.Elements
                 (IDbCommand)invokeResult.Result.GetResult();
 
             if (dbCommand == null)
-                throw new NullReferenceException(string.Format("DirectDataAccess [{0}] failed! DatabaseCommand must not be null!", this._Parent.DirectiveId));
+                throw new NullReferenceException(
+                    $"DirectDataAccess [{this._Parent.DirectiveId}] failed! DatabaseCommand must not be null!");
 
             IDataReader dbReader = null;
             try
@@ -261,7 +268,7 @@ namespace Xeora.Web.Directives.Controls.Elements
 
                 this._Parent.Parent.Arguments.AppendKeyWithValue(
                     this._Parent.DirectiveId,
-                    new DataListOutputInfo(this._Parent.UniqueId, count, (total == -1) ? count : total, false)
+                    new DataListOutputInfo(this._Parent.UniqueId, count, total == -1 ? count : total, false)
                 );
 
                 this._Parent.Deliver(RenderStatus.Rendered, this.Result);
@@ -278,17 +285,12 @@ namespace Xeora.Web.Directives.Controls.Elements
                 {
                     dbReader.Close();
                     dbReader.Dispose();
-                    GC.SuppressFinalize(dbReader);
                 }
 
-                if (dbCommand != null)
-                {
-                    if (dbCommand.Connection.State == ConnectionState.Open)
-                        dbCommand.Connection.Close();
+                if (dbCommand.Connection.State == ConnectionState.Open)
+                    dbCommand.Connection.Close();
 
-                    dbCommand.Dispose();
-                    GC.SuppressFinalize(dbCommand);
-                }
+                dbCommand.Dispose();
             }
         }
 

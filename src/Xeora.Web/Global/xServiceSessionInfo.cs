@@ -7,7 +7,7 @@ namespace Xeora.Web.Global
     [Serializable]
     public class xServiceSessionInfo : IEnumerable
     {
-        private List<KeyValuePair<string, object>> _SessionItems;
+        private readonly List<KeyValuePair<string, object>> _SessionItems;
 
         public xServiceSessionInfo(string publicKey, DateTime sessionDate)
         {
@@ -17,7 +17,7 @@ namespace Xeora.Web.Global
             this.SessionDate = sessionDate;
         }
 
-        public string PublicKey { get; private set; }
+        public string PublicKey { get; }
         public DateTime SessionDate { get; set; }
 
         public void AddSessionItem(string key, object value)
@@ -31,7 +31,7 @@ namespace Xeora.Web.Global
         {
             for (int iC = this._SessionItems.Count - 1; iC >= 0; iC += -1)
             {
-                if (string.Compare(this._SessionItems[iC].Key, key, true) == 0)
+                if (string.Compare(this._SessionItems[iC].Key, key, StringComparison.OrdinalIgnoreCase) == 0)
                     this._SessionItems.RemoveAt(iC);
             }
         }
@@ -42,7 +42,7 @@ namespace Xeora.Web.Global
             {
                 foreach (KeyValuePair<string, object> item in this._SessionItems)
                 {
-                    if (string.Compare(item.Key, key, true) == 0)
+                    if (string.Compare(item.Key, key, StringComparison.OrdinalIgnoreCase) == 0)
                         return item.Value;
                 }
 

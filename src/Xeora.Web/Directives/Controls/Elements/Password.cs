@@ -7,9 +7,9 @@ namespace Xeora.Web.Directives.Controls.Elements
     public class Password : IControl
     {
         private readonly Control _Parent;
-        private readonly Site.Setting.Control.Password _Settings;
+        private readonly Application.Domain.Controls.Password _Settings;
 
-        public Password(Control parent, Site.Setting.Control.Password settings)
+        public Password(Control parent, Application.Domain.Controls.Password settings)
         {
             this._Parent = parent;
             this._Settings = settings;
@@ -53,7 +53,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             {
                 // Render Bind Parameters
                 this._Settings.Bind.Parameters.Prepare(
-                    (parameter) => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueId)
+                    parameter => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueId)
                 );
 
                 if (this._Parent.Mother.UpdateBlockIdStack.Count > 0)
@@ -81,7 +81,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 ControlHelper.CleanJavascriptSignature(this._Settings.Attributes["onkeydown"]);
 
             if (!string.IsNullOrEmpty(xeoraCall))
-                keydownEvent = string.Format("{0}{1};", keydownEvent, xeoraCall);
+                keydownEvent = $"{keydownEvent}{xeoraCall};";
 
             if (!string.IsNullOrEmpty(this._Settings.DefaultButtonId))
             {
@@ -93,24 +93,25 @@ namespace Xeora.Web.Directives.Controls.Elements
             }
 
             if (!string.IsNullOrEmpty(keydownEvent))
-                keydownEvent = string.Format("javascript:try{{{0}}}catch(ex){{}};", keydownEvent);
+                keydownEvent = $"javascript:try{{{keydownEvent}}}catch(ex){{}};";
 
             this._Settings.Attributes["onkeydown"] = keydownEvent;
             // !--
 
             if (this._Settings.Security.Disabled.Set && 
                 this._Settings.Security.Disabled.Type == SecurityDefinition.DisabledDefinition.Types.Dynamic)
-                this._Parent.Deliver(RenderStatus.Rendered, this._Settings.Security.Disabled.Value);
-            else
             {
-                this._Parent.Deliver(
-                    RenderStatus.Rendered,
-                    string.Format(
-                        "<input type=\"password\" name=\"{0}\" id=\"{0}\"{1}>",
-                        this._Parent.DirectiveId, this._Settings.Attributes
-                    )
-                );
+                this._Parent.Deliver(RenderStatus.Rendered, this._Settings.Security.Disabled.Value);
+                return;
             }
+
+            this._Parent.Deliver(
+                RenderStatus.Rendered,
+                string.Format(
+                    "<input type=\"password\" name=\"{0}\" id=\"{0}\"{1}>",
+                    this._Parent.DirectiveId, this._Settings.Attributes
+                )
+            );
         }
     }
 }

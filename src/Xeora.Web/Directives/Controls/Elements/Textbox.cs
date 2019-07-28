@@ -7,9 +7,9 @@ namespace Xeora.Web.Directives.Controls.Elements
     public class Textbox : IControl
     {
         private readonly Control _Parent;
-        private readonly Site.Setting.Control.Textbox _Settings;
+        private readonly Application.Domain.Controls.Textbox _Settings;
 
-        public Textbox(Control parent, Site.Setting.Control.Textbox settings)
+        public Textbox(Control parent, Application.Domain.Controls.Textbox settings)
         {
             this._Parent = parent;
             this._Settings = settings;
@@ -54,7 +54,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             {
                 // Render Bind Parameters
                 this._Settings.Bind.Parameters.Prepare(
-                    (parameter) => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueId)
+                    parameter => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueId)
                 );
 
                 if (this._Parent.Mother.UpdateBlockIdStack.Count > 0)
@@ -82,7 +82,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 ControlHelper.CleanJavascriptSignature(this._Settings.Attributes["onkeydown"]);
 
             if (!string.IsNullOrEmpty(xeoraCall))
-                keydownEvent = string.Format("{0}{1};", keydownEvent, xeoraCall);
+                keydownEvent = $"{keydownEvent}{xeoraCall};";
 
             if (!string.IsNullOrEmpty(this._Settings.DefaultButtonId))
             {
@@ -94,24 +94,24 @@ namespace Xeora.Web.Directives.Controls.Elements
             }
 
             if (!string.IsNullOrEmpty(keydownEvent))
-                keydownEvent = string.Format("javascript:try{{{0}}}catch(ex){{}};", keydownEvent);
+                keydownEvent = $"javascript:try{{{keydownEvent}}}catch(ex){{}};";
 
             this._Settings.Attributes["onkeydown"] = keydownEvent;
             // !--
 
-            if (this._Settings.Security.Disabled.Set && 
+            if (this._Settings.Security.Disabled.Set &&
                 this._Settings.Security.Disabled.Type == SecurityDefinition.DisabledDefinition.Types.Dynamic)
-                this._Parent.Deliver(RenderStatus.Rendered, this._Settings.Security.Disabled.Value);
-            else
             {
-                this._Parent.Deliver(
-                    RenderStatus.Rendered,
-                    string.Format(
-                        "<input type=\"text\" name=\"{0}\" id=\"{0}\"{1}>",
-                        this._Parent.DirectiveId, this._Settings.Attributes
-                    )
-                );
+                this._Parent.Deliver(RenderStatus.Rendered, this._Settings.Security.Disabled.Value);
             }
+
+            this._Parent.Deliver(
+                RenderStatus.Rendered,
+                string.Format(
+                    "<input type=\"text\" name=\"{0}\" id=\"{0}\"{1}>",
+                    this._Parent.DirectiveId, this._Settings.Attributes
+                )
+            );
         }
     }
 }

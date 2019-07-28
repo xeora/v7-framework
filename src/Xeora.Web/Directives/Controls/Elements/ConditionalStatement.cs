@@ -10,11 +10,11 @@ namespace Xeora.Web.Directives.Controls.Elements
         private readonly Control _Parent;
         private readonly ContentDescription _Contents;
         private readonly string[] _Parameters;
-        private readonly Site.Setting.Control.ConditionalStatement _Settings;
+        private readonly Application.Domain.Controls.ConditionalStatement _Settings;
         private DirectiveCollection _Children;
         private bool _Parsed;
 
-        public ConditionalStatement(Control parent, ContentDescription contents, string[] parameters, Site.Setting.Control.ConditionalStatement settings)
+        public ConditionalStatement(Control parent, ContentDescription contents, string[] parameters, Application.Domain.Controls.ConditionalStatement settings)
         {
             this._Parent = parent;
             this._Contents = contents;
@@ -46,7 +46,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 throw new System.ArgumentNullException(nameof(this._Settings.Bind));
 
             this._Settings.Bind.Parameters.Prepare(
-                (parameter) =>
+                parameter =>
                 {
                     string query = parameter.Query;
 

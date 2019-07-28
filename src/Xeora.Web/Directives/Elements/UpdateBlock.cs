@@ -18,7 +18,7 @@ namespace Xeora.Web.Directives.Elements
             this._Contents = new ContentDescription(rawValue);
         }
 
-        public string DirectiveId { get; private set; }
+        public string DirectiveId { get; }
 
         public override bool Searchable => true;
         public override bool CanAsync => false;
@@ -75,7 +75,7 @@ namespace Xeora.Web.Directives.Elements
                 }
             }
 
-            this.Deliver(RenderStatus.Rendered, string.Format("<div id=\"{0}\">{1}</div>", this.DirectiveId, this.Result));
+            this.Deliver(RenderStatus.Rendered, $"<div id=\"{this.DirectiveId}\">{this.Result}</div>");
         }
     }
 }

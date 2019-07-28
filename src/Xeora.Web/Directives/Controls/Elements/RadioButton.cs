@@ -7,9 +7,9 @@ namespace Xeora.Web.Directives.Controls.Elements
     public class RadioButton : IControl
     {
         private readonly Control _Parent;
-        private readonly Site.Setting.Control.RadioButton _Settings;
+        private readonly Application.Domain.Controls.RadioButton _Settings;
 
-        public RadioButton(Control parent, Site.Setting.Control.RadioButton settings)
+        public RadioButton(Control parent, Application.Domain.Controls.RadioButton settings)
         {
             this._Parent = parent;
             this._Settings = settings;
@@ -33,7 +33,8 @@ namespace Xeora.Web.Directives.Controls.Elements
                 this._Parent.Bag.Add(item.Key, item.Value, this._Parent.Arguments);
             this._Parent.Bag.Render(requesterUniqueId);
 
-            string renderedText = this._Parent.Bag["text"].Result;
+            string renderedText = 
+                this._Parent.Bag["text"].Result;
 
             for (int aC = 0; aC < this._Settings.Attributes.Count; aC++)
             {
@@ -47,16 +48,16 @@ namespace Xeora.Web.Directives.Controls.Elements
             string radioButtonId = this._Parent.DirectiveId;
 
             if (!string.IsNullOrEmpty(itemIndex))
-                radioButtonId = string.Format("{0}_{1}", this._Parent.DirectiveId, itemIndex);
-            string radioButtonLabel = 
-                string.Format("<label for=\"{0}\">{1}</label>", radioButtonId, this._Settings.Text);
+                radioButtonId = $"{this._Parent.DirectiveId}_{itemIndex}";
+            string radioButtonLabel =
+                $"<label for=\"{radioButtonId}\">{renderedText}</label>";
 
             // Define OnClick Server event for Button
             if (this._Settings.Bind != null)
             {
                 // Render Bind Parameters
                 this._Settings.Bind.Parameters.Prepare(
-                    (parameter) => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueId)
+                    parameter => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueId)
                 );
 
                 string xeoraCall;
@@ -82,7 +83,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                         );
 
                 if (string.IsNullOrEmpty(this._Settings.Attributes["onclick"]))
-                    this._Settings.Attributes["onclick"] = string.Format("javascript:{0};", xeoraCall);
+                    this._Settings.Attributes["onclick"] = $"javascript:{xeoraCall};";
                 else
                 {
                     this._Settings.Attributes["onclick"] = 
@@ -98,22 +99,23 @@ namespace Xeora.Web.Directives.Controls.Elements
             }
             // !--
 
-            if (this._Settings.Security.Disabled.Set && 
+            if (this._Settings.Security.Disabled.Set &&
                 this._Settings.Security.Disabled.Type == SecurityDefinition.DisabledDefinition.Types.Dynamic)
-                this._Parent.Deliver(RenderStatus.Rendered, this._Settings.Security.Disabled.Value);
-            else
             {
-                this._Parent.Deliver(
-                    RenderStatus.Rendered,
-                    string.Format(
-                        "<input type=\"radio\" name=\"{0}\" id=\"{1}\"{2}>{3}",
-                        this._Parent.DirectiveId,
-                        radioButtonId,
-                        this._Settings.Attributes.ToString(),
-                        radioButtonLabel
-                    )
-                );
+                this._Parent.Deliver(RenderStatus.Rendered, this._Settings.Security.Disabled.Value);
+                return;
             }
+
+            this._Parent.Deliver(
+                RenderStatus.Rendered,
+                string.Format(
+                    "<input type=\"radio\" name=\"{0}\" id=\"{1}\"{2}>{3}",
+                    this._Parent.DirectiveId,
+                    radioButtonId,
+                    this._Settings.Attributes.ToString(),
+                    radioButtonLabel
+                )
+            );
         }
     }
 }

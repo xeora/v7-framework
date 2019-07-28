@@ -7,9 +7,9 @@ namespace Xeora.Web.Directives.Controls.Elements
     public class LinkButton : IControl
     {
         private readonly Control _Parent;
-        private readonly Site.Setting.Control.LinkButton _Settings;
+        private readonly Application.Domain.Controls.LinkButton _Settings;
 
-        public LinkButton(Control parent, Site.Setting.Control.LinkButton settings)
+        public LinkButton(Control parent, Application.Domain.Controls.LinkButton settings)
         {
             this._Parent = parent;
             this._Settings = settings;
@@ -36,36 +36,36 @@ namespace Xeora.Web.Directives.Controls.Elements
             this._Settings.Attributes.Remove("href");
             this._Settings.Attributes.Remove("value");
 
-            string parsedURL = this._Settings.URL;
+            string parsedUrl = this._Settings.URL;
 
-            if (!string.IsNullOrEmpty(parsedURL))
+            if (!string.IsNullOrEmpty(parsedUrl))
             {
-                if (parsedURL.IndexOf("~/", System.StringComparison.InvariantCulture) == 0)
+                if (parsedUrl.IndexOf("~/", System.StringComparison.InvariantCulture) == 0)
                 {
-                    parsedURL = parsedURL.Remove(0, 2);
-                    parsedURL = parsedURL.Insert(0, Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation);
+                    parsedUrl = parsedUrl.Remove(0, 2);
+                    parsedUrl = parsedUrl.Insert(0, Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation);
                 }
-                else if (parsedURL.IndexOf("¨/", System.StringComparison.InvariantCulture) == 0)
+                else if (parsedUrl.IndexOf("¨/", System.StringComparison.InvariantCulture) == 0)
                 {
-                    parsedURL = parsedURL.Remove(0, 2);
-                    parsedURL = parsedURL.Insert(0, Configurations.Xeora.Application.Main.VirtualRoot);
+                    parsedUrl = parsedUrl.Remove(0, 2);
+                    parsedUrl = parsedUrl.Insert(0, Configurations.Xeora.Application.Main.VirtualRoot);
                 }
 
-                this._Parent.Bag.Add("url", parsedURL, this._Parent.Arguments);
+                this._Parent.Bag.Add("url", parsedUrl, this._Parent.Arguments);
 
             }
 
             this._Parent.Bag.Render(requesterUniqueId);
 
             string renderedText = this._Parent.Bag["text"].Result;
-            string renderedURL = string.Empty;
+            string renderedUrl = string.Empty;
             if (this._Parent.Bag.ContainsKey("url"))
-                renderedURL = this._Parent.Bag["url"].Result;
+                renderedUrl = this._Parent.Bag["url"].Result;
 
-            if (!string.IsNullOrEmpty(renderedURL))
-                this._Settings.Attributes["href"] = renderedURL;
+            if (!string.IsNullOrEmpty(renderedUrl))
+                this._Settings.Attributes["href"] = renderedUrl;
             else
-                renderedURL = "#_action0";
+                renderedUrl = "#_action0";
 
             for (int aC = 0; aC < this._Settings.Attributes.Count; aC++)
             {
@@ -77,11 +77,11 @@ namespace Xeora.Web.Directives.Controls.Elements
             // Define OnClick Server event for Button
             if (this._Settings.Bind != null)
             {
-                renderedURL = "#_action1";
+                renderedUrl = "#_action1";
 
                 // Render Bind Parameters
                 this._Settings.Bind.Parameters.Prepare(
-                    (parameter) => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueId)
+                    parameter => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueId)
                 );
 
                 string xeoraCall;
@@ -107,7 +107,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                         );
 
                 if (string.IsNullOrEmpty(this._Settings.Attributes["onclick"]))
-                    this._Settings.Attributes["onclick"] = string.Format("javascript:{0};", xeoraCall);
+                    this._Settings.Attributes["onclick"] = $"javascript:{xeoraCall};";
                 else
                 {
                     this._Settings.Attributes["onclick"] = 
@@ -122,19 +122,20 @@ namespace Xeora.Web.Directives.Controls.Elements
             }
             // !--
 
-            if (this._Settings.Security.Disabled.Set && 
+            if (this._Settings.Security.Disabled.Set &&
                 this._Settings.Security.Disabled.Type == SecurityDefinition.DisabledDefinition.Types.Dynamic)
-                this._Parent.Deliver(RenderStatus.Rendered, this._Settings.Security.Disabled.Value);
-            else
             {
-                this._Parent.Deliver(
-                    RenderStatus.Rendered,
-                    string.Format(
-                        "<a name=\"{0}\" id=\"{0}\"{1}>{2}</a>",
-                        this._Parent.DirectiveId, this._Settings.Attributes, renderedText
-                    )
-                );
+                this._Parent.Deliver(RenderStatus.Rendered, this._Settings.Security.Disabled.Value);
+                return;
             }
+
+            this._Parent.Deliver(
+                RenderStatus.Rendered,
+                string.Format(
+                    "<a name=\"{0}\" id=\"{0}\"{1}>{2}</a>",
+                    this._Parent.DirectiveId, this._Settings.Attributes, renderedText
+                )
+            );
         }
     }
 }

@@ -6,7 +6,7 @@ namespace Xeora.Web.Global
 {
     public class ArgumentCollection
     {
-        private ConcurrentDictionary<string, int> _ArgumentIndexes;
+        private readonly ConcurrentDictionary<string, int> _ArgumentIndexes;
 
         public ArgumentCollection()
         {
@@ -45,17 +45,17 @@ namespace Xeora.Web.Global
             Array.Copy(values, 0, this.Values, 0, values.Length);
         }
 
-        public void Replace(ArgumentCollection aIC)
+        public void Replace(ArgumentCollection aC)
         {
-            if (aIC == null)
+            if (aC == null)
                 return;
 
             this._ArgumentIndexes.Clear();
-            foreach (KeyValuePair<string, int> pair in aIC._ArgumentIndexes)
+            foreach (KeyValuePair<string, int> pair in aC._ArgumentIndexes)
                 this._ArgumentIndexes[pair.Key] = pair.Value;
 
             this.Values = new object[this._ArgumentIndexes.Count];
-            Array.Copy(aIC.Values, 0, this.Values, 0, aIC.Values.Length);
+            Array.Copy(aC.Values, 0, this.Values, 0, aC.Values.Length);
         }
 
         public void AppendKey(string key) =>
@@ -88,16 +88,11 @@ namespace Xeora.Web.Global
         {
             get
             {
-                if (!string.IsNullOrEmpty(key) && 
-                    this._ArgumentIndexes.ContainsKey(key))
-                {
-                    int index = this._ArgumentIndexes[key];
+                if (string.IsNullOrEmpty(key) || !this._ArgumentIndexes.ContainsKey(key)) return null;
+                
+                int index = this._ArgumentIndexes[key];
 
-                    if (index < this.Values.Length)
-                        return this.Values[index];
-                }
-
-                return null;
+                return index < this.Values.Length ? this.Values[index] : null;
             }
             set
             {

@@ -1,15 +1,15 @@
 ﻿using System.Collections.Generic;
+using Xeora.Web.Application.Domain.Controls;
 using Xeora.Web.Basics.Domain;
 using Xeora.Web.Basics.Domain.Control.Definitions;
+using Xeora.Web.Directives.Elements;
 using Xeora.Web.Global;
-using Xeora.Web.Site.Setting.Control;
 
 namespace Xeora.Web.Directives
 {
     public class Mother : IMother
     {
         private readonly IDirective _Directive;
-        private readonly DirectivePool _Pool;
 
         public event ParsingHandler ParseRequested;
         public event InstanceHandler InstanceRequested;
@@ -18,7 +18,7 @@ namespace Xeora.Web.Directives
 
         public Mother(IDirective directive, Basics.ControlResult.Message messageResult, string[] updateBlockIdStack)
         {
-            this._Pool = new DirectivePool();
+            this.Pool = new DirectivePool();
             this.UpdateBlockIdStack = new Stack<string>();
 
             this.MessageResult = messageResult;
@@ -34,9 +34,10 @@ namespace Xeora.Web.Directives
             this(new Single(xeoraContent, null), messageResult, updateBlockIdStack)
         { }
 
-        public DirectivePool Pool => this._Pool;
-        public Basics.ControlResult.Message MessageResult { get; private set; }
-        public Stack<string> UpdateBlockIdStack { get; private set; }
+        public DirectivePool Pool { get; }
+
+        public Basics.ControlResult.Message MessageResult { get; }
+        public Stack<string> UpdateBlockIdStack { get; }
 
         public void RequestParsing(string rawValue, ref DirectiveCollection childrenContainer, ArgumentCollection arguments) =>
             ParseRequested?.Invoke(rawValue, ref childrenContainer, arguments);

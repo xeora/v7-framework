@@ -1,4 +1,5 @@
-﻿using Xeora.Web.Basics;
+﻿using System.Collections.Generic;
+using Xeora.Web.Basics;
 using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives.Elements
@@ -16,8 +17,8 @@ namespace Xeora.Web.Directives.Elements
             this.BoundDirectiveId = DirectiveHelper.CaptureBoundDirectiveId(rawValue);
         }
 
-        public LevelingInfo Leveling { get; private set; }
-        public string BoundDirectiveId { get; private set; }
+        public LevelingInfo Leveling { get; }
+        public string BoundDirectiveId { get; }
         public bool HasBound => !string.IsNullOrEmpty(this.BoundDirectiveId);
 
         public override bool Searchable => false;
@@ -38,7 +39,7 @@ namespace Xeora.Web.Directives.Elements
                 if (string.IsNullOrEmpty(requesterUniqueId))
                     return;
 
-                this.Mother.Pool.GetByDirectiveId(this.BoundDirectiveId, out IDirective[] directives);
+                this.Mother.Pool.GetByDirectiveId(this.BoundDirectiveId, out IEnumerable<IDirective> directives);
 
                 if (directives == null) return;
 
@@ -47,13 +48,12 @@ namespace Xeora.Web.Directives.Elements
                     if (!(directive is INamable)) return;
 
                     string directiveId = ((INamable)directive).DirectiveId;
-                    if (string.Compare(directiveId, this.BoundDirectiveId) != 0) return;
+                    if (string.CompareOrdinal(directiveId, this.BoundDirectiveId) != 0) return;
 
-                    if (directive.Status != RenderStatus.Rendered)
-                    {
-                        directive.Scheduler.Register(this.UniqueId);
-                        return;
-                    }
+                    if (directive.Status == RenderStatus.Rendered) continue;
+                    
+                    directive.Scheduler.Register(this.UniqueId);
+                    return;
                 }
             }
 
@@ -77,11 +77,10 @@ namespace Xeora.Web.Directives.Elements
                 leveledDirective = leveledDirective.Parent;
                 level--;
 
-                if (leveledDirective == null)
-                {
-                    leveledDirective = this;
-                    break;
-                }
+                if (leveledDirective != null) continue;
+                
+                leveledDirective = this;
+                break;
             }
 
             Basics.Execution.Bind bind =
@@ -89,7 +88,7 @@ namespace Xeora.Web.Directives.Elements
 
             // Execution preparation should be done at the same level with it's parent. Because of that, send parent as parameters
             bind.Parameters.Prepare(
-                (parameter) => DirectiveHelper.RenderProperty(leveledDirective.Parent, parameter.Query, leveledDirective.Parent.Arguments, requesterUniqueId)
+                parameter => DirectiveHelper.RenderProperty(leveledDirective.Parent, parameter.Query, leveledDirective.Parent.Arguments, requesterUniqueId)
             );
 
             Basics.Execution.InvokeResult<object> invokeResult =
@@ -98,10 +97,9 @@ namespace Xeora.Web.Directives.Elements
             if (invokeResult.Exception != null)
                 throw new Exception.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);
 
-            if (invokeResult.Result != null && invokeResult.Result is Basics.ControlResult.RedirectOrder)
+            if (invokeResult.Result is Basics.ControlResult.RedirectOrder redirectOrder)
             {
-                Helpers.Context.AddOrUpdate("RedirectLocation",
-                    ((Basics.ControlResult.RedirectOrder)invokeResult.Result).Location);
+                Helpers.Context.AddOrUpdate("RedirectLocation", redirectOrder.Location);
 
                 this.Deliver(RenderStatus.Rendered, string.Empty);
 

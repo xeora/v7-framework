@@ -1,4 +1,6 @@
-﻿namespace Xeora.Web.Directives.Controls
+﻿using System;
+
+namespace Xeora.Web.Directives.Controls
 {
     public class ControlHelper
     {
@@ -9,7 +11,7 @@
 
             string javascriptSignature = "javascript:";
 
-            if (input.IndexOf(javascriptSignature) == 0)
+            if (input.IndexOf(javascriptSignature, StringComparison.Ordinal) == 0)
                 input = input.Substring(javascriptSignature.Length);
 
             if (input[input.Length - 1] == ';')

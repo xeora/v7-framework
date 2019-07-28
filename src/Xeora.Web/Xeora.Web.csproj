@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -61,7 +61,6 @@
 
   <ItemGroup>
     <Folder Include="Directives\Controls\" />
-    <Folder Include="Site\Domain\Setting\Control\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Controller\ControllerWithChildren.cs" />

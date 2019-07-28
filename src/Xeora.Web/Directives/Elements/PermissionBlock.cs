@@ -26,7 +26,7 @@ namespace Xeora.Web.Directives.Elements
             this._Contents = new ContentDescription(rawValue);
         }
 
-        public string DirectiveId { get; private set; }
+        public string DirectiveId { get; }
 
         public override bool Searchable => true;
         public override bool CanAsync => false;
@@ -94,7 +94,7 @@ namespace Xeora.Web.Directives.Elements
                 return new PermissionResult(PermissionResult.Results.Forbidden);
 
             Basics.Execution.Bind permissionBind =
-                Basics.Execution.Bind.Make(string.Format("{0}?EnsurePermission,p1", instance.Settings.Configurations.SecurityExecutable));
+                Basics.Execution.Bind.Make($"{instance.Settings.Configurations.SecurityExecutable}?EnsurePermission,p1");
             permissionBind.Parameters.Prepare(parameter => this.DirectiveId);
             permissionBind.InstanceExecution = true;
 

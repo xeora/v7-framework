@@ -5,7 +5,7 @@ namespace Xeora.Web.Directives.Elements
 {
     public class PartialCache : Directive
     {
-        private static readonly Regex _PositionRegEx =
+        private static readonly Regex PositionRegEx =
             new Regex("PC~(?<PositionId>\\d+)\\:\\{", RegexOptions.Compiled);
 
         private readonly int _PositionId;
@@ -18,7 +18,7 @@ namespace Xeora.Web.Directives.Elements
         {
             this._PositionId = -1;
             Match matchMI =
-                PartialCache._PositionRegEx.Match(rawValue);
+                PartialCache.PositionRegEx.Match(rawValue);
 
             if (matchMI.Success)
                 int.TryParse(matchMI.Result("${PositionId}"), out this._PositionId);

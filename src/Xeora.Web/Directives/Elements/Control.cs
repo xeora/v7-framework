@@ -1,4 +1,5 @@
-﻿using Xeora.Web.Basics.Domain;
+﻿using System.Collections.Generic;
+using Xeora.Web.Basics.Domain;
 using Xeora.Web.Basics.Domain.Control;
 using Xeora.Web.Basics.Domain.Control.Definitions;
 using Xeora.Web.Directives.Controls;
@@ -39,7 +40,7 @@ namespace Xeora.Web.Directives.Elements
                             this,
                             new ContentDescription(this._RawValue),
                             DirectiveHelper.CaptureControlParameters(this._RawValue),
-                            (Site.Setting.Control.ConditionalStatement)control
+                            (Application.Domain.Controls.ConditionalStatement)control
                         );
 
                     break;
@@ -49,7 +50,7 @@ namespace Xeora.Web.Directives.Elements
                             this,
                             new ContentDescription(this._RawValue),
                             DirectiveHelper.CaptureControlParameters(this._RawValue),
-                            (Site.Setting.Control.DataList)control
+                            (Application.Domain.Controls.DataList)control
                         );
 
                     break;
@@ -59,40 +60,40 @@ namespace Xeora.Web.Directives.Elements
                             this,
                             new ContentDescription(this._RawValue),
                             DirectiveHelper.CaptureControlParameters(this._RawValue),
-                            (Site.Setting.Control.VariableBlock)control
+                            (Application.Domain.Controls.VariableBlock)control
                         );
 
                     break;
                 case ControlTypes.Button:
-                    this._Control = new Button(this, (Site.Setting.Control.Button)control);
+                    this._Control = new Button(this, (Application.Domain.Controls.Button)control);
 
                     break;
                 case ControlTypes.Checkbox:
-                    this._Control = new Checkbox(this, (Site.Setting.Control.Checkbox)control);
+                    this._Control = new Checkbox(this, (Application.Domain.Controls.Checkbox)control);
 
                     break;
                 case ControlTypes.ImageButton:
-                    this._Control = new ImageButton(this, (Site.Setting.Control.ImageButton)control);
+                    this._Control = new ImageButton(this, (Application.Domain.Controls.ImageButton)control);
 
                     break;
                 case ControlTypes.LinkButton:
-                    this._Control = new LinkButton(this, (Site.Setting.Control.LinkButton)control);
+                    this._Control = new LinkButton(this, (Application.Domain.Controls.LinkButton)control);
 
                     break;
                 case ControlTypes.Password:
-                    this._Control = new Password(this, (Site.Setting.Control.Password)control);
+                    this._Control = new Password(this, (Application.Domain.Controls.Password)control);
 
                     break;
                 case ControlTypes.RadioButton:
-                    this._Control = new RadioButton(this, (Site.Setting.Control.RadioButton)control);
+                    this._Control = new RadioButton(this, (Application.Domain.Controls.RadioButton)control);
 
                     break;
                 case ControlTypes.Textarea:
-                    this._Control = new Textarea(this, (Site.Setting.Control.Textarea)control);
+                    this._Control = new Textarea(this, (Application.Domain.Controls.Textarea)control);
 
                     break;
                 case ControlTypes.Textbox:
-                    this._Control = new Textbox(this, (Site.Setting.Control.Textbox)control);
+                    this._Control = new Textbox(this, (Application.Domain.Controls.Textbox)control);
 
                     break;
             }
@@ -100,10 +101,10 @@ namespace Xeora.Web.Directives.Elements
             this.Type = control.Type;
         }
 
-        public string DirectiveId { get; private set; }
-        public string BoundDirectiveId { get; private set; }
+        public string DirectiveId { get; }
+        public string BoundDirectiveId { get; }
         public bool HasBound => !string.IsNullOrEmpty(this.BoundDirectiveId);
-        public LevelingInfo Leveling { get; private set; }
+        public LevelingInfo Leveling { get; }
         public new ControlTypes Type { get; private set; }
 
         public override bool Searchable
@@ -136,7 +137,7 @@ namespace Xeora.Web.Directives.Elements
                 if (string.IsNullOrEmpty(requesterUniqueId))
                     return;
 
-                this.Mother.Pool.GetByDirectiveId(this.BoundDirectiveId, out IDirective[] directives);
+                this.Mother.Pool.GetByDirectiveId(this.BoundDirectiveId, out IEnumerable<IDirective> directives);
 
                 if (directives == null) return;
 
@@ -145,13 +146,12 @@ namespace Xeora.Web.Directives.Elements
                     if (!(directive is INamable)) return;
 
                     string directiveId = ((INamable)directive).DirectiveId;
-                    if (string.Compare(directiveId, this.BoundDirectiveId) != 0) return;
+                    if (string.CompareOrdinal(directiveId, this.BoundDirectiveId) != 0) return;
 
-                    if (directive.Status != RenderStatus.Rendered)
-                    {
-                        directive.Scheduler.Register(this.UniqueId);
-                        return;
-                    }
+                    if (directive.Status == RenderStatus.Rendered) continue;
+                    
+                    directive.Scheduler.Register(this.UniqueId);
+                    return;
                 }
             }
 

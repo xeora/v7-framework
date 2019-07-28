@@ -11,13 +11,12 @@ namespace Xeora.Web.Directives.Elements
     public class Property : Directive
     {
         private readonly string _RawValue;
-        private readonly bool _CanAsync;
 
         public Property(string rawValue, ArgumentCollection arguments) :
             base(DirectiveTypes.Property, arguments)
         {
             this._RawValue = rawValue;
-            this._CanAsync = true;
+            this.CanAsync = true;
 
             if (string.IsNullOrEmpty(this._RawValue))
                 return;
@@ -44,14 +43,14 @@ namespace Xeora.Web.Directives.Elements
                                 case '#':
                                     break;
                                 default:
-                                    this._CanAsync = false;
+                                    this.CanAsync = false;
 
                                     break;
                             }
 
                             break;
                         default:
-                            this._CanAsync = false;
+                            this.CanAsync = false;
 
                             break;
                     }
@@ -60,7 +59,7 @@ namespace Xeora.Web.Directives.Elements
         }
 
         public override bool Searchable => false;
-        public override bool CanAsync => this._CanAsync;
+        public override bool CanAsync { get; }
 
         public object ObjectResult { get; private set; }
 
@@ -229,12 +228,12 @@ namespace Xeora.Web.Directives.Elements
             List<Basics.Context.IHttpRequestFileInfo> requestFileObjects =
                 new List<Basics.Context.IHttpRequestFileInfo>();
 
-            for (int kC = 0; kC < keys.Length; kC++)
+            foreach (string key in keys)
             {
-                if (string.Compare(keys[kC], formItemKey, true) != 0)
+                if (string.Compare(key, formItemKey, StringComparison.OrdinalIgnoreCase) != 0)
                     continue;
 
-                requestFileObjects.Add(Helpers.Context.Request.Body.File[keys[kC]]);
+                requestFileObjects.Add(Helpers.Context.Request.Body.File[key]);
             }
             // !--
 
@@ -275,10 +274,7 @@ namespace Xeora.Web.Directives.Elements
             object sessionItemValue = 
                 Helpers.Context.Session[sessionItemKey];
 
-            if (sessionItemValue == null)
-                this.Deliver(RenderStatus.Rendered, string.Empty);
-            else
-                this.Deliver(RenderStatus.Rendered, sessionItemValue.ToString());
+            this.Deliver(RenderStatus.Rendered, sessionItemValue == null ? string.Empty : sessionItemValue.ToString());
             this.ObjectResult = sessionItemValue;
         }
 
@@ -328,7 +324,7 @@ namespace Xeora.Web.Directives.Elements
                 searchDirective.Arguments[searchVariableKey];
 
             if (argItem != null &&
-                !object.ReferenceEquals(argItem.GetType(), typeof(DBNull)))
+                !ReferenceEquals(argItem.GetType(), typeof(DBNull)))
             {
                 this.Deliver(RenderStatus.Rendered, argItem.ToString());
                 this.ObjectResult = argItem;
@@ -425,10 +421,7 @@ namespace Xeora.Web.Directives.Elements
                 objectValue = null;
             }
 
-            if (objectValue != null)
-                this.Deliver(RenderStatus.Rendered, objectValue.ToString());
-            else
-                this.Deliver(RenderStatus.Rendered, string.Empty);
+            this.Deliver(RenderStatus.Rendered, objectValue != null ? objectValue.ToString() : string.Empty);
             this.ObjectResult = objectValue;
         }
 
@@ -443,32 +436,28 @@ namespace Xeora.Web.Directives.Elements
 
         private string CleanHTMLTags(string content, string[] cleaningTags)
         {
-            Regex regExSearch;
-
             if (string.IsNullOrEmpty(content) || cleaningTags == null || cleaningTags.Length == 0)
                 return content;
 
-            int searchType, lastSearchIndex;
-            StringBuilder modifiedContent;
-            MatchCollection regExMatches;
-
             foreach (string cleaningTag in cleaningTags)
             {
+                Regex regExSearch;
+                int searchType;
+                
                 if (cleaningTag.IndexOf('>') == 0)
                 {
-                    regExSearch = new Regex(string.Format("<{0}(\\s+[^>]*)*>", cleaningTag.Substring(1)));
+                    regExSearch = new Regex($"<{cleaningTag.Substring(1)}(\\s+[^>]*)*>");
                     searchType = 1;
                 }
                 else
                 {
-                    regExSearch = new Regex(string.Format("<{0}(\\s+[^>]*)*(/)?>", cleaningTag));
+                    regExSearch = new Regex($"<{cleaningTag}(\\s+[^>]*)*(/)?>");
                     searchType = 0;
                 }
 
-                regExMatches = regExSearch.Matches(content);
-
-                modifiedContent = new StringBuilder();
-                lastSearchIndex = 0;
+                MatchCollection regExMatches = regExSearch.Matches(content);
+                StringBuilder modifiedContent = new StringBuilder();
+                int lastSearchIndex = 0;
 
                 foreach (Match regMatch in regExMatches)
                 {
@@ -477,14 +466,17 @@ namespace Xeora.Web.Directives.Elements
                     switch (searchType)
                     {
                         case 1:
-                            Regex TailRegExSearch = new Regex(string.Format("</{0}>", cleaningTag.Substring(1)));
-                            Match TailRegMatch = TailRegExSearch.Match(content, lastSearchIndex);
+                            Regex tailRegExSearch = new Regex($"</{cleaningTag.Substring(1)}>");
+                            Match tailRegMatch = tailRegExSearch.Match(content, lastSearchIndex);
 
-                            if (TailRegMatch.Success)
-                                lastSearchIndex = TailRegMatch.Index + TailRegMatch.Length;
-                            else
-                                lastSearchIndex = regMatch.Index + regMatch.Length;
-
+                            if (tailRegMatch.Success)
+                            {
+                                lastSearchIndex = tailRegMatch.Index + tailRegMatch.Length;
+                                break;
+                            }
+                            
+                            lastSearchIndex = regMatch.Index + regMatch.Length;
+                            
                             break;
                         default:
                             lastSearchIndex = regMatch.Index + regMatch.Length;

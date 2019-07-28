@@ -13,32 +13,30 @@ namespace Xeora.Web.Directives
             this.Parent = null;
 
             this.Type = type;
-            this.Arguments = arguments;
-            if (this.Arguments == null)
-                this.Arguments = new ArgumentCollection();
+            this.Arguments = arguments ?? new ArgumentCollection();
 
             this.Scheduler =
                 new DirectiveScheduler(
-                    (uniqueId) =>
+                    uniqueId =>
                     {
                         this.Mother.Pool.GetByUniqueId(uniqueId, out IDirective directive);
 
-                        if (directive != null) directive.Render(this.UniqueId);
+                        directive?.Render(this.UniqueId);
                     }
                 );
 
             this.Result = string.Empty;
         }
 
-        public string UniqueId { get; private set; }
+        public string UniqueId { get; }
 
         public IMother Mother { get; set; }
         public IDirective Parent { get; set; }
 
-        public DirectiveTypes Type { get; private set; }
-        public ArgumentCollection Arguments { get; private set; }
+        public DirectiveTypes Type { get; }
+        public ArgumentCollection Arguments { get; }
 
-        public DirectiveScheduler Scheduler { get; private set; }
+        public DirectiveScheduler Scheduler { get; }
 
         public abstract bool Searchable { get; }
         public abstract bool CanAsync { get; }

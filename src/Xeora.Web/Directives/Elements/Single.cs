@@ -1,7 +1,6 @@
-﻿using Xeora.Web.Directives.Elements;
-using Xeora.Web.Global;
+﻿using Xeora.Web.Global;
 
-namespace Xeora.Web.Directives
+namespace Xeora.Web.Directives.Elements
 {
     public class Single : Directive, IHasChildren
     {
@@ -12,7 +11,7 @@ namespace Xeora.Web.Directives
         public Single(string rawValue, ArgumentCollection arguments) :
             base(DirectiveTypes.Single, arguments)
         {
-            rawValue = string.Format("Single~0:{{{0}}}:Single~0", rawValue);
+            rawValue = $"Single~0:{{{rawValue}}}:Single~0";
 
             this._Contents = new ContentDescription(rawValue);
         }

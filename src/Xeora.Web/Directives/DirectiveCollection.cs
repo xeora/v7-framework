@@ -13,7 +13,7 @@ namespace Xeora.Web.Directives
         private readonly ConcurrentQueue<int> _Queued;
 
         private readonly IMother _Mother;
-        private IDirective _Parent;
+        private readonly IDirective _Parent;
 
         public DirectiveCollection(IMother mother, IDirective parent)
         {
@@ -30,8 +30,8 @@ namespace Xeora.Web.Directives
 
             this._Mother.Pool.Register(item);
 
-            if (item is Control)
-                ((Control)item).Load();
+            if (item is Control control)
+                control.Load();
 
             this._Queued.Enqueue(this.Count);
             base.Add(item);
@@ -61,7 +61,7 @@ namespace Xeora.Web.Directives
 
                 tasks.Add(
                     Task.Factory.StartNew(
-                        (d) => this.Render(currentHandlerId, requesterUniqueId, (IDirective)d),
+                        d => this.Render(currentHandlerId, requesterUniqueId, (IDirective)d),
                         directive,
                         TaskCreationOptions.DenyChildAttach
                     )
@@ -96,11 +96,11 @@ namespace Xeora.Web.Directives
                 if (Configurations.Xeora.Application.Main.PrintAnalytics)
                 {
                     string analyticOutput = directive.UniqueId;
-                    if (directive is INamable)
-                        analyticOutput = string.Format("{0} - {1}", analyticOutput, ((INamable)directive).DirectiveId);
+                    if (directive is INamable namable)
+                        analyticOutput = $"{analyticOutput} - {namable.DirectiveId}";
                     Basics.Console.Push(
-                        string.Format("analytic - {0}", directive.GetType().Name),
-                        string.Format("{0}ms {{{1}}}", DateTime.Now.Subtract(renderBegins).TotalMilliseconds, analyticOutput),
+                        $"analytic - {directive.GetType().Name}",
+                        $"{DateTime.Now.Subtract(renderBegins).TotalMilliseconds}ms {{{analyticOutput}}}",
                         string.Empty, false);
                 }
             }
@@ -125,7 +125,7 @@ namespace Xeora.Web.Directives
                                   </div>",
                                 ex.Message,
                                 ex.Source,
-                                (!string.IsNullOrEmpty(exceptionString) ? string.Concat("<hr size='1px' />", exceptionString) : null)
+                                !string.IsNullOrEmpty(exceptionString) ? string.Concat("<hr size='1px' />", exceptionString) : null
                             );
 
                         ex = ex.InnerException;
@@ -151,7 +151,7 @@ namespace Xeora.Web.Directives
                 if (!(directive is INamable))
                     continue;
 
-                if (string.Compare(((INamable)directive).DirectiveId, directiveId) == 0)
+                if (string.CompareOrdinal(((INamable)directive).DirectiveId, directiveId) == 0)
                     return directive;
 
                 if (directive is Control control)

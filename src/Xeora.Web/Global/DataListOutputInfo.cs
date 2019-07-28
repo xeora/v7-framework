@@ -13,9 +13,9 @@ namespace Xeora.Web.Global
             this.Failed = failed;
         }
 
-        public string UniqueId { get; private set; }
-        public long Count { get; private set; }
-        public long Total { get; private set; }
-        public bool Failed { get; private set; }
+        public string UniqueId { get; }
+        public long Count { get; }
+        public long Total { get; }
+        public bool Failed { get; }
     }
 }

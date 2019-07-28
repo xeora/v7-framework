@@ -7,9 +7,9 @@ namespace Xeora.Web.Directives.Controls.Elements
     public class ImageButton : IControl
     {
         private readonly Control _Parent;
-        private readonly Site.Setting.Control.ImageButton _Settings;
+        private readonly Application.Domain.Controls.ImageButton _Settings;
 
-        public ImageButton(Control parent, Site.Setting.Control.ImageButton settings)
+        public ImageButton(Control parent, Application.Domain.Controls.ImageButton settings)
         {
             this._Parent = parent;
             this._Settings = settings;
@@ -52,7 +52,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             {
                 // Render Bind Parameters
                 this._Settings.Bind.Parameters.Prepare(
-                    (parameter) => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueId)
+                    parameter => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueId)
                 );
 
                 string xeoraCall;

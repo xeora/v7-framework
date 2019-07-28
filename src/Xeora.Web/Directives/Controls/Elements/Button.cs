@@ -7,9 +7,9 @@ namespace Xeora.Web.Directives.Controls.Elements
     public class Button : IControl
     {
         private readonly Control _Parent;
-        private readonly Site.Setting.Control.Button _Settings;
+        private readonly Application.Domain.Controls.Button _Settings;
 
-        public Button(Control parent, Site.Setting.Control.Button settings)
+        public Button(Control parent, Application.Domain.Controls.Button settings)
         {
             this._Parent = parent;
             this._Settings = settings;
@@ -52,7 +52,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             {
                 // Render Bind Parameters
                 this._Settings.Bind.Parameters.Prepare(
-                    (parameter) => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueId)
+                    parameter => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueId)
                 );
 
                 string xeoraCall;
@@ -78,7 +78,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                         );
 
                 if (string.IsNullOrEmpty(this._Settings.Attributes["onclick"]))
-                    this._Settings.Attributes["onclick"] = string.Format("javascript:{0};", xeoraCall);
+                    this._Settings.Attributes["onclick"] = $"javascript:{xeoraCall};";
                 else
                 {
                     this._Settings.Attributes["onclick"] = 
@@ -93,19 +93,20 @@ namespace Xeora.Web.Directives.Controls.Elements
             }
             // !--
 
-            if (this._Settings.Security.Disabled.Set && 
+            if (this._Settings.Security.Disabled.Set &&
                 this._Settings.Security.Disabled.Type == SecurityDefinition.DisabledDefinition.Types.Dynamic)
-                this._Parent.Deliver(RenderStatus.Rendered, this._Settings.Security.Disabled.Value);
-            else
             {
-                this._Parent.Deliver(
-                    RenderStatus.Rendered,
-                    string.Format(
-                        "<input type=\"button\" name=\"{0}\" id=\"{0}\"{1} />",
-                        this._Parent.DirectiveId, this._Settings.Attributes
-                    )
-                );
+                this._Parent.Deliver(RenderStatus.Rendered, this._Settings.Security.Disabled.Value);
+                return;
             }
+
+            this._Parent.Deliver(
+                RenderStatus.Rendered,
+                string.Format(
+                    "<input type=\"button\" name=\"{0}\" id=\"{0}\"{1} />",
+                    this._Parent.DirectiveId, this._Settings.Attributes
+                )
+            );
         }
     }
 }

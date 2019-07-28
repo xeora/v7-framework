@@ -7,16 +7,16 @@ namespace Xeora.Web.Directives
     {
         private readonly ConcurrentDictionary<string[], ConcurrentDictionary<string, PartialCacheObject>> _PartialCaches;
 
-        public PartialCachePool() =>
+        private PartialCachePool() =>
             this._PartialCaches = new ConcurrentDictionary<string[], ConcurrentDictionary<string, PartialCacheObject>>();
 
-        private static readonly object _Lock = new object();
-        private static PartialCachePool _Current = null;
+        private static readonly object Lock = new object();
+        private static PartialCachePool _Current;
         public static PartialCachePool Current
         {
             get
             {
-                Monitor.Enter(PartialCachePool._Lock);
+                Monitor.Enter(PartialCachePool.Lock);
                 try
                 {
                     if (PartialCachePool._Current == null)
@@ -24,7 +24,7 @@ namespace Xeora.Web.Directives
                 }
                 finally
                 {
-                    Monitor.Exit(PartialCachePool._Lock);
+                    Monitor.Exit(PartialCachePool.Lock);
                 }
 
                 return PartialCachePool._Current;

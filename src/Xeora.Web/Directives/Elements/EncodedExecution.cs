@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Xeora.Web.Global;
 
@@ -96,13 +97,11 @@ namespace Xeora.Web.Directives.Elements
                 new Dictionary<string, System.Func<string, string>>() {
                     {
                         "!CLEAN",
-                        new System.Func<string, string>(
-                            (d) =>
-                            {
-                                this._Clean = true;
-                                return d.Replace("!CLEAN", string.Empty);
-                            }
-                        )
+                        d =>
+                        {
+                            this._Clean = true;
+                            return d.Replace("!CLEAN", string.Empty);
+                        }
                     }
                 };
 
@@ -128,13 +127,13 @@ namespace Xeora.Web.Directives.Elements
                 }
                 finally
                 {
-                    if (sR != null)
-                        sR.Close();
+                    sR?.Close();
                 }
 
                 foreach (string key in subDirectives.Keys)
                 {
-                    int dIdx = directives.IndexOf(key);
+                    int dIdx = 
+                        directives.IndexOf(key, StringComparison.Ordinal);
 
                     if (dIdx == -1)
                         continue;
@@ -142,7 +141,7 @@ namespace Xeora.Web.Directives.Elements
                     directives = subDirectives[key].Invoke(directives);
                 }
 
-                blockContent = string.Format("{0}{1}", directives, blockContent);
+                blockContent = $"{directives}{blockContent}";
             }
             blockContent = blockContent.Trim();
         }

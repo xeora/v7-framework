@@ -9,7 +9,7 @@
         }
 
         public InternalParentException(ChildDirectiveTypes childDirectiveType) : 
-            base(string.Format("Parented {0} must not be located inside its parent!", childDirectiveType.ToString()))
+            base($"Parented {childDirectiveType.ToString()} must not be located inside its parent!")
         { }
     }
 }

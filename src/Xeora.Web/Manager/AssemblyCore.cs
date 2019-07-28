@@ -40,7 +40,7 @@ namespace Xeora.Web.Manager
             GZipStream gzipStream = null;
             try
             {
-                byte[] rbuffer =
+                byte[] buffer =
                     System.Text.Encoding.UTF8.GetBytes(decodedBF01);
 
                 gzipHelperStream = new MemoryStream();
@@ -48,26 +48,22 @@ namespace Xeora.Web.Manager
                 {
                     gzipStream = new GZipStream(gzipHelperStream, CompressionMode.Compress, true);
 
-                    gzipStream.Write(rbuffer, 0, rbuffer.Length);
+                    gzipStream.Write(buffer, 0, buffer.Length);
                     gzipStream.Flush();
                 }
                 finally
                 {
-                    if (gzipStream != null)
-                    {
-                        gzipStream.Close();
-                        GC.SuppressFinalize(gzipStream);
-                    }
+                    gzipStream?.Close();
                 }
 
                 gzipHelperStream.Seek(0, SeekOrigin.Begin);
 
                 // EncData Dec. Process
-                byte byteCoded = 0;
                 int bC = 0;
                 while (gzipHelperStream.Position != gzipHelperStream.Length)
                 {
-                    byteCoded = (byte)gzipHelperStream.ReadByte();
+                    byte byteCoded = 
+                        (byte)gzipHelperStream.ReadByte();
                     byteCoded = (byte)(byteCoded ^ Convert.ToByte(encodingHashCode[bC % encodingHashCode.Length]));
 
                     gzipHelperStream.Seek(-1, SeekOrigin.Current);
@@ -77,27 +73,23 @@ namespace Xeora.Web.Manager
                 }
                 // !--
 
-                rbuffer = new byte[gzipHelperStream.Length];
+                buffer = new byte[gzipHelperStream.Length];
 
                 gzipHelperStream.Seek(0, SeekOrigin.Begin);
-                gzipHelperStream.Read(rbuffer, 0, rbuffer.Length);
+                gzipHelperStream.Read(buffer, 0, buffer.Length);
 
-                encodedCF01 = Convert.ToBase64String(rbuffer);
+                encodedCF01 = Convert.ToBase64String(buffer);
             }
             finally
             {
-                if (gzipHelperStream != null)
-                {
-                    gzipHelperStream.Close();
-                    GC.SuppressFinalize(gzipHelperStream);
-                }
+                gzipHelperStream?.Close();
             }
 
             string encodedBindFunction =
-                string.Format("{0},{1}", encodingHashCode, System.Web.HttpUtility.UrlEncode(encodedCF01));
+                $"{encodingHashCode},{System.Web.HttpUtility.UrlEncode(encodedCF01)}";
 
             if (isDecodedBF02Exist)
-                encodedBindFunction = string.Format("{0},{1}", encodedBindFunction, System.Web.HttpUtility.UrlEncode(encodedCF02));
+                encodedBindFunction = $"{encodedBindFunction},{System.Web.HttpUtility.UrlEncode(encodedCF02)}";
 
             return encodedBindFunction;
         }
@@ -131,12 +123,11 @@ namespace Xeora.Web.Manager
 
             System.Text.StringBuilder encodedText =
                 new System.Text.StringBuilder();
-
-            int bC = 0;
+            
             byte[] buffer = Convert.FromBase64String(encodedBF01);
 
             // EncData to DecData Process
-            for (bC = 0; bC < buffer.Length; bC++)
+            for (int bC = 0; bC < buffer.Length; bC++)
                 buffer[bC] = (byte)(buffer[bC] ^ Convert.ToByte(encodingHashCode[bC % encodingHashCode.Length]));
             // !--
 
@@ -144,7 +135,7 @@ namespace Xeora.Web.Manager
             GZipStream gzipStream = null;
             try
             {
-                byte[] rbuffer = new byte[512];
+                buffer = new byte[512];
 
                 // Prepare Content Stream
                 gzipHelperStream = new MemoryStream();
@@ -153,42 +144,31 @@ namespace Xeora.Web.Manager
                 gzipHelperStream.Seek(0, SeekOrigin.Begin);
                 // !--
 
+                int bC;
                 gzipStream = new GZipStream(gzipHelperStream, CompressionMode.Decompress, true);
                 do
                 {
-                    bC = gzipStream.Read(rbuffer, 0, rbuffer.Length);
+                    bC = gzipStream.Read(buffer, 0, buffer.Length);
 
                     if (bC > 0)
-                        encodedText.Append(System.Text.Encoding.UTF8.GetString(rbuffer, 0, bC));
+                        encodedText.Append(System.Text.Encoding.UTF8.GetString(buffer, 0, bC));
                 } while (bC > 0);
             }
             finally
             {
-                if (gzipStream != null)
-                {
-                    gzipStream.Close();
-                    GC.SuppressFinalize(gzipStream);
-                }
-
-                if (gzipHelperStream != null)
-                {
-                    gzipHelperStream.Close();
-                    GC.SuppressFinalize(gzipHelperStream);
-                }
+                gzipStream?.Close();
+                gzipHelperStream?.Close();
             }
 
             decodedBF01 = encodedText.ToString();
 
             // Decode The Parameters Part
-            if (!string.IsNullOrEmpty(encodedBF02))
-            {
-                decodedBF02 = System.Text.Encoding.UTF8.GetString(
-                    Convert.FromBase64String(encodedBF02));
+            if (string.IsNullOrEmpty(encodedBF02)) return decodedBF01;
+            
+            decodedBF02 = System.Text.Encoding.UTF8.GetString(
+                Convert.FromBase64String(encodedBF02));
 
-                return string.Format("{0},{1}", decodedBF01, decodedBF02);
-            }
-
-            return decodedBF01;
+            return $"{decodedBF01},{decodedBF02}";
         }
 
         // This function is for external call out side of the project DO NOT DISABLE IT
@@ -201,7 +181,7 @@ namespace Xeora.Web.Manager
                 throw new NoNullAllowedException("Requires bind!");
             // Check if BindInfo Parameters has been parsed!
             if (!bind.Ready)
-                throw new System.Exception("Bind Parameters shoud be parsed first!");
+                throw new System.Exception("Bind Parameters should be parsed first!");
 
             Master.Initialize();
 
@@ -238,7 +218,7 @@ namespace Xeora.Web.Manager
         public static object ExecuteStatement(string[] domainIdAccessTree, string statementBlockId, string statement, object[] parameters, bool cache)
         {
             StatementExecutable executableInfo =
-                StatementFactory.CreateExecutable(domainIdAccessTree, statementBlockId, statement, (parameters != null && parameters.Length > 0), cache);
+                StatementFactory.CreateExecutable(domainIdAccessTree, statementBlockId, statement, parameters != null && parameters.Length > 0, cache);
 
             if (executableInfo.Exception != null)
                 return executableInfo.Exception;
@@ -257,8 +237,8 @@ namespace Xeora.Web.Manager
                         ExecuterTypes.Undefined
                     );
 
-                if (invokedObject is System.Exception)
-                    throw (System.Exception)invokedObject;
+                if (invokedObject is System.Exception exception)
+                    throw exception;
 
                 return invokedObject;
             }

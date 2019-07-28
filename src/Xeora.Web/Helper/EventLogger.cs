@@ -11,7 +11,7 @@ namespace Xeora.Web.Helper
         private int _LogCacheLimit = 100;
 
         private int _FlushCycle = 5;
-        private Timer _FlushTimer = null;
+        private Timer _FlushTimer;
 
         private readonly object _LogCacheSyncObject;
         private readonly SortedDictionary<long, LogObject> _LogCache;
@@ -22,13 +22,13 @@ namespace Xeora.Web.Helper
             this._LogCache = new SortedDictionary<long, LogObject>();
         }
 
-        private static object _Lock = new object();
-        private static EventLogger _Current = null;
+        private static readonly object Lock = new object();
+        private static EventLogger _Current;
         private static EventLogger Current
         {
             get
             {
-                Monitor.Enter(EventLogger._Lock);
+                Monitor.Enter(EventLogger.Lock);
                 try
                 {
                     if (EventLogger._Current == null)
@@ -36,7 +36,7 @@ namespace Xeora.Web.Helper
                 }
                 finally
                 {
-                    Monitor.Exit(EventLogger._Lock);
+                    Monitor.Exit(EventLogger.Lock);
                 }
 
                 return EventLogger._Current;
@@ -75,17 +75,16 @@ namespace Xeora.Web.Helper
         {
             EventLogger.Current._FlushCycle = minute;
 
-            if (EventLogger.Current._FlushTimer != null)
-            {
-                EventLogger.Current._FlushTimer.Dispose();
-                EventLogger.Current._FlushTimer =
-                    new Timer(
-                        new TimerCallback(EventLogger.Current.FlushInternal),
-                        null,
-                        (EventLogger.Current._FlushCycle * 60000),
-                        0
-                    );
-            }
+            if (EventLogger.Current._FlushTimer == null) return;
+            
+            EventLogger.Current._FlushTimer.Dispose();
+            EventLogger.Current._FlushTimer =
+                new Timer(
+                    new TimerCallback(EventLogger.Current.FlushInternal),
+                    null,
+                    (EventLogger.Current._FlushCycle * 60000),
+                    0
+                );
         }
 
         public static void SetFlushCacheLimit(int cacheLimit) =>
@@ -187,8 +186,7 @@ namespace Xeora.Web.Helper
 
             return Path.Combine(
                 outputLocation,
-                string.Format(
-                    "{0}.log", DateTime.Format(logDateTime, true).ToString())
+                $"{DateTime.Format(logDateTime, true).ToString()}.log"
             );
         }
 
@@ -200,28 +198,27 @@ namespace Xeora.Web.Helper
             StringBuilder sB = new StringBuilder();
 
             sB.AppendLine("----------------------------------------------------------------------------");
-            sB.AppendLine("Event Time --> " + string.Format("{0}.{1}", logObject.DateTime.ToString(), logObject.DateTime.Millisecond));
+            sB.AppendLine("Event Time --> " + $"{logObject.DateTime.ToString()}.{logObject.DateTime.Millisecond}");
             sB.AppendLine("----------------------------------------------------------------------------");
             sB.Append(logObject.Content);
             sB.AppendLine();
 
-            Stream logFS = null;
+            Stream logStream = null;
             try
             {
                 byte[] buffer = Encoding.UTF8.GetBytes(sB.ToString());
 
-                logFS = new FileStream(
+                logStream = new FileStream(
                     this.PrepareOutputFileLocation(logObject.DateTime), 
                     FileMode.Append, 
                     FileAccess.Write, 
                     FileShare.ReadWrite
                 );
-                logFS.Write(buffer, 0, buffer.Length);
+                logStream.Write(buffer, 0, buffer.Length);
             }
             finally
             {
-                if (logFS != null)
-                    logFS.Close();
+                logStream?.Close();
             }
         }
 
@@ -239,8 +236,8 @@ namespace Xeora.Web.Helper
                 this.DateTime = System.DateTime.Now;
             }
 
-            public string Content { get; private set; }
-            public System.DateTime DateTime { get; private set; }
+            public string Content { get; }
+            public System.DateTime DateTime { get; }
         }
     }
 }

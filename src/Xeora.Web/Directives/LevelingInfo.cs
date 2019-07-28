@@ -10,34 +10,31 @@ namespace Xeora.Web.Directives
             this.ExecutionOnly = executionOnly;
         }
 
-        public int Level { get; private set; }
-        public bool ExecutionOnly { get; private set; }
+        public int Level { get; }
+        public bool ExecutionOnly { get; }
 
-        private static Regex _LevelingRegEx = 
+        private static readonly Regex LevelingRegEx = 
             new Regex("\\#\\d+(\\+)?", RegexOptions.Compiled);
         public static LevelingInfo Create(string value)
         {
-            int level = 0;
-            bool executionOnly = true;
-
             string[] controlValueSplitted = value.Split(':');
 
             Match cLevelingMatch = 
-                LevelingInfo._LevelingRegEx.Match(controlValueSplitted[0]);
+                LevelingInfo.LevelingRegEx.Match(controlValueSplitted[0]);
 
-            if (cLevelingMatch.Success)
+            if (!cLevelingMatch.Success) return new LevelingInfo(0, true);
+            
+            // Trim # character from match result
+            string cleanValue = 
+                cLevelingMatch.Value.Substring(1, cLevelingMatch.Length - 1);
+            bool executionOnly = true;
+
+            if (cleanValue.IndexOf('+') > -1)
             {
-                // Trim # character from match result
-                string cleanValue = cLevelingMatch.Value.Substring(1, cLevelingMatch.Length - 1);
-
-                if (cleanValue.IndexOf('+') > -1)
-                {
-                    executionOnly = false;
-                    cleanValue = cleanValue.Substring(0, cleanValue.IndexOf('+'));
-                }
-
-                int.TryParse(cleanValue, out level);
+                executionOnly = false;
+                cleanValue = cleanValue.Substring(0, cleanValue.IndexOf('+'));
             }
+            int.TryParse(cleanValue, out int level);
 
             return new LevelingInfo(level, executionOnly);
         }

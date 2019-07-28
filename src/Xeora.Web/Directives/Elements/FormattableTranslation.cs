@@ -17,7 +17,7 @@ namespace Xeora.Web.Directives.Elements
             this._Contents = new ContentDescription(rawValue);
         }
 
-        public string DirectiveId { get; private set; }
+        public string DirectiveId { get; }
 
         public override bool Searchable => false;
         public override bool CanAsync => false;
@@ -43,7 +43,7 @@ namespace Xeora.Web.Directives.Elements
             this.Mother.RequestParsing(formatContent, ref this._Children, this.Arguments);
         }
 
-        private static Regex _FormatIndexRegEx =
+        private static readonly Regex FormatIndexRegEx =
             new Regex("\\{(?<index>\\d+)\\}", RegexOptions.Compiled);
         public override void Render(string requesterUniqueId)
         {
@@ -63,7 +63,7 @@ namespace Xeora.Web.Directives.Elements
             string[] parameters = this.Result.Split('|');
 
             MatchCollection matches =
-                FormattableTranslation._FormatIndexRegEx.Matches(translationValue);
+                FormattableTranslation.FormatIndexRegEx.Matches(translationValue);
 
             for (int c = matches.Count - 1; c >= 0; c--)
             {

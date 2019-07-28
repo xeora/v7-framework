@@ -22,10 +22,9 @@ namespace Xeora.Web.Directives
             IDirective workingObject = partialCache.Parent;
             do
             {
-                if (workingObject is Template)
+                if (workingObject is Template template)
                 {
-                    serviceFullPath = ((Template)workingObject).DirectiveId;
-
+                    serviceFullPath = template.DirectiveId;
                     break;
                 }
 
@@ -35,11 +34,11 @@ namespace Xeora.Web.Directives
             if (string.IsNullOrEmpty(instance.Languages.Current.Info.Id) || string.IsNullOrEmpty(serviceFullPath) || positionId == -1)
                 throw new Exception.ParseException();
 
-            return string.Format("{0}_{1}_{2}", instance.Languages.Current.Info.Id, serviceFullPath, positionId);
+            return $"{instance.Languages.Current.Info.Id}_{serviceFullPath}_{positionId}";
         }
 
-        public string CacheId { get; private set; }
-        public string Content { get; private set; }
-        public DateTime Date { get; private set; }
+        public string CacheId { get; }
+        public string Content { get; }
+        public DateTime Date { get; }
     }
 }

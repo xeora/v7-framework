@@ -13,8 +13,8 @@ namespace Xeora.Web.Helper.Serialization
             {
                 forStream = new MemoryStream();
                 
-                BinaryFormatter binFormater = new BinaryFormatter();
-                binFormater.Serialize(forStream, value);
+                BinaryFormatter binFormatter = new BinaryFormatter();
+                binFormatter.Serialize(forStream, value);
 
                 return ((MemoryStream)forStream).ToArray();
             }
@@ -24,11 +24,7 @@ namespace Xeora.Web.Helper.Serialization
             }
             finally
             {
-                if (forStream != null)
-                {
-                    forStream.Close();
-                    GC.SuppressFinalize(forStream);
-                }
+                forStream?.Close();
             }
         }
 
@@ -39,9 +35,9 @@ namespace Xeora.Web.Helper.Serialization
             {
                 forStream = new MemoryStream(value);
 
-                BinaryFormatter binFormater = new BinaryFormatter();
+                BinaryFormatter binFormatter = new BinaryFormatter();
 
-                return (T)Convert.ChangeType(binFormater.Deserialize(forStream), typeof(T));
+                return (T)Convert.ChangeType(binFormatter.Deserialize(forStream), typeof(T));
             }
             catch (System.Exception)
             {
@@ -49,11 +45,7 @@ namespace Xeora.Web.Helper.Serialization
             }
             finally
             {
-                if (forStream != null)
-                {
-                    forStream.Close();
-                    GC.SuppressFinalize(forStream);
-                }
+                forStream?.Close();
             }
         }
     }

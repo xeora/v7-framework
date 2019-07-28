@@ -20,7 +20,7 @@ namespace Xeora.Web.Directives.Elements
         public override void Parse()
         { }
 
-        private static Regex _RootPathRegEx =
+        private static readonly Regex RootPathRegEx =
             new Regex("[\"']+(~|¨)/", RegexOptions.Compiled | RegexOptions.Multiline);
         public override void Render(string requesterUniqueId)
         {
@@ -31,7 +31,7 @@ namespace Xeora.Web.Directives.Elements
             this.Status = RenderStatus.Rendering;
 
             // Change ~/ values with the exact application root path
-            MatchCollection rootPathMatches = Renderless._RootPathRegEx.Matches(this._RawValue);
+            MatchCollection rootPathMatches = Renderless.RootPathRegEx.Matches(this._RawValue);
             string applicationRoot =
                 Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation;
             string virtualRoot = Basics.Configurations.Xeora.Application.Main.VirtualRoot;
@@ -46,10 +46,10 @@ namespace Xeora.Web.Directives.Elements
 
                 workingValue.Append(this._RawValue.Substring(lastIndex, matchItem.Index - lastIndex));
 
-                if (matchItem.Value.IndexOf("~", System.StringComparison.InvariantCulture) > -1)
-                    workingValue.AppendFormat("{0}{1}", matchItem.Value.Substring(0, 1), applicationRoot);
-                else
-                    workingValue.AppendFormat("{0}{1}", matchItem.Value.Substring(0, 1), virtualRoot);
+                workingValue.AppendFormat("{0}{1}", matchItem.Value.Substring(0, 1),
+                    matchItem.Value.IndexOf("~", System.StringComparison.InvariantCulture) > -1
+                        ? applicationRoot
+                        : virtualRoot);
 
                 lastIndex = matchItem.Index + matchItem.Length;
             }

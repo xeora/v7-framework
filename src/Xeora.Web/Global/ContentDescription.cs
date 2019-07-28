@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace Xeora.Web.Global
@@ -12,7 +13,7 @@ namespace Xeora.Web.Global
             public string MessageTemplate { get; set; }
         }
 
-        private static ConcurrentDictionary<string, PartCache> _PartsCache = 
+        private static readonly ConcurrentDictionary<string, PartCache> PartsCache = 
             new ConcurrentDictionary<string, PartCache>();
 
         private const string MESSAGE_TEMPLATE_POINTER_TEXT = "!MESSAGETEMPLATE";
@@ -30,7 +31,7 @@ namespace Xeora.Web.Global
 
             // Parse Block Content
             int firstContentEndIndex =
-                rawValue.IndexOf(string.Format("{0}:{{", modifier), System.StringComparison.InvariantCulture);
+                rawValue.IndexOf($"{modifier}:{{", System.StringComparison.InvariantCulture);
             if (firstContentEndIndex == -1) return;
 
             string directiveIdentifier =
@@ -55,15 +56,15 @@ namespace Xeora.Web.Global
             string controlIdWithIndex = 
                 blockContent.Substring(0, blockContent.IndexOf(":{", System.StringComparison.InvariantCulture));
 
-            string openingTag = string.Format("{0}:{{", controlIdWithIndex);
-            string closingTag = string.Format("}}:{0}", controlIdWithIndex);
+            string openingTag = $"{controlIdWithIndex}:{{";
+            string closingTag = $"}}:{controlIdWithIndex}";
 
             int idxCoreContStart =
                 blockContent.IndexOf(openingTag, System.StringComparison.InvariantCulture) + openingTag.Length;
             int idxCoreContEnd =
                 blockContent.LastIndexOf(closingTag, blockContent.Length, System.StringComparison.InvariantCulture);
 
-            if (idxCoreContStart != openingTag.Length || idxCoreContEnd != (blockContent.Length - openingTag.Length))
+            if (idxCoreContStart != openingTag.Length || idxCoreContEnd != blockContent.Length - openingTag.Length)
                 throw new Exception.ParseException();
 
             string coreContent = 
@@ -73,7 +74,7 @@ namespace Xeora.Web.Global
 
             if (this.TryCacheToPrepare(controlIdWithIndex, coreContent)) return;
 
-            this.PrepareDesciption(coreContent, controlIdWithIndex, isSpecialDirective);
+            this.PrepareDescription(coreContent, controlIdWithIndex, isSpecialDirective);
         }
 
         private string CleanupParameters(int firstContentEndIndex, string blockContent)
@@ -81,18 +82,15 @@ namespace Xeora.Web.Global
             int parameterBeginIndex = blockContent.IndexOf('(');
             if (parameterBeginIndex == -1) return blockContent;
             
-            if (firstContentEndIndex < parameterBeginIndex)
-                return blockContent;
-
-            return blockContent.Remove(parameterBeginIndex, firstContentEndIndex - parameterBeginIndex);
+            return firstContentEndIndex < parameterBeginIndex ? blockContent : blockContent.Remove(parameterBeginIndex, firstContentEndIndex - parameterBeginIndex);
         }
 
         private bool TryCacheToPrepare(string controlIdWithIndex, string coreContent)
         {
-            if (!ContentDescription._PartsCache.TryGetValue(controlIdWithIndex, out PartCache partCache))
+            if (!ContentDescription.PartsCache.TryGetValue(controlIdWithIndex, out PartCache partCache))
                 return false;
 
-            if (string.Compare(partCache.Content, coreContent) != 0)
+            if (String.CompareOrdinal(partCache.Content, coreContent) != 0)
                 return false;
 
             this.MessageTemplate = partCache.MessageTemplate;
@@ -101,15 +99,15 @@ namespace Xeora.Web.Global
             return true;
         }
 
-        private void PrepareDesciption(string content, string controlIdWithIndex, bool isSpecialDirective)
+        private void PrepareDescription(string content, string controlIdWithIndex, bool isSpecialDirective)
         {
             string searchString =
-                string.Format("}}:{0}:{{", controlIdWithIndex);
+                $"}}:{controlIdWithIndex}:{{";
             int sIdx, cIdx = 0;
 
             do
             {
-                sIdx = content.IndexOf(searchString, cIdx, System.StringComparison.InvariantCulture);
+                sIdx = content.IndexOf(searchString, cIdx, StringComparison.InvariantCulture);
                 if (sIdx == -1)
                     sIdx = content.Length;
 
@@ -120,7 +118,7 @@ namespace Xeora.Web.Global
                 if (isSpecialDirective)
                     contentPart = contentPart.Trim();
 
-                if (contentPart.IndexOf(ContentDescription.MESSAGE_TEMPLATE_POINTER_TEXT, System.StringComparison.InvariantCulture) == 0)
+                if (contentPart.IndexOf(ContentDescription.MESSAGE_TEMPLATE_POINTER_TEXT, StringComparison.InvariantCulture) == 0)
                 {
                     if (!string.IsNullOrEmpty(this.MessageTemplate))
                         throw new Exception.MultipleBlockException("Only One Message Template Block Allowed!");
@@ -142,7 +140,7 @@ namespace Xeora.Web.Global
                 Basics.Console.Push("WARNING (ContentDescriptor)", $"Empty Block is detected! [{controlIdWithIndex}]", string.Empty, true);
             }
 
-            ContentDescription._PartsCache.TryAdd(
+            ContentDescription.PartsCache.TryAdd(
                 controlIdWithIndex,
                 new PartCache
                 {

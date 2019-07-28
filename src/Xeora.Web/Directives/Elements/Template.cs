@@ -19,7 +19,7 @@ namespace Xeora.Web.Directives.Elements
             this.DirectiveId = DirectiveHelper.CaptureDirectiveId(rawValue);
         }
 
-        public string DirectiveId { get; private set; }
+        public string DirectiveId { get; }
 
         public override bool Searchable => true;
         public override bool CanAsync => true;
@@ -78,41 +78,42 @@ namespace Xeora.Web.Directives.Elements
             IServiceItem serviceItem = null;
             IDomain templateInstance = null;
 
-            IServiceItem cachedServiceItem = serviceItem;
+            IServiceItem cachedServiceItem;
             while (workingInstance != null)
             {
                 cachedServiceItem = workingInstance.Settings.Services.ServiceItems.GetServiceItem(this.DirectiveId);
 
-                if (cachedServiceItem != null)
+                if (cachedServiceItem == null)
                 {
-                    if (serviceItem == null)
-                    {
-                        serviceItem = cachedServiceItem;
-                        templateInstance = workingInstance;
-                    }
-
-                    foreach (string key in cachedServiceItem.AuthenticationKeys)
-                    {
-                        bool isExists = false;
-                        foreach (string item in authenticationKeys)
-                        {
-                            if (string.Compare(item, key, true) == 0)
-                            {
-                                isExists = true;
-
-                                break;
-                            }
-                        }
-                        if (!isExists)
-                            authenticationKeys.Add(key);
-                    }
+                    workingInstance = workingInstance.Parent;
+                    continue;
+                }
+                
+                if (serviceItem == null)
+                {
+                    serviceItem = cachedServiceItem;
+                    templateInstance = workingInstance;
                 }
 
+                foreach (string key in cachedServiceItem.AuthenticationKeys)
+                {
+                    bool isExists = false;
+                    foreach (string item in authenticationKeys)
+                    {
+                        if (string.Compare(item, key, StringComparison.OrdinalIgnoreCase) != 0) continue;
+                        
+                        isExists = true;
+                        break;
+                    }
+                    if (!isExists)
+                        authenticationKeys.Add(key);
+                }
+                
                 workingInstance = workingInstance.Parent;
             }
 
             if (serviceItem == null)
-                throw new SecurityException(string.Format("Service definition of {0} has not been found!", this.DirectiveId));
+                throw new SecurityException($"Service definition of {this.DirectiveId} has not been found!");
 
             serviceItem.AuthenticationKeys = authenticationKeys.ToArray();
 
@@ -131,7 +132,7 @@ namespace Xeora.Web.Directives.Elements
                 originalInstance = workingInstance;
                 cachedServiceItem = workingInstance.Settings.Services.ServiceItems.GetServiceItem(this.DirectiveId);
 
-                // Merge or set the authenticationkeys
+                // Merge or set the authenticationKeys
                 if (cachedServiceItem.Authentication)
                 {
                     if (cachedServiceItem.AuthenticationKeys.Length == 0)
@@ -139,19 +140,19 @@ namespace Xeora.Web.Directives.Elements
                     else
                     {
                         // Merge
-                        string[] Keys = new string[cachedServiceItem.AuthenticationKeys.Length + serviceItem.AuthenticationKeys.Length];
+                        string[] keys = new string[cachedServiceItem.AuthenticationKeys.Length + serviceItem.AuthenticationKeys.Length];
 
-                        Array.Copy(cachedServiceItem.AuthenticationKeys, 0, Keys, 0, cachedServiceItem.AuthenticationKeys.Length);
-                        Array.Copy(serviceItem.AuthenticationKeys, 0, Keys, cachedServiceItem.AuthenticationKeys.Length, serviceItem.AuthenticationKeys.Length);
+                        Array.Copy(cachedServiceItem.AuthenticationKeys, 0, keys, 0, cachedServiceItem.AuthenticationKeys.Length);
+                        Array.Copy(serviceItem.AuthenticationKeys, 0, keys, cachedServiceItem.AuthenticationKeys.Length, serviceItem.AuthenticationKeys.Length);
 
-                        cachedServiceItem.AuthenticationKeys = Keys;
+                        cachedServiceItem.AuthenticationKeys = keys;
                     }
                 }
 
                 serviceItem = cachedServiceItem;
             }
             // !---
-            if (workingInstance == null || object.ReferenceEquals(workingInstance, originalInstance))
+            if (workingInstance == null || ReferenceEquals(workingInstance, originalInstance))
                 workingInstance = templateInstance;
 
             if (!serviceItem.Authentication)
@@ -161,18 +162,13 @@ namespace Xeora.Web.Directives.Elements
 
             foreach (string authKey in serviceItem.AuthenticationKeys)
             {
-                if (Basics.Helpers.Context.Session[authKey] == null)
-                {
-                    localAuthenticationNotAccepted = true;
-
-                    break;
-                }
+                if (Basics.Helpers.Context.Session[authKey] != null) continue;
+                
+                localAuthenticationNotAccepted = true;
+                break;
             }
 
-            if (!localAuthenticationNotAccepted)
-                return true;
-
-            return false;
+            return !localAuthenticationNotAccepted;
         }
 
         private IDomain SearchChildrenThatOverrides(ref IDomain originalInstance, ref IDomain workingInstance)
@@ -187,7 +183,8 @@ namespace Xeora.Web.Directives.Elements
             {
                 childDomainIdAccessTree.Add(childDI.Id);
 
-                IDomain rDomainInstance = new Site.Domain(childDomainIdAccessTree.ToArray(), originalInstance.Languages.Current.Info.Id);
+                IDomain rDomainInstance = 
+                    new Application.Domain.Domain(childDomainIdAccessTree.ToArray(), originalInstance.Languages.Current.Info.Id);
                 IServiceItem serviceItem =
                     rDomainInstance.Settings.Services.ServiceItems.GetServiceItem(this.DirectiveId);
 

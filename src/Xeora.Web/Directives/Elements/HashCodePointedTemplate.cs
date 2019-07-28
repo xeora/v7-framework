@@ -29,7 +29,7 @@ namespace Xeora.Web.Directives.Elements
 
             this.Deliver(
                 RenderStatus.Rendered,
-                string.Format("{0}/{1}", Helpers.Context.HashCode, this._TemplateId)
+                $"{Helpers.Context.HashCode}/{this._TemplateId}"
             );
         }
     }
