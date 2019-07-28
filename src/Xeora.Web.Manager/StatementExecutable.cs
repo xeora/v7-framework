@@ -9,8 +9,8 @@
             this.Exception = exception;
         }
 
-        public string ExecutableName { get; private set; }
-        public string ClassName { get; private set; }
-        public System.Exception Exception { get; private set; }
+        public string ExecutableName { get; }
+        public string ClassName { get; }
+        public System.Exception Exception { get; }
     }
 }

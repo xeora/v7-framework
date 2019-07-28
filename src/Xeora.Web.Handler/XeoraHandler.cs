@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -11,6 +12,7 @@ using Xeora.Web.Basics.X;
 using Xeora.Web.Directives;
 using Xeora.Web.Directives.Elements;
 using Xeora.Web.Application.Domain;
+using Xeora.Web.Basics.Context.Request;
 
 namespace Xeora.Web.Handler
 {
@@ -27,39 +29,52 @@ namespace Xeora.Web.Handler
         {
             this._ForceRefresh = forceRefresh;
 
-            this.Context = context ?? throw new System.Exception("Context is required!");
+            this.Context = context ?? throw new Exception("Context is required!");
             this.HandlerId = Guid.NewGuid().ToString();
-
-            // Check URL contains ApplicationRootPath (~) or SiteRootPath (¨) modifiers
-            string RootPath =
-                System.Web.HttpUtility.UrlDecode(this.Context.Request.Header.URL.Raw);
-
-            if (RootPath.IndexOf("~/") > -1)
-            {
-                int tildeIdx = RootPath.IndexOf("~/");
-
-                RootPath = RootPath.Remove(0, tildeIdx + 2);
-                RootPath = RootPath.Insert(0, Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation);
-
-                this.Context.Request.RewritePath(RootPath);
-            }
-            else if (RootPath.IndexOf("¨/") > -1)
-            {
-                // It search something outside of XeoraCube Handler
-                int helfIdx = RootPath.IndexOf("¨/");
-
-                RootPath = RootPath.Remove(0, helfIdx + 2);
-                RootPath = RootPath.Insert(0, Basics.Configurations.Xeora.Application.Main.VirtualRoot);
-
-                this.Context.Request.RewritePath(RootPath);
-            }
-            // !--
-
             Helpers.AssignHandlerId(this.HandlerId);
+            
+            // Check Url contains ApplicationRootPath (~) or SiteRootPath (¨) modifiers
+            string rootPath =
+                System.Web.HttpUtility.UrlDecode(this.Context.Request.Header.Url.Raw);
+            if (string.IsNullOrEmpty(rootPath)) return;
+
+            if (this.CheckTilde(rootPath)) return;
+
+            this.CheckHelf(rootPath);
+            // !--
         }
 
-        public string HandlerId { get; private set; }
-        public IHttpContext Context { get; private set; }
+        private bool CheckTilde(string rootPath)
+        {
+            if (rootPath.IndexOf("~/", StringComparison.Ordinal) < 0) return false;
+            
+            int tildeIdx = rootPath.IndexOf("~/", StringComparison.Ordinal);
+
+            rootPath = rootPath.Remove(0, tildeIdx + 2);
+            rootPath = rootPath.Insert(0, Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation);
+
+            this.Context.Request.RewritePath(rootPath);
+
+            return true;
+        }
+        
+        private bool CheckHelf(string rootPath)
+        {
+            if (rootPath.IndexOf("¨/", StringComparison.Ordinal) < 0) return false;
+            
+            // It search something outside of XeoraCube Handler
+            int helfIdx = rootPath.IndexOf("¨/", StringComparison.Ordinal);
+
+            rootPath = rootPath.Remove(0, helfIdx + 2);
+            rootPath = rootPath.Insert(0, Basics.Configurations.Xeora.Application.Main.VirtualRoot);
+
+            this.Context.Request.RewritePath(rootPath);
+
+            return true;
+        }
+
+        public string HandlerId { get; }
+        public IHttpContext Context { get; }
         public IDomainControl DomainControl => this._DomainControl;
 
         public void Handle()
@@ -79,12 +94,12 @@ namespace Xeora.Web.Handler
 
                 // Caching Settings
                 if (defaultCaching != Basics.Enum.PageCachingTypes.AllContent &&
-                    defaultCaching != Basics.Enum.PageCachingTypes.AllContentCookiless)
+                    defaultCaching != Basics.Enum.PageCachingTypes.AllContentCookieless)
                 {
                     switch (defaultCaching)
                     {
                         case Basics.Enum.PageCachingTypes.NoCache:
-                        case Basics.Enum.PageCachingTypes.NoCacheCookiless:
+                        case Basics.Enum.PageCachingTypes.NoCacheCookieless:
                             this.Context.Response.Header.AddOrUpdate("Cache-Control", "no-store, must-revalidate");
 
                             break;
@@ -103,14 +118,14 @@ namespace Xeora.Web.Handler
 
                 string acceptEncodings = this.Context.Request.Header["Accept-Encoding"];
                 if (Configurations.Xeora.Application.Main.Compression && acceptEncodings != null)
-                    this._SupportCompression = (acceptEncodings.IndexOf("gzip") > -1);
+                    this._SupportCompression = acceptEncodings.IndexOf("gzip", StringComparison.Ordinal) > -1;
 
                 if (this._DomainControl.ServiceDefinition == null)
                     this.HandleStaticFile(); // Static File that has the same level of Application folder or Domain Content File
                 else
                     this.HandleServiceRequest(); // Service Request (Template, xService, xSocket)
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 this.Context.Response.Header.Status.Code = 500;
 
@@ -124,7 +139,7 @@ namespace Xeora.Web.Handler
                     if (((string)this.Context["RedirectLocation"]).IndexOf("://", StringComparison.InvariantCulture) == -1)
                     {
                         string redirectLocation =
-                            string.Format("{0}://{1}{2}", Configurations.Xeora.Service.Ssl ? "https" : "http", this.Context.Request.Header.Host, this.Context["RedirectLocation"]);
+                            $"{(Configurations.Xeora.Service.Ssl ? "https" : "http")}://{this.Context.Request.Header.Host}{this.Context["RedirectLocation"]}";
 
                         this.Context.AddOrUpdate("RedirectLocation", redirectLocation);
                     }
@@ -136,7 +151,7 @@ namespace Xeora.Web.Handler
                         this.Context.Response.Header.Status.Code = 200;
 
                         byte[] redirectBytes =
-                            Encoding.UTF8.GetBytes(string.Format("rl:{0}", (string)this.Context["RedirectLocation"]));
+                            Encoding.UTF8.GetBytes($"rl:{(string) this.Context["RedirectLocation"]}");
 
                         this.Context.Response.Header.AddOrUpdate("Content-Type", "text/html");
                         this.Context.Response.Header.AddOrUpdate("Content-Encoding", "identity");
@@ -152,7 +167,7 @@ namespace Xeora.Web.Handler
             string domainContentsPath =
                 this._DomainControl.Domain.ContentsVirtualPath;
             string requestedFileVirtualPath =
-                this.Context.Request.Header.URL.RelativePath;
+                this.Context.Request.Header.Url.RelativePath;
             
             int dcpIndex = requestedFileVirtualPath.IndexOf(domainContentsPath, StringComparison.InvariantCulture);
             if (dcpIndex == -1)
@@ -180,11 +195,9 @@ namespace Xeora.Web.Handler
 
                         if (splittedRequestedDomainWebPath.Length == 2)
                         {
-                            string[] childDomainIdAccessTree = null;
-                            string childDomainLanguageId = string.Empty;
-
-                            childDomainIdAccessTree = splittedRequestedDomainWebPath[0].Split('-');
-                            childDomainLanguageId = splittedRequestedDomainWebPath[1];
+                            string[] childDomainIdAccessTree = 
+                                splittedRequestedDomainWebPath[0].Split('-');
+                            string childDomainLanguageId = splittedRequestedDomainWebPath[1];
 
                             this._DomainControl.OverrideDomain(childDomainIdAccessTree, childDomainLanguageId);
 
@@ -209,7 +222,7 @@ namespace Xeora.Web.Handler
             }
 
             string scriptFileName =
-                string.Format("_bi_sps_v{0}.js", this._DomainControl.XeoraJSVersion);
+                $"_bi_sps_v{this._DomainControl.XeoraJSVersion}.js";
             int scriptFileNameIndex =
                 requestedFileVirtualPath.IndexOf(scriptFileName, StringComparison.InvariantCulture);
             bool isScriptRequesting =
@@ -218,7 +231,6 @@ namespace Xeora.Web.Handler
             if (isScriptRequesting)
             {
                 this.PostBuildInJavaScriptToClient();
-
                 return;
             }
 
@@ -255,7 +267,7 @@ namespace Xeora.Web.Handler
             Message messageResult = null;
             string methodResult = string.Empty;
             string bindInformation =
-                this.Context.Request.Body.Form[string.Format("_sys_bind_{0}", this.Context.HashCode)];
+                this.Context.Request.Body.Form[$"_sys_bind_{this.Context.HashCode}"];
 
             if (this.Context.Request.Header.Method == HttpMethod.POST &&
                 !string.IsNullOrEmpty(bindInformation))
@@ -263,7 +275,7 @@ namespace Xeora.Web.Handler
                 // Decode Encoded Call Function to Readable
                 Basics.Execution.Bind bind =
                     Basics.Execution.Bind.Make(
-                        Manager.AssemblyCore.DecodeFunction(bindInformation));
+                        Web.Manager.AssemblyCore.DecodeFunction(bindInformation));
 
                 bind.Parameters.Prepare(
                     (parameter) =>
@@ -280,42 +292,42 @@ namespace Xeora.Web.Handler
                 );
 
                 Basics.Execution.InvokeResult<object> invokeResult =
-                    Manager.AssemblyCore.InvokeBind<object>(Helpers.Context.Request.Header.Method, bind, Manager.ExecuterTypes.Undefined);
+                    Web.Manager.AssemblyCore.InvokeBind<object>(Helpers.Context.Request.Header.Method, bind, Web.Manager.ExecuterTypes.Undefined);
 
                 if (invokeResult.Exception != null)
                     messageResult = new Message(invokeResult.Exception.ToString());
-                else if (invokeResult.Result != null && invokeResult.Result is Message)
-                    messageResult = (Message)invokeResult.Result;
-                else if (invokeResult.Result != null && invokeResult.Result is RedirectOrder)
-                    this.Context.AddOrUpdate("RedirectLocation", ((RedirectOrder)invokeResult.Result).Location);
+                else if (invokeResult.Result is Message message)
+                    messageResult = message;
+                else if (invokeResult.Result is RedirectOrder redirectOrder)
+                    this.Context.AddOrUpdate("RedirectLocation", redirectOrder.Location);
                 else
-                    methodResult = Manager.AssemblyCore.GetPrimitiveValue(invokeResult.Result);
+                    methodResult = Web.Manager.AssemblyCore.GetPrimitiveValue(invokeResult.Result);
             }
 
             if (string.IsNullOrEmpty((string)this.Context["RedirectLocation"]))
             {
-                // Create HashCode for request and apply to URL
+                // Create HashCode for request and apply to Url
                 if (this.Context.Request.Header.Method == HttpMethod.GET)
                 {
                     string applicationRootPath =
                         Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation;
-                    string currentURL = this.Context.Request.Header.URL.RelativePath;
-                    currentURL = currentURL.Remove(0, currentURL.IndexOf(applicationRootPath, StringComparison.InvariantCulture));
+                    string currentUrl = this.Context.Request.Header.Url.RelativePath;
+                    currentUrl = currentUrl.Remove(0, currentUrl.IndexOf(applicationRootPath, StringComparison.InvariantCulture));
 
                     System.Text.RegularExpressions.Match mR =
-                        System.Text.RegularExpressions.Regex.Match(currentURL, string.Format("{0}\\d+/", applicationRootPath));
+                        System.Text.RegularExpressions.Regex.Match(currentUrl, $"{applicationRootPath}\\d+/");
 
                     // Not assigned, so assign!
                     if (!mR.Success)
                     {
-                        string tailURL = this.Context.Request.Header.URL.RelativePath;
-                        tailURL = tailURL.Remove(0, tailURL.IndexOf(applicationRootPath, StringComparison.InvariantCulture) + applicationRootPath.Length);
+                        string tailUrl = this.Context.Request.Header.Url.RelativePath;
+                        tailUrl = tailUrl.Remove(0, tailUrl.IndexOf(applicationRootPath, StringComparison.InvariantCulture) + applicationRootPath.Length);
 
                         string rewrittenPath =
-                            string.Format("{0}{1}/{2}", applicationRootPath, this.Context.HashCode, tailURL);
+                            $"{applicationRootPath}{this.Context.HashCode}/{tailUrl}";
 
-                        if (!string.IsNullOrEmpty(this.Context.Request.Header.URL.QueryString))
-                            rewrittenPath = string.Format("{0}?{1}", rewrittenPath, this.Context.Request.Header.URL.QueryString);
+                        if (!string.IsNullOrEmpty(this.Context.Request.Header.Url.QueryString))
+                            rewrittenPath = $"{rewrittenPath}?{this.Context.Request.Header.Url.QueryString}";
 
                         this.Context.Request.RewritePath(rewrittenPath);
                     }
@@ -362,15 +374,15 @@ namespace Xeora.Web.Handler
             );
 
             Basics.Execution.InvokeResult<object> invokeResult =
-                Manager.AssemblyCore.InvokeBind<object>(Helpers.Context.Request.Header.Method, bind, Manager.ExecuterTypes.Undefined);
+                Web.Manager.AssemblyCore.InvokeBind<object>(Helpers.Context.Request.Header.Method, bind, Web.Manager.ExecuterTypes.Undefined);
 
             if (invokeResult.Exception != null)
-                throw new Exception.ServiceSocketException(invokeResult.Exception.ToString());
+                throw new Exceptions.ServiceSocketException(invokeResult.Exception.ToString());
 
             if (invokeResult.Result is Message messageResult)
             {
                 if (messageResult.Type == Message.Types.Error)
-                    throw new Exception.ServiceSocketException(messageResult.Content);
+                    throw new Exceptions.ServiceSocketException(messageResult.Content);
             }
         }
 
@@ -398,13 +410,13 @@ namespace Xeora.Web.Handler
                 try
                 {
                     foreach (string key in sessionKeys)
-                        exceptionLogging.AppendLine(string.Format(" {0} -> {1}", key, this.Context.Session[key]));
+                        exceptionLogging.AppendLine($" {key} -> {this.Context.Session[key]}");
                 }
                 catch (System.Exception ex)
                 {
                     // The collection was modified after the enumerator was created.
 
-                    exceptionLogging.AppendLine(string.Format(" Exception Occured -> {0}", ex.Message));
+                    exceptionLogging.AppendLine($" Exception Occured -> {ex.Message}");
                 }
             }
             // !--
@@ -414,27 +426,29 @@ namespace Xeora.Web.Handler
             // -- Request Log Text
             exceptionLogging.AppendLine("-- Request POST Variables --");
             foreach (string key in this.Context.Request.Body.Form.Keys)
-                exceptionLogging.AppendLine(string.Format(" {0} -> {1}", key, this.Context.Request.Body.Form[key]));
+                exceptionLogging.AppendLine($" {key} -> {this.Context.Request.Body.Form[key]}");
             exceptionLogging.AppendLine();
-            exceptionLogging.AppendLine("-- Request URL & Query String --");
-            exceptionLogging.AppendLine(string.Format("{0}?{1}", this.Context.Request.Header.URL.RelativePath, this.Context.Request.Header.URL.QueryString));
+            exceptionLogging.AppendLine("-- Request Url & Query String --");
+            exceptionLogging.AppendLine(
+                $"{this.Context.Request.Header.Url.RelativePath}?{this.Context.Request.Header.Url.QueryString}");
             exceptionLogging.AppendLine();
             exceptionLogging.AppendLine("-- Error Content --");
-            exceptionLogging.Append(exception.ToString());
+            exceptionLogging.Append(exception);
 
-            Helper.EventLogger.Log(exceptionLogging.ToString());
+            Tools.EventLogger.Log(exceptionLogging.ToString());
 
-            StringBuilder outputSB =
+            StringBuilder outputStringBuilder =
                 new StringBuilder();
-
+            byte[] outputBytes;
+            
             if (Configurations.Xeora.Application.Main.Debugging)
             {
                 // It is debugging, that's why it is safe to push everything to client
-                outputSB.AppendFormat("<h2 align=\"center\" style=\"color:#CC0000\">{0}!</h2>", Global.SystemMessages.SYSTEM_ERROROCCURED);
-                outputSB.Append("<hr size=\"1px\">");
-                outputSB.AppendFormat("<pre>{0}</pre>", exceptionClientView.ToString());
+                outputStringBuilder.AppendFormat("<h2 align=\"center\" style=\"color:#CC0000\">{0}!</h2>", Global.SystemMessages.SYSTEM_ERROROCCURED);
+                outputStringBuilder.Append("<hr size=\"1px\">");
+                outputStringBuilder.AppendFormat("<pre>{0}</pre>", exceptionClientView.ToString());
 
-                byte[] outputBytes = Encoding.UTF8.GetBytes(outputSB.ToString());
+                outputBytes = Encoding.UTF8.GetBytes(outputStringBuilder.ToString());
 
                 this.Context.Response.Header.AddOrUpdate("Content-Type", "text/html");
                 this.Context.Response.Header.AddOrUpdate("Content-Encoding", "identity");
@@ -450,7 +464,7 @@ namespace Xeora.Web.Handler
                     string.Format("{0}://{1}{2}",
                         Configurations.Xeora.Service.Ssl ? "https" : "http",
                         this.Context.Request.Header.Host,
-                        Helpers.CreateURL(false, this._DomainControl.Domain.Settings.Configurations.DefaultTemplate)
+                        Helpers.CreateUrl(false, this._DomainControl.Domain.Settings.Configurations.DefaultTemplate)
                     )
                 );
 
@@ -458,15 +472,15 @@ namespace Xeora.Web.Handler
             }
 
             // If unrecoverable, push the error message to the user
-            outputSB.AppendFormat("<h2 align=\"center\" style=\"color:#CC0000\">{0}!</h2>", Global.SystemMessages.SYSTEM_ERROROCCURED);
-            outputSB.AppendFormat("<h4 align=\"center\">{0}</h4>", exception.Message);
+            outputStringBuilder.AppendFormat("<h2 align=\"center\" style=\"color:#CC0000\">{0}!</h2>", Global.SystemMessages.SYSTEM_ERROROCCURED);
+            outputStringBuilder.AppendFormat("<h4 align=\"center\">{0}</h4>", exception.Message);
 
-            byte[] OutputBytes = Encoding.UTF8.GetBytes(outputSB.ToString());
+            outputBytes = Encoding.UTF8.GetBytes(outputStringBuilder.ToString());
 
             this.Context.Response.Header.AddOrUpdate("Content-Type", "text/html");
             this.Context.Response.Header.AddOrUpdate("Content-Encoding", "identity");
 
-            this.Context.Response.Write(OutputBytes, 0, OutputBytes.Length);
+            this.Context.Response.Write(outputBytes, 0, outputBytes.Length);
         }
 
         private bool IsRequestedStaticFileBanned(string requestFilePath)
@@ -487,7 +501,7 @@ namespace Xeora.Web.Handler
             string requestFilePath =
                 string.Concat(
                     Configurations.Xeora.Application.Main.PhysicalRoot,
-                    this.Context.Request.Header.URL.RelativePath
+                    this.Context.Request.Header.Url.RelativePath
                 );
             requestFilePath = Path.GetFullPath(requestFilePath);
 
@@ -520,10 +534,6 @@ namespace Xeora.Web.Handler
 
                     this.WriteOutput(contentType, ref requestFileStream, false);
                 }
-                catch (System.Exception)
-                {
-                    throw;
-                }
                 finally
                 {
                     requestFileStream?.Close();
@@ -546,7 +556,7 @@ namespace Xeora.Web.Handler
                     if (!long.TryParse(range.Split('-')[1], out endRange))
                         endRange = -1;
                 }
-                catch (System.Exception)
+                catch (Exception)
                 {
                     this.Context.Response.Header.Status.Code = 416;
                     this.Context.AddOrUpdate("RedirectLocation", null);
@@ -575,13 +585,14 @@ namespace Xeora.Web.Handler
                 this.Context.Response.Header.Status.Code = 206;
                 this.Context.Response.Header.AddOrUpdate("Content-Type", contentType);
                 this.Context.Response.Header.AddOrUpdate("Content-Encoding", "identity");
-                this.Context.Response.Header.AddOrUpdate("Content-Range", string.Format("bytes {0}-{1}/{2}", beginRange, endRange, requestFileStream.Length));
+                this.Context.Response.Header.AddOrUpdate("Content-Range",
+                    $"bytes {beginRange}-{endRange}/{requestFileStream.Length}");
                 this.Context.Response.Header.AddOrUpdate("Content-Length", requestingLength.ToString());
 
                 requestFileStream.Seek(beginRange, SeekOrigin.Begin);
 
                 byte[] buffer = new byte[102400];
-                int bR = 0;
+                int bR;
                 do
                 {
                     bR = requestFileStream.Read(buffer, 0, buffer.Length);
@@ -593,10 +604,6 @@ namespace Xeora.Web.Handler
 
                     requestingLength -= bR;
                 } while (requestingLength != 0 && bR != 0);
-            }
-            catch (System.Exception)
-            {
-                throw;
             }
             finally
             {
@@ -626,10 +633,6 @@ namespace Xeora.Web.Handler
                 this.Context.Response.Header.Status.Code = 404;
                 return;
             }
-            catch (System.Exception)
-            {
-                throw;
-            }
             finally
             {
                 requestFileStream?.Close();
@@ -651,10 +654,6 @@ namespace Xeora.Web.Handler
                     this._SupportCompression
                 );
             }
-            catch (System.Exception)
-            {
-                throw;
-            }
             finally
             {
                 requestFileStream?.Close();
@@ -669,21 +668,21 @@ namespace Xeora.Web.Handler
             {
                 case Basics.Domain.ServiceTypes.Template:
                     // Get AuthenticationPage 
-                    KeyValuePair<string, string> referrerURLQueryString;
+                    KeyValuePair<string, string> referrerUrlQueryString;
                     string authenticationPage =
                         this._DomainControl.Domain.Settings.Configurations.AuthenticationTemplate;
 
                     if (!string.IsNullOrEmpty(currentRequestedTemplate) &&
-                        string.Compare(authenticationPage, currentRequestedTemplate, true) != 0)
-                        referrerURLQueryString =
+                        string.Compare(authenticationPage, currentRequestedTemplate, StringComparison.OrdinalIgnoreCase) != 0)
+                        referrerUrlQueryString =
                             new KeyValuePair<string, string>(
                                 "xcRef",
-                                System.Web.HttpUtility.UrlEncode(this.Context.Request.Header.URL.Raw.Substring(1))
+                                System.Web.HttpUtility.UrlEncode(this.Context.Request.Header.Url.Raw.Substring(1))
                             );
 
                     // Reset Redirect Location to AuthenticationPage
                     this.Context.AddOrUpdate("RedirectLocation",
-                        Helpers.CreateURL(true, authenticationPage, referrerURLQueryString));
+                        Helpers.CreateUrl(true, authenticationPage, referrerUrlQueryString));
 
                     break;
                 case Basics.Domain.ServiceTypes.xService:
@@ -705,14 +704,9 @@ namespace Xeora.Web.Handler
                 writer.Write(this._DomainControl.ServiceResult.Content);
                 writer.Flush();
             }
-            catch (System.Exception)
-            {
-                throw;
-            }
             finally
             {
-                if (writer != null)
-                    writer.Close();
+                writer?.Close();
             }
 
             this.WriteOutput(this._DomainControl.ServiceMimeType, writer.ToString(), this._SupportCompression);
@@ -737,15 +731,15 @@ namespace Xeora.Web.Handler
             sB.Append(methodResult);
 
             string result = sB.ToString();
-            string sys_RenderDurationMark = "<!--_sys_PAGERENDERDURATION-->";
+            const string sysRenderDurationMark = "<!--_sys_PAGERENDERDURATION-->";
             int idxRenderDurationMark =
-                result.IndexOf(sys_RenderDurationMark, StringComparison.InvariantCulture);
+                result.IndexOf(sysRenderDurationMark, StringComparison.InvariantCulture);
             if (idxRenderDurationMark > -1)
             {
-                TimeSpan EndRequestTimeSpan = DateTime.Now.Subtract(this._BeginRequestTime);
+                TimeSpan endRequestTimeSpan = DateTime.Now.Subtract(this._BeginRequestTime);
 
-                result = result.Remove(idxRenderDurationMark, sys_RenderDurationMark.Length);
-                result = result.Insert(idxRenderDurationMark, EndRequestTimeSpan.TotalMilliseconds.ToString());
+                result = result.Remove(idxRenderDurationMark, sysRenderDurationMark.Length);
+                result = result.Insert(idxRenderDurationMark, endRequestTimeSpan.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
             }
 
             if (!this._DomainControl.IsWorkingAsStandAlone &&
@@ -755,28 +749,23 @@ namespace Xeora.Web.Handler
                 try
                 {
                     writer = new StringWriter();
-                    this.CreateHTMLTag(ref writer, result);
+                    this.CreateHtmlTag(ref writer, result);
                     writer.Flush();
 
                     result = writer.ToString();
                 }
-                catch (System.Exception)
-                {
-                    throw;
-                }
                 finally
                 {
-                    if (writer != null)
-                        writer.Close();
+                    writer?.Close();
                 }
             }
 
             this.WriteOutput(this._DomainControl.ServiceMimeType, result, this._SupportCompression);
         }
 
-        private void CreateHTMLTag(ref StringWriter writer, string bodyContent)
+        private void CreateHtmlTag(ref StringWriter writer, string bodyContent)
         {
-            if (Configurations.Xeora.Application.Main.UseHTML5Header)
+            if (Configurations.Xeora.Application.Main.UseHtml5Header)
                 writer.WriteLine("<!doctype html>");
             else
                 writer.WriteLine("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">");
@@ -796,41 +785,26 @@ namespace Xeora.Web.Handler
             this.AppendMetaTags(ref writer);
 
             writer.WriteLine(
-                string.Format(
-                    "<title>{0}</title>",
-                    this._DomainControl.SiteTitle
-                )
+                $"<title>{this._DomainControl.SiteTitle}</title>"
             );
 
-            if (!string.IsNullOrEmpty(this._DomainControl.SiteIconURL))
+            if (!string.IsNullOrEmpty(this._DomainControl.SiteIconUrl))
             {
                 writer.WriteLine(
-                    string.Format(
-                        "<link href=\"{0}\" rel=\"shortcut icon\">",
-                        this._DomainControl.SiteIconURL
-                    )
+                    $"<link href=\"{this._DomainControl.SiteIconUrl}\" rel=\"shortcut icon\">"
                 );
             }
 
             writer.WriteLine(
-                string.Format(
-                    "<link type=\"text/css\" rel=\"stylesheet\" href=\"{0}/styles.css\" />",
-                    this._DomainControl.Domain.ContentsVirtualPath
-                )
+                $"<link type=\"text/css\" rel=\"stylesheet\" href=\"{this._DomainControl.Domain.ContentsVirtualPath}/styles.css\" />"
             );
 
             writer.WriteLine(
-                string.Format(
-                    "<script type=\"text/javascript\" src=\"{0}_bi_sps_v{1}.js\"></script>",
-                    Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation,
-                    this._DomainControl.XeoraJSVersion
-                )
-            );
+                "<script type=\"text/javascript\" src=\"{0}_bi_sps_v{1}.js\"></script>", 
+                Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation, 
+                this._DomainControl.XeoraJSVersion);
             writer.WriteLine(
-                string.Format(
-                    "<script type=\"text/javascript\">__XeoraJS.pushCode({0});</script>",
-                    this.Context.HashCode
-                )
+                $"<script type=\"text/javascript\">__XeoraJS.pushCode({this.Context.HashCode});</script>"
             );
 
             writer.WriteLine("</head>");
@@ -840,43 +814,31 @@ namespace Xeora.Web.Handler
         {
             bool isContentTypeAdded = false, isPragmaAdded = false, isCacheControlAdded = false, isExpiresAdded = false;
 
-            foreach (KeyValuePair<Basics.MetaRecord.Tags, string> kVP in this._DomainControl.MetaRecord.CommonTags)
+            foreach (KeyValuePair<Basics.MetaRecord.Tags, string> pair in this._DomainControl.MetaRecord.CommonTags)
             {
-                switch (Basics.MetaRecord.QueryTagSpace(kVP.Key))
+                switch (Basics.MetaRecord.QueryTagSpace(pair.Key))
                 {
                     case Basics.MetaRecord.TagSpaces.name:
                         writer.WriteLine(
-                            string.Format(
-                                "<meta name=\"{0}\" content=\"{1}\" />",
-                                Basics.MetaRecord.GetTagHtmlName(kVP.Key),
-                                kVP.Value
-                            )
+                            $"<meta name=\"{Basics.MetaRecord.GetTagHtmlName(pair.Key)}\" content=\"{pair.Value}\" />"
                         );
 
                         break;
                     case Basics.MetaRecord.TagSpaces.httpequiv:
                         writer.WriteLine(
-                            string.Format(
-                                "<meta http-equiv=\"{0}\" content=\"{1}\" />",
-                                Basics.MetaRecord.GetTagHtmlName(kVP.Key),
-                                kVP.Value
-                            )
+                            $"<meta http-equiv=\"{Basics.MetaRecord.GetTagHtmlName(pair.Key)}\" content=\"{pair.Value}\" />"
                         );
 
                         break;
                     case Basics.MetaRecord.TagSpaces.property:
                         writer.WriteLine(
-                            string.Format(
-                                "<meta property=\"{0}\" content=\"{1}\" />",
-                                Basics.MetaRecord.GetTagHtmlName(kVP.Key),
-                                kVP.Value
-                            )
+                            $"<meta property=\"{Basics.MetaRecord.GetTagHtmlName(pair.Key)}\" content=\"{pair.Value}\" />"
                         );
 
                         break;
                 }
 
-                switch (kVP.Key)
+                switch (pair.Key)
                 {
                     case Basics.MetaRecord.Tags.contenttype:
                         isContentTypeAdded = true;
@@ -897,39 +859,26 @@ namespace Xeora.Web.Handler
                 }
             }
 
-            string keyName = string.Empty;
-            foreach (KeyValuePair<string, string> kVP in this._DomainControl.MetaRecord.CustomTags)
+            foreach (KeyValuePair<string, string> pair in this._DomainControl.MetaRecord.CustomTags)
             {
-                keyName = kVP.Key;
+                string keyName = pair.Key;
                 switch (Basics.MetaRecord.QueryTagSpace(ref keyName))
                 {
                     case Basics.MetaRecord.TagSpaces.name:
                         writer.WriteLine(
-                            string.Format(
-                                "<meta name=\"{0}\" content=\"{1}\" />",
-                                keyName,
-                                kVP.Value
-                            )
+                            $"<meta name=\"{keyName}\" content=\"{pair.Value}\" />"
                         );
 
                         break;
                     case Basics.MetaRecord.TagSpaces.httpequiv:
                         writer.WriteLine(
-                            string.Format(
-                                "<meta http-equiv=\"{0}\" content=\"{1}\" />",
-                                keyName,
-                                kVP.Value
-                            )
+                            $"<meta http-equiv=\"{keyName}\" content=\"{pair.Value}\" />"
                         );
 
                         break;
                     case Basics.MetaRecord.TagSpaces.property:
                         writer.WriteLine(
-                            string.Format(
-                                "<meta property=\"{0}\" content=\"{1}\" />",
-                                keyName,
-                                kVP.Value
-                            )
+                            $"<meta property=\"{keyName}\" content=\"{pair.Value}\" />"
                         );
 
                         break;
@@ -939,46 +888,35 @@ namespace Xeora.Web.Handler
             if (!isContentTypeAdded)
             {
                 writer.WriteLine(
-                    string.Format(
-                        "<meta http-equiv=\"Content-Type\" content=\"{0}; charset={1}\" />",
-                        this._DomainControl.ServiceMimeType,
-                        Encoding.UTF8.WebName
-                    )
-                );
+                    "<meta http-equiv=\"Content-Type\" content=\"{0}; charset={1}\" />", 
+                    this._DomainControl.ServiceMimeType, Encoding.UTF8.WebName);
             }
 
             Basics.Enum.PageCachingTypes defaultType =
                 this._DomainControl.Domain.Settings.Configurations.DefaultCaching;
 
-            if (defaultType == Basics.Enum.PageCachingTypes.NoCache || defaultType == Basics.Enum.PageCachingTypes.NoCacheCookiless)
-            {
-                if (!isPragmaAdded)
-                    writer.WriteLine("<meta http-equiv=\"Pragma\" content=\"no-cache\" />");
-                if (!isCacheControlAdded)
-                    writer.WriteLine("<meta http-equiv=\"Cache-Control\" content=\"no-cache\" />");
-                if (!isExpiresAdded)
-                    writer.WriteLine("<meta http-equiv=\"Expires\" content=\"0\" />");
-            }
+            if (defaultType != Basics.Enum.PageCachingTypes.NoCache &&
+                defaultType != Basics.Enum.PageCachingTypes.NoCacheCookieless) return;
+            
+            if (!isPragmaAdded)
+                writer.WriteLine("<meta http-equiv=\"Pragma\" content=\"no-cache\" />");
+            if (!isCacheControlAdded)
+                writer.WriteLine("<meta http-equiv=\"Cache-Control\" content=\"no-cache\" />");
+            if (!isExpiresAdded)
+                writer.WriteLine("<meta http-equiv=\"Expires\" content=\"0\" />");
         }
 
         private void AppendBodyTag(ref StringWriter writer, string bodyContent)
         {
             writer.WriteLine("<body>");
             writer.WriteLine(
-                string.Format(
-                    "<form method=\"post\" action=\"{0}{1}/{2}?{3}\" enctype=\"multipart/form-data\" style=\"margin: 0px; padding: 0px;\">",
-                    Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation,
-                    this.Context.HashCode,
-                    this._DomainControl.ServiceDefinition.FullPath,
-                    this.Context.Request.Header.URL.QueryString
-                )
+                "<form method=\"post\" action=\"{0}{1}/{2}?{3}\" enctype=\"multipart/form-data\" style=\"margin: 0px; padding: 0px;\">", 
+                Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation, 
+                this.Context.HashCode, 
+                this._DomainControl.ServiceDefinition.FullPath, 
+                this.Context.Request.Header.Url.QueryString
             );
-            writer.WriteLine(
-                string.Format(
-                    "<input type=\"hidden\" name=\"_sys_bind_{0}\" id=\"_sys_bind_{0}\" />",
-                    this.Context.HashCode
-                )
-            );
+            writer.WriteLine("<input type=\"hidden\" name=\"_sys_bind_{0}\" id=\"_sys_bind_{0}\" />", this.Context.HashCode);
 
             writer.Write(bodyContent);
 
@@ -989,7 +927,6 @@ namespace Xeora.Web.Handler
         private void CompressUnsafe(ref Stream outputStream, out Stream gzippedStream)
         {
             byte[] contentBuffer = new byte[102400];
-            int bC = 0;
 
             GZipStream gzipCompression = null;
             try
@@ -999,14 +936,11 @@ namespace Xeora.Web.Handler
 
                 do
                 {
-                    bC = outputStream.Read(contentBuffer, 0, contentBuffer.Length);
+                    int bC = outputStream.Read(contentBuffer, 0, contentBuffer.Length);
+                    if (bC == 0) break;
 
                     gzipCompression.Write(contentBuffer, 0, bC);
-                } while (bC > 0);
-            }
-            catch (System.Exception)
-            {
-                throw;
+                } while (true);
             }
             finally
             {
@@ -1027,10 +961,6 @@ namespace Xeora.Web.Handler
                         Encoding.UTF8.GetBytes(outputContent));
 
                 this.WriteOutput(contentType, ref outputStream, sendAsCompressed);
-            }
-            catch (System.Exception)
-            {
-                throw;
             }
             finally
             {
@@ -1057,10 +987,6 @@ namespace Xeora.Web.Handler
                         return;
                     }
                 }
-                catch (System.Exception)
-                {
-                    throw;
-                }
                 finally
                 {
                     gzippedStream?.Close();
@@ -1080,21 +1006,18 @@ namespace Xeora.Web.Handler
                 bandwidth = 102400;
 
             byte[] contentBuffer = new byte[bandwidth];
-            int bC = 0;
 
             outputStream.Seek(0, SeekOrigin.Begin);
             do
             {
-                bC = outputStream.Read(contentBuffer, 0, contentBuffer.Length);
+                int bC = outputStream.Read(contentBuffer, 0, contentBuffer.Length);
+                if (bC == 0) break;
+                
+                this.Context.Response.Write(contentBuffer, 0, bC);
 
-                if (bC > 0)
-                {
-                    this.Context.Response.Write(contentBuffer, 0, bC);
-
-                    if (applyBandwidthRules && bC == bandwidth)
-                        Thread.Sleep(1000);
-                }
-            } while (bC != 0);
+                if (applyBandwidthRules && bC == bandwidth)
+                    Thread.Sleep(1000);
+            } while (true);
         }
     }
 }

@@ -4,12 +4,12 @@ namespace Xeora.Web.Manager
 {
     public class Master
     {
-        private static object _InitLock = new object();
-        private static bool _Initialized = false;
+        private static readonly object InitLock = new object();
+        private static bool _Initialized;
 
         public static void Initialize()
         {
-            Monitor.Enter(Master._InitLock);
+            Monitor.Enter(Master.InitLock);
             try
             {
                 if (Master._Initialized)
@@ -21,7 +21,7 @@ namespace Xeora.Web.Manager
             }
             finally
             {
-                Monitor.Exit(Master._InitLock);
+                Monitor.Exit(Master.InitLock);
             }
         }
 
