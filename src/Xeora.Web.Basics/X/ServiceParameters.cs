@@ -51,11 +51,7 @@ namespace Xeora.Web.Basics.X
             }
             finally
             {
-                if (xPathTextReader != null)
-                {
-                    xPathTextReader.Close();
-                    GC.SuppressFinalize(xPathTextReader);
-                }
+                xPathTextReader?.Close();
             }
         }
 

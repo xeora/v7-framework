@@ -133,7 +133,6 @@ namespace Xeora.Web.Basics.X
                 } while (bC != 0);
 
                 httpWebResponse.Close();
-                GC.SuppressFinalize(httpWebResponse);
 
                 return Service.ParseServiceResult(responseString);
                 // !--
@@ -144,11 +143,7 @@ namespace Xeora.Web.Basics.X
             }
             finally
             {
-                if (requestMS != null)
-                {
-                    requestMS.Close();
-                    GC.SuppressFinalize(requestMS);
-                }
+                requestMS?.Close();
             }
         }
 
@@ -247,11 +242,7 @@ namespace Xeora.Web.Basics.X
             }
             finally
             {
-                if (xPathTextReader != null)
-                {
-                    xPathTextReader.Close();
-                    GC.SuppressFinalize(xPathTextReader);
-                }
+                xPathTextReader?.Close();
             }
         }
 
@@ -433,11 +424,7 @@ namespace Xeora.Web.Basics.X
                 }
                 finally
                 {
-                    if (serializationStream != null)
-                    {
-                        serializationStream.Close();
-                        GC.SuppressFinalize(serializationStream);
-                    }
+                    serializationStream?.Close();
                 }
             }
 
@@ -465,11 +452,7 @@ namespace Xeora.Web.Basics.X
                 }
                 finally
                 {
-                    if (serializationStream != null)
-                    {
-                        serializationStream.Close();
-                        GC.SuppressFinalize(serializationStream);
-                    }
+                    serializationStream?.Close();
                 }
             }
         }

@@ -105,11 +105,7 @@ namespace Xeora.Web.Basics.Service
                     }
                     finally
                     {
-                        if (forStream != null)
-                        {
-                            forStream.Close();
-                            GC.SuppressFinalize(forStream);
-                        }
+                        forStream?.Close();
                     }
                 }
             }
@@ -138,11 +134,7 @@ namespace Xeora.Web.Basics.Service
             }
             finally
             {
-                if (forStream != null)
-                {
-                    forStream.Close();
-                    GC.SuppressFinalize(forStream);
-                }
+                forStream?.Close();
             }
 
             VariablePoolOperation._Cache.Set(name, serializedValue);
@@ -201,11 +193,7 @@ namespace Xeora.Web.Basics.Service
                 }
                 finally
                 {
-                    if (forStream != null)
-                    {
-                        forStream.Close();
-                        GC.SuppressFinalize(forStream);
-                    }
+                    forStream?.Close();
                 }
             }
 
@@ -225,11 +213,7 @@ namespace Xeora.Web.Basics.Service
             }
             finally
             {
-                if (forStream != null)
-                {
-                    forStream.Close();
-                    GC.SuppressFinalize(forStream);
-                }
+                forStream?.Close();
             }
         }
 
