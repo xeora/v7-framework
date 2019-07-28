@@ -36,7 +36,7 @@ namespace Xeora.Web.Service
                     Basics.Console.Push(
                         "analytic - xeora handler",
                         $"{DateTime.Now.Subtract(xeoraHandlerProcessBegins).TotalMilliseconds}ms", 
-                        string.Empty, false);
+                        string.Empty, false, groupId: stateId);
                 }
 
                 DateTime responseFlushBegins = DateTime.Now;
@@ -55,12 +55,12 @@ namespace Xeora.Web.Service
                     Basics.Console.Push(
                         "analytic - response flush",
                         $"{DateTime.Now.Subtract(responseFlushBegins).TotalMilliseconds}ms", 
-                        string.Empty, false);
+                        string.Empty, false, groupId: stateId);
 
                     Basics.Console.Push(
                         "analytic - whole process",
-                        $"{DateTime.Now.Subtract(wholeProcessBegins).TotalMilliseconds}ms", 
-                        string.Empty, false);
+                        $"{DateTime.Now.Subtract(wholeProcessBegins).TotalMilliseconds}ms ({context.Request.Header.Url.Raw})", 
+                        string.Empty, false, groupId: stateId);
                 }
 
                 StatusTracker.Current.Increase(context.Response.Header.Status.Code);
@@ -83,6 +83,8 @@ namespace Xeora.Web.Service
             finally
             {
                 context?.Dispose();
+                
+                Basics.Console.Flush(stateId);
             }
         }
 

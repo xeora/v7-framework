@@ -101,7 +101,7 @@ namespace Xeora.Web.Directives
                     Basics.Console.Push(
                         $"analytic - {directive.GetType().Name}",
                         $"{DateTime.Now.Subtract(renderBegins).TotalMilliseconds}ms {{{analyticOutput}}}",
-                        string.Empty, false);
+                        string.Empty, false, groupId: Helpers.Context.UniqueId);
                 }
             }
             catch (Exception ex)

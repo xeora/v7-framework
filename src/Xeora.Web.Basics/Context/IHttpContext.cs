@@ -6,6 +6,7 @@ namespace Xeora.Web.Basics.Context
 {
     public interface IHttpContext : IKeyValueCollection<string, object>, IDisposable
     {
+        string UniqueId { get; }
         IHttpRequest Request { get; }
         IHttpResponse Response { get; }
         IHttpSession Session { get; }

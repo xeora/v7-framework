@@ -33,6 +33,8 @@ namespace Xeora.Web.Service
 
             this._RemoteClient.Close();
             this._RemoteClient.Dispose();
+            
+            Basics.Console.Flush();
         }
 
         private void Handle(IPEndPoint remoteIpEndPoint, ref Stream remoteStream)

@@ -69,13 +69,13 @@ namespace Xeora.Web.Service
                     sslDetails.AppendFormat(" - Format     {0}\n", this._Certificate.GetFormat());
                     sslDetails.AppendFormat(" - Public Key {0}", this._Certificate.GetPublicKeyString());
 
-                    Basics.Console.Push("SSL Certificate Information", string.Empty, sslDetails.ToString(), false);
+                    Basics.Console.Push("SSL Certificate Information", string.Empty, sslDetails.ToString(), false, true);
                 }
 
                 this._TcpListener = new TcpListener(serviceIpEndPoint);
                 this._TcpListener.Start(100);
 
-                Basics.Console.Push("XeoraEngine is started at", string.Format("{0} ({1})", serviceIpEndPoint, Configuration.Manager.Current.Configuration.Service.Ssl ? "Secure" : "Basic"), string.Empty, false);
+                Basics.Console.Push("XeoraEngine is started at", string.Format("{0} ({1})", serviceIpEndPoint, Configuration.Manager.Current.Configuration.Service.Ssl ? "Secure" : "Basic"), string.Empty, false, true);
             }
             catch (Exception ex)
             {
@@ -103,7 +103,7 @@ namespace Xeora.Web.Service
                         await this._TcpListener.AcceptTcpClientAsync();
 
                     Task connectionTask =
-                        new Task((c) => ((Connection)c).Process(),
+                        new Task(c => ((Connection)c).Process(),
                         new Connection(ref remoteClient, this._Certificate),
                         TaskCreationOptions.DenyChildAttach
                     );
@@ -117,7 +117,7 @@ namespace Xeora.Web.Service
                 { /* Just Handle Exception */ }
                 catch (Exception ex)
                 {
-                    Basics.Console.Push("Connection isn't established", ex.Message, string.Empty, false);
+                    Basics.Console.Push("Connection isn't established", ex.Message, string.Empty, false, true);
                 }
             }
         }
@@ -170,7 +170,7 @@ namespace Xeora.Web.Service
                 return;
             this._Terminating = true;
 
-            Basics.Console.Push("Terminating XeoraEngine...", string.Empty, string.Empty, false);
+            Basics.Console.Push("Terminating XeoraEngine...", string.Empty, string.Empty, false, true);
 
             this._TcpListener.Stop();
 

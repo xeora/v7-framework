@@ -133,7 +133,7 @@ namespace Xeora.Web.Application
                 Basics.Console.Push(
                     "analytic - parsed duration",
                     $"{DateTime.Now.Subtract(parseBegins).TotalMilliseconds}ms - total ({directives.Count})",
-                    string.Empty, false);
+                    string.Empty, false, groupId: Basics.Helpers.Context.UniqueId);
             }
         }
 

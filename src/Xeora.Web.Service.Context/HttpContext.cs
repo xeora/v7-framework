@@ -12,6 +12,7 @@ namespace Xeora.Web.Service.Context
         {
             string sessionCookieKey = Basics.Configurations.Xeora.Session.CookieKey;
 
+            this.UniqueId = contextId;
             this.Request = request;
             this.Response = new HttpResponse(contextId);
 
@@ -54,6 +55,7 @@ namespace Xeora.Web.Service.Context
             this.Application = ApplicationContainer.Current;
         }
 
+        public string UniqueId { get; }
         public Basics.Context.IHttpRequest Request { get; }
         public Basics.Context.IHttpResponse Response { get; }
         public Basics.Session.IHttpSession Session => this._Session;

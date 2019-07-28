@@ -8,40 +8,61 @@ namespace Xeora.Web.Basics
 {
     public class Console
     {
-        private readonly ConcurrentQueue<string> _Messages;
+        private static readonly object MessageLock = new object();
+        private readonly Dictionary<string, Queue<string>> _MessageGroups;
         private readonly ConcurrentDictionary<string, Action<ConsoleKeyInfo>> _KeyListeners;
+        private readonly ConcurrentDictionary<string, bool> _Flushing;
 
         private Console()
         {
-            this._Messages = new ConcurrentQueue<string>();
+            this._MessageGroups = new Dictionary<string, Queue<string>>();
             this._KeyListeners = new ConcurrentDictionary<string, Action<ConsoleKeyInfo>>();
+            this._Flushing = new ConcurrentDictionary<string, bool>();
 
             ThreadPool.QueueUserWorkItem(state => this.StartKeyListener());
         }
 
-        private void Queue(string message)
+        private void Queue(string message, string groupId)
         {
-            this._Messages.Enqueue(message);
-            this.Flush();
+            if (string.IsNullOrEmpty(groupId)) 
+                groupId = Guid.Empty.ToString();
+
+            lock (Console.MessageLock)
+            {
+                if (!this._MessageGroups.ContainsKey(groupId))
+                    this._MessageGroups[groupId] = new Queue<string>();
+                
+                this._MessageGroups[groupId].Enqueue(message);
+            }
         }
 
-        private bool _Flushing;
-        private async void Flush()
+        private async void _Flush(string groupId = null)
         {
-            if (this._Flushing)
+            if (string.IsNullOrEmpty(groupId))
+                groupId = Guid.Empty.ToString();
+            
+            if (this._Flushing.ContainsKey(groupId))
                 return;
-            this._Flushing = true;
+            this._Flushing.TryAdd(groupId, true);
 
             await Task.Run(() =>
             {
-                while (!this._Messages.IsEmpty)
+                Queue<string> messages;
+                
+                lock (Console.MessageLock)
                 {
-                    this._Messages.TryDequeue(out string consoleMessage);
+                    if (!this._MessageGroups.ContainsKey(groupId))
+                        return;
 
-                    System.Console.WriteLine(consoleMessage);
+                    messages = this._MessageGroups[groupId];
+
+                    this._MessageGroups.Remove(groupId);
                 }
+                
+                while (messages.Count > 0)
+                    System.Console.WriteLine(messages.Dequeue());
 
-                this._Flushing = false;
+                this._Flushing.TryRemove(groupId, out bool _);
             });
         }
 
@@ -56,7 +77,7 @@ namespace Xeora.Web.Basics
                 }
                 catch (InvalidOperationException)
                 {
-                    Console.Push(string.Empty, "Console inputs are not supported!", string.Empty, false);
+                    Console.Push(string.Empty, "Console inputs are not available!", string.Empty, false);
 
                     return;
                 }
@@ -123,7 +144,8 @@ namespace Xeora.Web.Basics
         /// <param name="details">Message Details (MultiLine)</param>
         /// <param name="applyRules">If set to <c>true</c> obey the rules defined in Xeora project settings json</param>
         /// <param name="immediate">If set to <c>true</c> message will not be queued and print to the console immediately</param>
-        public static void Push(string header, string summary, string details, bool applyRules, bool immediate = false)
+        /// <param name="groupId">Give a unique id for the push to group all the inputs together</param>
+        public static void Push(string header, string summary, string details, bool applyRules, bool immediate = false, string groupId = null)
         {
             if (applyRules && !Configurations.Xeora.Service.Print)
                 return;
@@ -149,9 +171,16 @@ namespace Xeora.Web.Basics
                 System.Console.WriteLine(consoleMessage);
                 return;
             }
-
-            Console.Current.Queue(consoleMessage);
+            
+            Console.Current.Queue(consoleMessage, groupId);
         }
+
+        /// <summary>
+        /// Flush the caches log entries according to groupId
+        /// </summary>
+        /// <param name="groupId">(optional) Group Id for the flush</param>
+        public static void Flush(string groupId = null) =>
+            Console.Current._Flush(groupId);
 
         /// <summary>
         /// Register an action to Xeora framework console key listener
