@@ -39,7 +39,7 @@ namespace Xeora.Web.Deployment
                     passwordStream = new FileStream(domainPasswordFileLocation, FileMode.Open, FileAccess.Read);
                     passwordStream.Read(securedHash, 0, securedHash.Length);
                 }
-                catch (System.Exception)
+                catch (Exception)
                 {
                     securedHash = null;
                 }

@@ -452,7 +452,7 @@ namespace Xeora.Web.Manager
             return -1;
         }
 
-        private System.Exception GetMethodException(Basics.Context.Request.HttpMethod httpMethod, string[] classNames, string functionName, object[] functionParams)
+        private Exception GetMethodException(Basics.Context.Request.HttpMethod httpMethod, string[] classNames, string functionName, object[] functionParams)
         {
             System.Text.StringBuilder sB = new System.Text.StringBuilder();
 
@@ -512,7 +512,7 @@ namespace Xeora.Web.Manager
             object executeObject =
                 this.LoadDomainExecutable();
 
-            if (executeObject is System.Exception)
+            if (executeObject is Exception)
                 return executeObject;
 
             try

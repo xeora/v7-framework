@@ -77,7 +77,7 @@ namespace Xeora.Web.Service
 
                 Basics.Console.Push("XeoraEngine is started at", string.Format("{0} ({1})", serviceIpEndPoint, Configuration.Manager.Current.Configuration.Service.Ssl ? "Secure" : "Basic"), string.Empty, false);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 string message = ex.Message;
                 if (ex.InnerException != null)

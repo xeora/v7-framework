@@ -278,7 +278,7 @@ namespace Xeora.Web.Handler
                         Web.Manager.AssemblyCore.DecodeFunction(bindInformation));
 
                 bind.Parameters.Prepare(
-                    (parameter) =>
+                    parameter =>
                     {
                         Property property =
                             new Property(parameter.Query, null);
@@ -386,7 +386,7 @@ namespace Xeora.Web.Handler
             }
         }
 
-        private void HandleErrorLogging(System.Exception exception)
+        private void HandleErrorLogging(Exception exception)
         {
             // Prepare For Exception List
             StringBuilder exceptionClientView =
@@ -412,7 +412,7 @@ namespace Xeora.Web.Handler
                     foreach (string key in sessionKeys)
                         exceptionLogging.AppendLine($" {key} -> {this.Context.Session[key]}");
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
                     // The collection was modified after the enumerator was created.
 
@@ -446,7 +446,7 @@ namespace Xeora.Web.Handler
                 // It is debugging, that's why it is safe to push everything to client
                 outputStringBuilder.AppendFormat("<h2 align=\"center\" style=\"color:#CC0000\">{0}!</h2>", Global.SystemMessages.SYSTEM_ERROROCCURED);
                 outputStringBuilder.Append("<hr size=\"1px\">");
-                outputStringBuilder.AppendFormat("<pre>{0}</pre>", exceptionClientView.ToString());
+                outputStringBuilder.AppendFormat("<pre>{0}</pre>", exceptionClientView);
 
                 outputBytes = Encoding.UTF8.GetBytes(outputStringBuilder.ToString());
 

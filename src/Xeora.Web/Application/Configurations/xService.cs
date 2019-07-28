@@ -94,7 +94,7 @@ namespace Xeora.Web.Application.Configurations
             XmlTextWriter xmlWriter = new XmlTextWriter(xmlStream);
 
             // Start Document Element
-            bool isDone = !(result is System.Exception);
+            bool isDone = !(result is Exception);
 
             xmlWriter.WriteStartElement("ServiceResult");
             xmlWriter.WriteAttributeString("isdone", isDone.ToString());

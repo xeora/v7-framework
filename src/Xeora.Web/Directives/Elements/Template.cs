@@ -66,7 +66,7 @@ namespace Xeora.Web.Directives.Elements
             this.Mother.RequestDeploymentAccess(ref workingInstance, ref deployment);
 
             if (deployment == null)
-                throw new System.Exception("Domain Deployment access is failed!");
+                throw new Exception("Domain Deployment access is failed!");
 
             return deployment.ProvideTemplateContent(this.DirectiveId);
         }
