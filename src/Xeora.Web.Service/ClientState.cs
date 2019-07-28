@@ -42,7 +42,7 @@ namespace Xeora.Web.Service
                 DateTime responseFlushBegins = DateTime.Now;
 
                 context.Response.Header.AddOrUpdate("Server", "XeoraEngine");
-                context.Response.Header.AddOrUpdate("X-Powered-By", "XeoraCube");
+                context.Response.Header.AddOrUpdate("X-Powered-By", "Xeora");
                 context.Response.Header.AddOrUpdate("X-Framework-Version", WebServer.GetVersionText());
                 context.Response.Header.AddOrUpdate("Connection", "close");
 

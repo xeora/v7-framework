@@ -16,7 +16,10 @@ namespace Xeora.Web.Manager
         private Assembly _AssemblyDll;
         private Dictionary<Type, bool> _XeoraControlTypes;
 
+        private static readonly object InstanceCreationLock = new object();
         private readonly ConcurrentDictionary<Type, object> _ExecutableInstances;
+        
+        private static readonly object AssemblyMethodLock = new object();
         private readonly ConcurrentDictionary<string, MethodInfo[]> _AssemblyMethods;
 
         public LibraryExecuter(string executablesPath, string executableName, string[] assemblySearchPaths)
@@ -209,49 +212,57 @@ namespace Xeora.Web.Manager
         {
             Type examInterface =
                 this._AssemblyDll.GetType($"Xeora.Domain.{this._ExecutableName}", false, true);
-
+            
             if (examInterface == null)
-                return new Exception("Assembly does not belong to any XeoraCube Domain or Addon!");
-
-            Type interfaceType =
-                examInterface.GetInterface("IDomainExecutable");
-
-            if (interfaceType == null ||
-                !interfaceType.IsInterface ||
-                string.CompareOrdinal(interfaceType.FullName, "Xeora.Web.Basics.IDomainExecutable") != 0)
-                return new Exception("Calling Assembly is not a XeoraCube Executable!");
+                return new Exception("Assembly does not belong to any Xeora Domain or Addon!");
 
             object executeObject;
-            lock (this._ExecutableInstances)
+            
+            lock (LibraryExecuter.InstanceCreationLock)
             {
-                if (this._ExecutableInstances.TryGetValue(examInterface, out executeObject)) return executeObject;
+                if (this._ExecutableInstances.TryGetValue(examInterface, out executeObject))
+                    return executeObject;
+                
+                Type interfaceType =
+                    examInterface.GetInterface("IDomainExecutable");
+
+                if (interfaceType == null || !interfaceType.IsInterface ||
+                    string.CompareOrdinal(interfaceType.FullName, "Xeora.Web.Basics.IDomainExecutable") != 0)
+                    return new Exception("Calling Assembly is not a Xeora Domain Executable!");
                 
                 try
                 {
-                    executeObject = 
+                    executeObject =
                         Activator.CreateInstance(examInterface);
                     this._ExecutableInstances.TryAdd(examInterface, executeObject);
-
-                    MethodInfo mI =
-                        executeObject.GetType().GetMethod("Initialize");
-                    if (mI == null) throw new MissingMethodException("Initialize");
-
-                    if (!examInterface.Name.StartsWith("X") && examInterface.Name.Length != 33)
-                    {
-                        Basics.Console.Push(
-                            string.Empty,
-                            $"Domain Executable: {examInterface.Name} v{examInterface.Assembly.GetName().Version}",
-                            string.Empty, false);
-                    }
-
-                    mI.Invoke(executeObject, null);
                 }
                 catch (Exception ex)
                 {
-                    return new Exception("Unable to create an instance of XeoraCube Executable!", ex);
+                    return new Exception("Unable to create an instance of Xeora Domain Executable!", ex);
                 }
             }
+            
+            MethodInfo mI =
+                executeObject.GetType().GetMethod("Initialize");
+            if (mI == null) return new MissingMethodException("Initialize");
 
+            if (!examInterface.Name.StartsWith("X") && examInterface.Name.Length != 33)
+            {
+                Basics.Console.Push(
+                    string.Empty,
+                    $"Domain Executable: {examInterface.Name} v{examInterface.Assembly.GetName().Version}",
+                    string.Empty, false);
+            }
+
+            try
+            {
+                mI.Invoke(executeObject, null);
+            }
+            catch (Exception ex)
+            {
+                return new Exception("Xeora Domain executable could not be initialized!", ex);
+            }
+            
             return executeObject;
         }
 
@@ -286,7 +297,8 @@ namespace Xeora.Web.Manager
 
             try
             {
-                functionParam = Convert.ChangeType(functionParam, parameterType);
+                functionParam = 
+                    Convert.ChangeType(functionParam, parameterType);
                 return true;
             }
             catch (Exception)
@@ -300,17 +312,22 @@ namespace Xeora.Web.Manager
 
         private MethodInfo GetAssemblyMethod(ref Type assemblyObject, Basics.Context.Request.HttpMethod httpMethod, string functionName, ref object[] functionParams, ExecuterTypes executerType)
         {
-            MethodInfoFinder mIF =
+            MethodInfoFinder methodFinder =
                 new MethodInfoFinder(httpMethod, functionName);
             string searchKey =
-                $"{assemblyObject.FullName}.{mIF.Identifier}";
+                $"{assemblyObject.FullName}.{methodFinder.Identifier}";
 
-            if (!this._AssemblyMethods.TryGetValue(searchKey, out MethodInfo[] possibleMethodInfos))
+            MethodInfo[] possibleMethodInfos;
+                
+            lock (LibraryExecuter.AssemblyMethodLock)
             {
-                possibleMethodInfos =
-                    Array.FindAll(assemblyObject.GetMethods(), mIF.Find);
+                if (!this._AssemblyMethods.TryGetValue(searchKey, out possibleMethodInfos))
+                {
+                    possibleMethodInfos =
+                        Array.FindAll(assemblyObject.GetMethods(), methodFinder.Find);
 
-                this._AssemblyMethods.TryAdd(searchKey, possibleMethodInfos);
+                    this._AssemblyMethods.TryAdd(searchKey, possibleMethodInfos);
+                }
             }
 
             MethodInfo methodInfoResult =
@@ -334,7 +351,7 @@ namespace Xeora.Web.Manager
 
         private MethodInfo FindBestMatch(MethodInfo[] possibleMethodInfos, ref object[] functionParams, ExecuterTypes executerType)
         {
-            MethodInfo worstMatchedMI = null;
+            MethodInfo worstMatch = null;
 
             foreach (MethodInfo methodInfo in possibleMethodInfos)
             {
@@ -349,17 +366,14 @@ namespace Xeora.Web.Manager
 
                         break;
                     case ExecuterTypes.Other:
-                        if (isXeoraControl)
-                        {
-                            // These are exceptional controls
-                            if (methodInfo.ReturnType == typeof(Basics.ControlResult.RedirectOrder) ||
-                                methodInfo.ReturnType == typeof(Basics.ControlResult.Message))
-                                break;
+                        if (!isXeoraControl) break;
+                        
+                        // These are exceptional controls
+                        if (methodInfo.ReturnType == typeof(Basics.ControlResult.RedirectOrder) ||
+                            methodInfo.ReturnType == typeof(Basics.ControlResult.Message))
+                            break;
 
-                            continue;
-                        }
-
-                        break;
+                        continue;
                 }
 
                 ParameterInfo[] methodParams = 
@@ -370,12 +384,12 @@ namespace Xeora.Web.Manager
                     case 0:
                         return methodInfo;
                     case 1:
-                        worstMatchedMI = methodInfo;
+                        worstMatch = methodInfo;
                         break;
                 }
             }
 
-            return worstMatchedMI;
+            return worstMatch;
         }
 
         /// <summary>
@@ -433,7 +447,7 @@ namespace Xeora.Web.Manager
                 Type paramArrayType = 
                     methodParams[pC].ParameterType.GetElementType();
                 Array paramArrayValues =
-                    Array.CreateInstance(paramArrayType, (functionParamsReBuild.Length - methodParams.Length) + 1);
+                    Array.CreateInstance(paramArrayType, functionParamsReBuild.Length - methodParams.Length + 1);
 
                 for (int pavC = 0; pC < functionParamsReBuild.Length; pavC++, pC++)
                 {
@@ -479,22 +493,11 @@ namespace Xeora.Web.Manager
             if (!instanceExecute)
                 return assemblyMethod.Invoke(assemblyObject, BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod, null, functionParams, System.Globalization.CultureInfo.InvariantCulture);
 
-            lock (this._ExecutableInstances)
+            lock (LibraryExecuter.InstanceCreationLock) 
             {
-                if (this._ExecutableInstances.TryGetValue(assemblyObject, out object instanceObject))
-                    return assemblyMethod.Invoke(instanceObject, BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod, null, functionParams, System.Globalization.CultureInfo.InvariantCulture);
+                if (!this._ExecutableInstances.TryGetValue(assemblyObject, out object instanceObject))
+                    throw new Exception("There is no Xeora Domain Executable instance has been created!");
                 
-                try
-                {
-                    instanceObject = 
-                        Activator.CreateInstance(assemblyObject);
-                    this._ExecutableInstances.TryAdd(assemblyObject, instanceObject);
-                }
-                catch (Exception ex)
-                {
-                    return new Exception("Unable to create an instance of XeoraCube Executable Class!", ex);
-                }
-
                 return assemblyMethod.Invoke(instanceObject, BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod, null, functionParams, System.Globalization.CultureInfo.InvariantCulture);
             }
         }
@@ -506,7 +509,8 @@ namespace Xeora.Web.Manager
             if (functionParams == null)
                 functionParams = new object[] { };
 
-            string executionId = Guid.NewGuid().ToString();
+            string executionId = 
+                Guid.NewGuid().ToString();
             object result = null;
 
             object executeObject =
@@ -530,8 +534,6 @@ namespace Xeora.Web.Manager
                 this.InvokePreExecution(executeObject, executionId, assemblyMethod);
 
                 result = this.InvokeMethod(instanceExecute, assemblyObject, assemblyMethod, functionParams);
-
-                return result;
             }
             catch (Exception ex)
             {
@@ -541,6 +543,8 @@ namespace Xeora.Web.Manager
             {
                 this.InvokePostExecution(executeObject, executionId, result);
             }
+            
+            return result;
         }
 
         public void Dispose()
@@ -554,11 +558,8 @@ namespace Xeora.Web.Manager
             {
                 executeObject.GetType().GetMethod("Terminate")?.Invoke(executeObject, null);
             }
-            catch (Exception)
-            {
-                //Throw New System.Exception("XeoraCube Executable execution error while finalizing", ex)
-                // Just handle Exception and do not throw and exception
-            }
+            catch
+            { /* Just handle Exception and do not throw and exception */ }
         }
     }
 }

@@ -5,8 +5,8 @@
     <Platforms>AnyCPU;x64;x86</Platforms>
     <PackageId>Xeora.Web.Exceptions</PackageId>
     <Version>7.2.6974</Version>
-    <Description>XeoraCube - Web Development Framework Exceptions</Description>
-    <Product>XeoraCube - Web Development Framework Exceptions</Product>
+    <Description>Xeora - Web Development Framework Exceptions</Description>
+    <Product>Xeora - Web Development Framework Exceptions</Product>
     <Copyright>Copyright © Tuna Celik 2003 - 2019</Copyright>
     <Authors>Tuna Celik</Authors>
     <Company>JakPark Solutions</Company>

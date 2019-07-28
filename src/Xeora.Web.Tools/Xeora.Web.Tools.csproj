@@ -5,8 +5,8 @@
     <Platforms>AnyCPU;x64;x86</Platforms>
     <PackageId>Xeora.Web.Tools</PackageId>
     <Version>7.2.6974</Version>
-    <Description>XeoraCube - Web Development Framework Tools</Description>
-    <Product>XeoraCube - Web Development Framework Tools</Product>
+    <Description>Xeora - Web Development Framework Tools</Description>
+    <Product>Xeora - Web Development Framework Tools</Product>
     <Copyright>Copyright © Tuna Celik 2003 - 2019</Copyright>
     <Authors>Tuna Celik</Authors>
     <Company>JakPark Solutions</Company>

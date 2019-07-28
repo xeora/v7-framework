@@ -8,8 +8,8 @@
     <AssemblyVersion>7.2.*</AssemblyVersion>
     <FileVersion>7.2</FileVersion>
     <Deterministic>False</Deterministic>
-    <Product>XeoraCube - Web Development Framework Handlers</Product>
-    <Description>XeoraCube - Web Development Framework Handlers</Description>
+    <Product>Xeora - Web Development Framework Handlers</Product>
+    <Description>Xeora - Web Development Framework Handlers</Description>
     <Copyright>Copyright © Tuna Celik 2003 - 2019</Copyright>
     <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
     <Authors>Tuna Celik</Authors>

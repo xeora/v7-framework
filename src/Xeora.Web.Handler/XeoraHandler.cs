@@ -62,7 +62,7 @@ namespace Xeora.Web.Handler
         {
             if (rootPath.IndexOf("¨/", StringComparison.Ordinal) < 0) return false;
             
-            // It search something outside of XeoraCube Handler
+            // It search something outside of Xeora Handler
             int helfIdx = rootPath.IndexOf("¨/", StringComparison.Ordinal);
 
             rootPath = rootPath.Remove(0, helfIdx + 2);
