@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-namespace Xeora.Web.Service.Context
+namespace Xeora.Web.Service.Context.Response
 {
     public class HttpResponseStatusCodes : ConcurrentDictionary<short, string>
     {
@@ -75,25 +75,12 @@ namespace Xeora.Web.Service.Context
             base.TryAdd(511, "Network Authentication Required");
         }
 
-        private static HttpResponseStatusCodes _StatusCodes = null;
-        public static HttpResponseStatusCodes StatusCodes
-        {
-            get 
-            {
-                if (HttpResponseStatusCodes._StatusCodes == null)
-                    HttpResponseStatusCodes._StatusCodes = new HttpResponseStatusCodes();
+        private static HttpResponseStatusCodes _StatusCodes;
+        public static HttpResponseStatusCodes StatusCodes =>
+            HttpResponseStatusCodes._StatusCodes ??
+                       (HttpResponseStatusCodes._StatusCodes = new HttpResponseStatusCodes());
 
-                return HttpResponseStatusCodes._StatusCodes;
-            }
-        }
-
-        public string GetMessage(short code)
-        {
-            string message = string.Empty;
-           if (!base.TryGetValue(code, out message))
-                return "Unrecognised HTTP Code";
-
-            return message;
-        }
+        public string GetMessage(short code) => 
+            !base.TryGetValue(code, out var message) ? "Unrecognised HTTP Code" : message;
     }
 }

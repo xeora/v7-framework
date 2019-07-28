@@ -20,10 +20,10 @@ namespace Xeora.Web.Service.Session
                 sessionId = sessionId.ToLowerInvariant();
             }
 
-            Dss.DssManager.Current.Reserve(sessionId, this._ExpireInMinutes, out Basics.Dss.IDss reservation);
+            Dss.Manager.Current.Reserve(sessionId, this._ExpireInMinutes, out Basics.Dss.IDss reservation);
 
             if (reservation == null)
-                throw new SessionCreationException();
+                throw new Exceptions.SessionCreationException();
 
             ReservationEnclosure enclosure = new ReservationEnclosure(sessionId, ref reservation);
 

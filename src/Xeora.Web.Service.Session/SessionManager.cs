@@ -4,18 +4,18 @@ namespace Xeora.Web.Service.Session
 {
     public class SessionManager
     {
-        private IHttpSessionManager _StoreManager;
+        private readonly IHttpSessionManager _StoreManager;
 
         private SessionManager() =>
             this._StoreManager = new StoreManager(Basics.Configurations.Xeora.Session.Timeout);
 
-        private static object _Lock = new object();
-        private static SessionManager _Current = null;
+        private static readonly object Lock = new object();
+        private static SessionManager _Current;
         public static IHttpSessionManager Current
         {
             get
             {
-                Monitor.Enter(SessionManager._Lock);
+                Monitor.Enter(SessionManager.Lock);
                 try
                 {
                     if (SessionManager._Current == null)
@@ -23,7 +23,7 @@ namespace Xeora.Web.Service.Session
                 }
                 finally
                 {
-                    Monitor.Exit(SessionManager._Lock);
+                    Monitor.Exit(SessionManager.Lock);
                 }
 
                 return SessionManager._Current._StoreManager;

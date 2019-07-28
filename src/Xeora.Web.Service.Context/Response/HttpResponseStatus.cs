@@ -1,6 +1,6 @@
-﻿namespace Xeora.Web.Service.Context
+﻿namespace Xeora.Web.Service.Context.Response
 {
-    public class HttpResponseStatus : Basics.Context.IHttpResponseStatus
+    public class HttpResponseStatus : Basics.Context.Response.IHttpResponseStatus
     {
         private short _Code;
 

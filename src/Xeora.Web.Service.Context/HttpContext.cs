@@ -1,11 +1,12 @@
-﻿using Xeora.Web.Service.Application;
+﻿using System;
+using Xeora.Web.Service.Application;
 using Xeora.Web.Service.Session;
 
 namespace Xeora.Web.Service.Context
 {
     public class HttpContext : KeyValueCollection<string, object>, Basics.Context.IHttpContext
     {
-        private Basics.Session.IHttpSession _Session;
+        private readonly Basics.Session.IHttpSession _Session;
 
         public HttpContext(string contextId, ref Basics.Context.IHttpRequest request)
         {
@@ -21,7 +22,7 @@ namespace Xeora.Web.Service.Context
             {
                 sessionId = sessionIdCookie.Value;
 
-                // Remove sessioncookie from the request object
+                // Remove sessionCookie from the request object
                 ((HttpCookie)this.Request.Header.Cookie).Remove(sessionCookieKey);
             }
 
@@ -30,12 +31,12 @@ namespace Xeora.Web.Service.Context
                 out this._Session);
 
             ((HttpResponse)this.Response).SessionCookieRequested +=
-                (skip) =>
+                skip =>
                 {
                     if (skip)
                         return null;
 
-                    if (string.Compare(sessionId, this._Session.SessionId) == 0)
+                    if (string.CompareOrdinal(sessionId, this._Session.SessionId) == 0)
                         return null;
 
                     if (this._Session.Keys.Length == 0)
@@ -53,10 +54,10 @@ namespace Xeora.Web.Service.Context
             this.Application = ApplicationContainer.Current;
         }
 
-        public Basics.Context.IHttpRequest Request { get; private set; }
-        public Basics.Context.IHttpResponse Response { get; private set; }
+        public Basics.Context.IHttpRequest Request { get; }
+        public Basics.Context.IHttpResponse Response { get; }
         public Basics.Session.IHttpSession Session => this._Session;
-        public Basics.Application.IHttpApplication Application { get; private set; }
+        public Basics.Application.IHttpApplication Application { get; }
 
         public new void AddOrUpdate(string key, object value) =>
             base.AddOrUpdate(key, value);
@@ -69,15 +70,16 @@ namespace Xeora.Web.Service.Context
                 if (!string.IsNullOrEmpty(this._HashCode))
                     return this._HashCode;
 
-                string RequestFilePath =
-                    this.Request.Header.URL.RelativePath;
+                string requestFilePath =
+                    this.Request.Header.Url.RelativePath;
 
-                int biIndex = RequestFilePath.IndexOf(Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation, System.StringComparison.InvariantCulture);
+                int biIndex = 
+                    requestFilePath.IndexOf(Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation, StringComparison.InvariantCulture);
                 if (biIndex > -1)
-                    RequestFilePath = RequestFilePath.Remove(0, biIndex + Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation.Length);
+                    requestFilePath = requestFilePath.Remove(0, biIndex + Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation.Length);
 
                 System.Text.RegularExpressions.Match mR =
-                    System.Text.RegularExpressions.Regex.Match(RequestFilePath, "\\d+/");
+                    System.Text.RegularExpressions.Regex.Match(requestFilePath, "\\d+/");
 
                 if (mR.Success && mR.Index == 0)
                     this._HashCode = mR.Value.Substring(0, mR.Length - 1);

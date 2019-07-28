@@ -1,6 +1,6 @@
-﻿namespace Xeora.Web.Service.Context
+﻿namespace Xeora.Web.Service.Context.Request
 {
-    public class HttpRequestFile : KeyValueCollection<string, Basics.Context.IHttpRequestFileInfo>, Basics.Context.IHttpRequestFile
+    public class HttpRequestFile : KeyValueCollection<string, Basics.Context.Request.IHttpRequestFileInfo>, Basics.Context.Request.IHttpRequestFile
     {
         internal void Dispose()
         {

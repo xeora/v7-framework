@@ -4,9 +4,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace Xeora.Web.Service.Dss
+namespace Xeora.Web.Service.Dss.External
 {
-    public class ExternalManager : IDssManager
+    public class Manager : IManager
     {
         private readonly object _ConnectionLock;
         private TcpClient _DssServiceClient;
@@ -16,7 +16,7 @@ namespace Xeora.Web.Service.Dss
         private RequestHandler _RequestHandler;
         private ResponseHandler _ResponseHandler;
 
-        public ExternalManager(IPEndPoint serviceEndPoint)
+        public Manager(IPEndPoint serviceEndPoint)
         {
             this._ConnectionLock = new object();
             this._DssServiceClient = null;
@@ -37,7 +37,7 @@ namespace Xeora.Web.Service.Dss
                 this._DssServiceClient.Connect(this._ServiceEndPoint);
 
                 if (!this._DssServiceClient.Connected)
-                    throw new ExternalCommunicationException();
+                    throw new Exceptions.ExternalCommunicationException();
             }
             finally
             {
@@ -94,11 +94,10 @@ namespace Xeora.Web.Service.Dss
             if (responseBytes == null)
                 return;
             
-            Stream contentStream = null;
-            BinaryReader binaryReader = null;
-
-            contentStream = new MemoryStream(responseBytes, 0, responseBytes.Length, false);
-            binaryReader = new BinaryReader(contentStream);
+            Stream contentStream = 
+                new MemoryStream(responseBytes, 0, responseBytes.Length, false);
+            BinaryReader binaryReader = 
+                new BinaryReader(contentStream);
 
             /*
              * <- \BYTE\BYTE\CHARS{BYTEVALUELENGTH}\LONG
@@ -106,7 +105,7 @@ namespace Xeora.Web.Service.Dss
              */
 
             if (binaryReader.ReadByte() == 2)
-                throw new ReservationCreationException();
+                throw new Exceptions.ReservationCreationException();
 
             byte reservationIdLength = binaryReader.ReadByte();
             string reservationId =
@@ -114,7 +113,7 @@ namespace Xeora.Web.Service.Dss
             DateTime expireDate =
                 new DateTime(binaryReader.ReadInt64());
 
-            reservationObject = new ExternalDss(ref this._RequestHandler, ref this._ResponseHandler, reservationId, expireDate);
+            reservationObject = new Service(ref this._RequestHandler, ref this._ResponseHandler, reservationId, expireDate);
         }
     }
 }

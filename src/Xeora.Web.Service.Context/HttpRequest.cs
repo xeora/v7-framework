@@ -1,4 +1,6 @@
 ﻿using System.Net;
+using Xeora.Web.Service.Context.Request;
+using HttpRequestHeader = Xeora.Web.Service.Context.Request.HttpRequestHeader;
 
 namespace Xeora.Web.Service.Context
 {
@@ -9,10 +11,10 @@ namespace Xeora.Web.Service.Context
         public HttpRequest(IPAddress remoteAddr) =>
             this.RemoteAddr = remoteAddr;
 
-        public IPAddress RemoteAddr { get; private set; }
-        public Basics.Context.IHttpRequestHeader Header => this._Header;
-        public Basics.Context.IHttpRequestQueryString QueryString { get; private set; }
-        public Basics.Context.IHttpRequestBody Body { get; private set; }
+        public IPAddress RemoteAddr { get; }
+        public Basics.Context.Request.IHttpRequestHeader Header => this._Header;
+        public Basics.Context.Request.IHttpRequestQueryString QueryString { get; private set; }
+        public Basics.Context.Request.IHttpRequestBody Body { get; private set; }
 
         public bool Build(string contextId, Net.NetworkStream streamEnclosure)
         {
@@ -20,16 +22,16 @@ namespace Xeora.Web.Service.Context
             if (!this._Header.Parse())
                 return false;
 
-            this.QueryString = new HttpRequestQueryString(this._Header.URL);
+            this.QueryString = new HttpRequestQueryString(this._Header.Url);
             this.Body = new HttpRequestBody(contextId, this._Header, streamEnclosure);
 
             return true;
         }
 
-        public void RewritePath(string rawURL)
+        public void RewritePath(string rawUrl)
         {
-            ((HttpRequestHeader)this.Header).ReplacePath(rawURL);
-            this.QueryString = new HttpRequestQueryString(this.Header.URL);
+            ((HttpRequestHeader)this.Header).ReplacePath(rawUrl);
+            this.QueryString = new HttpRequestQueryString(this.Header.Url);
         }
 
         internal void Dispose() =>

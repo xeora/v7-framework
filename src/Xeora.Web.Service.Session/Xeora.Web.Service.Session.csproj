@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -49,6 +49,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Xeora.Web.Basics\Xeora.Web.Basics.csproj" />
+    <ProjectReference Include="..\Xeora.Web.Exceptions\Xeora.Web.Exceptions.csproj" />
     <ProjectReference Include="..\Xeora.Web.Service.Dss\Xeora.Web.Service.Dss.csproj" />
   </ItemGroup>
   <ItemGroup>

@@ -2,13 +2,13 @@
 using System.IO;
 using System.Text;
 
-namespace Xeora.Web.Service.Context
+namespace Xeora.Web.Service.Context.Request
 {
-    public class HttpRequestHeader : KeyValueCollection<string, string>, Basics.Context.IHttpRequestHeader
+    public class HttpRequestHeader : KeyValueCollection<string, string>, Basics.Context.Request.IHttpRequestHeader
     {
         private readonly Net.NetworkStream _StreamEnclosure;
 
-        private Basics.Context.HttpMethod _Method;
+        private Basics.Context.Request.HttpMethod _Method;
         private int _ContentLength = 0;
 
         public HttpRequestHeader(Net.NetworkStream streamEnclosure) : 
@@ -31,22 +31,17 @@ namespace Xeora.Web.Service.Context
                 string line = sR.ReadLine();
 
                 if (string.IsNullOrEmpty(line))
-                {
-                    if (lineNumber == 1)
-                        return false;
-
-                    return true;
-                }
+                    return lineNumber != 1;
 
                 switch (lineNumber)
                 {
                     case 1:
                         string[] lineParts = line.Split(' ');
 
-                        if (!Enum.TryParse<Basics.Context.HttpMethod>(lineParts[0], out this._Method))
-                            this._Method = Basics.Context.HttpMethod.GET;
+                        if (!Enum.TryParse(lineParts[0], out this._Method))
+                            this._Method = Basics.Context.Request.HttpMethod.GET;
 
-                        this.URL = new URL(lineParts[1]);
+                        this.Url = new Url(lineParts[1]);
                         this.Protocol = lineParts[2];
 
                         break;
@@ -135,9 +130,9 @@ namespace Xeora.Web.Service.Context
 
         private string ExtractHeader()
         {
-            string RNRN = "\r\n\r\n";
-            string NN = "\n\n";
-            int NL;
+            const string rnrn = "\r\n\r\n";
+            const string nn = "\n\n";
+            int nl;
 
             Stream contentStream = null;
             try
@@ -145,27 +140,28 @@ namespace Xeora.Web.Service.Context
                 contentStream = new MemoryStream();
 
                 string content = string.Empty;
-                int EOFIndex = 0;
+                int eofIndex = 0;
 
                 bool completed = this._StreamEnclosure.Listen((buffer, size) =>
                 {
                     contentStream.Write(buffer, 0, size);
                     content += Encoding.ASCII.GetString(buffer, 0, size);
 
-                    NL = 4;
-                    EOFIndex = content.IndexOf(RNRN);
-                    if (EOFIndex == -1)
+                    nl = 4;
+                    eofIndex = 
+                        content.IndexOf(rnrn, StringComparison.Ordinal);
+                    if (eofIndex == -1)
                     {
-                        NL = 2;
-                        EOFIndex = content.IndexOf(NN);
+                        nl = 2;
+                        eofIndex = content.IndexOf(nn, StringComparison.Ordinal);
                     }
-                    if (EOFIndex == -1)
+                    if (eofIndex == -1)
                         return true;
 
-                    EOFIndex += NL;
+                    eofIndex += nl;
 
-                    byte[] residualData = new byte[content.Length - EOFIndex];
-                    contentStream.Seek(EOFIndex, SeekOrigin.Begin);
+                    byte[] residualData = new byte[content.Length - eofIndex];
+                    contentStream.Seek(eofIndex, SeekOrigin.Begin);
                     contentStream.Read(residualData, 0, residualData.Length);
 
                     this._StreamEnclosure.Return(residualData, 0, residualData.Length);
@@ -173,10 +169,7 @@ namespace Xeora.Web.Service.Context
                     return false;
                 });
 
-                if (!completed)
-                    return string.Empty;
-
-                return content.Substring(0, EOFIndex);
+                return !completed ? string.Empty : content.Substring(0, eofIndex);
             }
             finally
             {
@@ -206,8 +199,8 @@ namespace Xeora.Web.Service.Context
             }
         }
 
-        public Basics.Context.HttpMethod Method => this._Method;
-        public Basics.Context.IURL URL { get; private set; }
+        public Basics.Context.Request.HttpMethod Method => this._Method;
+        public Basics.Context.IUrl Url { get; private set; }
         public string Protocol { get; private set; }
 
         public string Host { get; private set; }
@@ -217,9 +210,9 @@ namespace Xeora.Web.Service.Context
         public Encoding ContentEncoding { get; private set; }
         public string Boundary { get; private set; }
 
-        public Basics.Context.IHttpCookie Cookie { get; private set; }
+        public Basics.Context.IHttpCookie Cookie { get; }
 
-        internal void ReplacePath(string rawURL) =>
-            this.URL = new URL(rawURL);
+        internal void ReplacePath(string rawUrl) =>
+            this.Url = new Url(rawUrl);
     }
 }

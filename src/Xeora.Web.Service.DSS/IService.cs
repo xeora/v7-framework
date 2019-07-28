@@ -1,6 +1,6 @@
 ﻿namespace Xeora.Web.Service.Dss
 {
-    public interface IDssService
+    public interface IService
     {
         bool IsExpired { get; }
         void Extend();

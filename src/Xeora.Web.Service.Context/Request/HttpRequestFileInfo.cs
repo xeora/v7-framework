@@ -3,23 +3,22 @@ using System.IO;
 using System.Text;
 using Xeora.Web.Basics;
 
-namespace Xeora.Web.Service.Context
+namespace Xeora.Web.Service.Context.Request
 {
-    public class HttpRequestFileInfo : Basics.Context.IHttpRequestFileInfo
+    public class HttpRequestFileInfo : Basics.Context.Request.IHttpRequestFileInfo
     {
-        internal Stream _ContentStream;
-
+        internal readonly Stream ContentStream;
         private readonly string _TempLocation;
 
         public HttpRequestFileInfo(string contextId, string contentType, Encoding contentEncoding, string fileName, bool keepInMemory)
         {
             this._TempLocation = 
-                Path.Combine(Configurations.Xeora.Application.Main.TemporaryRoot, string.Format("fs-{0}.bin", contextId));
+                Path.Combine(Configurations.Xeora.Application.Main.TemporaryRoot, $"fs-{contextId}.bin");
 
             if (keepInMemory)
-                this._ContentStream = new MemoryStream();
+                this.ContentStream = new MemoryStream();
             else
-                this._ContentStream = 
+                this.ContentStream = 
                     new FileStream(this._TempLocation, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
             
             this.ContentType = contentType;
@@ -27,15 +26,15 @@ namespace Xeora.Web.Service.Context
             this.FileName = fileName;
         }
 
-        public string ContentType { get; private set; }
-        public Encoding ContentEncoding { get; private set; }
-        public string FileName { get; private set; }
-        public long Length => this._ContentStream.Length;
-        public Stream Stream => this._ContentStream;
+        public string ContentType { get; }
+        public Encoding ContentEncoding { get; }
+        public string FileName { get; }
+        public long Length => this.ContentStream.Length;
+        public Stream Stream => this.ContentStream;
 
         internal void Dispose()
         {
-            this._ContentStream.Close();
+            this.ContentStream.Close();
 
             if (File.Exists(this._TempLocation))
                 File.Delete(this._TempLocation);

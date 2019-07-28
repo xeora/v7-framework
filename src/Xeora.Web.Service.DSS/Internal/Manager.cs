@@ -2,26 +2,27 @@
 using System.Collections.Concurrent;
 using System.Threading;
 
-namespace Xeora.Web.Service.Dss
+namespace Xeora.Web.Service.Dss.Internal
 {
-    public class MemoryManager : IDssManager
+    public class Manager : IManager
     {
-        private object _ReservationLock;
+        private readonly object _ReservationLock;
         private readonly ConcurrentDictionary<string, Basics.Dss.IDss> _ReservationTable;
 
         private const short PRUNE_INTERVAL = 10 * 60; // 10 minutes
-        private readonly System.Timers.Timer _PruneTimer;
         private readonly object _PruneLock;
 
-        public MemoryManager()
+        public Manager()
         {
             this._ReservationLock = new object();
             this._ReservationTable = new ConcurrentDictionary<string, Basics.Dss.IDss>();
 
 			this._PruneLock = new object();
-            this._PruneTimer = new System.Timers.Timer(MemoryManager.PRUNE_INTERVAL * 1000);
-            this._PruneTimer.Elapsed += this.PruneReservations;
-            this._PruneTimer.Start();
+            
+            System.Timers.Timer pruneTimer = 
+                new System.Timers.Timer(Manager.PRUNE_INTERVAL * 1000);
+            pruneTimer.Elapsed += this.PruneReservations;
+            pruneTimer.Start();
         }
 
         public void Reserve(string uniqueId, int reservationTimeout, out Basics.Dss.IDss reservationObject)
@@ -45,17 +46,17 @@ namespace Xeora.Web.Service.Dss
             if (!this._ReservationTable.TryGetValue(uniqueId, out reservationObject))
                 return false;
                 
-            if (((IDssService)reservationObject).IsExpired)
+            if (((IService)reservationObject).IsExpired)
             {
                 if (!this._ReservationTable.TryRemove(uniqueId, out _))
-                    throw new ReservationCreationException();
+                    throw new Exceptions.ReservationCreationException();
 
                 reservationObject = null;
 
                 return false;
             }
 
-            ((IDssService)reservationObject).Extend();
+            ((IService)reservationObject).Extend();
 
             return true;
         }
@@ -63,9 +64,9 @@ namespace Xeora.Web.Service.Dss
         private void Create(string uniqueId, int reservationTimeout, out Basics.Dss.IDss reservationObject)
         {
             if (string.IsNullOrEmpty(uniqueId))
-                throw new ReservationCreationException();
+                throw new Exceptions.ReservationCreationException();
 
-            reservationObject = new MemoryDss(uniqueId, reservationTimeout);
+            reservationObject = new Service(uniqueId, reservationTimeout);
 
             if (!this._ReservationTable.TryAdd(uniqueId, reservationObject))
                 throw new OutOfMemoryException();
@@ -86,7 +87,7 @@ namespace Xeora.Web.Service.Dss
                 {
                     this._ReservationTable.TryGetValue(key, out Basics.Dss.IDss reservation);
 
-                    if (((IDssService)reservation).IsExpired)
+                    if (((IService)reservation).IsExpired)
                         this._ReservationTable.TryRemove(key, out reservation);
                 }
 			}

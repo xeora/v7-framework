@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
-namespace Xeora.Web.Service.Dss
+namespace Xeora.Web.Service.Dss.External
 {
-    internal class ExternalDss : Basics.Dss.IDss, IDssService
+    internal class Service : Basics.Dss.IDss, IService
     {
         private readonly RequestHandler _RequestHandler;
         private readonly ResponseHandler _ResponseHandler;
 
-        public ExternalDss(ref RequestHandler requestHandler, ref ResponseHandler responseHandler, string uniqueId, DateTime expireDate)
+        public Service(ref RequestHandler requestHandler, ref ResponseHandler responseHandler, string uniqueId, DateTime expireDate)
         {
             this._RequestHandler = requestHandler;
             this._ResponseHandler = responseHandler;
@@ -40,14 +40,12 @@ namespace Xeora.Web.Service.Dss
             }
         }
 
-        public string UniqueId { get; private set; }
-        public DateTime Expires { get; private set; }
+        public string UniqueId { get; }
+        public DateTime Expires { get; }
         public string[] Keys => this.GetKeys();
 
         private object Get(string key)
         {
-            byte[] responseBytes = null;
-
             long requestId;
 
             // Make Request
@@ -78,7 +76,8 @@ namespace Xeora.Web.Service.Dss
                 requestStream?.Close();
             }
 
-            responseBytes = this._ResponseHandler.WaitForMessage(requestId);
+            byte[] responseBytes = 
+                this._ResponseHandler.WaitForMessage(requestId);
             if (responseBytes == null || responseBytes.Length == 0)
                 return null;
             
@@ -103,10 +102,8 @@ namespace Xeora.Web.Service.Dss
                 byte[] remoteValueBytes = 
                     binaryReader.ReadBytes(remoteValueLength);
 
-                if (string.Compare(remoteKey, key) != 0)
-                    return null;
-
-                return this.DeSerialize(remoteValueBytes);
+                return string.CompareOrdinal(remoteKey, key) == 0 
+                        ? this.DeSerialize(remoteValueBytes) : null;
             }
             finally
             {
@@ -151,7 +148,7 @@ namespace Xeora.Web.Service.Dss
                     return;
 
                 if (responseBytes[0] != 1)
-                    throw new DssValueException();
+                    throw new Exceptions.DssValueException();
             }
             finally
             {
@@ -163,8 +160,7 @@ namespace Xeora.Web.Service.Dss
         private string[] GetKeys()
         {
             List<string> keys = new List<string>();
-
-            byte[] responseBytes = null;
+            
             long requestId;
 
             // Make Request
@@ -189,7 +185,7 @@ namespace Xeora.Web.Service.Dss
             }
             catch
             {
-                throw new ExternalCommunicationException();
+                throw new Exceptions.ExternalCommunicationException();
             }
             finally
             {
@@ -197,7 +193,8 @@ namespace Xeora.Web.Service.Dss
                 requestStream?.Close();
             }
 
-            responseBytes = this._ResponseHandler.WaitForMessage(requestId);
+            byte[] responseBytes = 
+                this._ResponseHandler.WaitForMessage(requestId);
             if (responseBytes == null || responseBytes.Length == 0)
                 return keys.ToArray();
             
@@ -225,7 +222,7 @@ namespace Xeora.Web.Service.Dss
             }
             catch
             {
-                throw new ExternalCommunicationException();
+                throw new Exceptions.ExternalCommunicationException();
             }
             finally
             {
@@ -265,9 +262,9 @@ namespace Xeora.Web.Service.Dss
             {
                 forStream = new MemoryStream(value);
 
-                BinaryFormatter binFormater = new BinaryFormatter();
+                BinaryFormatter binFormatter = new BinaryFormatter();
 
-                return binFormater.Deserialize(forStream);
+                return binFormatter.Deserialize(forStream);
             }
             catch (Exception)
             {

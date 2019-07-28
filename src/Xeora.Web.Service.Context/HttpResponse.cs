@@ -3,29 +3,28 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using Xeora.Web.Basics;
+using Xeora.Web.Service.Context.Response;
 
 namespace Xeora.Web.Service.Context
 {
     public delegate Basics.Context.IHttpCookieInfo SessionCookieRequestedHandler(bool skip);
     public class HttpResponse : Basics.Context.IHttpResponse
     {
-        public static readonly char[] NEWLINE = { '\r', '\n' };
+        public static readonly char[] Newline = { '\r', '\n' };
 
-        private readonly string _ContextId;
         private readonly string _TempLocation;
         private readonly Stream _ResponseOutput;
 
-        private string _RedirectedURL = string.Empty;
+        private string _RedirectedUrl = string.Empty;
 
         public event SessionCookieRequestedHandler SessionCookieRequested;
 
         public HttpResponse(string contextId)
         {
-            this._ContextId = contextId;
             this._TempLocation = 
                 Path.Combine(
-                    Configurations.Xeora.Application.Main.TemporaryRoot, 
-                    string.Format("rs-{0}.bin", this._ContextId)
+                    Configurations.Xeora.Application.Main.TemporaryRoot,
+                    $"rs-{contextId}.bin"
                 );
 
             this._ResponseOutput = 
@@ -34,7 +33,7 @@ namespace Xeora.Web.Service.Context
             this.Header = new HttpResponseHeader();
         }
 
-        public Basics.Context.IHttpResponseHeader Header { get; private set; }
+        public Basics.Context.Response.IHttpResponseHeader Header { get; }
 
         private void PushHeaders(Net.NetworkStream streamEnclosure)
         {
@@ -49,26 +48,26 @@ namespace Xeora.Web.Service.Context
             StringBuilder sB = new StringBuilder();
 
             sB.AppendFormat("HTTP/1.1 {0} {1}", this.Header.Status.Code, this.Header.Status.Message);
-            sB.Append(NEWLINE);
+            sB.Append(Newline);
 
             foreach (string key in this.Header.Keys)
             {
                 sB.AppendFormat("{0}: {1}", key, this.Header[key]);
-                sB.Append(NEWLINE);
+                sB.Append(Newline);
             }
 
             string contentType = 
                 this.Header["Content-Type"];
-            bool skip = (string.IsNullOrEmpty(contentType) || contentType.IndexOf("text/html") == -1);
+            bool skip = string.IsNullOrEmpty(contentType) || contentType.IndexOf("text/html", StringComparison.Ordinal) == -1;
             this.Header.Cookie.AddOrUpdate(SessionCookieRequested?.Invoke(skip));
 
             foreach (string key in this.Header.Cookie.Keys)
             {
                 sB.AppendFormat("Set-Cookie: {0}", this.Header.Cookie[key].ToString());
-                sB.Append(NEWLINE);
+                sB.Append(Newline);
             }
 
-            sB.Append(NEWLINE);
+            sB.Append(Newline);
 
             byte[] buffer = Encoding.ASCII.GetBytes(sB.ToString());
             streamEnclosure.Write(buffer, 0, buffer.Length);
@@ -83,34 +82,34 @@ namespace Xeora.Web.Service.Context
         public void Write(byte[] buffer, int offset, int count) =>
             this._ResponseOutput.Write(buffer, offset, count);
 
-        public void Redirect(string URL) => this._RedirectedURL = URL;
-        public bool IsRedirected => !string.IsNullOrEmpty(this._RedirectedURL);
+        public void Redirect(string url) => this._RedirectedUrl = url;
+        public bool IsRedirected => !string.IsNullOrEmpty(this._RedirectedUrl);
 
         private void Redirect(Net.NetworkStream streamEnclosure)
         {
             StringBuilder sB = new StringBuilder();
 
             sB.Append("HTTP/1.1 302 Object Moved");
-            sB.Append(NEWLINE);
+            sB.Append(Newline);
 
             sB.AppendFormat("Date: {0}", DateTime.Now.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", CultureInfo.InvariantCulture));
-            sB.Append(NEWLINE);
+            sB.Append(Newline);
 
-            sB.AppendFormat("Location: {0}", this._RedirectedURL);
-            sB.Append(NEWLINE);
+            sB.AppendFormat("Location: {0}", this._RedirectedUrl);
+            sB.Append(Newline);
 
             sB.Append("Connection: close");
-            sB.Append(NEWLINE);
+            sB.Append(Newline);
 
             this.Header.Cookie.AddOrUpdate(SessionCookieRequested?.Invoke(false));
 
-            // put cookies because it may contain sessionid
+            // put cookies because it may contain sessionId
             foreach (string key in this.Header.Cookie.Keys)
             {
                 sB.AppendFormat("Set-Cookie: {0}", this.Header.Cookie[key].ToString());
-                sB.Append(NEWLINE);
+                sB.Append(Newline);
             }
-            sB.Append(NEWLINE);
+            sB.Append(Newline);
 
             byte[] buffer = Encoding.ASCII.GetBytes(sB.ToString());
             streamEnclosure.Write(buffer, 0, buffer.Length);

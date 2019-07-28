@@ -36,15 +36,7 @@ namespace Xeora.Web.Service.Context
             }
         }
 
-        public V this[K key]
-        {
-            get
-            {
-                if (!this._Container.ContainsKey(key))
-                    return default(V);
-
-                return this._Container[key];
-            }
-        }
+        public V this[K key] =>
+            !this._Container.ContainsKey(key) ? default : this._Container[key];
     }
 }

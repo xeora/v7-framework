@@ -18,11 +18,11 @@ namespace Xeora.Web.Service.Session
             set => this._Reservation[key] = value;
         }
 
-        public string SessionId { get; private set; }
+        public string SessionId { get; }
         public DateTime Expires => this._Reservation.Expires;
         public string[] Keys => this._Reservation.Keys;
 
-        public bool IsExpired => ((Dss.IDssService)this._Reservation).IsExpired;
-        public void Extend() => ((Dss.IDssService)this._Reservation).Extend();
+        public bool IsExpired => ((Dss.IService)this._Reservation).IsExpired;
+        public void Extend() => ((Dss.IService)this._Reservation).Extend();
     }
 }

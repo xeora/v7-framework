@@ -1,30 +1,33 @@
-﻿using Xeora.Web.Basics;
+﻿using System;
+using Xeora.Web.Basics;
 
 namespace Xeora.Web.Service.Context
 {
-    public class URL : Basics.Context.IURL
+    public class Url : Basics.Context.IUrl
     {
-        public URL(string rawURL)
+        public Url(string rawUrl)
         {
-            string ApplicationRootPath = 
+            string applicationRootPath = 
                 Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation;
             // Fix false path request
-            if (string.Compare(ApplicationRootPath, "/") != 0)
+            if (string.CompareOrdinal(applicationRootPath, "/") != 0)
             {
-                string fixedRawURL = string.Format("{0}/", rawURL);
+                string fixedRawUrl = $"{rawUrl}/";
 
-                if (string.Compare(fixedRawURL.Substring(fixedRawURL.Length - ApplicationRootPath.Length), ApplicationRootPath) == 0)
-                    rawURL = fixedRawURL;
+                if (string.CompareOrdinal(fixedRawUrl.Substring(fixedRawUrl.Length - applicationRootPath.Length), applicationRootPath) == 0)
+                    rawUrl = fixedRawUrl;
             }
 
-            this.Raw = rawURL;
+            this.Raw = rawUrl;
 
-            int FirstQuestionMarkIndex = this.Raw.IndexOf('?');
-            if (FirstQuestionMarkIndex > -1)
+            int firstQuestionMarkIndex = this.Raw.IndexOf('?');
+            if (firstQuestionMarkIndex > -1)
             {
-                this.RelativePath = this.CleanUpDashRepetition(this.Raw.Substring(0, FirstQuestionMarkIndex));
-                this.QueryString = this.Raw.Substring(FirstQuestionMarkIndex + 1);
-                this.Relative = string.Format("{0}?{1}", this.RelativePath, this.QueryString);
+                this.RelativePath = 
+                    this.CleanUpDashRepetition(this.Raw.Substring(0, firstQuestionMarkIndex));
+                this.QueryString = 
+                    this.Raw.Substring(firstQuestionMarkIndex + 1);
+                this.Relative = $"{this.RelativePath}?{this.QueryString}";
 
                 return;
             }
@@ -36,20 +39,21 @@ namespace Xeora.Web.Service.Context
 
         private string CleanUpDashRepetition(string input)
         {
-            int DoubleDashIndex;
+            int doubleDashIndex;
             do
             {
-                DoubleDashIndex = input.IndexOf("//");
-                if (DoubleDashIndex > -1)
-                    input = input.Remove(DoubleDashIndex, 1);
-            } while (DoubleDashIndex > -1);
+                doubleDashIndex = 
+                    input.IndexOf("//", StringComparison.Ordinal);
+                if (doubleDashIndex > -1)
+                    input = input.Remove(doubleDashIndex, 1);
+            } while (doubleDashIndex > -1);
 
             return input;
         }
 
-        public string Raw { get; private set; }
-        public string Relative { get; private set; }
-        public string RelativePath { get; private set; }
-        public string QueryString { get; private set; }
+        public string Raw { get; }
+        public string Relative { get; }
+        public string RelativePath { get; }
+        public string QueryString { get; }
     }
 }

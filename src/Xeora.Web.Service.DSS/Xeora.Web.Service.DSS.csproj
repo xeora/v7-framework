@@ -49,8 +49,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Xeora.Web.Basics\Xeora.Web.Basics.csproj" />
+    <ProjectReference Include="..\Xeora.Web.Exceptions\Xeora.Web.Exceptions.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="ExternalDss\" />
+    <Folder Include="External\" />
   </ItemGroup>
 </Project>

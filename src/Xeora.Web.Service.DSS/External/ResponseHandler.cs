@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Xeora.Web.Service.Dss
+namespace Xeora.Web.Service.Dss.External
 {
     public class ResponseHandler
     {
@@ -22,7 +22,7 @@ namespace Xeora.Web.Service.Dss
         {
             try
             {
-                await Task.Run(() => this.Handle());
+                await Task.Run(this.Handle);
             }
             catch
             { /* Just Handle Exceptions */ }
@@ -75,7 +75,6 @@ namespace Xeora.Web.Service.Dss
             int contentSize = (int)(head & 0xFFFFFF);
 
             byte[] buffer = new byte[8192];
-            int bR = 0;
 
             Stream contentStream = null;
             try
@@ -88,7 +87,8 @@ namespace Xeora.Web.Service.Dss
                     if (contentSize < readLength)
                         readLength = contentSize;
 
-                    bR = responseStream.Read(buffer, 0, readLength);
+                    int bR = 
+                        responseStream.Read(buffer, 0, readLength);
 
                     contentStream.Write(buffer, 0, bR);
 

@@ -1,5 +1,5 @@
-﻿namespace Xeora.Web.Service.Context
+﻿namespace Xeora.Web.Service.Context.Request
 {
-    public class HttpRequestForm : KeyValueCollection<string, string>, Basics.Context.IHttpRequestForm
+    public class HttpRequestForm : KeyValueCollection<string, string>, Basics.Context.Request.IHttpRequestForm
     { }
 }

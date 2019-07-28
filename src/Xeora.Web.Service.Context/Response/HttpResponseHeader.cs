@@ -1,6 +1,6 @@
-﻿namespace Xeora.Web.Service.Context
+﻿namespace Xeora.Web.Service.Context.Response
 {
-    public class HttpResponseHeader : KeyValueCollection<string, string>, Basics.Context.IHttpResponseHeader
+    public class HttpResponseHeader : KeyValueCollection<string, string>, Basics.Context.Response.IHttpResponseHeader
     {
         public HttpResponseHeader()
         {
@@ -11,7 +11,7 @@
         public new void AddOrUpdate(string key, string value) =>
             base.AddOrUpdate(key, value);
 
-        public Basics.Context.IHttpResponseStatus Status { get; private set; }
-        public Basics.Context.IHttpCookie Cookie { get; private set; }
+        public Basics.Context.Response.IHttpResponseStatus Status { get; }
+        public Basics.Context.IHttpCookie Cookie { get; }
     }
 }

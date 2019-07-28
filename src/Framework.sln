@@ -2,7 +2,7 @@
 # Visual Studio 15
 VisualStudioVersion = 15.0.27004.2005
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xeora.Web.Manager.Loader", "Xeora.Web.Manager.Loader\Xeora.Web.Manager.Loader.csproj", "{50BF8C28-B023-4350-BC82-F722E708464C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xeora.Web.Manager", "Xeora.Web.Manager\Xeora.Web.Manager.csproj", "{50BF8C28-B023-4350-BC82-F722E708464C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xeora.Web.Handler", "Xeora.Web.Handler\Xeora.Web.Handler.csproj", "{04491032-1861-4C87-926D-11C094074CFF}"
 EndProject
@@ -25,6 +25,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xeora.Web.Service.Net", "Xeora.Web.Service.Net\Xeora.Web.Service.Net.csproj", "{31CD53A5-44B8-4135-A3D2-5467E0A1847C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xeora.Web.Service.Dss", "Xeora.Web.Service.Dss\Xeora.Web.Service.Dss.csproj", "{4EE43A4C-CE6F-41C6-85BF-714FCB5B24D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xeora.Web.Exceptions", "Xeora.Web.Exceptions\Xeora.Web.Exceptions.csproj", "{AE16DFD5-1252-4338-BB3D-1281D26CB34C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xeora.Web.Tools", "Xeora.Web.Tools\Xeora.Web.Tools.csproj", "{4BFD0421-6919-44A8-AA64-0C22C10C9081}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -180,6 +184,30 @@ Global
 		{4EE43A4C-CE6F-41C6-85BF-714FCB5B24D2}.Release|x64.Build.0 = Release|x64
 		{4EE43A4C-CE6F-41C6-85BF-714FCB5B24D2}.Release|x86.ActiveCfg = Release|x86
 		{4EE43A4C-CE6F-41C6-85BF-714FCB5B24D2}.Release|x86.Build.0 = Release|x86
+		{AE16DFD5-1252-4338-BB3D-1281D26CB34C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE16DFD5-1252-4338-BB3D-1281D26CB34C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE16DFD5-1252-4338-BB3D-1281D26CB34C}.Debug|x64.ActiveCfg = Debug|x64
+		{AE16DFD5-1252-4338-BB3D-1281D26CB34C}.Debug|x64.Build.0 = Debug|x64
+		{AE16DFD5-1252-4338-BB3D-1281D26CB34C}.Debug|x86.ActiveCfg = Debug|x86
+		{AE16DFD5-1252-4338-BB3D-1281D26CB34C}.Debug|x86.Build.0 = Debug|x86
+		{AE16DFD5-1252-4338-BB3D-1281D26CB34C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE16DFD5-1252-4338-BB3D-1281D26CB34C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE16DFD5-1252-4338-BB3D-1281D26CB34C}.Release|x64.ActiveCfg = Release|x64
+		{AE16DFD5-1252-4338-BB3D-1281D26CB34C}.Release|x64.Build.0 = Release|x64
+		{AE16DFD5-1252-4338-BB3D-1281D26CB34C}.Release|x86.ActiveCfg = Release|x86
+		{AE16DFD5-1252-4338-BB3D-1281D26CB34C}.Release|x86.Build.0 = Release|x86
+		{4BFD0421-6919-44A8-AA64-0C22C10C9081}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BFD0421-6919-44A8-AA64-0C22C10C9081}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BFD0421-6919-44A8-AA64-0C22C10C9081}.Debug|x64.ActiveCfg = Debug|x64
+		{4BFD0421-6919-44A8-AA64-0C22C10C9081}.Debug|x64.Build.0 = Debug|x64
+		{4BFD0421-6919-44A8-AA64-0C22C10C9081}.Debug|x86.ActiveCfg = Debug|x86
+		{4BFD0421-6919-44A8-AA64-0C22C10C9081}.Debug|x86.Build.0 = Debug|x86
+		{4BFD0421-6919-44A8-AA64-0C22C10C9081}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BFD0421-6919-44A8-AA64-0C22C10C9081}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BFD0421-6919-44A8-AA64-0C22C10C9081}.Release|x64.ActiveCfg = Release|x64
+		{4BFD0421-6919-44A8-AA64-0C22C10C9081}.Release|x64.Build.0 = Release|x64
+		{4BFD0421-6919-44A8-AA64-0C22C10C9081}.Release|x86.ActiveCfg = Release|x86
+		{4BFD0421-6919-44A8-AA64-0C22C10C9081}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

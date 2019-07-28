@@ -2,13 +2,13 @@
 using System.Net.Sockets;
 using System.Threading;
 
-namespace Xeora.Web.Service.Dss
+namespace Xeora.Web.Service.Dss.External
 {
     public class RequestHandler
     {
         private readonly TcpClient _DssServiceClient;
 
-        private long _LastRequestId = 0;
+        private long _LastRequestId;
         private readonly object _StreamLock;
 
         public RequestHandler(ref TcpClient dssServiceClient)
@@ -53,7 +53,7 @@ namespace Xeora.Web.Service.Dss
             }
             catch
             {
-                throw new ExternalCommunicationException();
+                throw new Exceptions.ExternalCommunicationException();
             }
             finally
             {
