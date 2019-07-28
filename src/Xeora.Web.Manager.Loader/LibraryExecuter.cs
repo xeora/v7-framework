@@ -162,7 +162,7 @@ namespace Xeora.Web.Manager
 
         private bool ExamInterface(string interfaceFullName)
         {
-            Type[] assemblyInterfaceList = null;
+            Type[] assemblyInterfaceList;
             Type[] assemblyExTypes =
                 this._AssemblyDll.GetExportedTypes();
 
@@ -189,7 +189,7 @@ namespace Xeora.Web.Manager
 
         private System.Exception GetExecutionError(string[] classNames, string functionName, object[] functionParams, System.Exception innerException)
         {
-            string compileErrorObject = null;
+            string compileErrorObject;
 
             if (classNames != null)
             {
@@ -217,9 +217,7 @@ namespace Xeora.Web.Manager
                 executeObject.GetType().GetMethod("PreExecute").Invoke(executeObject, new object[] { executionId, assemblyMethod });
             }
             catch (System.Exception)
-            {
-                // Errors are irrelevant, do not check!
-            }
+            { /* Errors are irrelevant, do not check! */ }
         }
 
         private void InvokePostExecution(object executeObject, string executionId, object result)
@@ -229,9 +227,7 @@ namespace Xeora.Web.Manager
                 executeObject.GetType().GetMethod("PostExecute").Invoke(executeObject, new object[] { executionId, result });
             }
             catch (System.Exception)
-            {
-                // Errors are irrelevant, do not check!
-            }
+            { /* Errors are irrelevant, do not check! */ }
         }
 
         private object LoadDomainExecutable()
@@ -250,7 +246,7 @@ namespace Xeora.Web.Manager
                 string.Compare(interfaceType.FullName, "Xeora.Web.Basics.IDomainExecutable") != 0)
                 return new System.Exception("Calling Assembly is not a XeoraCube Executable!");
 
-            object executeObject = null;
+            object executeObject;
             lock (this._ExecutableInstances)
             {
                 if (!this._ExecutableInstances.TryGetValue(examInterface, out executeObject))
@@ -262,7 +258,19 @@ namespace Xeora.Web.Manager
                         if (executeObject != null)
                             this._ExecutableInstances.TryAdd(examInterface, executeObject);
 
-                        executeObject.GetType().GetMethod("Initialize").Invoke(executeObject, null);
+                        MethodInfo mI =
+                            executeObject.GetType().GetMethod("Initialize");
+                        if (mI == null) throw new MissingMethodException("Initialize");
+
+                        if (!examInterface.Name.StartsWith("X") && examInterface.Name.Length != 33)
+                        {
+                            Basics.Console.Push(
+                                string.Empty,
+                                $"Domain Executable: {examInterface.Name} v{examInterface.Assembly.GetName().Version}",
+                                string.Empty, false);
+                        }
+
+                        mI.Invoke(executeObject, null);
                     }
                     catch (System.Exception ex)
                     {
