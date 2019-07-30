@@ -84,10 +84,11 @@ namespace Xeora.Web.Handler
 
             try
             {
+                if (this._ForceRefresh)
+                    Application.DomainControl.ClearCache();
+                
                 IHttpContext context = this.Context;
                 this._DomainControl = new DomainControl(ref context);
-                if (this._ForceRefresh)
-                    this._DomainControl.ClearCache();
 
                 Basics.Enum.PageCachingTypes defaultCaching =
                     this._DomainControl.Domain.Settings.Configurations.DefaultCaching;
