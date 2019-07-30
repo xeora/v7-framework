@@ -575,19 +575,22 @@ namespace Xeora.Web.Application
             return DomainControl._AvailableDomains;
         }
 
-        public void ClearCache()
+        public static void ClearCache()
         {
+            // Clear Url Mapping Cache
+            Basics.Mapping.Url.Reset();
+            
             // Clear Compiled Statements Cache
             Master.ClearCache();
 
             // Clear Domain Control Map Cache
-            this.Domain.ClearCache();
+            Application.Domain.Reset();
 
             // Clear Deployment Template and File Cache
             Deployment.InstanceFactory.Current.Reset();
 
             // Clear Partial Block Cache
-            PartialCachePool.Current.Reset(this.Domain.IdAccessTree);
+            PartialCachePool.Current.Reset();
         }
     }
 }

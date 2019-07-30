@@ -128,13 +128,15 @@ namespace Xeora.Web.Application
 
             childrenContainer.AddRange(directives);
 
-            if (Basics.Configurations.Xeora.Application.Main.PrintAnalytics)
-            {
-                Basics.Console.Push(
-                    "analytic - parsed duration",
-                    $"{DateTime.Now.Subtract(parseBegins).TotalMilliseconds}ms - total ({directives.Count})",
-                    string.Empty, false, groupId: Basics.Helpers.Context.UniqueId);
-            }
+            if (!Basics.Configurations.Xeora.Application.Main.PrintAnalysis) return;
+            
+            double totalMs =
+                DateTime.Now.Subtract(parseBegins).TotalMilliseconds;
+            Basics.Console.Push(
+                "analysed - parsed duration",
+                $"{totalMs}ms - total ({directives.Count})",
+                string.Empty, false, groupId: Basics.Helpers.Context.UniqueId,
+                type: totalMs > Basics.Configurations.Xeora.Application.Main.AnalysisThreshold ? Basics.Console.Type.Warn: Basics.Console.Type.Info);
         }
 
         private void OnDeploymentAccessRequest(ref Basics.Domain.IDomain domain, out Deployment.Domain deployment) =>
@@ -172,7 +174,10 @@ namespace Xeora.Web.Application
             control = new Controls.Unknown();
         }
 
-        public void ClearCache() =>
+        public static void Reset() =>
             Domain.ControlsCache.Clear();
+
+        public void ClearCache() =>
+            Domain.Reset();
     }
 }
