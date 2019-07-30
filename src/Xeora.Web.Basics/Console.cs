@@ -1,6 +1,11 @@
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Dynamic;
+using System.IO;
+using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,20 +14,43 @@ namespace Xeora.Web.Basics
     public class Console
     {
         private static readonly object MessageLock = new object();
-        private readonly Dictionary<string, Queue<string>> _MessageGroups;
+        private readonly Dictionary<string, Queue<Message>> _MessageGroups;
         private readonly ConcurrentDictionary<string, Action<ConsoleKeyInfo>> _KeyListeners;
+        private static readonly object FlushingLock = new object();
         private readonly ConcurrentDictionary<string, bool> _Flushing;
 
+        public enum Type
+        {
+            Info,
+            Warn,
+            Error
+        }
+        
+        private class Message
+        {
+            private Message(Type type, string value)
+            {
+                this.Type = type;
+                this.Value = value;
+            }
+            
+            public Type Type { get; }
+            public string Value { get; }
+
+            public static Message Create(Type type, string value) =>
+                new Message(type, value);
+        }
+        
         private Console()
         {
-            this._MessageGroups = new Dictionary<string, Queue<string>>();
+            this._MessageGroups = new Dictionary<string, Queue<Message>>();
             this._KeyListeners = new ConcurrentDictionary<string, Action<ConsoleKeyInfo>>();
             this._Flushing = new ConcurrentDictionary<string, bool>();
 
             ThreadPool.QueueUserWorkItem(state => this.StartKeyListener());
         }
 
-        private void Queue(string message, string groupId)
+        private void Queue(Message message, string groupId)
         {
             if (string.IsNullOrEmpty(groupId)) 
                 groupId = Guid.Empty.ToString();
@@ -30,7 +58,7 @@ namespace Xeora.Web.Basics
             lock (Console.MessageLock)
             {
                 if (!this._MessageGroups.ContainsKey(groupId))
-                    this._MessageGroups[groupId] = new Queue<string>();
+                    this._MessageGroups[groupId] = new Queue<Message>();
                 
                 this._MessageGroups[groupId].Enqueue(message);
             }
@@ -47,23 +75,80 @@ namespace Xeora.Web.Basics
 
             await Task.Run(() =>
             {
-                Queue<string> messages;
-                
-                lock (Console.MessageLock)
+                lock (Console.FlushingLock)
                 {
-                    if (!this._MessageGroups.ContainsKey(groupId))
-                        return;
+                    Queue<Message> messages;
 
-                    messages = this._MessageGroups[groupId];
+                    lock (Console.MessageLock)
+                    {
+                        if (!this._MessageGroups.ContainsKey(groupId))
+                            return;
 
-                    this._MessageGroups.Remove(groupId);
+                        messages = this._MessageGroups[groupId];
+
+                        this._MessageGroups.Remove(groupId);
+                    }
+
+                    while (messages.Count > 0)
+                    {
+                        Message message =
+                            messages.Dequeue();
+
+                        Console.WriteLine(message);
+                    }
+
+                    if (string.CompareOrdinal(groupId, Guid.Empty.ToString()) != 0)
+                    {
+                        string separator =
+                            "".PadRight(30, '-');
+                        Message separatorMessage =
+                            Message.Create(Type.Info, $"{DateTime.Now} {separator} {separator}");
+                        Console.WriteLine(separatorMessage);
+                    }
                 }
-                
-                while (messages.Count > 0)
-                    System.Console.WriteLine(messages.Dequeue());
 
                 this._Flushing.TryRemove(groupId, out bool _);
             });
+        }
+
+        private static void WriteLine(Message message)
+        {
+            StringBuilder formattedMessage = 
+                new StringBuilder();
+            StringReader sR = 
+                new StringReader(message.Value);
+            
+            while (sR.Peek() > -1)
+            {
+                string m = sR.ReadLine();
+                if (string.IsNullOrEmpty(m))
+                {
+                    formattedMessage.Append("".PadRight(System.Console.WindowWidth, ' '));
+                    continue;
+                }
+
+                formattedMessage.AppendLine(m.PadRight(System.Console.WindowWidth, ' '));
+            }
+
+            switch (message.Type)
+            {
+                case Type.Info:
+                    System.Console.Write(formattedMessage);
+                    System.Console.ResetColor();
+                    return;
+                case Type.Warn:
+                    System.Console.BackgroundColor = ConsoleColor.Yellow;
+                    System.Console.ForegroundColor = ConsoleColor.Black;
+                    System.Console.Write(formattedMessage);
+                    System.Console.ResetColor();
+                    return;
+                case Type.Error:
+                    System.Console.BackgroundColor = ConsoleColor.Red;
+                    System.Console.ForegroundColor = ConsoleColor.White;
+                    System.Console.Write(formattedMessage);
+                    System.Console.ResetColor();
+                    return;
+            }
         }
 
         private void StartKeyListener()
@@ -77,7 +162,7 @@ namespace Xeora.Web.Basics
                 }
                 catch (InvalidOperationException)
                 {
-                    Console.Push(string.Empty, "Console inputs are not available!", string.Empty, false);
+                    Console.Push(string.Empty, "Console inputs are not available!", string.Empty, false, type: Type.Warn);
 
                     return;
                 }
@@ -145,7 +230,8 @@ namespace Xeora.Web.Basics
         /// <param name="applyRules">If set to <c>true</c> obey the rules defined in Xeora project settings json</param>
         /// <param name="immediate">If set to <c>true</c> message will not be queued and print to the console immediately</param>
         /// <param name="groupId">Give a unique id for the push to group all the inputs together</param>
-        public static void Push(string header, string summary, string details, bool applyRules, bool immediate = false, string groupId = null)
+        /// <param name="type">Push type for the message content</param>
+        public static void Push(string header, string summary, string details, bool applyRules, bool immediate = false, string groupId = null, Type type = Type.Info)
         {
             if (applyRules && !Configurations.Xeora.Service.Print)
                 return;
@@ -158,7 +244,8 @@ namespace Xeora.Web.Basics
 
             header = header.PadRight(30, ' ');
 
-            string consoleMessage = $"{DateTime.Now} {header} {summary}";
+            string consoleMessage = 
+                $"{DateTime.Now} {header} {summary}";
             if (!string.IsNullOrEmpty(details))
             {
                 const string detailsHeader = "--------------- Details ---------------";
@@ -166,13 +253,16 @@ namespace Xeora.Web.Basics
                 consoleMessage = $"{consoleMessage}\n\n{detailsHeader}\n{details}\n\n";
             }
 
+            Message message = 
+                Message.Create(type, consoleMessage);
+            
             if (immediate)
             {
-                System.Console.WriteLine(consoleMessage);
+                Console.WriteLine(message);
                 return;
             }
             
-            Console.Current.Queue(consoleMessage, groupId);
+            Console.Current.Queue(message, groupId);
         }
 
         /// <summary>

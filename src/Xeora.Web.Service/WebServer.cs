@@ -83,7 +83,7 @@ namespace Xeora.Web.Service
                 if (ex.InnerException != null)
                     message = $"{message} ({ex.InnerException.Message})";
 
-				Basics.Console.Push("XeoraEngine is FAILED!", message, string.Empty, false, true);
+				Basics.Console.Push("XeoraEngine is FAILED!", message, string.Empty, false, true, type: Basics.Console.Type.Error);
 
                 return 1;
             }
@@ -117,7 +117,7 @@ namespace Xeora.Web.Service
                 { /* Just Handle Exception */ }
                 catch (Exception ex)
                 {
-                    Basics.Console.Push("Connection isn't established", ex.Message, string.Empty, false, true);
+                    Basics.Console.Push("Connection isn't established", ex.Message, string.Empty, false, true, type: Basics.Console.Type.Warn);
                 }
             }
         }

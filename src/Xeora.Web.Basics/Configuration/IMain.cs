@@ -10,7 +10,8 @@
         string TemporaryRoot { get; }
         bool Debugging { get; }
         bool Compression { get; }
-        bool PrintAnalytics { get; }
+        bool PrintAnalysis { get; }
+        double AnalysisThreshold { get; }
         bool LogHttpExceptions { get; }
         bool UseHtml5Header { get; }
         long Bandwidth { get; }

@@ -80,7 +80,7 @@ namespace Xeora.Web.Manager
             }
             catch (Exception)
             {
-                Basics.Console.Push(string.Empty, "Application loading progress has been FAILED!", string.Empty, false);
+                Basics.Console.Push(string.Empty, "Application loading progress has been FAILED!", string.Empty, false, type: Basics.Console.Type.Error);
             }
 
             // Do not block Application load

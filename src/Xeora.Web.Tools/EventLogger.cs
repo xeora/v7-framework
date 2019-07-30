@@ -67,7 +67,7 @@ namespace Xeora.Web.Tools
                 loggingException.Append(content);
                 loggingException.AppendLine();
 
-                Basics.Console.Push("LOGGING ERROR", string.Empty, loggingException.ToString(), false);
+                Basics.Console.Push("LOGGING ERROR", string.Empty, loggingException.ToString(), false, type: Basics.Console.Type.Error);
             }
         }
 
@@ -157,7 +157,7 @@ namespace Xeora.Web.Tools
                 loggingException.Append(ex.ToString());
                 loggingException.AppendLine();
 
-                Basics.Console.Push("LOGGING ERROR", string.Empty, loggingException.ToString(), false);
+                Basics.Console.Push("LOGGING ERROR", string.Empty, loggingException.ToString(), false, type: Basics.Console.Type.Error);
             }
             finally
             {

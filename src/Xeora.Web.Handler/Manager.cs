@@ -21,7 +21,7 @@ namespace Xeora.Web.Handler
                 Manager.Refresh();
 
                 Basics.Console.Push(
-                    string.Empty, "Domains refresh requested!", string.Empty, false);
+                    string.Empty, "Domains refresh requested!", string.Empty, false, true);
             });
         }
 

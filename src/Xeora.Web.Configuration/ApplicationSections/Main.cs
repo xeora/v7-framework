@@ -13,7 +13,7 @@ namespace Xeora.Web.Configuration.ApplicationSections
             this._VirtualRoot = "/";
             this.Debugging = false;
             this.Compression = true;
-            this.PrintAnalytics = false;
+            this.PrintAnalysis = false;
             this.LogHttpExceptions = true;
             this.UseHtml5Header = false;
             this.Bandwidth = 0;
@@ -142,8 +142,12 @@ namespace Xeora.Web.Configuration.ApplicationSections
         public bool Compression { get; private set; }
 
         [DefaultValue(false)]
-        [JsonProperty(PropertyName = "printAnalytics", DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool PrintAnalytics { get; private set; }
+        [JsonProperty(PropertyName = "printAnalysis", DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool PrintAnalysis { get; private set; }
+        
+        [DefaultValue(1000)]
+        [JsonProperty(PropertyName = "analysisThreshold", DefaultValueHandling = DefaultValueHandling.Populate)]
+        public double AnalysisThreshold { get; private set; }
 
         [DefaultValue(true)]
         [JsonProperty(PropertyName = "logHTTPExceptions", DefaultValueHandling = DefaultValueHandling.Populate)]

@@ -67,13 +67,13 @@ namespace Xeora.Web.Service
             }
             catch (IOException ex)
             {
-                Basics.Console.Push("Connection is rejected from", $"{remoteIpEndPoint} ({ex.Message})", string.Empty, true);
+                Basics.Console.Push("Connection is rejected from", $"{remoteIpEndPoint} ({ex.Message})", string.Empty, true, type: Basics.Console.Type.Warn);
 
                 return false;
             }
             catch (System.Exception ex)
             {
-                Basics.Console.Push("Ssl Connection FAILED!", ex.Message, ex.ToString(), false, true);
+                Basics.Console.Push("Ssl Connection FAILED!", ex.Message, ex.ToString(), false, true, type: Basics.Console.Type.Error);
 
                 return false;
             }

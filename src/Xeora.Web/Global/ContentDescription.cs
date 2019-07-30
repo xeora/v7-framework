@@ -137,7 +137,7 @@ namespace Xeora.Web.Global
             {
                 this.Parts.Add(string.Empty);
 
-                Basics.Console.Push("WARNING (ContentDescriptor)", $"Empty Block is detected! [{controlIdWithIndex}]", string.Empty, true);
+                Basics.Console.Push("WARNING (ContentDescriptor)", $"Empty Block is detected! [{controlIdWithIndex}]", string.Empty, true, type: Basics.Console.Type.Warn);
             }
 
             ContentDescription.PartsCache.TryAdd(

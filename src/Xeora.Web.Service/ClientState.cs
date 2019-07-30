@@ -31,12 +31,15 @@ namespace Xeora.Web.Service
                     Handler.Manager.Current.Create(ref context);
                 ((Handler.XeoraHandler)xeoraHandler).Handle();
 
-                if (Configurations.Xeora.Application.Main.PrintAnalytics)
+                if (Configurations.Xeora.Application.Main.PrintAnalysis)
                 {
+                    double totalMs =
+                        DateTime.Now.Subtract(xeoraHandlerProcessBegins).TotalMilliseconds;
                     Basics.Console.Push(
-                        "analytic - xeora handler",
-                        $"{DateTime.Now.Subtract(xeoraHandlerProcessBegins).TotalMilliseconds}ms", 
-                        string.Empty, false, groupId: stateId);
+                        "analysed - xeora handler",
+                        $"{totalMs}ms", 
+                        string.Empty, false, groupId: stateId,
+                        type: totalMs > Configurations.Xeora.Application.Main.AnalysisThreshold ? Basics.Console.Type.Warn: Basics.Console.Type.Info);
                 }
 
                 DateTime responseFlushBegins = DateTime.Now;
@@ -50,17 +53,22 @@ namespace Xeora.Web.Service
 
                 Handler.Manager.Current.UnMark(xeoraHandler.HandlerId);
 
-                if (Configurations.Xeora.Application.Main.PrintAnalytics)
+                if (Configurations.Xeora.Application.Main.PrintAnalysis)
                 {
+                    double totalMs =
+                        DateTime.Now.Subtract(responseFlushBegins).TotalMilliseconds;
                     Basics.Console.Push(
-                        "analytic - response flush",
-                        $"{DateTime.Now.Subtract(responseFlushBegins).TotalMilliseconds}ms", 
-                        string.Empty, false, groupId: stateId);
+                        "analysed - response flush",
+                        $"{totalMs}ms", 
+                        string.Empty, false, groupId: stateId,
+                        type: totalMs > Configurations.Xeora.Application.Main.AnalysisThreshold ? Basics.Console.Type.Warn: Basics.Console.Type.Info);
 
+                    totalMs = DateTime.Now.Subtract(wholeProcessBegins).TotalMilliseconds;
                     Basics.Console.Push(
-                        "analytic - whole process",
-                        $"{DateTime.Now.Subtract(wholeProcessBegins).TotalMilliseconds}ms ({context.Request.Header.Url.Raw})", 
-                        string.Empty, false, groupId: stateId);
+                        "analysed - whole process",
+                        $"{totalMs}ms ({context.Request.Header.Url.Raw})", 
+                        string.Empty, false, groupId: stateId,
+                        type: totalMs > Configurations.Xeora.Application.Main.AnalysisThreshold ? Basics.Console.Type.Warn: Basics.Console.Type.Info);
                 }
 
                 StatusTracker.Current.Increase(context.Response.Header.Status.Code);
@@ -74,7 +82,7 @@ namespace Xeora.Web.Service
                 Tools.EventLogger.Log(ex);
 
                 if (Configurations.Xeora.Service.Print)
-                    Basics.Console.Push("SYSTEM ERROR", string.Empty, ex.ToString(), false);
+                    Basics.Console.Push("SYSTEM ERROR", string.Empty, ex.ToString(), false, type: Basics.Console.Type.Error);
 
                 ClientState.PushServerError(ref streamEnclosure);
 

@@ -4,7 +4,7 @@ using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives.Elements
 {
-    public class Execution : Directive, ILevelable, IBoundable
+    public class Execution : Directive, ILevelable, IBoundable, IHasBind
     {
         private readonly string _RawValue;
 
@@ -15,11 +15,16 @@ namespace Xeora.Web.Directives.Elements
 
             this.Leveling = LevelingInfo.Create(rawValue);
             this.BoundDirectiveId = DirectiveHelper.CaptureBoundDirectiveId(rawValue);
+            
+            string[] controlValueSplitted = 
+                this._RawValue.Split(':');
+            this.Bind = Basics.Execution.Bind.Make(string.Join(":", controlValueSplitted, 1, controlValueSplitted.Length - 1));
         }
 
         public LevelingInfo Leveling { get; }
         public string BoundDirectiveId { get; }
         public bool HasBound => !string.IsNullOrEmpty(this.BoundDirectiveId);
+        public Basics.Execution.Bind Bind { get; }
 
         public override bool Searchable => false;
         public override bool CanAsync => false;
@@ -66,9 +71,6 @@ namespace Xeora.Web.Directives.Elements
 
         private void ExecuteBind(string requesterUniqueId)
         {
-            string[] controlValueSplitted = 
-                this._RawValue.Split(':');
-
             int level = this.Leveling.Level;
             IDirective leveledDirective = this;
 
@@ -82,17 +84,14 @@ namespace Xeora.Web.Directives.Elements
                 leveledDirective = this;
                 break;
             }
-
-            Basics.Execution.Bind bind =
-                Basics.Execution.Bind.Make(string.Join(":", controlValueSplitted, 1, controlValueSplitted.Length - 1));
-
+            
             // Execution preparation should be done at the same level with it's parent. Because of that, send parent as parameters
-            bind.Parameters.Prepare(
+            this.Bind.Parameters.Prepare(
                 parameter => DirectiveHelper.RenderProperty(leveledDirective.Parent, parameter.Query, leveledDirective.Parent.Arguments, requesterUniqueId)
             );
 
             Basics.Execution.InvokeResult<object> invokeResult =
-                Manager.AssemblyCore.InvokeBind<object>(Helpers.Context.Request.Header.Method, bind, Manager.ExecuterTypes.Other);
+                Manager.AssemblyCore.InvokeBind<object>(Helpers.Context.Request.Header.Method, this.Bind, Manager.ExecuterTypes.Other);
 
             if (invokeResult.Exception != null)
                 throw new Exceptions.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);
