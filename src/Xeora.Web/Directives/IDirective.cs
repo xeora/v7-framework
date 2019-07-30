@@ -6,6 +6,7 @@
 
         IMother Mother { get; set; }
         IDirective Parent { get; set; }
+        string TemplateTree { get; set; }
 
         DirectiveTypes Type { get; }
         Global.ArgumentCollection Arguments { get; }

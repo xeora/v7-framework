@@ -15,25 +15,12 @@ namespace Xeora.Web.Directives
         {
             if (partialCache == null)
                 throw new ArgumentNullException(nameof(partialCache));
-
-            string serviceFullPath = string.Empty;
-
-            IDirective workingObject = partialCache.Parent;
-            do
-            {
-                if (workingObject is Template template)
-                {
-                    serviceFullPath = template.DirectiveId;
-                    break;
-                }
-
-                workingObject = workingObject.Parent;
-            } while (workingObject != null);
-
-            if (string.IsNullOrEmpty(instance.Languages.Current.Info.Id) || string.IsNullOrEmpty(serviceFullPath) || positionId == -1)
+            
+            if (string.IsNullOrEmpty(instance.Languages.Current.Info.Id) || 
+                string.IsNullOrEmpty(partialCache.TemplateTree) || positionId == -1)
                 throw new Exceptions.ParseException();
 
-            return $"{instance.Languages.Current.Info.Id}_{serviceFullPath}_{positionId}";
+            return $"{instance.Languages.Current.Info.Id}_{partialCache.TemplateTree}_{positionId}";
         }
 
         public string CacheId { get; }

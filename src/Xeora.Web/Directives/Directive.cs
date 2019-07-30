@@ -32,6 +32,7 @@ namespace Xeora.Web.Directives
 
         public IMother Mother { get; set; }
         public IDirective Parent { get; set; }
+        public string TemplateTree { get; set; }
 
         public DirectiveTypes Type { get; }
         public ArgumentCollection Arguments { get; }

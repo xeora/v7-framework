@@ -27,6 +27,8 @@ namespace Xeora.Web.Directives
         {
             item.Mother = this._Mother;
             item.Parent = this._Parent;
+            
+            this.AssignTemplateTree(ref item);
 
             this._Mother.Pool.Register(item);
 
@@ -41,6 +43,20 @@ namespace Xeora.Web.Directives
         {
             foreach (IDirective item in collection)
                 this.Add(item);
+        }
+
+        private void AssignTemplateTree(ref IDirective item)
+        {
+            if (!string.IsNullOrEmpty(item.TemplateTree))
+                return;
+
+            if (item is INameable nameable)
+                item.TemplateTree = nameable.DirectiveId;
+
+            if (item is Template)
+                return;
+            
+            item.TemplateTree = $"{item.Parent.TemplateTree}/{item.TemplateTree}";
         }
 
         public void Render(string requesterUniqueId)
@@ -85,7 +101,7 @@ namespace Xeora.Web.Directives
 
             try
             {
-                // Analytics Calculator
+                // Analysis Calculation
                 DateTime renderBegins = DateTime.Now;
 
                 directive.Render(requesterUniqueId);
@@ -93,16 +109,26 @@ namespace Xeora.Web.Directives
                 if (directive.Parent != null)
                     directive.Parent.HasInlineError |= directive.HasInlineError;
 
-                if (Configurations.Xeora.Application.Main.PrintAnalytics)
+                if (!Configurations.Xeora.Application.Main.PrintAnalysis) return;
+                
+                string analysisOutput = directive.UniqueId;
+                switch (directive)
                 {
-                    string analyticOutput = directive.UniqueId;
-                    if (directive is INameable nameable)
-                        analyticOutput = $"{analyticOutput} - {nameable.DirectiveId}";
-                    Basics.Console.Push(
-                        $"analytic - {directive.GetType().Name}",
-                        $"{DateTime.Now.Subtract(renderBegins).TotalMilliseconds}ms {{{analyticOutput}}}",
-                        string.Empty, false, groupId: Helpers.Context.UniqueId);
+                    case INameable nameable:
+                        analysisOutput = $"{analysisOutput} - {nameable.DirectiveId}";
+                        break;
+                    case IHasBind hasBind:
+                        analysisOutput = $"{analysisOutput} - {hasBind.Bind}";
+                        break;
                 }
+
+                double totalMs = 
+                    DateTime.Now.Subtract(renderBegins).TotalMilliseconds;
+                Basics.Console.Push(
+                    $"analysed - {directive.GetType().Name}",
+                    $"{totalMs}ms {{{analysisOutput}}}",
+                    string.Empty, false, groupId: Helpers.Context.UniqueId,
+                    type: totalMs > Configurations.Xeora.Application.Main.AnalysisThreshold ? Basics.Console.Type.Warn: Basics.Console.Type.Info);
             }
             catch (Exception ex)
             {
