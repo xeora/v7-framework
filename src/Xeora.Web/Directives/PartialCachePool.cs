@@ -58,7 +58,7 @@ namespace Xeora.Web.Directives
             cacheObjects.TryGetValue(cacheId, out cacheObject);
         }
 
-        public void Reset(string[] domainIdAccessTree) =>
-            this._PartialCaches.TryRemove(domainIdAccessTree, out ConcurrentDictionary<string, PartialCacheObject> dummy);
+        public void Reset() =>
+            this._PartialCaches.Clear();
     }
 }

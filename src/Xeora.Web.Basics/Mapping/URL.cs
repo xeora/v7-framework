@@ -18,13 +18,13 @@ namespace Xeora.Web.Basics.Mapping
         /// Gets or sets a value indicating whether this <see cref="T:Xeora.Web.Basics.Mapping.Url"/> is active
         /// </summary>
         /// <value><c>true</c> if is active; otherwise, <c>false</c></value>
-        public bool Active { get; set; }
+        public bool Active { get; }
 
         /// <summary>
         /// Gets or sets the resolver executable
         /// </summary>
         /// <value>The resolver executable</value>
-        public string ResolverExecutable { get; set; }
+        public string ResolverExecutable { get; }
 
         /// <summary>
         /// Gets the query items
@@ -97,5 +97,8 @@ namespace Xeora.Web.Basics.Mapping
 
             return resolutionResult;
         }
+
+        public static void Reset() =>
+            Url.Mappings.Clear();
     }
 }
