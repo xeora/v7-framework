@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
@@ -405,7 +406,13 @@ namespace Xeora.Web.Directives.Elements
                     if (objectItem == null)
                         break;
 
-                    objectItem = objectItem.GetType().InvokeMember(objectPaths[pC], BindingFlags.GetProperty, null, objectItem, null);
+                    if (objectItem is IDictionary || objectItem is IDictionary<object, object>)
+                    {
+                        objectItem = objectItem.GetType().InvokeMember("Item", BindingFlags.GetProperty, null, objectItem,
+                            new object[] {objectPaths[pC]}); 
+                    }
+                    else
+                    { objectItem = objectItem.GetType().InvokeMember(objectPaths[pC], BindingFlags.GetProperty, null, objectItem, null); }
                 }
 
                 objectValue = objectItem;
