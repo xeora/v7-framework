@@ -169,6 +169,8 @@ namespace Xeora.Web.Directives
 
         private IDirective Find(DirectiveCollection directives, string directiveId)
         {
+            if (directives == null) return null;
+            
             foreach (IDirective directive in directives)
             {
                 if (!directive.Searchable)
