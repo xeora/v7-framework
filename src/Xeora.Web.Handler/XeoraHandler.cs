@@ -305,37 +305,36 @@ namespace Xeora.Web.Handler
                     methodResult = Web.Manager.AssemblyCore.GetPrimitiveValue(invokeResult.Result);
             }
 
-            if (string.IsNullOrEmpty((string)this.Context["RedirectLocation"]))
+            if (!string.IsNullOrEmpty((string) this.Context["RedirectLocation"])) return;
+            
+            // Create HashCode for request and apply to Url
+            if (this.Context.Request.Header.Method == HttpMethod.GET)
             {
-                // Create HashCode for request and apply to Url
-                if (this.Context.Request.Header.Method == HttpMethod.GET)
+                string applicationRootPath =
+                    Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation;
+                string currentUrl = this.Context.Request.Header.Url.RelativePath;
+                currentUrl = currentUrl.Remove(0, currentUrl.IndexOf(applicationRootPath, StringComparison.InvariantCulture));
+
+                System.Text.RegularExpressions.Match mR =
+                    System.Text.RegularExpressions.Regex.Match(currentUrl, $"{applicationRootPath}\\d+/");
+
+                // Not assigned, so assign!
+                if (!mR.Success)
                 {
-                    string applicationRootPath =
-                        Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation;
-                    string currentUrl = this.Context.Request.Header.Url.RelativePath;
-                    currentUrl = currentUrl.Remove(0, currentUrl.IndexOf(applicationRootPath, StringComparison.InvariantCulture));
+                    string tailUrl = this.Context.Request.Header.Url.RelativePath;
+                    tailUrl = tailUrl.Remove(0, tailUrl.IndexOf(applicationRootPath, StringComparison.InvariantCulture) + applicationRootPath.Length);
 
-                    System.Text.RegularExpressions.Match mR =
-                        System.Text.RegularExpressions.Regex.Match(currentUrl, $"{applicationRootPath}\\d+/");
+                    string rewrittenPath =
+                        $"{applicationRootPath}{this.Context.HashCode}/{tailUrl}";
 
-                    // Not assigned, so assign!
-                    if (!mR.Success)
-                    {
-                        string tailUrl = this.Context.Request.Header.Url.RelativePath;
-                        tailUrl = tailUrl.Remove(0, tailUrl.IndexOf(applicationRootPath, StringComparison.InvariantCulture) + applicationRootPath.Length);
+                    if (!string.IsNullOrEmpty(this.Context.Request.Header.Url.QueryString))
+                        rewrittenPath = $"{rewrittenPath}?{this.Context.Request.Header.Url.QueryString}";
 
-                        string rewrittenPath =
-                            $"{applicationRootPath}{this.Context.HashCode}/{tailUrl}";
-
-                        if (!string.IsNullOrEmpty(this.Context.Request.Header.Url.QueryString))
-                            rewrittenPath = $"{rewrittenPath}?{this.Context.Request.Header.Url.QueryString}";
-
-                        this.Context.Request.RewritePath(rewrittenPath);
-                    }
+                    this.Context.Request.RewritePath(rewrittenPath);
                 }
-
-                this.CreateTemplateResult(messageResult, methodResult);
             }
+
+            this.CreateTemplateResult(messageResult, methodResult);
         }
 
         private void HandlexSocketRequest()
