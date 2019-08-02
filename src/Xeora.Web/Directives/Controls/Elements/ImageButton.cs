@@ -26,7 +26,13 @@ namespace Xeora.Web.Directives.Controls.Elements
             this.Parse();
 
             if (this._Parent.Mother.UpdateBlockIdStack.Count > 0)
-                this._Settings.Updates.Setup(this._Parent.Mother.UpdateBlockIdStack.Peek());
+            {
+                string[] updatePath = 
+                    this._Parent.Mother.UpdateBlockIdStack.ToArray();
+                System.Array.Reverse(updatePath);
+                
+                this._Settings.Updates.Setup(string.Join(">", updatePath));
+            }
 
             this._Parent.Bag.Add("source", this._Settings.Source, this._Parent.Arguments);
             foreach (Attribute item in this._Settings.Attributes)

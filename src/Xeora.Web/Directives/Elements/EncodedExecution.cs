@@ -70,11 +70,15 @@ namespace Xeora.Web.Directives.Elements
 
             if (this.Mother.UpdateBlockIdStack.Count > 0)
             {
+                string[] updatePath = 
+                    this.Mother.UpdateBlockIdStack.ToArray();
+                Array.Reverse(updatePath);
+                
                 this.Deliver(
                     RenderStatus.Rendered,
                     string.Format(
                         "javascript:__XeoraJS.update('{0}', '{1}');",
-                        this.Mother.UpdateBlockIdStack.Peek(),
+                        string.Join(">", updatePath),
                         Manager.AssemblyCore.EncodeFunction(Basics.Helpers.Context.HashCode, this.Result)
                     )
                 );
