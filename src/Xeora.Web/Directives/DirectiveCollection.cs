@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Xeora.Web.Basics;
 using Xeora.Web.Directives.Elements;
@@ -10,6 +11,7 @@ namespace Xeora.Web.Directives
 {
     public class DirectiveCollection : List<IDirective>
     {
+        private readonly SemaphoreSlim _SemaphoreSlim;
         private readonly ConcurrentQueue<int> _Queued;
 
         private readonly IMother _Mother;
@@ -17,6 +19,7 @@ namespace Xeora.Web.Directives
 
         public DirectiveCollection(IMother mother, IDirective parent)
         {
+            this._SemaphoreSlim = new SemaphoreSlim(Configurations.Xeora.Service.Parallelism);
             this._Queued = new ConcurrentQueue<int>();
 
             this._Mother = mother;
@@ -77,7 +80,18 @@ namespace Xeora.Web.Directives
 
                 tasks.Add(
                     Task.Factory.StartNew(
-                        d => this.Render(currentHandlerId, requesterUniqueId, (IDirective)d),
+                        d =>
+                        {
+                            this._SemaphoreSlim.Wait();
+                            try
+                            {
+                                this.Render(currentHandlerId, requesterUniqueId, (IDirective) d);
+                            }
+                            finally
+                            {
+                                this._SemaphoreSlim.Release();
+                            }
+                        },
                         directive,
                         TaskCreationOptions.DenyChildAttach
                     )

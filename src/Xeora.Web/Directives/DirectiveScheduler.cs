@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Xeora.Web.Basics;
 
@@ -11,6 +12,7 @@ namespace Xeora.Web.Directives
         private readonly object _RegisterLock;
 
         private readonly ConcurrentDictionary<string, bool> _ScheduledItems;
+        private readonly SemaphoreSlim _SemaphoreSlim;
         private readonly ConcurrentQueue<string> _Queue;
 
         private readonly Action<string> _CallBack;
@@ -21,6 +23,8 @@ namespace Xeora.Web.Directives
 
             this._ScheduledItems = 
                 new ConcurrentDictionary<string, bool>();
+            this._SemaphoreSlim = 
+                new SemaphoreSlim(Configurations.Xeora.Service.Parallelism);
             this._Queue = 
                 new ConcurrentQueue<string>();
 
@@ -55,7 +59,15 @@ namespace Xeora.Web.Directives
                     {
                         Helpers.AssignHandlerId(handlerId);
 
-                        this._CallBack(uId);
+                        this._SemaphoreSlim.Wait();
+                        try
+                        {
+                            this._CallBack(uId);
+                        }
+                        finally
+                        {
+                            this._SemaphoreSlim.Release();
+                        }
                     })
                 );
             }

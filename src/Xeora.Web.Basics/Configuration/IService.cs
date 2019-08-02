@@ -8,6 +8,7 @@ namespace Xeora.Web.Basics.Configuration
         short Port { get; }
         bool Ssl { get; }
         string CertificatePassword { get; }
+        byte Parallelism { get; }
         bool Print { get; }
     }
 }

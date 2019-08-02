@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Xeora.Web.Directives.Elements;
 using Xeora.Web.Global;
@@ -18,6 +19,7 @@ namespace Xeora.Web.Directives.Controls.Elements
         private readonly Application.Controls.DataList _Settings;
 
         private readonly ConcurrentQueue<Single> _RowQueue;
+        private readonly SemaphoreSlim _SemaphoreSlim;
         private readonly List<Task> _RowRenderTasks;
         private readonly object _RenderedContentLock;
         private readonly StringBuilder _RenderedContent;
@@ -30,6 +32,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             this._Settings = settings;
 
             this._RowQueue = new ConcurrentQueue<Single>();
+            this._SemaphoreSlim = new SemaphoreSlim(Basics.Configurations.Xeora.Service.Parallelism);
             this._RowRenderTasks = new List<Task>();
             this._RenderedContentLock = new object();
             this._RenderedContent = new StringBuilder();
@@ -145,13 +148,21 @@ namespace Xeora.Web.Directives.Controls.Elements
                 Task.Factory.StartNew(
                     s =>
                     {
-                        object[] list = (object[])s;
+                        this._SemaphoreSlim.Wait();
+                        try
+                        {
+                            object[] list = (object[])s;
 
-                        string handlerId = (string)list[0];
-                        Single single = (Single)list[1];
+                            string handlerId = (string)list[0];
+                            Single single = (Single)list[1];
 
-                        Basics.Helpers.AssignHandlerId(handlerId);
-                        single.Render(requesterUniqueId);
+                            Basics.Helpers.AssignHandlerId(handlerId);
+                            single.Render(requesterUniqueId);
+                        }
+                        finally
+                        {
+                            this._SemaphoreSlim.Release();
+                        }
 
                         lock (this._RenderedContentLock)
                         {
