@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xeora.Web.Basics;
 using Xeora.Web.Directives.Elements;
+using Console = System.Console;
 
 namespace Xeora.Web.Directives
 {
@@ -97,16 +98,23 @@ namespace Xeora.Web.Directives
                     )
                 );
             }
+            
+            try
+            {
+                if (tasks.Count > 0)
+                    Task.WaitAll(tasks.ToArray());
+                
+                StringBuilder resultContainer = new StringBuilder();
 
-            if (tasks.Count > 0)
-                Task.WaitAll(tasks.ToArray());
+                foreach (IDirective directive in this)
+                    resultContainer.Append(directive.Result);
 
-            StringBuilder resultContainer = new StringBuilder();
-
-            foreach (IDirective directive in this)
-                resultContainer.Append(directive.Result);
-
-            this._Parent.Deliver(RenderStatus.Rendering, resultContainer.ToString());
+                this._Parent.Deliver(RenderStatus.Rendering, resultContainer.ToString());
+            }
+            catch (Exception ex)
+            {
+                this.HandleError(ex, this._Parent);
+            }
         }
 
         private void Render(string handlerId, string requesterUniqueId, IDirective directive)
@@ -146,36 +154,41 @@ namespace Xeora.Web.Directives
             }
             catch (Exception ex)
             {
-                if (directive.Parent != null)
-                    directive.Parent.HasInlineError = true;
+                this.HandleError(ex, directive);
+            }
+        }
 
-                Tools.EventLogger.Log(ex);
+        private void HandleError(Exception exception, IDirective directive)
+        {
+            if (directive.Parent != null)
+                directive.Parent.HasInlineError = true;
 
-                if (Configurations.Xeora.Application.Main.Debugging)
+            Tools.EventLogger.Log(exception);
+
+            if (Configurations.Xeora.Application.Main.Debugging)
+            {
+                string exceptionString = string.Empty;
+                do
                 {
-                    string exceptionString = string.Empty;
-                    do
-                    {
-                        exceptionString =
-                            string.Format(
-                                @"<div align='left' style='border: solid 1px #660000; background-color: #FFFFFF'>
+                    exceptionString =
+                        string.Format(
+                            @"<div align='left' style='border: solid 1px #660000; background-color: #FFFFFF'>
                                     <div align='left' style='font-weight: bolder; color:#FFFFFF; background-color:#CC0000; padding: 4px;'>{0}</div>
                                     <br/>
                                     <div align='left' style='padding: 4px'>{1}{2}</div>
                                   </div>",
-                                ex.Message,
-                                ex.Source,
-                                !string.IsNullOrEmpty(exceptionString) ? string.Concat("<hr size='1px' />", exceptionString) : null
-                            );
+                            exception.Message,
+                            exception.Source,
+                            !string.IsNullOrEmpty(exceptionString) ? string.Concat("<hr size='1px' />", exceptionString) : null
+                        );
 
-                        ex = ex.InnerException;
-                    } while (ex != null);
+                    exception = exception.InnerException;
+                } while (exception != null);
 
-                    directive.Deliver(RenderStatus.Rendered, exceptionString);
-                }
-                else
-                    directive.Deliver(RenderStatus.Rendered, string.Empty);
+                directive.Deliver(RenderStatus.Rendered, exceptionString);
             }
+            else
+                directive.Deliver(RenderStatus.Rendered, string.Empty);
         }
 
         public IDirective Find(string directiveId) => 
