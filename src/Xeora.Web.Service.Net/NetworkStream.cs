@@ -69,6 +69,7 @@ namespace Xeora.Web.Service.Net
 
         public bool Listen(System.Func<byte[], int, bool> callback)
         {
+            SpinWait spinWait = new SpinWait();
             System.DateTime listenBegins = System.DateTime.Now;
             byte[] buffer = new byte[BUFFER_SIZE];
             bool result = true;
@@ -84,7 +85,7 @@ namespace Xeora.Web.Service.Net
                 if (count > 0)
                     result = callback(buffer, count);
                 else
-                    Thread.Sleep(1);
+                    spinWait.SpinOnce();
             } while (result && !this._Disposed);
 
             return !result;
