@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Concurrent;
+using System.Net.Sockets;
 using System.Threading;
 
 namespace Xeora.Web.Service.Net
@@ -80,7 +81,7 @@ namespace Xeora.Web.Service.Net
             {
                 // Mono Framework SslStream ReadTimeout bug fix.
                 if (DateTime.Now.Subtract(listenBegins).TotalMilliseconds > this._RemoteStream.ReadTimeout)
-                    throw new IOException(this._RemoteStream.GetType().Name);
+                    throw new IOException("NetworkStream has a connection timeout", new SocketException());
 
                 int count = this.Read(buffer, 0, buffer.Length);
 
