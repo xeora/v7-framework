@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Collections.Concurrent;
 using System.Threading;
 
@@ -43,7 +44,7 @@ namespace Xeora.Web.Service.Net
                         throw new IOException(this._RemoteStream.GetType().Name);
 
                     byte[] cache = new byte[rC];
-                    System.Array.Copy(buffer, cache, rC);
+                    Array.Copy(buffer, cache, rC);
 
                     this._IncomeCache.Enqueue(cache);
                 }
@@ -67,23 +68,27 @@ namespace Xeora.Web.Service.Net
             return offset - initialOffset;
         }
 
-        public bool Listen(System.Func<byte[], int, bool> callback)
+        public bool Listen(Func<byte[], int, bool> callback)
         {
             SpinWait spinWait = new SpinWait();
-            System.DateTime listenBegins = System.DateTime.Now;
+            DateTime listenBegins = 
+                DateTime.Now;
             byte[] buffer = new byte[BUFFER_SIZE];
             bool result = true;
 
             do
             {
                 // Mono Framework SslStream ReadTimeout bug fix.
-                if (System.DateTime.Now.Subtract(listenBegins).TotalMilliseconds > this._RemoteStream.ReadTimeout)
+                if (DateTime.Now.Subtract(listenBegins).TotalMilliseconds > this._RemoteStream.ReadTimeout)
                     throw new IOException(this._RemoteStream.GetType().Name);
 
                 int count = this.Read(buffer, 0, buffer.Length);
 
                 if (count > 0)
+                {
                     result = callback(buffer, count);
+                    listenBegins = DateTime.Now;
+                }
                 else
                     spinWait.SpinOnce();
             } while (result && !this._Disposed);
@@ -100,7 +105,7 @@ namespace Xeora.Web.Service.Net
 
                 if (data.Length >= count)
                 {
-                    System.Array.Copy(data, 0, buffer, offset, count);
+                    Array.Copy(data, 0, buffer, offset, count);
 
                     this.Return(data, count, data.Length - count);
 
@@ -109,7 +114,7 @@ namespace Xeora.Web.Service.Net
                     break;
                 }
 
-                System.Array.Copy(data, 0, buffer, offset, data.Length);
+                Array.Copy(data, 0, buffer, offset, data.Length);
 
                 offset += data.Length;
                 count -= data.Length;
@@ -127,7 +132,7 @@ namespace Xeora.Web.Service.Net
 
                 if (data.Length >= count)
                 {
-                    System.Array.Copy(data, 0, buffer, offset, count);
+                    Array.Copy(data, 0, buffer, offset, count);
 
                     this.Return(data, count, data.Length - count);
 
@@ -136,7 +141,7 @@ namespace Xeora.Web.Service.Net
                     break;
                 }
 
-                System.Array.Copy(data, 0, buffer, offset, data.Length);
+                Array.Copy(data, 0, buffer, offset, data.Length);
 
                 offset += data.Length;
                 count -= data.Length;
@@ -154,7 +159,7 @@ namespace Xeora.Web.Service.Net
                 return;
 
             byte[] stackData = new byte[count];
-            System.Array.Copy(buffer, offset, stackData, 0, count);
+            Array.Copy(buffer, offset, stackData, 0, count);
 
             this._Residual.Push(stackData);
         }
