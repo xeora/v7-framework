@@ -6,19 +6,24 @@ namespace Xeora.Web.Global
 {
     public class ArgumentCollection
     {
+        private readonly object _Lock;
         private readonly ConcurrentDictionary<string, int> _ArgumentIndexes;
 
         public ArgumentCollection()
         {
-            this._ArgumentIndexes = 
+            this._Lock = new object();
+            this._ArgumentIndexes =
                 new ConcurrentDictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
             this.Values = new object[] { };
         }
 
         public void Reset()
         {
-            this._ArgumentIndexes.Clear();
-            this.Values = new object[] { };
+            lock (this._Lock)
+            {
+                this._ArgumentIndexes.Clear();
+                this.Values = new object[] { };
+            }
         }
 
         public void Reset(string[] keys)
@@ -27,22 +32,25 @@ namespace Xeora.Web.Global
 
             if (keys == null)
                 return;
-            
+
             foreach (string key in keys)
                 this.AppendKey(key);
         }
 
         public void Reset(object[] values)
         {
-            this.Values = new object[this._ArgumentIndexes.Count];
+            lock (this._Lock)
+            {
+                this.Values = new object[this._ArgumentIndexes.Count];
 
-            if (values == null)
-                return;
-            
-            if (values.Length > this.Values.Length)
-                throw new ArgumentOutOfRangeException(SystemMessages.ARGUMENT_KEYVALUELENGTHMATCH);
+                if (values == null)
+                    return;
 
-            Array.Copy(values, 0, this.Values, 0, values.Length);
+                if (values.Length > this.Values.Length)
+                    throw new ArgumentOutOfRangeException(SystemMessages.ARGUMENT_KEYVALUELENGTHMATCH);
+
+                Array.Copy(values, 0, this.Values, 0, values.Length);
+            }
         }
 
         public void Replace(ArgumentCollection aC)
@@ -50,12 +58,15 @@ namespace Xeora.Web.Global
             if (aC == null)
                 return;
 
-            this._ArgumentIndexes.Clear();
-            foreach (KeyValuePair<string, int> pair in aC._ArgumentIndexes)
-                this._ArgumentIndexes[pair.Key] = pair.Value;
+            lock (this._Lock)
+            {
+                this._ArgumentIndexes.Clear();
+                foreach (KeyValuePair<string, int> pair in aC._ArgumentIndexes)
+                    this._ArgumentIndexes[pair.Key] = pair.Value;
 
-            this.Values = new object[this._ArgumentIndexes.Count];
-            Array.Copy(aC.Values, 0, this.Values, 0, aC.Values.Length);
+                this.Values = new object[this._ArgumentIndexes.Count];
+                Array.Copy(aC.Values, 0, this.Values, 0, aC.Values.Length);
+            }
         }
 
         public void AppendKey(string key) =>
@@ -63,52 +74,75 @@ namespace Xeora.Web.Global
 
         public void AppendKeyWithValue(string key, object value)
         {
-            if (string.IsNullOrEmpty(key) ||
-                this._ArgumentIndexes.ContainsKey(key))
+            lock (this._Lock)
             {
-                this[key] = value;
+                if (string.IsNullOrEmpty(key) ||
+                    this._ArgumentIndexes.ContainsKey(key))
+                {
+                    this[key] = value;
 
-                return;
+                    return;
+                }
+
+                // Add Key
+                this._ArgumentIndexes.TryAdd(key, this._ArgumentIndexes.Count);
+
+                // Add Value
+                object[] newValues = new object[this._ArgumentIndexes.Count];
+                Array.Copy(this.Values, 0, newValues, 0, this.Values.Length);
+                newValues[newValues.Length - 1] = value;
+                this.Values = newValues;
             }
-            
-            // Add Key
-            this._ArgumentIndexes.TryAdd(key, this._ArgumentIndexes.Count);
-
-            // Add Value
-            object[] newValues = new object[this._ArgumentIndexes.Count];
-            Array.Copy(this.Values, 0, newValues, 0, this.Values.Length);
-            newValues[newValues.Length - 1] = value;
-            this.Values = newValues;
         }
 
-        public bool ContainsKey(string key) =>
-            this._ArgumentIndexes.ContainsKey(key);
+        public bool ContainsKey(string key)
+        {
+            lock (this._Lock)
+            {
+                return this._ArgumentIndexes.ContainsKey(key);
+            }
+        }
 
         public object this[string key]
         {
             get
             {
-                if (string.IsNullOrEmpty(key) || !this._ArgumentIndexes.ContainsKey(key)) return null;
-                
-                int index = this._ArgumentIndexes[key];
+                lock (this._Lock)
+                {
+                    if (string.IsNullOrEmpty(key) || !this._ArgumentIndexes.ContainsKey(key)) return null;
 
-                return index < this.Values.Length ? this.Values[index] : null;
+                    int index = this._ArgumentIndexes[key];
+
+                    return index < this.Values.Length ? this.Values[index] : null;
+                }
             }
             set
             {
-                if (string.IsNullOrEmpty(key) || 
-                    !this._ArgumentIndexes.ContainsKey(key))
-                    throw new ArgumentException(SystemMessages.ARGUMENT_NOTEXISTS);
+                lock (this._Lock)
+                {
+                    if (string.IsNullOrEmpty(key) ||
+                        !this._ArgumentIndexes.ContainsKey(key))
+                        throw new ArgumentException(SystemMessages.ARGUMENT_NOTEXISTS);
 
-                int index = this._ArgumentIndexes[key];
+                    int index = this._ArgumentIndexes[key];
 
-                this.Values[index] = value;
+                    this.Values[index] = value;
+                }
             }
         }
 
         public object[] Values { get; private set; }
 
-        public int Count => this._ArgumentIndexes.Count;
+        public int Count
+        {
+            get
+            {
+                lock (this._Lock)
+                {
+                    return this._ArgumentIndexes.Count;
+                }
+            }
+        }
 
         public ArgumentCollection Clone()
         {
