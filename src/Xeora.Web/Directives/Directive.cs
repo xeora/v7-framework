@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives
@@ -11,7 +12,8 @@ namespace Xeora.Web.Directives
 
             this.Mother = null;
             this.Parent = null;
-
+            this.UpdateBlockIds =
+                new List<string>();
             this.Type = type;
             this.Arguments = arguments ?? new ArgumentCollection();
 
@@ -33,6 +35,7 @@ namespace Xeora.Web.Directives
         public IMother Mother { get; set; }
         public IDirective Parent { get; set; }
         public string TemplateTree { get; set; }
+        public List<string> UpdateBlockIds { get; }
 
         public DirectiveTypes Type { get; }
         public ArgumentCollection Arguments { get; }

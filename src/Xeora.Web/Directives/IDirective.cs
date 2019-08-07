@@ -1,4 +1,6 @@
-﻿namespace Xeora.Web.Directives
+﻿using System.Collections.Generic;
+
+namespace Xeora.Web.Directives
 {
     public interface IDirective
     {
@@ -7,6 +9,7 @@
         IMother Mother { get; set; }
         IDirective Parent { get; set; }
         string TemplateTree { get; set; }
+        List<string> UpdateBlockIds { get; }
 
         DirectiveTypes Type { get; }
         Global.ArgumentCollection Arguments { get; }

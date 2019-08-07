@@ -33,6 +33,7 @@ namespace Xeora.Web.Directives
             item.Parent = this._Parent;
             
             this.AssignTemplateTree(ref item);
+            this.AssignUpdateBlockIds(ref item);
 
             this._Mother.Pool.Register(item);
 
@@ -61,6 +62,15 @@ namespace Xeora.Web.Directives
                 return;
             
             item.TemplateTree = $"{item.Parent.TemplateTree}/{item.TemplateTree}";
+        }
+        
+        private void AssignUpdateBlockIds(ref IDirective item)
+        {
+            if (item.UpdateBlockIds.Count > 0)
+                return;
+
+            item.UpdateBlockIds.AddRange(
+                this._Parent.UpdateBlockIds);
         }
 
         public void Render(string requesterUniqueId)

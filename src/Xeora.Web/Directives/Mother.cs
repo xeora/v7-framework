@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Xeora.Web.Application.Controls;
 using Xeora.Web.Basics.Domain;
 using Xeora.Web.Basics.Domain.Control.Definitions;
@@ -16,16 +17,17 @@ namespace Xeora.Web.Directives
         public event DeploymentAccessHandler DeploymentAccessRequested;
         public event ControlResolveHandler ControlResolveRequested;
 
-        public Mother(IDirective directive, Basics.ControlResult.Message messageResult, string[] updateBlockIdStack)
+        public Mother(IDirective directive, Basics.ControlResult.Message messageResult, string[] updateBlockIdList)
         {
             this.Pool = new DirectivePool();
-            this.UpdateBlockIdStack = new Stack<string>();
+            
 
             this.MessageResult = messageResult;
-            if (updateBlockIdStack != null && updateBlockIdStack.Length > 0)
-                foreach (string updateBlockControlId in updateBlockIdStack)
-                    this.UpdateBlockIdStack.Push(updateBlockControlId);
-
+            this.RequestedUpdateBlockIds = 
+                new List<string>();
+            if (updateBlockIdList != null && updateBlockIdList.Length > 0)
+                this.RequestedUpdateBlockIds.AddRange(updateBlockIdList);
+            
             this._Directive = directive;
             this._Directive.Mother = this;
         }
@@ -37,7 +39,7 @@ namespace Xeora.Web.Directives
         public DirectivePool Pool { get; }
 
         public Basics.ControlResult.Message MessageResult { get; }
-        public Stack<string> UpdateBlockIdStack { get; }
+        public List<string> RequestedUpdateBlockIds { get; }
 
         public void RequestParsing(string rawValue, ref DirectiveCollection childrenContainer, ArgumentCollection arguments) =>
             ParseRequested?.Invoke(rawValue, ref childrenContainer, arguments);
@@ -62,7 +64,7 @@ namespace Xeora.Web.Directives
 
         public void Process()
         {
-            if (this.UpdateBlockIdStack.Count > 0)
+            if (this.RequestedUpdateBlockIds.Count > 0)
             {
                 if (!(this._Directive is Single single))
                     throw new System.Exception("update request container should be single!");
@@ -70,7 +72,7 @@ namespace Xeora.Web.Directives
                 single.Parse();
 
                 IDirective result =
-                    single.Children.Find(this.UpdateBlockIdStack.Peek());
+                    single.Children.Find(this.RequestedUpdateBlockIds.Last());
 
                 if (result == null)
                     return;

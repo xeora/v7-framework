@@ -68,17 +68,13 @@ namespace Xeora.Web.Directives.Elements
                 return;
             }
 
-            if (this.Mother.UpdateBlockIdStack.Count > 0)
+            if (this.UpdateBlockIds.Count > 0)
             {
-                string[] updatePath = 
-                    this.Mother.UpdateBlockIdStack.ToArray();
-                Array.Reverse(updatePath);
-                
                 this.Deliver(
                     RenderStatus.Rendered,
                     string.Format(
                         "javascript:__XeoraJS.update('{0}', '{1}');",
-                        string.Join(">", updatePath),
+                        string.Join(">", this.UpdateBlockIds.ToArray()),
                         Manager.AssemblyCore.EncodeFunction(Basics.Helpers.Context.HashCode, this.Result)
                     )
                 );

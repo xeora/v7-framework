@@ -15,7 +15,7 @@ namespace Xeora.Web.Directives
         DirectivePool Pool { get; }
 
         Basics.ControlResult.Message MessageResult { get; }
-        Stack<string> UpdateBlockIdStack { get; }
+        List<string> RequestedUpdateBlockIds { get; }
 
         void RequestParsing(string rawValue, ref DirectiveCollection childrenContainer, ArgumentCollection arguments);
         void RequestInstance(out IDomain instance);

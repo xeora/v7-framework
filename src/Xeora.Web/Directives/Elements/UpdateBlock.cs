@@ -37,7 +37,7 @@ namespace Xeora.Web.Directives.Elements
 
             if (blockContent.IndexOf(RENDER_ON_REQUEST_MARKER, System.StringComparison.InvariantCulture) == 0)
             {
-                if (!this.Mother.UpdateBlockIdStack.Contains(this.DirectiveId))
+                if (!this.Mother.RequestedUpdateBlockIds.Contains(this.DirectiveId))
                 {
                     this._RenderOnRequest = true;
 
@@ -64,14 +64,14 @@ namespace Xeora.Web.Directives.Elements
 
             if (!this._RenderOnRequest)
             {
-                this.Mother.UpdateBlockIdStack.Push(this.DirectiveId);
+                this.UpdateBlockIds.Add(this.DirectiveId);
                 try
                 {
                     this.Children.Render(this.UniqueId);
                 }
                 finally
                 {
-                    this.Mother.UpdateBlockIdStack.Pop();
+                    this.UpdateBlockIds.RemoveAt(this.UpdateBlockIds.Count - 1);
                 }
             }
 
