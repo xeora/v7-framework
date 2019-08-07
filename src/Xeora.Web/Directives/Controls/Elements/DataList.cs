@@ -133,8 +133,10 @@ namespace Xeora.Web.Directives.Controls.Elements
                 new Single(index == -1 ? this._Contents.MessageTemplate : this._Contents.Parts[index % this._Contents.Parts.Count], arguments.Clone())
                 {
                     Mother = this._Parent.Parent.Mother,
-                    Parent = this._Parent.Parent
+                    Parent = this._Parent.Parent,
+                    
                 };
+            rowSingle.UpdateBlockIds.AddRange(this._Parent.Parent.UpdateBlockIds);
 
             if (index == -1)
             {

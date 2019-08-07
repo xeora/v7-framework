@@ -16,6 +16,8 @@ namespace Xeora.Web.Directives.Elements
         {
             this.DirectiveId = DirectiveHelper.CaptureDirectiveId(rawValue);
             this._Contents = new ContentDescription(rawValue);
+            
+            this.UpdateBlockIds.Add(this.DirectiveId);
         }
 
         public string DirectiveId { get; }
@@ -30,7 +32,7 @@ namespace Xeora.Web.Directives.Elements
             if (this._Parsed)
                 return;
             this._Parsed = true;
-
+            
             this._Children = new DirectiveCollection(this.Mother, this);
 
             string blockContent = this._Contents.Parts[0];
@@ -63,17 +65,7 @@ namespace Xeora.Web.Directives.Elements
             this.Status = RenderStatus.Rendering;
 
             if (!this._RenderOnRequest)
-            {
-                this.UpdateBlockIds.Add(this.DirectiveId);
-                try
-                {
-                    this.Children.Render(this.UniqueId);
-                }
-                finally
-                {
-                    this.UpdateBlockIds.RemoveAt(this.UpdateBlockIds.Count - 1);
-                }
-            }
+                this.Children.Render(this.UniqueId);
 
             this.Deliver(RenderStatus.Rendered, $"<div id=\"{this.DirectiveId}\">{this.Result}</div>");
         }

@@ -66,11 +66,13 @@ namespace Xeora.Web.Directives
         
         private void AssignUpdateBlockIds(ref IDirective item)
         {
-            if (item.UpdateBlockIds.Count > 0)
-                return;
-
+            string[] itemUpdateBlockIds = 
+                item.UpdateBlockIds.ToArray();
+            item.UpdateBlockIds.Clear();
+            
             item.UpdateBlockIds.AddRange(
-                this._Parent.UpdateBlockIds);
+                item.Parent.UpdateBlockIds.ToArray());
+            item.UpdateBlockIds.AddRange(itemUpdateBlockIds);
         }
 
         public void Render(string requesterUniqueId)

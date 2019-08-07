@@ -19,6 +19,7 @@ namespace Xeora.Web.Directives
                 Mother = this._Parent.Mother,
                 Parent = this._Parent
             };
+            single.UpdateBlockIds.AddRange(this._Parent.UpdateBlockIds);
 
             base.Add(label, single);
         }
