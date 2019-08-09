@@ -192,20 +192,35 @@ namespace Xeora.Web.Manager
         {
             try
             {
-                executeObject.GetType().GetMethod("PreExecute")?.Invoke(executeObject, new object[] { executionId, assemblyMethod });
+                executeObject.GetType().GetMethod("PreExecute")
+                    ?.Invoke(executeObject, new object[] {executionId, assemblyMethod});
             }
-            catch (Exception)
-            { /* Errors are irrelevant, do not check! */ }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    ex = ex.InnerException;
+                
+                Basics.Console.Push(
+                    "Domain PreExecution ERROR", ex.Message, ex.StackTrace, false, 
+                    type: Basics.Console.Type.Error);
+            }
         }
 
         private void InvokePostExecution(object executeObject, string executionId, object result)
         {
             try
             {
-                executeObject.GetType().GetMethod("PostExecute")?.Invoke(executeObject, new [] { executionId, result });
+                executeObject.GetType().GetMethod("PostExecute")?.Invoke(executeObject, new[] {executionId, result});
             }
-            catch (Exception)
-            { /* Errors are irrelevant, do not check! */ }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    ex = ex.InnerException;
+                
+                Basics.Console.Push(
+                    "Domain PostExecution ERROR", ex.Message, ex.StackTrace, false, 
+                    type: Basics.Console.Type.Error);
+            }
         }
 
         private object LoadDomainExecutable()
@@ -260,6 +275,13 @@ namespace Xeora.Web.Manager
             }
             catch (Exception ex)
             {
+                if (ex.InnerException != null)
+                    ex = ex.InnerException;
+                
+                Basics.Console.Push(
+            "Domain Initialization ERROR", ex.Message, ex.StackTrace, false, 
+                    type: Basics.Console.Type.Error);
+            
                 return new Exception("Xeora Domain executable could not be initialized!", ex);
             }
             
@@ -553,13 +575,20 @@ namespace Xeora.Web.Manager
                 this._AssemblyDll.GetType($"Xeora.Domain.{this._ExecutableName}", false, true);
 
             if (!this._ExecutableInstances.TryRemove(examInterface, out object executeObject)) return;
-            
+
             try
             {
                 executeObject.GetType().GetMethod("Terminate")?.Invoke(executeObject, null);
             }
-            catch
-            { /* Just handle Exception and do not throw and exception */ }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    ex = ex.InnerException;
+                
+                Basics.Console.Push(
+                    "Domain Termination ERROR", ex.Message, ex.StackTrace, false, 
+                    type: Basics.Console.Type.Error);
+            }
         }
     }
 }
