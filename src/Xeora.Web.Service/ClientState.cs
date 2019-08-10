@@ -82,7 +82,7 @@ namespace Xeora.Web.Service
                 Tools.EventLogger.Log(ex);
 
                 if (Configurations.Xeora.Service.Print)
-                    Basics.Console.Push("SYSTEM ERROR", string.Empty, ex.ToString(), false, type: Basics.Console.Type.Error);
+                    Basics.Console.Push("SYSTEM ERROR", string.Empty, ex.ToString(), false, true, type: Basics.Console.Type.Error);
 
                 ClientState.PushServerError(ref streamEnclosure);
 
