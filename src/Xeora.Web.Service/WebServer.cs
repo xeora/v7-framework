@@ -175,18 +175,21 @@ namespace Xeora.Web.Service
             this._Terminating = true;
 
             this._TerminationLock.WaitOne();
-            
-            if (args != null) args.Cancel = true;
+            try
+            {
+                if (args != null) args.Cancel = true;
 
-            Basics.Console.Push("Terminating XeoraEngine...", string.Empty, string.Empty, false, true);
+                Basics.Console.Push("Terminating XeoraEngine...", string.Empty, string.Empty, false, true);
 
-            this._TcpListener.Stop();
-            
-            // Terminate Loaded Domains
-            Manager.Application.Dispose();
-            Basics.Console.Flush();
-            
-            this._TerminationLock.ReleaseMutex();
+                this._TcpListener.Stop();
+
+                // Terminate Loaded Domains
+                Manager.Application.Dispose();
+                Basics.Console.Flush();
+            }
+            finally {
+                this._TerminationLock.ReleaseMutex();
+            }
         }
     }
 }
