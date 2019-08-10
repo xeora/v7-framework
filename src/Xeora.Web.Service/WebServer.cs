@@ -4,13 +4,14 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using System.Threading.Tasks;
-using Xeora.Web.Configuration;
 
 namespace Xeora.Web.Service
 {
     public class WebServer
     {
+        private readonly Mutex _TerminationLock;
         private readonly string _ConfigurationPath;
         private readonly string _ConfigurationFile;
 
@@ -35,6 +36,7 @@ namespace Xeora.Web.Service
                 return;
             }
 
+            this._TerminationLock = new Mutex();
             this._ConfigurationPath = Path.GetDirectoryName(configurationFilePath);
             this._ConfigurationFile = Path.GetFileName(configurationFilePath);
         }
@@ -90,6 +92,8 @@ namespace Xeora.Web.Service
 
             this.Listen().GetAwaiter().GetResult();
 
+            this._TerminationLock.WaitOne();
+            
             return 0;
         }
 
@@ -170,14 +174,19 @@ namespace Xeora.Web.Service
                 return;
             this._Terminating = true;
 
+            this._TerminationLock.WaitOne();
+            
+            if (args != null) args.Cancel = true;
+
             Basics.Console.Push("Terminating XeoraEngine...", string.Empty, string.Empty, false, true);
 
             this._TcpListener.Stop();
-
-            if (args == null)
-                return;
-
-            args.Cancel = true;
+            
+            // Terminate Loaded Domains
+            Manager.Application.Dispose();
+            Basics.Console.Flush();
+            
+            this._TerminationLock.ReleaseMutex();
         }
     }
 }
