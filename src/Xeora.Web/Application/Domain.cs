@@ -82,7 +82,6 @@ namespace Xeora.Web.Application
 
         public void ProvideFileStream(string requestedFilePath, out Stream outputStream)
         {
-            outputStream = null;
             try
             {
                 this.Deployment.ProvideContentFileStream(
@@ -95,10 +94,9 @@ namespace Xeora.Web.Application
             {
                 if (this.Parent == null)
                     throw;
-            }
 
-            if (outputStream == null && this.Parent != null)
                 this.Parent.ProvideFileStream(requestedFilePath, out outputStream);
+            }
         }
 
         public Basics.RenderResult Render(Basics.ServiceDefinition serviceDefinition, Basics.ControlResult.Message messageResult, string[] updateBlockControlIdStack = null) =>
