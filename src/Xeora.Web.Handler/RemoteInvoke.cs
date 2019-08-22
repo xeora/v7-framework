@@ -7,6 +7,9 @@ namespace Xeora.Web.Handler
 {
     public class RemoteInvoke
     {
+        public static void ClearCache() =>
+            Manager.Refresh();
+        
         public static IHandler GetHandler(string handlerId) =>
             Manager.Current.Get(handlerId);
 

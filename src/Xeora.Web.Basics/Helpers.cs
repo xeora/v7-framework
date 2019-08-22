@@ -59,6 +59,13 @@ namespace Xeora.Web.Basics
 
             return rString;
         }
+        
+        /// <summary>
+        /// Send a Refresh request to the Xeora Engine to clean up
+        /// cache and rebuild the available domains 
+        /// </summary>
+        public static void Refresh() =>
+            TypeCache.Current.RemoteInvoke.InvokeMember("ClearCache", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, null);
 
         /// <summary>
         /// Resolves the service path info from Url
@@ -158,7 +165,7 @@ namespace Xeora.Web.Basics
         /// <param name="handlerId">Handler identifier</param>
         public static void AssignHandlerId(string handlerId) =>
             AppDomain.CurrentDomain.SetData($"HandlerId_{Thread.CurrentThread.ManagedThreadId}", handlerId);
-
+        
         internal static IHandler HandlerInstance =>
             (IHandler)TypeCache.Current.RemoteInvoke.InvokeMember("GetHandler", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { Helpers.CurrentHandlerId });
 

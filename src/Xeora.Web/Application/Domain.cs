@@ -174,8 +174,5 @@ namespace Xeora.Web.Application
 
         public static void Reset() =>
             Domain.ControlsCache.Clear();
-
-        public void ClearCache() =>
-            Domain.Reset();
     }
 }

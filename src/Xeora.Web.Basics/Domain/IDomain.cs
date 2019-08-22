@@ -24,6 +24,5 @@ namespace Xeora.Web.Basics.Domain
 
         RenderResult Render(ServiceDefinition serviceDefinition, ControlResult.Message messageResult, string[] updateBlockControlIdStack = null);
         RenderResult Render(string xeoraContent, ControlResult.Message messageResult, string[] updateBlockControlIdStack = null);
-        void ClearCache();
     }
 }
