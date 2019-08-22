@@ -55,8 +55,16 @@ namespace Xeora.Web.Directives.Controls.Elements
             }
 
             this._Parent.Bag.Render(requesterUniqueId);
+            
+            for (int aC = 0; aC < this._Settings.Attributes.Count; aC++)
+            {
+                Attribute item = this._Settings.Attributes[aC];
+                this._Settings.Attributes[aC] =
+                    new Attribute(item.Key, this._Parent.Bag[item.Key].Result);
+            }
 
-            string renderedText = this._Parent.Bag["text"].Result;
+            string renderedText = 
+                this._Parent.Bag["text"].Result;
             string renderedUrl = string.Empty;
             if (this._Parent.Bag.ContainsKey("url"))
                 renderedUrl = this._Parent.Bag["url"].Result;
@@ -65,13 +73,6 @@ namespace Xeora.Web.Directives.Controls.Elements
                 this._Settings.Attributes["href"] = renderedUrl;
             else
                 this._Settings.Attributes["href"] = "#_action0";
-
-            for (int aC = 0; aC < this._Settings.Attributes.Count; aC++)
-            {
-                Attribute item = this._Settings.Attributes[aC];
-                this._Settings.Attributes[aC] =
-                    new Attribute(item.Key, this._Parent.Bag[item.Key].Result);
-            }
 
             // Define OnClick Server event for Button
             if (this._Settings.Bind != null)

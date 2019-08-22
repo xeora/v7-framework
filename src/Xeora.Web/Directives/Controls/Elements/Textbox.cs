@@ -33,8 +33,6 @@ namespace Xeora.Web.Directives.Controls.Elements
                 this._Parent.Bag.Add(item.Key, item.Value, this._Parent.Arguments);
             this._Parent.Bag.Render(requesterUniqueId);
 
-            string renderedText = this._Parent.Bag["text"].Result;
-
             for (int aC = 0; aC < this._Settings.Attributes.Count; aC++)
             {
                 Attribute item = this._Settings.Attributes[aC];
@@ -42,6 +40,8 @@ namespace Xeora.Web.Directives.Controls.Elements
                     new Attribute(item.Key, this._Parent.Bag[item.Key].Result);
             }
 
+            string renderedText = 
+                this._Parent.Bag["text"].Result;
             if (!string.IsNullOrEmpty(renderedText))
                 this._Settings.Attributes["value"] = renderedText;
             else

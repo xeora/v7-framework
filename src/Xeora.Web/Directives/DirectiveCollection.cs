@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xeora.Web.Basics;
 using Xeora.Web.Directives.Elements;
-using Console = System.Console;
 
 namespace Xeora.Web.Directives
 {

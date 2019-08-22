@@ -29,8 +29,6 @@ namespace Xeora.Web.Directives.Controls.Elements
                 this._Parent.Bag.Add(item.Key, item.Value, this._Parent.Arguments);
             this._Parent.Bag.Render(requesterUniqueId);
 
-            string renderedContent = this._Parent.Bag["content"].Result;
-
             for (int aC = 0; aC < this._Settings.Attributes.Count; aC++)
             {
                 Attribute item = this._Settings.Attributes[aC];
@@ -38,6 +36,9 @@ namespace Xeora.Web.Directives.Controls.Elements
                     new Attribute(item.Key, this._Parent.Bag[item.Key].Result);
             }
 
+            string renderedContent = 
+                this._Parent.Bag["content"].Result;
+            
             if (this._Settings.Security.Disabled.Set &&
                 this._Settings.Security.Disabled.Type == SecurityDefinition.DisabledDefinition.Types.Dynamic)
             {

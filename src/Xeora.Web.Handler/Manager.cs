@@ -19,9 +19,6 @@ namespace Xeora.Web.Handler
                     return;
 
                 Manager.Refresh();
-
-                Basics.Console.Push(
-                    string.Empty, "Domains refresh requested!", string.Empty, false, true);
             });
         }
 
@@ -113,7 +110,7 @@ namespace Xeora.Web.Handler
 
         private static readonly object RefreshLock = new object();
         private static bool _Refresh;
-        private static void Refresh()
+        internal static void Refresh()
         {
             if (!Monitor.TryEnter(Manager.RefreshLock))
                 return;
@@ -122,6 +119,9 @@ namespace Xeora.Web.Handler
                 return;
 
             Manager._Refresh = true;
+            
+            Basics.Console.Push(
+                string.Empty, "Domains refresh requested!", string.Empty, false, true);
 
             Monitor.Exit(Manager.RefreshLock);
         }

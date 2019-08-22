@@ -15,7 +15,8 @@ namespace Xeora.Web.Service.Dss.Internal
         public Manager()
         {
             this._ReservationLock = new object();
-            this._ReservationTable = new ConcurrentDictionary<string, Basics.Dss.IDss>();
+            this._ReservationTable = 
+                new ConcurrentDictionary<string, Basics.Dss.IDss>();
 
 			this._PruneLock = new object();
             
@@ -79,16 +80,18 @@ namespace Xeora.Web.Service.Dss.Internal
 
             try
             {            
-                string[] keys = new string[this._ReservationTable.Keys.Count];
+                string[] keys = 
+                    new string[this._ReservationTable.Keys.Count];
 
                 this._ReservationTable.Keys.CopyTo(keys, 0);
 
                 foreach (string key in keys)
                 {
-                    this._ReservationTable.TryGetValue(key, out Basics.Dss.IDss reservation);
+                    if (!this._ReservationTable.TryGetValue(key, out Basics.Dss.IDss reservation))
+                        continue;
 
                     if (((IService)reservation).IsExpired)
-                        this._ReservationTable.TryRemove(key, out reservation);
+                        this._ReservationTable.TryRemove(key, out _);
                 }
 			}
             finally
