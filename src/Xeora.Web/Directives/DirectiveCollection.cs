@@ -176,30 +176,7 @@ namespace Xeora.Web.Directives
 
             Tools.EventLogger.Log(exception);
 
-            if (Configurations.Xeora.Application.Main.Debugging)
-            {
-                string exceptionString = string.Empty;
-                do
-                {
-                    exceptionString =
-                        string.Format(
-                            @"<div align='left' style='border: solid 1px #660000; background-color: #FFFFFF'>
-                                    <div align='left' style='font-weight: bolder; color:#FFFFFF; background-color:#CC0000; padding: 4px;'>{0}</div>
-                                    <br/>
-                                    <div align='left' style='padding: 4px'>{1}{2}</div>
-                                  </div>",
-                            exception.Message,
-                            exception.Source,
-                            !string.IsNullOrEmpty(exceptionString) ? string.Concat("<hr size='1px' />", exceptionString) : null
-                        );
-
-                    exception = exception.InnerException;
-                } while (exception != null);
-
-                directive.Deliver(RenderStatus.Rendered, exceptionString);
-            }
-            else
-                directive.Deliver(RenderStatus.Rendered, string.Empty);
+            directive.Deliver(RenderStatus.Rendered, Mother.CreateErrorOutput(exception));
         }
 
         public IDirective Find(string directiveId) => 

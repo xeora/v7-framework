@@ -5,6 +5,7 @@ using System.Data;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Xeora.Web.Basics;
 using Xeora.Web.Directives.Elements;
 using Xeora.Web.Global;
 using Single = Xeora.Web.Directives.Elements.Single;
@@ -150,16 +151,26 @@ namespace Xeora.Web.Directives.Controls.Elements
                 Task.Factory.StartNew(
                     s =>
                     {
+                        object[] list = (object[]) s;
+
+                        string handlerId = (string) list[0];
+                        Single single = (Single) list[1];
+                        
                         this._SemaphoreSlim.Wait();
                         try
                         {
-                            object[] list = (object[])s;
-
-                            string handlerId = (string)list[0];
-                            Single single = (Single)list[1];
-
-                            Basics.Helpers.AssignHandlerId(handlerId);
+                            Helpers.AssignHandlerId(handlerId);
                             single.Render(requesterUniqueId);
+                        }
+                        catch (Exception e)
+                        {
+                            if (single.Parent != null)
+                                single.Parent.HasInlineError = true;
+                            
+                            Tools.EventLogger.Log(e);
+                            single.Deliver(RenderStatus.Rendered, Mother.CreateErrorOutput(e));
+
+                            return;
                         }
                         finally
                         {
@@ -191,7 +202,16 @@ namespace Xeora.Web.Directives.Controls.Elements
         private string Result {
             get
             {
-                Task.WaitAll(this._RowRenderTasks.ToArray());
+                try
+                {
+                    if (this._RowRenderTasks.Count > 0)
+                        Task.WaitAll(this._RowRenderTasks.ToArray());
+                }
+                catch (Exception e)
+                {
+                    Tools.EventLogger.Log(e);
+                    return Mother.CreateErrorOutput(e);
+                }
 
                 return this._RenderedContent.ToString();
             }

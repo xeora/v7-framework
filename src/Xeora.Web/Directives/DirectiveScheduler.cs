@@ -64,6 +64,10 @@ namespace Xeora.Web.Directives
                         {
                             this._CallBack(uId);
                         }
+                        catch (Exception e)
+                        {
+                            Tools.EventLogger.Log(e); 
+                        }
                         finally
                         {
                             this._SemaphoreSlim.Release();
@@ -72,7 +76,15 @@ namespace Xeora.Web.Directives
                 );
             }
 
-            Task.WaitAll(callbackJobs.ToArray());
+            try
+            {
+                if (callbackJobs.Count > 0)
+                    Task.WaitAll(callbackJobs.ToArray());
+            }
+            catch (Exception e)
+            {
+                Tools.EventLogger.Log(e);
+            }
         }
     }
 }

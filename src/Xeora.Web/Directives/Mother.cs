@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xeora.Web.Application.Controls;
+using Xeora.Web.Basics;
 using Xeora.Web.Basics.Domain;
 using Xeora.Web.Basics.Domain.Control.Definitions;
-using Xeora.Web.Directives.Elements;
 using Xeora.Web.Global;
+using Single = Xeora.Web.Directives.Elements.Single;
 
 namespace Xeora.Web.Directives
 {
@@ -86,5 +88,30 @@ namespace Xeora.Web.Directives
 
         public string Result => this._Directive.Result;
         public bool HasInlineError => this._Directive.HasInlineError;
+
+        public static string CreateErrorOutput(Exception exception)
+        {
+            if (!Configurations.Xeora.Application.Main.Debugging) return string.Empty;
+            
+            string exceptionString = string.Empty;
+            do
+            {
+                exceptionString =
+                    string.Format(
+                        @"<div align='left' style='border: solid 1px #660000; background-color: #ffffff'>
+                                <div align='left' style='font-weight: bolder; color:#ffffff; background-color:#cc0000; padding: 4px;'>{0}</div>
+                                <br/>
+                                <div align='left' style='padding: 4px'>{1}{2}</div>
+                              </div>",
+                        exception.Message,
+                        exception.Source,
+                        !string.IsNullOrEmpty(exceptionString) ? string.Concat("<hr size='1px' />", exceptionString) : null
+                    );
+
+                exception = exception.InnerException;
+            } while (exception != null);
+
+            return exceptionString;
+        }
     }
 }
