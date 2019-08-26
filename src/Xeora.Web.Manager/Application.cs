@@ -10,7 +10,7 @@ namespace Xeora.Web.Manager
     {
         private static readonly object PrepareLock = new object();
         private readonly List<string> _AssemblyPaths;
-        private LibraryExecuter _LibraryExecuter;
+        private LibraryManager _LibraryManager;
 
         private readonly string _ExecutableName;
 
@@ -27,31 +27,32 @@ namespace Xeora.Web.Manager
         }
 
         public object Invoke(Basics.Context.Request.HttpMethod httpMethod, string[] classNames, string functionName, object[] functionParams, bool instanceExecute, ExecuterTypes executerType) =>
-            this._LibraryExecuter.Invoke(httpMethod, classNames, functionName, functionParams, instanceExecute, executerType);
+            this._LibraryManager.Invoke(httpMethod, classNames, functionName, functionParams, instanceExecute, executerType);
 
         // Load must use the same appdomain because AppDomain logic is not supported in .NET Standard anymore
         private bool Load()
         {
-            this._LibraryExecuter = 
-                new LibraryExecuter(Loader.Current.Path, this._ExecutableName, this._AssemblyPaths.ToArray());
-            this._LibraryExecuter.Load();
+            this._LibraryManager = 
+                new LibraryManager(Loader.Current.Path, this._ExecutableName, this._AssemblyPaths.ToArray());
+            this._LibraryManager.Load();
 
-            return !this._LibraryExecuter.MissingFileException;
+            return !this._LibraryManager.MissingFileException;
         }
 
-        private static readonly ConcurrentDictionary<string, Application> ApplicationCache =
-            new ConcurrentDictionary<string, Application>();
+        private static readonly Dictionary<string, Application> ApplicationCache =
+            new Dictionary<string, Application>();
         public static Application Prepare(string executableName)
         {
             string applicationKey =
                 $"KEY-{Loader.Current.Path}_{executableName}";
-
+            
             lock (Application.PrepareLock)
             {
-                if (Application.ApplicationCache.TryGetValue(applicationKey, out Application application))
-                    return application;
-                
-                application = new Application(executableName);
+                if (Application.ApplicationCache.ContainsKey(applicationKey))
+                    return Application.ApplicationCache[applicationKey];
+
+                Application application = 
+                    new Application(executableName);
                 application.AddSearchPath(
                     Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
                 application.AddSearchPath(Loader.Current.Path);
@@ -59,8 +60,7 @@ namespace Xeora.Web.Manager
                 if (!application.Load())
                     throw new FileLoadException();
 
-                if (!Application.ApplicationCache.TryAdd(applicationKey, application))
-                    throw new OutOfMemoryException();
+                Application.ApplicationCache[applicationKey] = application;
 
                 return application;
             }
@@ -68,10 +68,10 @@ namespace Xeora.Web.Manager
 
         public static void Dispose()
         {
-            foreach(string key in Application.ApplicationCache.Keys)
+            lock (Application.PrepareLock)
             {
-                if (Application.ApplicationCache.TryRemove(key, out Application application))
-                    application._LibraryExecuter.Dispose();
+                foreach (string key in Application.ApplicationCache.Keys)
+                    Application.ApplicationCache[key]._LibraryManager.Dispose();
             }
         }
     }
