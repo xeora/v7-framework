@@ -33,7 +33,8 @@ namespace Xeora.Web.Directives.Controls.Elements
             this._Settings = settings;
 
             this._RowQueue = new ConcurrentQueue<Single>();
-            this._SemaphoreSlim = new SemaphoreSlim(Basics.Configurations.Xeora.Service.Parallelism);
+            this._SemaphoreSlim = 
+                new SemaphoreSlim(Configurations.Xeora.Service.Parallelism);
             this._RowRenderTasks = new List<Task>();
             this._RenderedContentLock = new object();
             this._RenderedContent = new StringBuilder();

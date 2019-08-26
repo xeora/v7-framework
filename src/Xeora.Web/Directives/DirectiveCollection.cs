@@ -19,7 +19,8 @@ namespace Xeora.Web.Directives
 
         public DirectiveCollection(IMother mother, IDirective parent)
         {
-            this._SemaphoreSlim = new SemaphoreSlim(Configurations.Xeora.Service.Parallelism);
+            this._SemaphoreSlim = 
+                new SemaphoreSlim(Configurations.Xeora.Service.Parallelism);
             this._Queued = new ConcurrentQueue<int>();
 
             this._Mother = mother;
@@ -104,8 +105,7 @@ namespace Xeora.Web.Directives
                                 this._SemaphoreSlim.Release();
                             }
                         },
-                        directive,
-                        TaskCreationOptions.DenyChildAttach
+                        directive
                     )
                 );
             }
@@ -130,13 +130,12 @@ namespace Xeora.Web.Directives
 
         private void Render(string handlerId, string requesterUniqueId, IDirective directive)
         {
-            Helpers.AssignHandlerId(handlerId);
-
             try
             {
                 // Analysis Calculation
                 DateTime renderBegins = DateTime.Now;
 
+                Helpers.AssignHandlerId(handlerId);
                 directive.Render(requesterUniqueId);
 
                 if (directive.Parent != null)
