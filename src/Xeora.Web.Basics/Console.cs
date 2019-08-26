@@ -10,10 +10,10 @@ namespace Xeora.Web.Basics
 {
     public class Console
     {
-        private static readonly object MessageLock = new object();
+        private readonly object _MessageLock = new object();
         private readonly Dictionary<string, Queue<Message>> _MessageGroups;
         private readonly ConcurrentDictionary<string, Action<ConsoleKeyInfo>> _KeyListeners;
-        private static readonly object FlushingLock = new object();
+        private readonly object _FlushingLock = new object();
         private readonly ConcurrentDictionary<string, bool> _Flushing;
 
         public enum Type
@@ -52,7 +52,7 @@ namespace Xeora.Web.Basics
             if (string.IsNullOrEmpty(groupId)) 
                 groupId = Guid.Empty.ToString();
 
-            lock (Console.MessageLock)
+            lock (this._MessageLock)
             {
                 if (!this._MessageGroups.ContainsKey(groupId))
                     this._MessageGroups[groupId] = new Queue<Message>();
@@ -61,7 +61,7 @@ namespace Xeora.Web.Basics
             }
         }
 
-        private async void _Flush(string groupId = null)
+        private void _Flush(string groupId = null)
         {
             if (string.IsNullOrEmpty(groupId))
                 groupId = Guid.Empty.ToString();
@@ -70,42 +70,39 @@ namespace Xeora.Web.Basics
                 return;
             this._Flushing.TryAdd(groupId, true);
 
-            await Task.Run(() =>
+            lock (this._FlushingLock)
             {
-                lock (Console.FlushingLock)
+                Queue<Message> messages;
+
+                lock (this._MessageLock)
                 {
-                    Queue<Message> messages;
+                    if (!this._MessageGroups.ContainsKey(groupId))
+                        return;
 
-                    lock (Console.MessageLock)
-                    {
-                        if (!this._MessageGroups.ContainsKey(groupId))
-                            return;
+                    messages = this._MessageGroups[groupId];
 
-                        messages = this._MessageGroups[groupId];
-
-                        this._MessageGroups.Remove(groupId);
-                    }
-
-                    while (messages.Count > 0)
-                    {
-                        Message message =
-                            messages.Dequeue();
-
-                        Console.WriteLine(message);
-                    }
-
-                    if (string.CompareOrdinal(groupId, Guid.Empty.ToString()) != 0)
-                    {
-                        string separator =
-                            "".PadRight(30, '-');
-                        Message separatorMessage =
-                            Message.Create(Type.Info, $"{DateTime.Now:MM/dd/yyyy HH:mm:ss.fff} {separator} {separator}");
-                        Console.WriteLine(separatorMessage);
-                    }
+                    this._MessageGroups.Remove(groupId);
                 }
 
-                this._Flushing.TryRemove(groupId, out _);
-            });
+                while (messages.Count > 0)
+                {
+                    Message message =
+                        messages.Dequeue();
+
+                    Console.WriteLine(message);
+                }
+
+                if (string.CompareOrdinal(groupId, Guid.Empty.ToString()) != 0)
+                {
+                    string separator =
+                        "".PadRight(30, '-');
+                    Message separatorMessage =
+                        Message.Create(Type.Info, $"{DateTime.Now:MM/dd/yyyy HH:mm:ss.fff} {separator} {separator}");
+                    Console.WriteLine(separatorMessage);
+                }
+            }
+
+            this._Flushing.TryRemove(groupId, out _);
         }
 
         private static void WriteLine(Message message)
@@ -266,8 +263,8 @@ namespace Xeora.Web.Basics
         /// Flush the caches log entries according to groupId
         /// </summary>
         /// <param name="groupId">(optional) Group Id for the flush</param>
-        public static void Flush(string groupId = null) =>
-            Console.Current._Flush(groupId);
+        public static Task Flush(string groupId = null) =>
+            Task.Factory.StartNew(() => Console.Current._Flush(groupId));
 
         /// <summary>
         /// Register an action to Xeora framework console key listener

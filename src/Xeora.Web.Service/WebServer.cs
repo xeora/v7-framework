@@ -185,7 +185,7 @@ namespace Xeora.Web.Service
 
                 // Terminate Loaded Domains
                 Manager.Application.Dispose();
-                Basics.Console.Flush();
+                Basics.Console.Flush().Wait();
             }
             finally {
                 this._TerminationLock.ReleaseMutex();
