@@ -6,13 +6,13 @@ namespace Xeora.Web.Global
     public class ArgumentCollection
     {
         private readonly object _Lock;
-        private readonly Dictionary<string, int> _ArgumentIndexes;
+        private readonly Dictionary<string, int> _ArgumentIndices;
         private readonly Dictionary<string, object> _ArgumentValues;
 
         public ArgumentCollection()
         {
             this._Lock = new object();
-            this._ArgumentIndexes =
+            this._ArgumentIndices =
                 new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
             this._ArgumentValues =
                 new Dictionary<string, object>(StringComparer.InvariantCultureIgnoreCase);
@@ -22,7 +22,7 @@ namespace Xeora.Web.Global
         {
             lock (this._Lock)
             {
-                this._ArgumentIndexes.Clear();
+                this._ArgumentIndices.Clear();
                 this._ArgumentValues.Clear();
             }
         }
@@ -43,14 +43,14 @@ namespace Xeora.Web.Global
             if (values == null)
                 return;
             
-            if (values.Length > this._ArgumentIndexes.Count)
+            if (values.Length > this._ArgumentIndices.Count)
                 throw new ArgumentOutOfRangeException(SystemMessages.ARGUMENT_KEYVALUELENGTHMATCH);
 
             lock (this._Lock)
             {
                 this._ArgumentValues.Clear();
 
-                foreach (KeyValuePair<string, int> pair in this._ArgumentIndexes)
+                foreach (KeyValuePair<string, int> pair in this._ArgumentIndices)
                 {
                     if (pair.Value >= values.Length) continue;
                     
@@ -59,21 +59,49 @@ namespace Xeora.Web.Global
             }
         }
 
-        public void Replace(ArgumentCollection aC)
+        public void Replace(ArgumentCollection collection)
         {
-            if (aC == null)
+            if (collection == null)
                 return;
 
             this.Reset();
             
             lock (this._Lock)
             {
-                foreach (KeyValuePair<string, int> pair in aC._ArgumentIndexes)
-                    this._ArgumentIndexes[pair.Key] = pair.Value;
+                foreach (KeyValuePair<string, int> pair in collection.GetIndices())
+                    this._ArgumentIndices[pair.Key] = pair.Value;
                 
-                foreach (KeyValuePair<string, object> pair in aC._ArgumentValues)
+                foreach (KeyValuePair<string, object> pair in collection.GetValues())
                     this._ArgumentValues[pair.Key] = pair.Value;
             }
+        }
+
+        private KeyValuePair<string, int>[] GetIndices()
+        {
+            List<KeyValuePair<string, int>> indices = 
+                new List<KeyValuePair<string, int>>();
+            
+            lock (this._Lock)
+            {
+                foreach (KeyValuePair<string, int> pair in this._ArgumentIndices)
+                    indices.Add(new KeyValuePair<string, int>(pair.Key, pair.Value));
+            }
+
+            return indices.ToArray();
+        }
+        
+        private KeyValuePair<string, object>[] GetValues()
+        {
+            List<KeyValuePair<string, object>> values = 
+                new List<KeyValuePair<string, object>>();
+            
+            lock (this._Lock)
+            {
+                foreach (KeyValuePair<string, object> pair in this._ArgumentValues)
+                    values.Add(new KeyValuePair<string, object>(pair.Key, pair.Value));
+            }
+
+            return values.ToArray();
         }
 
         public void AppendKey(string key) =>
@@ -86,8 +114,8 @@ namespace Xeora.Web.Global
             
             lock (this._Lock)
             {
-                if (!this._ArgumentIndexes.ContainsKey(key))
-                    this._ArgumentIndexes[key] = this._ArgumentIndexes.Count;
+                if (!this._ArgumentIndices.ContainsKey(key))
+                    this._ArgumentIndices[key] = this._ArgumentIndices.Count;
 
                 this._ArgumentValues[key] = value;
             }
