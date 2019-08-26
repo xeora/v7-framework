@@ -56,11 +56,11 @@ namespace Xeora.Web.Application
             if (string.IsNullOrEmpty(name))
                 throw new NullReferenceException("Name can not be null!");
 
-            this._CustomRecords.TryRemove(name, out string dummy);
+            this._CustomRecords.TryRemove(name, out _);
         }
 
         public void Remove(Basics.MetaRecord.Tags tag) =>
-            this._Records.TryRemove(tag, out string dummy);
+            this._Records.TryRemove(tag, out _);
 
         public KeyValuePair<Basics.MetaRecord.Tags, string>[] CommonTags
         {

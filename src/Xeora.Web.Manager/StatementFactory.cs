@@ -16,13 +16,13 @@ namespace Xeora.Web.Manager
     {
         private readonly ConcurrentDictionary<string, string> _StatementExecutables;
         private readonly Regex _ParamRegEx;
-        private readonly object _GetLock;
+        private readonly object _CacheLock;
 
         private StatementFactory()
         {
             this._StatementExecutables = new ConcurrentDictionary<string, string>();
             this._ParamRegEx = new Regex("\\$(?<Id>\\d+)", RegexOptions.Multiline | RegexOptions.Compiled);
-            this._GetLock = new object();
+            this._CacheLock = new object();
         }
 
         private static readonly object Lock = new object();
@@ -74,18 +74,20 @@ namespace Xeora.Web.Manager
         private string Get(string blockKey, string statement, bool parametric, bool cache)
         {
             if (!cache)
-                return this.Create(blockKey, statement, parametric, false);
+                return this.Create(blockKey, statement, parametric);
 
-            lock (this._GetLock)
+            if (this._StatementExecutables.TryGetValue(blockKey, out string executableName)) return executableName;
+            
+            lock (this._CacheLock)
             {
-                if (!this._StatementExecutables.TryGetValue(blockKey, out string executableName))
-                    executableName = this.Create(blockKey, statement, parametric, true);
+                executableName = this.Create(blockKey, statement, parametric);
+                this._StatementExecutables.TryAdd(blockKey, executableName);
 
                 return executableName;
             }
         }
 
-        private string Create(string blockKey, string statement, bool parametric, bool cache)
+        private string Create(string blockKey, string statement, bool parametric)
         {
             string executableName =
                 $"X{Guid.NewGuid().ToString().Replace("-", string.Empty)}";
@@ -93,7 +95,7 @@ namespace Xeora.Web.Manager
             statement =
                 this.Prepare(executableName, blockKey, statement, parametric);
 
-            this.Compile(executableName, blockKey, statement, cache);
+            this.Compile(executableName, blockKey, statement);
 
             return executableName;
         }
@@ -158,7 +160,7 @@ namespace Xeora.Web.Manager
             return codeBlock.ToString();
         }
 
-        private void Compile(string executableName, string blockKey, string codeBlock, bool cache)
+        private void Compile(string executableName, string blockKey, string codeBlock)
         {
             SyntaxTree syntaxTree =
                 CSharpSyntaxTree.ParseText(codeBlock);
@@ -216,15 +218,12 @@ namespace Xeora.Web.Manager
             {
                 assemblyStream?.Close();
             }
-
-            if (cache)
-                this._StatementExecutables.TryAdd(blockKey, executableName);
         }
 
         public static void Dispose()
         {
             foreach (string key in StatementFactory.Current._StatementExecutables.Keys)
-                StatementFactory.Current._StatementExecutables.TryRemove(key, out string dummy);
+                StatementFactory.Current._StatementExecutables.TryRemove(key, out _);
         }
     }
 }

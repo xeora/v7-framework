@@ -37,7 +37,7 @@ namespace Xeora.Web.Directives
             {
                 if (this._ScheduledItems.ContainsKey(uniqueId))
                     return;
-
+                this._ScheduledItems.TryAdd(uniqueId, true);
                 this._Queue.Enqueue(uniqueId);
             }
         }
@@ -49,20 +49,17 @@ namespace Xeora.Web.Directives
 
             while (this._Queue.TryDequeue(out string uniqueId))
             {
-                if (this._ScheduledItems.ContainsKey(uniqueId))
-                    this._ScheduledItems.TryRemove(uniqueId, out bool _);
-                
-                string uId = uniqueId;
+                this._ScheduledItems.TryRemove(uniqueId, out _);
                 
                 callbackJobs.Add(
-                    Task.Factory.StartNew(() =>
+                    Task.Factory.StartNew(uId =>
                     {
                         Helpers.AssignHandlerId(handlerId);
 
                         this._SemaphoreSlim.Wait();
                         try
                         {
-                            this._CallBack(uId);
+                            this._CallBack((string)uId);
                         }
                         catch (Exception e)
                         {
@@ -72,7 +69,7 @@ namespace Xeora.Web.Directives
                         {
                             this._SemaphoreSlim.Release();
                         }
-                    })
+                    }, uniqueId)
                 );
             }
 

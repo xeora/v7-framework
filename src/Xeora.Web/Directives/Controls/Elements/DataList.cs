@@ -176,27 +176,39 @@ namespace Xeora.Web.Directives.Controls.Elements
                         {
                             this._SemaphoreSlim.Release();
                         }
-
-                        lock (this._RenderedContentLock)
-                        {
-                            do
-                            {
-                                if (!this._RowQueue.TryPeek(out Single queueSingle))
-                                    return;
-
-                                if (queueSingle.Status != RenderStatus.Rendered)
-                                    return;
-
-                                if (!this._RowQueue.TryDequeue(out queueSingle))
-                                    return;
-
-                                this._RenderedContent.Append(queueSingle.Result);
-                            } while (true);
-                        }
+                        
+                        this.TryCreateRenderedContent();
                     },
                     new object[] { currentHandlerId, rowSingle }
                 )
             );
+        }
+
+        private void TryCreateRenderedContent()
+        {
+            if (!Monitor.TryEnter(this._RenderedContentLock))
+                return;
+
+            try
+            {
+                do
+                {
+                    if (!this._RowQueue.TryPeek(out Single queueSingle))
+                        return;
+
+                    if (queueSingle.Status != RenderStatus.Rendered)
+                        return;
+
+                    if (!this._RowQueue.TryDequeue(out queueSingle))
+                        return;
+
+                    this._RenderedContent.Append(queueSingle.Result);
+                } while (true);
+            }
+            finally
+            {
+                Monitor.Exit(this._RenderedContentLock);
+            }
         }
 
         private string Result {

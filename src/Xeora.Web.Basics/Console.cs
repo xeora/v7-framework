@@ -1,10 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -107,7 +104,7 @@ namespace Xeora.Web.Basics
                     }
                 }
 
-                this._Flushing.TryRemove(groupId, out bool _);
+                this._Flushing.TryRemove(groupId, out _);
             });
         }
 
@@ -198,7 +195,7 @@ namespace Xeora.Web.Basics
         }
 
         private bool RemoveKeyListener(string callbackId) =>
-            !string.IsNullOrEmpty(callbackId) && this._KeyListeners.TryRemove(callbackId, out Action<ConsoleKeyInfo> _);
+            !string.IsNullOrEmpty(callbackId) && this._KeyListeners.TryRemove(callbackId, out _);
 
         private static readonly object Lock = new object();
         private static Console _Current;

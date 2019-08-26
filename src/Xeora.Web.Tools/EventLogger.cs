@@ -154,25 +154,30 @@ namespace Xeora.Web.Tools
                 StringBuilder loggingException = new StringBuilder();
 
                 loggingException.AppendLine("-- LOGGING EXCEPTION --");
-                loggingException.Append(ex.ToString());
+                loggingException.Append(ex);
                 loggingException.AppendLine();
 
                 Basics.Console.Push("LOGGING ERROR", string.Empty, loggingException.ToString(), false, true, type: Basics.Console.Type.Error);
             }
             finally
             {
-                if (this._LogCache.Count == loggedKeys.Count)
-                    this._LogCache.Clear();
-                else
+                try
                 {
-                    foreach (long key in loggedKeys)
+                    if (this._LogCache.Count == loggedKeys.Count)
+                        this._LogCache.Clear();
+                    else
                     {
-                        if (this._LogCache.ContainsKey(key))
-                            this._LogCache.Remove(key);
+                        foreach (long key in loggedKeys)
+                        {
+                            if (this._LogCache.ContainsKey(key))
+                                this._LogCache.Remove(key);
+                        }
                     }
                 }
-
-                Monitor.Exit(this._LogCacheSyncObject);
+                finally
+                {
+                    Monitor.Exit(this._LogCacheSyncObject); 
+                }
             }
         }
 

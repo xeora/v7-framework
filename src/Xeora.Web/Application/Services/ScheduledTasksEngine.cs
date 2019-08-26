@@ -53,8 +53,9 @@ namespace Xeora.Web.Application.Services
         {
             long executionId = Tools.DateTime.Format();
 
-            if (this._ExecutionList.TryRemove(executionId, out ConcurrentQueue<TaskInfo> queue))
-                ThreadPool.QueueUserWorkItem(this.ExecutionThread, queue);
+            if (!this._ExecutionList.TryRemove(executionId, out ConcurrentQueue<TaskInfo> queue)) return;
+            
+            ThreadPool.QueueUserWorkItem(this.ExecutionThread, queue);
         }
 
         private void ExecutionThread(object state)
@@ -65,7 +66,7 @@ namespace Xeora.Web.Application.Services
             {
                 if (!queue.TryDequeue(out TaskInfo taskInfo)) continue;
                 
-                if (!this._ListOfCanceled.TryRemove(taskInfo.Id, out bool _))
+                if (!this._ListOfCanceled.TryRemove(taskInfo.Id, out _))
                     ThreadPool.QueueUserWorkItem(
                         taskState =>
                         {

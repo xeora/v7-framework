@@ -277,7 +277,7 @@ namespace Xeora.Web.Basics.Service
             public static void CleanCachedVariables(string sessionKeyId, string name)
             {
                 if (VariablePoolPreCache.VariablePreCache.TryGetValue(sessionKeyId, out ConcurrentDictionary<string, object> nameValuePairs))
-                    nameValuePairs.TryRemove(name, out object dummy);
+                    nameValuePairs.TryRemove(name, out _);
             }
         }
 
