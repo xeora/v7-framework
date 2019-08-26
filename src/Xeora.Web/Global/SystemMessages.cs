@@ -23,7 +23,7 @@
 
         public const string SYSTEM_ERROROCCURED = "System Error Occured";
 
-        public const string ARGUMENT_EXISTS = "Key is already exists in the arguments collection";
+        public const string ARGUMENT_CANNOTBEEMPTY = "Key should be exists and valid for arguments collection";
         public const string ARGUMENT_NOTEXISTS = "Key is not exists in the arguments collection";
         public const string ARGUMENT_KEYVALUELENGTHMATCH = "Keys and Values lengths do not match each other";
     }

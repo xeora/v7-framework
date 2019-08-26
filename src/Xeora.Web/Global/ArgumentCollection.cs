@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace Xeora.Web.Global
@@ -7,22 +6,24 @@ namespace Xeora.Web.Global
     public class ArgumentCollection
     {
         private readonly object _Lock;
-        private readonly ConcurrentDictionary<string, int> _ArgumentIndexes;
+        private readonly Dictionary<string, int> _ArgumentIndexes;
+        private readonly Dictionary<string, object> _ArgumentValues;
 
         public ArgumentCollection()
         {
             this._Lock = new object();
             this._ArgumentIndexes =
-                new ConcurrentDictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
-            this.Values = new object[] { };
+                new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
+            this._ArgumentValues =
+                new Dictionary<string, object>(StringComparer.InvariantCultureIgnoreCase);
         }
-
+        
         public void Reset()
         {
             lock (this._Lock)
             {
                 this._ArgumentIndexes.Clear();
-                this.Values = new object[] { };
+                this._ArgumentValues.Clear();
             }
         }
 
@@ -39,17 +40,22 @@ namespace Xeora.Web.Global
 
         public void Reset(object[] values)
         {
+            if (values == null)
+                return;
+            
+            if (values.Length > this._ArgumentIndexes.Count)
+                throw new ArgumentOutOfRangeException(SystemMessages.ARGUMENT_KEYVALUELENGTHMATCH);
+
             lock (this._Lock)
             {
-                this.Values = new object[this._ArgumentIndexes.Count];
+                this._ArgumentValues.Clear();
 
-                if (values == null)
-                    return;
-
-                if (values.Length > this.Values.Length)
-                    throw new ArgumentOutOfRangeException(SystemMessages.ARGUMENT_KEYVALUELENGTHMATCH);
-
-                Array.Copy(values, 0, this.Values, 0, values.Length);
+                foreach (KeyValuePair<string, int> pair in this._ArgumentIndexes)
+                {
+                    if (pair.Value >= values.Length) continue;
+                    
+                    this._ArgumentValues[pair.Key] = values[pair.Value];
+                }
             }
         }
 
@@ -58,14 +64,15 @@ namespace Xeora.Web.Global
             if (aC == null)
                 return;
 
+            this.Reset();
+            
             lock (this._Lock)
             {
-                this._ArgumentIndexes.Clear();
                 foreach (KeyValuePair<string, int> pair in aC._ArgumentIndexes)
                     this._ArgumentIndexes[pair.Key] = pair.Value;
-
-                this.Values = new object[this._ArgumentIndexes.Count];
-                Array.Copy(aC.Values, 0, this.Values, 0, aC.Values.Length);
+                
+                foreach (KeyValuePair<string, object> pair in aC._ArgumentValues)
+                    this._ArgumentValues[pair.Key] = pair.Value;
             }
         }
 
@@ -74,79 +81,34 @@ namespace Xeora.Web.Global
 
         public void AppendKeyWithValue(string key, object value)
         {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentException(SystemMessages.ARGUMENT_CANNOTBEEMPTY);
+            
             lock (this._Lock)
             {
-                if (string.IsNullOrEmpty(key) ||
-                    this._ArgumentIndexes.ContainsKey(key))
-                {
-                    this[key] = value;
+                if (!this._ArgumentIndexes.ContainsKey(key))
+                    this._ArgumentIndexes[key] = this._ArgumentIndexes.Count;
 
-                    return;
-                }
-
-                // Add Key
-                this._ArgumentIndexes.TryAdd(key, this._ArgumentIndexes.Count);
-
-                // Add Value
-                object[] newValues = new object[this._ArgumentIndexes.Count];
-                Array.Copy(this.Values, 0, newValues, 0, this.Values.Length);
-                newValues[newValues.Length - 1] = value;
-                this.Values = newValues;
+                this._ArgumentValues[key] = value;
             }
         }
-
-        public bool ContainsKey(string key)
-        {
-            lock (this._Lock)
-            {
-                return this._ArgumentIndexes.ContainsKey(key);
-            }
-        }
-
+        
         public object this[string key]
         {
             get
             {
                 lock (this._Lock)
                 {
-                    if (string.IsNullOrEmpty(key) || !this._ArgumentIndexes.ContainsKey(key)) return null;
-
-                    int index = this._ArgumentIndexes[key];
-
-                    return index < this.Values.Length ? this.Values[index] : null;
-                }
-            }
-            set
-            {
-                lock (this._Lock)
-                {
-                    if (string.IsNullOrEmpty(key) ||
-                        !this._ArgumentIndexes.ContainsKey(key))
-                        throw new ArgumentException(SystemMessages.ARGUMENT_NOTEXISTS);
-
-                    int index = this._ArgumentIndexes[key];
-
-                    this.Values[index] = value;
-                }
-            }
-        }
-
-        public object[] Values { get; private set; }
-
-        public int Count
-        {
-            get
-            {
-                lock (this._Lock)
-                {
-                    return this._ArgumentIndexes.Count;
+                    if (string.IsNullOrEmpty(key) || !this._ArgumentValues.ContainsKey(key)) return null;
+                    return this._ArgumentValues[key];
                 }
             }
         }
 
         public ArgumentCollection Clone()
         {
-            ArgumentCollection output = new ArgumentCollection();
+            ArgumentCollection output = 
+                new ArgumentCollection();
             output.Replace(this);
 
             return output;
