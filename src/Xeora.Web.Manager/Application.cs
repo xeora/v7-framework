@@ -8,7 +8,6 @@ namespace Xeora.Web.Manager
 {
     public class Application
     {
-        private static readonly object PrepareLock = new object();
         private readonly List<string> _AssemblyPaths;
         private LibraryManager _LibraryManager;
 
@@ -39,6 +38,10 @@ namespace Xeora.Web.Manager
             return !this._LibraryManager.MissingFileException;
         }
 
+        private void Unload() =>
+            this._LibraryManager?.Dispose();
+        
+        private static readonly object PrepareLock = new object();
         private static readonly Dictionary<string, Application> ApplicationCache =
             new Dictionary<string, Application>();
         public static Application Prepare(string executableName)
@@ -71,7 +74,7 @@ namespace Xeora.Web.Manager
             lock (Application.PrepareLock)
             {
                 foreach (string key in Application.ApplicationCache.Keys)
-                    Application.ApplicationCache[key]._LibraryManager.Dispose();
+                    Application.ApplicationCache[key].Unload();
             }
         }
     }

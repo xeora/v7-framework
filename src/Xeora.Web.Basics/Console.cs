@@ -70,7 +70,8 @@ namespace Xeora.Web.Basics
                 return;
             this._Flushing.TryAdd(groupId, true);
 
-            lock (this._FlushingLock)
+            Monitor.Enter(this._FlushingLock);
+            try
             {
                 Queue<Message> messages;
 
@@ -88,7 +89,6 @@ namespace Xeora.Web.Basics
                 {
                     Message message =
                         messages.Dequeue();
-
                     Console.WriteLine(message);
                 }
 
@@ -100,6 +100,10 @@ namespace Xeora.Web.Basics
                         Message.Create(Type.Info, $"{DateTime.Now:MM/dd/yyyy HH:mm:ss.fff} {separator} {separator}");
                     Console.WriteLine(separatorMessage);
                 }
+            }
+            finally
+            {
+                Monitor.Exit(this._FlushingLock);
             }
 
             this._Flushing.TryRemove(groupId, out _);

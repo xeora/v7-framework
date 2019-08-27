@@ -22,7 +22,6 @@ namespace Xeora.Web.Directives
                     uniqueId =>
                     {
                         this.Mother.Pool.GetByUniqueId(uniqueId, out IDirective directive);
-
                         directive?.Render(this.UniqueId);
                     }
                 );

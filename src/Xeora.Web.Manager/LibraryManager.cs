@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Loader;
+using System.Threading;
 
 namespace Xeora.Web.Manager
 {
@@ -16,7 +18,7 @@ namespace Xeora.Web.Manager
         private Dictionary<Type, bool> _XeoraControlTypes;
 
         private readonly object _InstanceCreationLock;
-        private readonly Dictionary<Type, object> _ExecutableInstances;
+        private readonly ConcurrentDictionary<Type, object> _ExecutableInstances;
         
         private readonly object _AssemblyMethodLock;
         private readonly Dictionary<string, MethodInfo[]> _AssemblyMethods;
@@ -37,7 +39,7 @@ namespace Xeora.Web.Manager
 
             this._InstanceCreationLock = new object();
             this._ExecutableInstances = 
-                new Dictionary<Type, object>();
+                new ConcurrentDictionary<Type, object>();
             
             this._AssemblyMethodLock = new object();
             this._AssemblyMethods = 
@@ -190,12 +192,12 @@ namespace Xeora.Web.Manager
                 $"Executable Execution Error! RequestInfo: {compileErrorObject}", innerException);
         }
 
-        private void InvokePreExecution(object executeObject, string executionId, MethodInfo assemblyMethod)
+        private void InvokePreExecution(object domainInstance, string executionId, MethodInfo assemblyMethod)
         {
             try
             {
-                executeObject.GetType().GetMethod("PreExecute")
-                    ?.Invoke(executeObject, new object[] {executionId, assemblyMethod});
+                domainInstance.GetType().GetMethod("PreExecute")
+                    ?.Invoke(domainInstance, new object[] {executionId, assemblyMethod});
             }
             catch (Exception ex)
             {
@@ -208,11 +210,11 @@ namespace Xeora.Web.Manager
             }
         }
 
-        private void InvokePostExecution(object executeObject, string executionId, object result)
+        private void InvokePostExecution(object domainInstance, string executionId, object result)
         {
             try
             {
-                executeObject.GetType().GetMethod("PostExecute")?.Invoke(executeObject, new[] {executionId, result});
+                domainInstance.GetType().GetMethod("PostExecute")?.Invoke(domainInstance, new[] {executionId, result});
             }
             catch (Exception ex)
             {
@@ -225,19 +227,20 @@ namespace Xeora.Web.Manager
             }
         }
 
-        private object GetCreateDomainInstance(Type domainInterface, out bool @new)
+        private object GetCreateDomainInstance(Type executingDomain, out bool @new)
         {
             @new = false;
             
-            lock (this._InstanceCreationLock)
+            Monitor.Enter(this._InstanceCreationLock);
+            try
             {
-                if (this._ExecutableInstances.ContainsKey(domainInterface))
-                    return this._ExecutableInstances[domainInterface];
+                if (this._ExecutableInstances.TryGetValue(executingDomain, out object domainInstance))
+                    return domainInstance;
 
                 @new = true;
 
                 Type interfaceType =
-                    domainInterface.GetInterface("IDomainExecutable");
+                    executingDomain.GetInterface("IDomainExecutable");
 
                 if (interfaceType == null || !interfaceType.IsInterface ||
                     string.CompareOrdinal(interfaceType.FullName, "Xeora.Web.Basics.IDomainExecutable") != 0)
@@ -245,45 +248,50 @@ namespace Xeora.Web.Manager
 
                 try
                 {
-                    this._ExecutableInstances[domainInterface] =
-                        Activator.CreateInstance(domainInterface);
+                    domainInstance = 
+                        Activator.CreateInstance(executingDomain);
+                    this._ExecutableInstances.TryAdd(executingDomain, domainInstance);
+
+                    return domainInstance;
                 }
                 catch (Exception ex)
                 {
                     return new Exception("Unable to create an instance of Xeora Domain Executable!", ex);
                 }
-
-                return this._ExecutableInstances[domainInterface];
+            }
+            finally
+            {
+                Monitor.Exit(this._InstanceCreationLock);
             }
         }
         
         private object LoadDomainExecutable()
         {
-            Type domainInterface =
+            Type executingDomain =
                 this._AssemblyDll.GetType($"Xeora.Domain.{this._ExecutableName}", false, true);
             
-            if (domainInterface == null)
+            if (executingDomain == null)
                 return new Exception("Assembly does not belong to any Xeora Domain or Addon!");
             
-            object executingDomain =
-                this.GetCreateDomainInstance(domainInterface, out bool @new);
-            if (!@new) return executingDomain;
+            object domainInstance =
+                this.GetCreateDomainInstance(executingDomain, out bool @new);
+            if (!@new) return domainInstance;
 
             MethodInfo mI =
-                executingDomain.GetType().GetMethod("Initialize");
+                domainInstance.GetType().GetMethod("Initialize");
             if (mI == null) return new MissingMethodException("Initialize");
 
-            if (!domainInterface.Name.StartsWith("X") && domainInterface.Name.Length != 33)
+            if (!executingDomain.Name.StartsWith("X") && executingDomain.Name.Length != 33)
             {
                 Basics.Console.Push(
                     string.Empty,
-                    $"Domain Executable: {domainInterface.Name} v{domainInterface.Assembly.GetName().Version}",
+                    $"Domain Executable: {executingDomain.Name} v{executingDomain.Assembly.GetName().Version}",
                     string.Empty, false);
             }
 
             try
             {
-                mI.Invoke(executingDomain, null);
+                mI.Invoke(domainInstance, null);
             }
             catch (Exception ex)
             {
@@ -297,7 +305,7 @@ namespace Xeora.Web.Manager
                 return new Exception("Xeora Domain executable could not be initialized!", ex);
             }
             
-            return executingDomain;
+            return domainInstance;
         }
 
         private bool CheckFunctionResultTypeIsXeoraControl(Type methodReturnType) =>
@@ -469,14 +477,12 @@ namespace Xeora.Web.Manager
                 {
                     if (methodParams.Length != functionParamsReBuild.Length)
                         return -1;
-                    
-                    if (this.FixFunctionParameter(methodParams[pC].ParameterType, ref functionParamsReBuild[pC]))
-                    {
-                        functionParams = functionParamsReBuild;
-                        return 0;
-                    }
 
-                    return -1;
+                    if (!this.FixFunctionParameter(methodParams[pC].ParameterType, ref functionParamsReBuild[pC]))
+                        return -1;
+                    
+                    functionParams = functionParamsReBuild;
+                    return 0;
                 }
 
                 Type paramArrayType = 
@@ -528,13 +534,12 @@ namespace Xeora.Web.Manager
             if (!instanceExecute)
                 return assemblyMethod.Invoke(executingDomain, BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod, null, functionParams, System.Globalization.CultureInfo.InvariantCulture);
 
-            lock (this._InstanceCreationLock) 
-            {
-                if (!this._ExecutableInstances.ContainsKey(executingDomain))
-                    throw new Exception("There is no Xeora Domain Executable instance has been created!");
-                
-                return assemblyMethod.Invoke(this._ExecutableInstances[executingDomain], BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod, null, functionParams, System.Globalization.CultureInfo.InvariantCulture);
-            }
+            if (!this._ExecutableInstances.TryGetValue(executingDomain, out object domainInstance))
+                throw new Exception("There is no Xeora Domain Executable instance has been created!");
+
+            return assemblyMethod.Invoke(domainInstance,
+                BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod, null, functionParams,
+                System.Globalization.CultureInfo.InvariantCulture);
         }
 
         public object Invoke(Basics.Context.Request.HttpMethod httpMethod, string[] classNames, string functionName, object[] functionParams, bool instanceExecute, ExecuterTypes executerType)
@@ -548,17 +553,17 @@ namespace Xeora.Web.Manager
                 Guid.NewGuid().ToString();
             object result = null;
 
-            object executeObject =
+            object domainInstance =
                 this.LoadDomainExecutable();
 
-            if (executeObject is Exception)
-                return executeObject;
+            if (domainInstance is Exception)
+                return domainInstance;
 
             try
             {
                 Type assemblyObject = classNames != null 
                     ? this._AssemblyDll.GetType($"Xeora.Domain.{string.Join("+", classNames)}", true, true) 
-                    : executeObject.GetType();
+                    : domainInstance.GetType();
 
                 MethodInfo assemblyMethod =
                     this.GetAssemblyMethod(ref assemblyObject, httpMethod, functionName, ref functionParams, executerType);
@@ -566,7 +571,7 @@ namespace Xeora.Web.Manager
                 if (assemblyMethod == null)
                     return this.GetMethodException(httpMethod, classNames, functionName, functionParams);
 
-                this.InvokePreExecution(executeObject, executionId, assemblyMethod);
+                this.InvokePreExecution(domainInstance, executionId, assemblyMethod);
 
                 result = this.InvokeMethod(instanceExecute, assemblyObject, assemblyMethod, functionParams);
             }
@@ -576,7 +581,7 @@ namespace Xeora.Web.Manager
             }
             finally
             {
-                this.InvokePostExecution(executeObject, executionId, result);
+                this.InvokePostExecution(domainInstance, executionId, result);
             }
             
             return result;
@@ -584,19 +589,19 @@ namespace Xeora.Web.Manager
 
         public void Dispose()
         {
-            Type domainInterface =
+            Type executingDomain =
                 this._AssemblyDll.GetType($"Xeora.Domain.{this._ExecutableName}", false, true);
 
-            lock (this._InstanceCreationLock)
+            if (!Monitor.TryEnter(this._InstanceCreationLock))
+                return;
+            
+            try
             {
-                if (!this._ExecutableInstances.ContainsKey(domainInterface)) return;
-
-                object executingDomain =
-                    this._ExecutableInstances[domainInterface];
+                if (!this._ExecutableInstances.TryRemove(executingDomain, out object domainInstance)) return;
                 
                 try
                 {
-                    executingDomain.GetType().GetMethod("Terminate")?.Invoke(executingDomain, null);
+                    domainInstance.GetType().GetMethod("Terminate")?.Invoke(executingDomain, null);
                 }
                 catch (Exception ex)
                 {
@@ -607,6 +612,10 @@ namespace Xeora.Web.Manager
                         "Domain Termination ERROR", ex.Message, ex.StackTrace, false, true,
                         type: Basics.Console.Type.Error);
                 }
+            }
+            finally
+            {
+                Monitor.Exit(this._InstanceCreationLock);
             }
         }
     }
