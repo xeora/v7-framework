@@ -601,7 +601,7 @@ namespace Xeora.Web.Manager
                 
                 try
                 {
-                    domainInstance.GetType().GetMethod("Terminate")?.Invoke(executingDomain, null);
+                    domainInstance.GetType().GetMethod("Terminate")?.Invoke(domainInstance, null);;
                 }
                 catch (Exception ex)
                 {
