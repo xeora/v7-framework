@@ -47,6 +47,8 @@ namespace Xeora.Web.Directives.Controls.Elements
             else
                 this._Settings.Attributes.Remove("value");
 
+            ICryptography cryptography =
+                CryptographyProvider.Current.Get(Helpers.Context.Session.SessionId);
             // Define onKeyDown Server event for Button
             string xeoraCall = string.Empty;
 
@@ -61,7 +63,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 {
                     xeoraCall = string.Format(
                         "__XeoraJS.update('{1}', '{0}')",
-                        Cryptography.Current.Encrypt(
+                        cryptography.Encrypt(
                             this._Settings.Bind.ToString()
                         ),
                         string.Join(",", this._Settings.Updates.Blocks)
@@ -70,7 +72,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 else
                     xeoraCall = string.Format(
                             "__XeoraJS.post('{0}')",
-                            Cryptography.Current.Encrypt(
+                            cryptography.Encrypt(
                                 this._Settings.Bind.ToString()
                             )
                         );

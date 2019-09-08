@@ -142,7 +142,7 @@ namespace Xeora.Web.Application
 
         private void OnInstanceRequest(out Basics.Domain.IDomain domain) =>
             domain = this;
-
+        
         private static readonly ConcurrentDictionary<string, IBase> ControlsCache =
             new ConcurrentDictionary<string, IBase>();
         private void OnControlResolveRequest(string controlId, ref Basics.Domain.IDomain domain, out IBase control)

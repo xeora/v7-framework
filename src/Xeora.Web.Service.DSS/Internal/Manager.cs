@@ -80,7 +80,6 @@ namespace Xeora.Web.Service.Dss.Internal
             {            
                 string[] keys = 
                     new string[this._ReservationTable.Keys.Count];
-
                 this._ReservationTable.Keys.CopyTo(keys, 0);
 
                 foreach (string key in keys)

@@ -51,6 +51,8 @@ namespace Xeora.Web.Directives.Controls.Elements
 
             if (this._Settings.Bind != null)
             {
+                ICryptography cryptography =
+                    CryptographyProvider.Current.Get(Helpers.Context.Session.SessionId);
                 // Render Bind Parameters
                 this._Settings.Bind.Parameters.Prepare(
                     parameter => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueId)
@@ -60,7 +62,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 {
                     xeoraCall = string.Format(
                         "__XeoraJS.update('{1}', '{0}')",
-                        Cryptography.Current.Encrypt(
+                        cryptography.Encrypt(
                             this._Settings.Bind.ToString()
                         ),
                         string.Join(",", this._Settings.Updates.Blocks)
@@ -69,7 +71,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 else
                     xeoraCall = string.Format(
                             "__XeoraJS.post('{0}')",
-                            Cryptography.Current.Encrypt(
+                            cryptography.Encrypt(
                                 this._Settings.Bind.ToString()
                             )
                         );

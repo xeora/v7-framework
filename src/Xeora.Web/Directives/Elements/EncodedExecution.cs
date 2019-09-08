@@ -58,11 +58,14 @@ namespace Xeora.Web.Directives.Elements
 
             this.ExtractSubDirectives(ref result);
 
+            Basics.ICryptography cryptography =
+                CryptographyProvider.Current.Get(Basics.Helpers.Context.Session.SessionId);
+            
             if (this._Clean)
             {
                 this.Deliver(
                     RenderStatus.Rendered, 
-                    Cryptography.Current.Encrypt(result)
+                    cryptography.Encrypt(result)
                 );
 
                 return;
@@ -75,7 +78,7 @@ namespace Xeora.Web.Directives.Elements
                     string.Format(
                         "javascript:__XeoraJS.update('{0}', '{1}');",
                         string.Join(">", this.UpdateBlockIds.ToArray()),
-                        Cryptography.Current.Encrypt(this.Result)
+                        cryptography.Encrypt(this.Result)
                     )
                 );
 
@@ -86,7 +89,7 @@ namespace Xeora.Web.Directives.Elements
                 RenderStatus.Rendered,
                 string.Format(
                     "javascript:__XeoraJS.post('{0}');",
-                    Cryptography.Current.Encrypt(this.Result)
+                    cryptography.Encrypt(this.Result)
                 )
             );
         }

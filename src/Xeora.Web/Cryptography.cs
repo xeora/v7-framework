@@ -1,52 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
 
 namespace Xeora.Web
 {
-    public class Cryptography
+    public class Cryptography : Basics.ICryptography
     {
-        private static Cryptography _Current;
-        private static readonly object CryptographyLock = 
-            new object();
-        public static Cryptography Current
-        {
-            get
-            {
-                if (Cryptography._Current != null)
-                    return Cryptography._Current;
-                
-                Monitor.Enter(Cryptography.CryptographyLock);
-                try
-                {
-                    Cryptography._Current = 
-                        new Cryptography(Basics.Configurations.Xeora.Application.Main.PhysicalRoot);
-                    return Cryptography._Current;
-                }
-                finally
-                {
-                    Monitor.Exit(Cryptography.CryptographyLock);
-                }
-            }
-        }
-
         private readonly ICryptoTransform _Encryptor;
         private readonly ICryptoTransform _Decryptor;
         
-        private Cryptography(string applicationPath)
+        public Cryptography(string cryptoId)
         {
-            if (string.IsNullOrEmpty(applicationPath))
-                throw new ArgumentException(nameof(applicationPath));
+            if (string.IsNullOrEmpty(cryptoId))
+                throw new ArgumentException(nameof(cryptoId));
             
             Aes aes = Aes.Create();
             if (aes == null) 
                 throw new CryptographicException();
             
             aes.Key = 
-                this.GenerateKey(applicationPath);
+                this.GenerateKey(cryptoId);
             this.AssignVector(ref aes);
             aes.Padding = PaddingMode.PKCS7;
 
@@ -56,10 +30,10 @@ namespace Xeora.Web
                 aes.CreateDecryptor();
         }
 
-        private byte[] GenerateKey(string applicationPath)
+        private byte[] GenerateKey(string cryptoId)
         {
             byte[] applicationPathBytes =
-                Encoding.UTF8.GetBytes(applicationPath);
+                Encoding.UTF8.GetBytes(cryptoId);
             
             MD5 md5 = 
                 MD5.Create();
@@ -110,6 +84,10 @@ namespace Xeora.Web
                         writer = 
                             new StreamWriter(encryptStream, Encoding.UTF8);
                         writer.Write(input);
+                        
+                        // notify session to be persist
+                        Basics.Helpers.Context.Session["_sys_crypto"] =
+                            Guid.NewGuid().ToString();
                     }
                     finally
                     {

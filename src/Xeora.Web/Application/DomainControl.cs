@@ -27,6 +27,8 @@ namespace Xeora.Web.Application
 
         private void Build()
         {
+            CryptographyProvider.Current.Ping(this._Context.Session.SessionId);
+            
             this.Domain = null;
 
             this.ServiceDefinition = null;
@@ -59,6 +61,9 @@ namespace Xeora.Web.Application
         public string SiteIconUrl { get; set; }
         public Basics.IMetaRecordCollection MetaRecord { get; private set; }
 
+        public Basics.ICryptography Cryptography =>
+            CryptographyProvider.Current.Get(this._Context.Session.SessionId);
+        
         public Basics.Domain.IDomain Domain
         {
             get => this._Domain;
@@ -69,7 +74,7 @@ namespace Xeora.Web.Application
                 if (this._Domain == null)
                     return;
 
-                ((Domain)this.Domain).SetLanguageChangedListener((language) =>
+                ((Domain)this.Domain).SetLanguageChangedListener(language =>
                 {
                     Basics.Context.IHttpCookieInfo languageCookie =
                         this._Context.Request.Header.Cookie[this._CookieSearchKeyForLanguage];

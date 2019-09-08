@@ -86,7 +86,7 @@ namespace Xeora.Web.Handler
             {
                 if (this._ForceRefresh)
                     Application.DomainControl.ClearCache();
-                
+
                 IHttpContext context = this.Context;
                 this._DomainControl = new DomainControl(ref context);
 
@@ -276,7 +276,7 @@ namespace Xeora.Web.Handler
                 // Decode Encoded Call Function to Readable
                 Basics.Execution.Bind bind =
                     Basics.Execution.Bind.Make(
-                        Cryptography.Current.Decrypt(bindInformation));
+                        this.DomainControl.Cryptography.Decrypt(bindInformation));
 
                 bind.Parameters.Prepare(
                     parameter =>

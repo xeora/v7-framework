@@ -9,6 +9,7 @@ namespace Xeora.Web.Basics
         string SiteIconUrl { get; set; }
         IMetaRecordCollection MetaRecord { get; }
 
+        ICryptography Cryptography { get; }
         IDomain Domain { get; }
 
         Mapping.ResolutionResult ResolveUrl(string requestFilePath);

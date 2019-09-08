@@ -55,13 +55,15 @@ namespace Xeora.Web.Directives.Controls.Elements
                     parameter => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueId)
                 );
 
+                ICryptography cryptography =
+                    CryptographyProvider.Current.Get(Helpers.Context.Session.SessionId);
                 string xeoraCall;
 
                 if (this._Parent.UpdateBlockIds.Count > 0)
                 {
                     xeoraCall = string.Format(
                         "__XeoraJS.update('{1}', '{0}')",
-                        Cryptography.Current.Encrypt(
+                        cryptography.Encrypt(
                             this._Settings.Bind.ToString()
                         ),
                         string.Join(",", this._Settings.Updates.Blocks)
@@ -70,7 +72,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 else
                     xeoraCall = string.Format(
                             "__XeoraJS.post('{0}')",
-                            Cryptography.Current.Encrypt(
+                            cryptography.Encrypt(
                                 this._Settings.Bind.ToString()
                             )
                         );
