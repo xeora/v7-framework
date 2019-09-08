@@ -65,8 +65,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 {
                     xeoraCall = string.Format(
                         "__XeoraJS.update('{1}', '{0}')",
-                        Manager.AssemblyCore.EncodeFunction(
-                            Helpers.Context.HashCode,
+                        Cryptography.Current.Encrypt(
                             this._Settings.Bind.ToString()
                         ),
                         string.Join(",", this._Settings.Updates.Blocks)
@@ -75,8 +74,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 else
                     xeoraCall = string.Format(
                             "__XeoraJS.post('{0}')",
-                            Manager.AssemblyCore.EncodeFunction(
-                                Helpers.Context.HashCode,
+                            Cryptography.Current.Encrypt(
                                 this._Settings.Bind.ToString()
                             )
                         );

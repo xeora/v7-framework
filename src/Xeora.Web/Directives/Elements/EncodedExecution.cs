@@ -62,7 +62,7 @@ namespace Xeora.Web.Directives.Elements
             {
                 this.Deliver(
                     RenderStatus.Rendered, 
-                    Manager.AssemblyCore.EncodeFunction(Basics.Helpers.Context.HashCode, result)
+                    Cryptography.Current.Encrypt(result)
                 );
 
                 return;
@@ -75,7 +75,7 @@ namespace Xeora.Web.Directives.Elements
                     string.Format(
                         "javascript:__XeoraJS.update('{0}', '{1}');",
                         string.Join(">", this.UpdateBlockIds.ToArray()),
-                        Manager.AssemblyCore.EncodeFunction(Basics.Helpers.Context.HashCode, this.Result)
+                        Cryptography.Current.Encrypt(this.Result)
                     )
                 );
 
@@ -86,7 +86,7 @@ namespace Xeora.Web.Directives.Elements
                 RenderStatus.Rendered,
                 string.Format(
                     "javascript:__XeoraJS.post('{0}');",
-                    Manager.AssemblyCore.EncodeFunction(Basics.Helpers.Context.HashCode, this.Result)
+                    Cryptography.Current.Encrypt(this.Result)
                 )
             );
         }

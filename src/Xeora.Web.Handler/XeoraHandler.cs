@@ -276,7 +276,7 @@ namespace Xeora.Web.Handler
                 // Decode Encoded Call Function to Readable
                 Basics.Execution.Bind bind =
                     Basics.Execution.Bind.Make(
-                        Web.Manager.AssemblyCore.DecodeFunction(bindInformation));
+                        Cryptography.Current.Decrypt(bindInformation));
 
                 bind.Parameters.Prepare(
                     parameter =>
