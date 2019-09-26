@@ -16,6 +16,7 @@
     <FileVersion>7.2</FileVersion>
     <Deterministic>False</Deterministic>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <LangVersion>8</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

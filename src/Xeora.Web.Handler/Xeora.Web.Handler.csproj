@@ -15,6 +15,7 @@
     <Authors>Tuna Celik</Authors>
     <Company>JakPark Solutions</Company>
     <RepositoryUrl>https://github.com/xeora/v7</RepositoryUrl>
+    <LangVersion>8</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">

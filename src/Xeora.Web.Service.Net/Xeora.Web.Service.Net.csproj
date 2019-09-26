@@ -15,6 +15,7 @@
     <AssemblyVersion>7.2.*</AssemblyVersion>
     <FileVersion>7.2</FileVersion>
     <Deterministic>False</Deterministic>
+    <LangVersion>8</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
