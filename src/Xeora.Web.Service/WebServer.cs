@@ -20,6 +20,8 @@ namespace Xeora.Web.Service
 
         public WebServer(string configurationFilePath)
         {
+            this._TerminationLock = new Mutex();
+            
             // Application Domain UnHandled Exception Event Handling
             AppDomain.CurrentDomain.UnhandledException += this.OnUnhandledExceptions;
             // !---
@@ -35,8 +37,7 @@ namespace Xeora.Web.Service
                 this._ConfigurationPath = Directory.GetCurrentDirectory();
                 return;
             }
-
-            this._TerminationLock = new Mutex();
+            
             this._ConfigurationPath = Path.GetDirectoryName(configurationFilePath);
             this._ConfigurationFile = Path.GetFileName(configurationFilePath);
         }
@@ -180,8 +181,8 @@ namespace Xeora.Web.Service
                 if (args != null) args.Cancel = true;
 
                 Basics.Console.Push("Terminating XeoraEngine...", string.Empty, string.Empty, false, true);
-
-                this._TcpListener.Stop();
+                
+                this._TcpListener?.Stop();
 
                 // Terminate Loaded Domains
                 Manager.Application.Dispose();
