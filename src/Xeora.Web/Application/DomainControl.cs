@@ -100,7 +100,7 @@ namespace Xeora.Web.Application
         public bool IsAuthenticationRequired { get; private set; }
         public bool IsWorkingAsStandAlone { get; private set; }
 
-        public string XeoraJSVersion => "1.0.018";
+        public static string XeoraJsVersion => "1.0.018";
 
         private void SelectDomain(string languageId)
         {
@@ -424,7 +424,7 @@ namespace Xeora.Web.Application
         {
             outputStream =
                 Assembly.GetExecutingAssembly().GetManifestResourceStream(
-                    $"Xeora.Web._sps_v{this.XeoraJSVersion}.js");
+                    $"Xeora.Web._sps_v{XeoraJsVersion}.js");
         }
 
         public Basics.Execution.Bind GetxSocketBind()

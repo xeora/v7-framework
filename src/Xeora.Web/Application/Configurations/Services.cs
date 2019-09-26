@@ -13,7 +13,7 @@ namespace Xeora.Web.Application.Configurations
 
         private Basics.Domain.IServiceItemCollection _ServiceItems;
         public Basics.Domain.IServiceItemCollection ServiceItems => 
-            this._ServiceItems ?? (this._ServiceItems = this.ReadServiceOptions());
+            this._ServiceItems ??= this.ReadServiceOptions();
 
         private Basics.Domain.IServiceItemCollection ReadServiceOptions()
         {

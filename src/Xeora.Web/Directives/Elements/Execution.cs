@@ -6,18 +6,14 @@ namespace Xeora.Web.Directives.Elements
 {
     public class Execution : Directive, ILevelable, IBoundable, IHasBind
     {
-        private readonly string _RawValue;
-
         public Execution(string rawValue, ArgumentCollection arguments) :
             base(DirectiveTypes.Execution, arguments)
         {
-            this._RawValue = rawValue;
-
             this.Leveling = LevelingInfo.Create(rawValue);
             this.BoundDirectiveId = DirectiveHelper.CaptureBoundDirectiveId(rawValue);
             
             string[] controlValueSplitted = 
-                this._RawValue.Split(':');
+                rawValue.Split(':');
             this.Bind = Basics.Execution.Bind.Make(string.Join(":", controlValueSplitted, 1, controlValueSplitted.Length - 1));
         }
 

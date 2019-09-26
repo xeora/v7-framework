@@ -1,6 +1,6 @@
 ﻿namespace Xeora.Web.Tools
 {
-    public class DateTime
+    public static class DateTime
     {
         public static long Format(bool formatJustDate = false) =>
             DateTime.Format(System.DateTime.Now, formatJustDate);

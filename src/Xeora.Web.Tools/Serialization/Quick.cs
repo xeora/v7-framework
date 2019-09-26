@@ -1,6 +1,6 @@
 ﻿namespace Xeora.Web.Tools.Serialization
 {
-    public class Quick
+    public static class Quick
     {
         public static string BinaryToBase64Serialize(object input)
         {

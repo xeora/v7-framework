@@ -6,8 +6,8 @@ namespace Xeora.Web
 {
     public class CryptographyProvider
     {
-        private ConcurrentDictionary<string, Basics.ICryptography> _Cryptos;
-        private ConcurrentDictionary<string, DateTime> _Timeouts;
+        private readonly ConcurrentDictionary<string, Basics.ICryptography> _Cryptos;
+        private readonly ConcurrentDictionary<string, DateTime> _Timeouts;
         private readonly object _GetLock = new object();
         
         private const short PRUNE_INTERVAL = 10 * 60; // 10 minutes

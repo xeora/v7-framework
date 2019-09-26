@@ -370,7 +370,7 @@ namespace Xeora.Web.Application
             if (string.IsNullOrEmpty(rawValue) || 
                 rawValue.Length <= 2 || 
                 rawValue[0] != '$' ||
-                rawValue[rawValue.Length - 1] != '$') return rawValue;
+                rawValue[^1] != '$') return rawValue;
             
             rawValue = rawValue.Substring(1, rawValue.Length - 2);
             rawValue = rawValue.Trim();

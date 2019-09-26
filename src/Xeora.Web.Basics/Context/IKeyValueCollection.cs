@@ -1,8 +1,8 @@
 ﻿namespace Xeora.Web.Basics.Context
 {
-    public interface IKeyValueCollection<K, V>
+    public interface IKeyValueCollection<TK, out TV>
     {
-        K[] Keys { get; }
-        V this[K key] { get; }
+        TK[] Keys { get; }
+        TV this[TK key] { get; }
     }
 }

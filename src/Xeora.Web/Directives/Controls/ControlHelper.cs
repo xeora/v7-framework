@@ -2,7 +2,7 @@
 
 namespace Xeora.Web.Directives.Controls
 {
-    public class ControlHelper
+    public static class ControlHelper
     {
         public static string CleanJavascriptSignature(string input)
         {
@@ -14,7 +14,7 @@ namespace Xeora.Web.Directives.Controls
             if (input.IndexOf(javascriptSignature, StringComparison.Ordinal) == 0)
                 input = input.Substring(javascriptSignature.Length);
 
-            if (input[input.Length - 1] == ';')
+            if (input[^1] == ';')
                 input = input.Substring(0, input.Length - 1);
 
             return input;

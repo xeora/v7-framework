@@ -62,7 +62,7 @@ namespace Xeora.Web.Application
         public void Remove(Basics.MetaRecord.Tags tag) =>
             this._Records.TryRemove(tag, out _);
 
-        public KeyValuePair<Basics.MetaRecord.Tags, string>[] CommonTags
+        public IEnumerable<KeyValuePair<Basics.MetaRecord.Tags, string>> CommonTags
         {
             get
             {
@@ -82,7 +82,7 @@ namespace Xeora.Web.Application
             }
         }
 
-        public KeyValuePair<string, string>[] CustomTags
+        public IEnumerable<KeyValuePair<string, string>> CustomTags
         {
             get
             {

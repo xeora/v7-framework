@@ -68,7 +68,7 @@ namespace Xeora.Web.Basics
         {
             string[] requestPaths = fullPath.Split('/');
 
-            ServiceDefinition rServiceDefinition = new ServiceDefinition(requestPaths[requestPaths.Length - 1], mapped);
+            ServiceDefinition rServiceDefinition = new ServiceDefinition(requestPaths[^1], mapped);
             for (int pC = 0; pC < requestPaths.Length - 1; pC++)
                 rServiceDefinition.PathTree.AddLast(requestPaths[pC]);
 

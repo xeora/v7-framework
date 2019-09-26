@@ -7,7 +7,7 @@ namespace Xeora.Web.Basics.Execution
     public class ProcedureParameter
     {
         private readonly Dictionary<char, bool> _Operators =
-            new Dictionary<char, bool>() {
+            new Dictionary<char, bool> {
                 { '^', true },
                 { '~', true },
                 { '-', true },

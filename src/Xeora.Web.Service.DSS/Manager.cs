@@ -6,7 +6,7 @@ namespace Xeora.Web.Service.Dss
     {
         private readonly IManager _Manager;
 
-        public Manager()
+        private Manager()
         {
             switch (Basics.Configurations.Xeora.Dss.ServiceType)
             {

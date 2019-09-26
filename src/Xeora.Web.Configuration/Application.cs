@@ -31,34 +31,33 @@ namespace Xeora.Web.Configuration
         {
             get
             {
-                if (!this._isBannedFilesFixed)
+                if (this._isBannedFilesFixed) return this._BannedFiles;
+                
+                this._isBannedFilesFixed = true;
+
+                // \\ < regex definition
+                string forbiddenDomain = $"\\{Path.DirectorySeparatorChar}Domains";
+                if (Array.IndexOf(this._BannedFiles, forbiddenDomain) == -1)
                 {
-                    this._isBannedFilesFixed = true;
+                    string[] fixedBannedFiles = new string[this._BannedFiles.Length + 1];
+                    Array.Copy(this._BannedFiles, fixedBannedFiles, this.BannedFiles.Length);
 
-                    // \\ < regex definition
-                    string forbiddenDomain = $"\\{Path.DirectorySeparatorChar}Domains";
-                    if (Array.IndexOf(this._BannedFiles, forbiddenDomain) == -1)
-                    {
-                        string[] fixedBannedFiles = new string[this._BannedFiles.Length + 1];
-                        Array.Copy(this._BannedFiles, fixedBannedFiles, this.BannedFiles.Length);
+                    fixedBannedFiles[fixedBannedFiles.Length - 1] = forbiddenDomain;
 
-                        fixedBannedFiles[fixedBannedFiles.Length - 1] = forbiddenDomain;
+                    this._BannedFiles = fixedBannedFiles;
+                }
 
-                        this._BannedFiles = fixedBannedFiles;
-                    }
+                // \\ < regex definition
+                string forbiddenXeoraSettingsJson =
+                    $"\\{Path.DirectorySeparatorChar}xeora\\.settings\\.json";
+                if (Array.IndexOf(this._BannedFiles, forbiddenXeoraSettingsJson) == -1)
+                {
+                    string[] fixedBannedFiles = new string[this._BannedFiles.Length + 1];
+                    Array.Copy(this._BannedFiles, fixedBannedFiles, this.BannedFiles.Length);
 
-                    // \\ < regex definition
-                    string forbiddenXeoraSettingsJson =
-                        $"\\{Path.DirectorySeparatorChar}xeora\\.settings\\.json";
-                    if (Array.IndexOf(this._BannedFiles, forbiddenXeoraSettingsJson) == -1)
-                    {
-                        string[] fixedBannedFiles = new string[this._BannedFiles.Length + 1];
-                        Array.Copy(this._BannedFiles, fixedBannedFiles, this.BannedFiles.Length);
+                    fixedBannedFiles[fixedBannedFiles.Length - 1] = forbiddenXeoraSettingsJson;
 
-                        fixedBannedFiles[fixedBannedFiles.Length - 1] = forbiddenXeoraSettingsJson;
-
-                        this._BannedFiles = fixedBannedFiles;
-                    }
+                    this._BannedFiles = fixedBannedFiles;
                 }
 
                 return this._BannedFiles;

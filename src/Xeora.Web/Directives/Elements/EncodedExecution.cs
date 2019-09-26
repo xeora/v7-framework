@@ -120,7 +120,7 @@ namespace Xeora.Web.Directives.Elements
 
                     blockContent = sR.ReadToEnd();
                 }
-                catch (Exceptions.GrammerException)
+                catch (Exceptions.GrammarException)
                 {
                     throw;
                 }

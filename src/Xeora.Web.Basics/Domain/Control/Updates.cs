@@ -32,7 +32,7 @@ namespace Xeora.Web.Basics.Domain.Control
             string[] blocks = 
                 new string[this.Blocks.Length + 1];
             Array.Copy(this.Blocks, blocks, this.Blocks.Length);
-            blocks[blocks.Length - 1] = parentBlockId;
+            blocks[^1] = parentBlockId;
 
             this.Blocks = blocks;
         }

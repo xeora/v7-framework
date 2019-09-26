@@ -76,7 +76,7 @@ namespace Xeora.Web.Global
             }
         }
 
-        private KeyValuePair<string, int>[] GetIndices()
+        private IEnumerable<KeyValuePair<string, int>> GetIndices()
         {
             List<KeyValuePair<string, int>> indices = 
                 new List<KeyValuePair<string, int>>();
@@ -90,7 +90,7 @@ namespace Xeora.Web.Global
             return indices.ToArray();
         }
         
-        private KeyValuePair<string, object>[] GetValues()
+        private IEnumerable<KeyValuePair<string, object>> GetValues()
         {
             List<KeyValuePair<string, object>> values = 
                 new List<KeyValuePair<string, object>>();

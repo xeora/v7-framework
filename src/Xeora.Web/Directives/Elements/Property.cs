@@ -348,7 +348,7 @@ namespace Xeora.Web.Directives.Elements
             string[] objectPaths = objectPath.Split('.');
 
             if (objectPaths.Length < 2)
-                throw new Exceptions.GrammerException();
+                throw new Exceptions.GrammarException();
 
             string objectItemKey = objectPaths[0];
             object objectItem = null;

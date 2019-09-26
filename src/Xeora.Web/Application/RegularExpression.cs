@@ -10,18 +10,18 @@ namespace Xeora.Web.Application
         private RegularExpression()
         {
             // CAPTURE REGULAR EXPRESSIONS
-            string characterGroup = "0-9_a-zA-Z";
-            string simpleVariableRegEx = "([#]+|[\\^\\-\\+\\*\\~])?([" + characterGroup + "]+)";
-            string staticVariableRegEx = "\\=[\\S]*";
-            string objectVariableRegEx = "@([#]+|[\\-])?([" + characterGroup + "]+\\.)[\\." + characterGroup + "]+";
-            string variableRegEx = simpleVariableRegEx + "|" + staticVariableRegEx + "|" + objectVariableRegEx;
-            string directiveIdRegEx = "[\\.\\-" + characterGroup + "]+";
-            string directiveIdWithSlashRegEx = "[\\/\\.\\-" + characterGroup + "]+"; // for template capturing
-            string directivePointerRegEx = "(A)?[A-Z]";
-            string levelingRegEx = "\\#\\d+(\\+)?";
-            string parentingRegEx = "\\[" + directiveIdRegEx + "\\]";
-            string parametersRegEx = "\\(((\\|)?(" + variableRegEx + ")?)+\\)";
-            string procedureRegEx = directiveIdRegEx + "\\?" + directiveIdRegEx + "(\\,((\\|)?(" + variableRegEx + ")?)*)?";
+            const string characterGroup = "0-9_a-zA-Z";
+            const string simpleVariableRegEx = "([#]+|[\\^\\-\\+\\*\\~])?([" + characterGroup + "]+)";
+            const string staticVariableRegEx = "\\=[\\S]*";
+            const string objectVariableRegEx = "@([#]+|[\\-])?([" + characterGroup + "]+\\.)[\\." + characterGroup + "]+";
+            const string variableRegEx = simpleVariableRegEx + "|" + staticVariableRegEx + "|" + objectVariableRegEx;
+            const string directiveIdRegEx = "[\\.\\-" + characterGroup + "]+";
+            const string directiveIdWithSlashRegEx = "[\\/\\.\\-" + characterGroup + "]+"; // for template capturing
+            const string directivePointerRegEx = "(A)?[A-Z]";
+            const string levelingRegEx = "\\#\\d+(\\+)?";
+            const string parentingRegEx = "\\[" + directiveIdRegEx + "\\]";
+            const string parametersRegEx = "\\(((\\|)?(" + variableRegEx + ")?)+\\)";
+            const string procedureRegEx = directiveIdRegEx + "\\?" + directiveIdRegEx + "(\\,((\\|)?(" + variableRegEx + ")?)*)?";
 
             string singleRegEx =
                 "\\$" +

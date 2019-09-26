@@ -77,7 +77,7 @@ namespace Xeora.Web.Configuration.ApplicationSections
                 if (this._ApplicationRoot.IndexOf($".{Path.DirectorySeparatorChar}", StringComparison.Ordinal) != 0)
                     this._ApplicationRoot = $".{Path.DirectorySeparatorChar}{this._ApplicationRoot}";
 
-                if (this._ApplicationRoot[this._ApplicationRoot.Length - 1] != Path.DirectorySeparatorChar)
+                if (this._ApplicationRoot[^1] != Path.DirectorySeparatorChar)
                     this._ApplicationRoot = $"{this._ApplicationRoot}{Path.DirectorySeparatorChar}";
 
                 ((ApplicationRootFormat)this._ApplicationRootFormat).FileSystemImplementation = this._ApplicationRoot;

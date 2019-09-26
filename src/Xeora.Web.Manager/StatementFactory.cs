@@ -61,7 +61,7 @@ namespace Xeora.Web.Manager
                     StatementFactory.Current.Get(blockKey, statement, parametric, cache);
 
                 if (string.IsNullOrEmpty(executableName))
-                    throw new Exceptions.GrammerException();
+                    throw new Exceptions.GrammarException();
 
                 return new StatementExecutable(executableName, blockKey, null);
             }
@@ -95,7 +95,7 @@ namespace Xeora.Web.Manager
             statement =
                 this.Prepare(executableName, blockKey, statement, parametric);
 
-            this.Compile(executableName, blockKey, statement);
+            this.Compile(executableName, statement);
 
             return executableName;
         }
@@ -160,7 +160,7 @@ namespace Xeora.Web.Manager
             return codeBlock.ToString();
         }
 
-        private void Compile(string executableName, string blockKey, string codeBlock)
+        private void Compile(string executableName, string codeBlock)
         {
             SyntaxTree syntaxTree =
                 CSharpSyntaxTree.ParseText(codeBlock);

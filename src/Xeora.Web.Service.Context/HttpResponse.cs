@@ -106,7 +106,7 @@ namespace Xeora.Web.Service.Context
             // put cookies because it may contain sessionId
             foreach (string key in this.Header.Cookie.Keys)
             {
-                sB.AppendFormat("Set-Cookie: {0}", this.Header.Cookie[key].ToString());
+                sB.AppendFormat("Set-Cookie: {0}", this.Header.Cookie[key]);
                 sB.Append(Newline);
             }
             sB.Append(Newline);

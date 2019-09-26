@@ -164,7 +164,7 @@ namespace Xeora.Web.Directives.Elements
 
                     blockContent = sR.ReadToEnd();
                 }
-                catch (Exceptions.GrammerException)
+                catch (Exceptions.GrammarException)
                 {
                     throw;
                 }
@@ -203,7 +203,7 @@ namespace Xeora.Web.Directives.Elements
 
             int closeBracketIdx = directives.LastIndexOf(")", System.StringComparison.InvariantCulture);
             if (closeBracketIdx == -1)
-                throw new Exceptions.GrammerException();
+                throw new Exceptions.GrammarException();
             closeBracketIdx++;
 
             string paramDefinition =
@@ -214,7 +214,7 @@ namespace Xeora.Web.Directives.Elements
             return paramDefinition.Substring(8, paramDefinition.Length - 9);
         }
 
-        public object[] RenderParameters(string requesterUniqueId)
+        private object[] RenderParameters(string requesterUniqueId)
         {
             if (string.IsNullOrEmpty(this._ParametersDefinition))
                 return null;

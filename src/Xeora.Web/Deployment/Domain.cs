@@ -109,7 +109,7 @@ namespace Xeora.Web.Deployment
                 string[] childAccessTree =
                     new string[this.DomainIdAccessTree.Length + 1];
                 Array.Copy(this.DomainIdAccessTree, 0, childAccessTree, 0, this.DomainIdAccessTree.Length);
-                childAccessTree[childAccessTree.Length - 1] = childDI.Name;
+                childAccessTree[^1] = childDI.Name;
 
                 Domain childDomain = 
                     new Domain(childAccessTree);

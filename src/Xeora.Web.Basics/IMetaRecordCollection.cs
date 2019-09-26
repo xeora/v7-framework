@@ -9,7 +9,7 @@ namespace Xeora.Web.Basics
         void Remove(string name);
         void Remove(MetaRecord.Tags tag);
 
-        KeyValuePair<MetaRecord.Tags, string>[] CommonTags { get; }
-        KeyValuePair<string, string>[] CustomTags { get; }
+        IEnumerable<KeyValuePair<MetaRecord.Tags, string>> CommonTags { get; }
+        IEnumerable<KeyValuePair<string, string>> CustomTags { get; }
     }
 }

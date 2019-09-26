@@ -2,33 +2,33 @@
 
 namespace Xeora.Web.Service.Context
 {
-    public class KeyValueCollection<K, V> : Basics.Context.IKeyValueCollection<K, V>
+    public class KeyValueCollection<TK, TV> : Basics.Context.IKeyValueCollection<TK, TV>
     {
-        private readonly Dictionary<K, V> _Container;
+        private readonly Dictionary<TK, TV> _Container;
 
         public KeyValueCollection() =>
-            this._Container = new Dictionary<K, V>();
+            this._Container = new Dictionary<TK, TV>();
 
-        public KeyValueCollection(IEqualityComparer<K> comparer) =>
-            this._Container = new Dictionary<K, V>(comparer);
+        public KeyValueCollection(IEqualityComparer<TK> comparer) =>
+            this._Container = new Dictionary<TK, TV>(comparer);
 
-        internal void AddOrUpdate(K key, V value) =>
+        internal void AddOrUpdate(TK key, TV value) =>
             this._Container[key] = value;
 
-        internal bool ContainsKey(K key) =>
+        internal bool ContainsKey(TK key) =>
             this._Container.ContainsKey(key);
 
-        internal void Remove(K key)
+        internal void Remove(TK key)
         {
             if (this._Container.ContainsKey(key))
                 this._Container.Remove(key);
         }
 
-        public K[] Keys
+        public TK[] Keys
         {
             get
             {
-                K[] keys = new K[this._Container.Count];
+                TK[] keys = new TK[this._Container.Count];
 
                 this._Container.Keys.CopyTo(keys, 0);
 
@@ -36,7 +36,7 @@ namespace Xeora.Web.Service.Context
             }
         }
 
-        public V this[K key] =>
+        public TV this[TK key] =>
             !this._Container.ContainsKey(key) ? default : this._Container[key];
     }
 }

@@ -1,11 +1,11 @@
 ﻿function XeoraJS() {
     this.bindId = "_sys_bind_";
-    this.httprequests = new Array();
+    this.httprequests = [];
 };
 
 XeoraJS.prototype.pushCode = function (callCode) {
     this.bindId = this.bindId.substring(0, 10);
-    this.bindId += new String(callCode);
+    this.bindId += String(callCode);
 };
 
 XeoraJS.prototype.post = function (AssemblyInfo) {
@@ -47,20 +47,20 @@ XeoraJS.prototype.update = function (updateLocation, assemblyInfo, indicatorCall
         return;
     }
 
-    updateLocation = new String(updateLocation);
+    updateLocation = String(updateLocation);
 
     var allUpdateLocations = updateLocation.split(",");
-    var updateLocationPath = new String(allUpdateLocations[0]);
+    var updateLocationPath = String(allUpdateLocations[0]);
     var nextUpdateLocations = updateLocation.slice(updateLocationPath.length + 1, updateLocation.length);
 
     var updateLocationPathParts = updateLocationPath.split(">");
-    if (updateLocationPathParts.length == 0) {
+    if (updateLocationPathParts.length === 0) {
         this.update(nextUpdateLocations, assemblyInfo);
         return;
     }
 
     var mostAvailableObject = document.getElementById(updateLocationPathParts[0]);
-    if (mostAvailableObject == undefined) {
+    if (mostAvailableObject === undefined) {
         this.update(nextUpdateLocations, assemblyInfo);
         return;
     }
@@ -78,12 +78,12 @@ XeoraJS.prototype.update = function (updateLocation, assemblyInfo, indicatorCall
     this.httprequests[httprequestIndex].setRequestHeader('X-BlockRenderingId', updateLocationPath);
 
     var postContent = "";
-    if (assemblyInfo != null && assemblyInfo != "")
+    if (assemblyInfo != null && assemblyInfo !== "")
     { postContent = this.bindId + "=" + assemblyInfo + "&"; }
 
     for (var iC = 0; iC < document.forms[0].length; iC++) {
-        if (document.forms[0][iC].name != this.bindId) {
-            if (document.forms[0][iC].type.toLowerCase() == "checkbox" || document.forms[0][iC].type.toLowerCase() == "radio") {
+        if (document.forms[0][iC].name !== this.bindId) {
+            if (document.forms[0][iC].type.toLowerCase() === "checkbox" || document.forms[0][iC].type.toLowerCase() === "radio") {
                 if (document.forms[0][iC].checked)
                 { postContent += "&" + document.forms[0][iC].name + "=" + encodeURIComponent(document.forms[0][iC].value); }
             }
@@ -105,16 +105,16 @@ XeoraJS.prototype.update = function (updateLocation, assemblyInfo, indicatorCall
 };
 
 XeoraJS.prototype.processstate = function (updateLocationPathParts, nextDivIds, assemblyInfo, indicatorCallback, httprequestindex) {
-    if (this.httprequests[httprequestindex].readyState != 4) {
+    if (this.httprequests[httprequestindex].readyState !== 4) {
         return;
     }
 
     var continueOperation = false;
 
-    if (this.httprequests[httprequestindex].status == 200 || this.httprequests[httprequestindex].status == 218) {
-        var rText = new String(this.httprequests[httprequestindex].responseText);
+    if (this.httprequests[httprequestindex].status === 200 || this.httprequests[httprequestindex].status === 218) {
+        var rText = String(this.httprequests[httprequestindex].responseText);
 
-        if (rText.indexOf("rl:", 0) == 0) {
+        if (rText.indexOf("rl:", 0) === 0) {
             document.location.href = rText.substring(3, rText.length);
             return;
         }
@@ -139,13 +139,13 @@ XeoraJS.prototype.processstate = function (updateLocationPathParts, nextDivIds, 
 
     this.httprequests[httprequestindex] = null;
 
-    if (continueOperation && nextDivIds != null && nextDivIds != "")
+    if (continueOperation && nextDivIds != null && nextDivIds !== "")
     { this.update(nextDivIds, assemblyInfo); }
 };
 
 XeoraJS.prototype.prepareTargetObject = function (updateLocationPathParts) {
     var targetObject = document.getElementById(updateLocationPathParts[0]);
-    if (targetObject == undefined) {
+    if (targetObject === undefined) {
         targetObject = document.createElement("DIV");
         targetObject.id = updateLocationPathParts[0];
 
@@ -167,7 +167,7 @@ XeoraJS.prototype.prepareTargetObject = function (updateLocationPathParts) {
 };
 
 XeoraJS.prototype.findObjectById = function (searchObject, searchId) {
-    if (searchObject.id == searchId) {
+    if (searchObject.id === searchId) {
         return searchObject;
     }
 
@@ -176,7 +176,7 @@ XeoraJS.prototype.findObjectById = function (searchObject, searchId) {
     }
 
     for (var cC = 0; cC < searchObject.childNodes.length; cC++) {
-        returnObject = this.findObjectById(searchObject.childNodes[cC], searchId);
+        var returnObject = this.findObjectById(searchObject.childNodes[cC], searchId);
         if (returnObject != null) { return returnObject }
     }
 
@@ -190,7 +190,7 @@ XeoraJS.prototype.compileScriptTags = function (element) {
         if (element.childNodes[cX].childNodes.length > 0)
         { returnValue += this.compileScriptTags(element.childNodes[cX]); }
 
-        if (element.childNodes[cX].tagName == "SCRIPT")
+        if (element.childNodes[cX].tagName === "SCRIPT")
         { returnValue += element.childNodes[cX].innerHTML; }
     }
 

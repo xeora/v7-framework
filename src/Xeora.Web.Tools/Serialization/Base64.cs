@@ -2,7 +2,7 @@
 
 namespace Xeora.Web.Tools.Serialization
 {
-    public class Base64
+    public static class Base64
     {
         public static string Serialize(byte[] value) =>
             Convert.ToBase64String(value);

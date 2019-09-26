@@ -19,7 +19,7 @@ namespace Xeora.Web.Directives
         public event DeploymentAccessHandler DeploymentAccessRequested;
         public event ControlResolveHandler ControlResolveRequested;
 
-        public Mother(IDirective directive, Basics.ControlResult.Message messageResult, string[] updateBlockIdList)
+        public Mother(IDirective directive, Basics.ControlResult.Message messageResult, IReadOnlyCollection<string> updateBlockIdList)
         {
             this.Pool = new DirectivePool();
             
@@ -27,14 +27,14 @@ namespace Xeora.Web.Directives
             this.MessageResult = messageResult;
             this.RequestedUpdateBlockIds = 
                 new List<string>();
-            if (updateBlockIdList != null && updateBlockIdList.Length > 0)
+            if (updateBlockIdList != null && updateBlockIdList.Count > 0)
                 this.RequestedUpdateBlockIds.AddRange(updateBlockIdList);
             
             this._Directive = directive;
             this._Directive.Mother = this;
         }
 
-        public Mother(string xeoraContent, Basics.ControlResult.Message messageResult, string[] updateBlockIdStack) :
+        public Mother(string xeoraContent, Basics.ControlResult.Message messageResult, IReadOnlyCollection<string> updateBlockIdStack) :
             this(new Single(xeoraContent, null), messageResult, updateBlockIdStack)
         { }
 
@@ -69,7 +69,7 @@ namespace Xeora.Web.Directives
             if (this.RequestedUpdateBlockIds.Count > 0)
             {
                 if (!(this._Directive is Single single))
-                    throw new System.Exception("update request container should be single!");
+                    throw new Exception("update request container should be single!");
 
                 single.Parse();
 

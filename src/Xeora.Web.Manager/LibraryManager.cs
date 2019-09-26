@@ -171,21 +171,21 @@ namespace Xeora.Web.Manager
             return false;
         }
 
-        private Exception GetExecutionError(string[] classNames, string functionName, object[] functionParams, Exception innerException)
+        private Exception GetExecutionError(string[] classNames, string functionName, IReadOnlyCollection<object> functionParams, Exception innerException)
         {
             string compileErrorObject;
 
             if (classNames != null)
             {
-                compileErrorObject = functionParams.Length == 0 
+                compileErrorObject = functionParams.Count == 0 
                     ? $"{this._ExecutableName}?{string.Join(".", classNames)}.{functionName}"
-                    : $"{this._ExecutableName}?{string.Join(".", classNames)}.{functionName},[Length:{functionParams.Length}]";
+                    : $"{this._ExecutableName}?{string.Join(".", classNames)}.{functionName},[Length:{functionParams.Count}]";
             }
             else
             {
-                compileErrorObject = functionParams.Length == 0 
+                compileErrorObject = functionParams.Count == 0 
                     ? $"{this._ExecutableName}?{functionName}"
-                    : $"{this._ExecutableName}?{functionName},[Length:{functionParams.Length}]";
+                    : $"{this._ExecutableName}?{functionName},[Length:{functionParams.Count}]";
             }
 
             return new Exception(
@@ -617,6 +617,8 @@ namespace Xeora.Web.Manager
             {
                 Monitor.Exit(this._InstanceCreationLock);
             }
+            
+            this.Unload();
         }
     }
 }

@@ -223,7 +223,7 @@ namespace Xeora.Web.Handler
             }
 
             string scriptFileName =
-                $"_bi_sps_v{this._DomainControl.XeoraJSVersion}.js";
+                $"_bi_sps_v{Application.DomainControl.XeoraJsVersion}.js";
             int scriptFileNameIndex =
                 requestedFileVirtualPath.IndexOf(scriptFileName, StringComparison.InvariantCulture);
             bool isScriptRequesting =
@@ -392,7 +392,7 @@ namespace Xeora.Web.Handler
                 new StringBuilder();
 
             exceptionClientView.AppendLine("-- APPLICATION EXCEPTION --");
-            exceptionClientView.Append(exception.ToString());
+            exceptionClientView.Append(exception);
             exceptionClientView.AppendLine();
             // ----
 
@@ -666,7 +666,8 @@ namespace Xeora.Web.Handler
             {
                 case Basics.Domain.ServiceTypes.Template:
                     // Get AuthenticationPage 
-                    KeyValuePair<string, string> referrerUrlQueryString;
+                    KeyValuePair<string, string> referrerUrlQueryString = 
+                        new KeyValuePair<string, string>();
                     string authenticationPage =
                         this._DomainControl.Domain.Settings.Configurations.AuthenticationTemplate;
 
@@ -800,7 +801,7 @@ namespace Xeora.Web.Handler
             writer.WriteLine(
                 "<script type=\"text/javascript\" src=\"{0}_bi_sps_v{1}.js\"></script>", 
                 Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation, 
-                this._DomainControl.XeoraJSVersion);
+                Application.DomainControl.XeoraJsVersion);
             writer.WriteLine(
                 $"<script type=\"text/javascript\">__XeoraJS.pushCode({this.Context.HashCode});</script>"
             );

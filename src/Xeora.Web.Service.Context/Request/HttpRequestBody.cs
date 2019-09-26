@@ -205,10 +205,7 @@ namespace Xeora.Web.Service.Context.Request
                     return false;
                 });
 
-                if (!completed)
-                    return default;
-
-                return this.ParseContentHeader(content.Substring(0, eofIndex));
+                return !completed ? default : this.ParseContentHeader(content.Substring(0, eofIndex));
             }
             finally
             {

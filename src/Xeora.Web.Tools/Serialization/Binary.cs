@@ -4,7 +4,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Xeora.Web.Tools.Serialization
 {
-    public class Binary
+    public static class Binary
     {
         public static byte[] Serialize(object value)
         {
