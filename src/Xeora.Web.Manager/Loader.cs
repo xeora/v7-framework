@@ -8,7 +8,6 @@ namespace Xeora.Web.Manager
     {
         private readonly string _CacheRootLocation;
         private readonly string _DomainRootLocation;
-        // private readonly FileSystemWatcher _FileSystemWatcher = null;
 
         private Loader(Action libraryChanged)
         {
@@ -29,26 +28,24 @@ namespace Xeora.Web.Manager
                         "Domains"
                     )
                 );
+            
+            FileSystemWatcher fileSystemWatcher = 
+                new FileSystemWatcher
+                {
+                    Path = this._DomainRootLocation,
+                    IncludeSubdirectories = true,
+                    Filter = "*.dll",
+                    NotifyFilter = NotifyFilters.LastWrite,
+                    EnableRaisingEvents = true
+                };
+            fileSystemWatcher.Changed += (sender, e) => this.Load(libraryChanged);
 
-
-            /* TODO: Canceled until we find a stabil solution for binary refreshing
-            this._FileSystemWatcher = new FileSystemWatcher
-            {
-                Path = this._DomainRootLocation,
-                IncludeSubdirectories = true,
-                Filter = "*.dll",
-                NotifyFilter = NotifyFilters.LastWrite,
-                EnableRaisingEvents = true
-            };
-            this._FileSystemWatcher.Changed += (object sender, FileSystemEventArgs e) => this.Load(libraryChanged);
-
-            Basics.Console.Register((keyInfo) => {
+            Basics.Console.Register(keyInfo => {
                 if ((keyInfo.Modifiers & ConsoleModifiers.Control) == 0 || keyInfo.Key != ConsoleKey.R)
                     return;
 
                 this.Load(libraryChanged);
             });
-            */
         }
 
         public string Id { get; private set; }
