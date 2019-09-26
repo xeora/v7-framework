@@ -15,6 +15,7 @@
     <AssemblyVersion>7.2.*</AssemblyVersion>
     <FileVersion>7.2</FileVersion>
     <Deterministic>False</Deterministic>
+    <LangVersion>8</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -49,7 +50,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.2.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.3.1" />
   </ItemGroup>
 
   <ItemGroup>
