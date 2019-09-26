@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <Platforms>AnyCPU;x64;x86</Platforms>
     <StartupObject>Xeora.Web.Engine.Program</StartupObject>
     <PackageId>Xeora.Web.Engine</PackageId>
@@ -17,38 +17,39 @@
     <AssemblyVersion>7.2.*</AssemblyVersion>
     <FileVersion>7.2</FileVersion>
     <Deterministic>False</Deterministic>
+    <LangVersion>8</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebugType>none</DebugType>
-    <OutputPath>..\..\build\Core\x64</OutputPath>
+    <OutputPath>../../build/Core/x64/</OutputPath>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <DebugType>none</DebugType>
-    <OutputPath>..\..\build\Core\Any</OutputPath>
+    <OutputPath>../../build/Core/Any/</OutputPath>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\netcoreapp2.0</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <AppendTargetFrameworkToOutputFolder>false</AppendTargetFrameworkToOutputFolder>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\netcoreapp2.0</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <AppendTargetFrameworkToOutputFolder>false</AppendTargetFrameworkToOutputFolder>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\..\build\Core\Any\</OutputPath>
+    <OutputPath>../../build/Core/Any/</OutputPath>
     <AppendTargetFrameworkToOutputFolder>false</AppendTargetFrameworkToOutputFolder>
   </PropertyGroup>
 
