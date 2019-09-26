@@ -45,8 +45,8 @@ namespace Xeora.Web.Handler
 
         public Basics.IHandler Create(ref IHttpContext context)
         {
-            // TODO: Pool Variable Expire minutes should me dynamic
-            PoolFactory.Initialize(20);
+            PoolFactory.Initialize(
+                Basics.Configurations.Xeora.Session.Timeout);
 
             Basics.IHandler handler;
 
