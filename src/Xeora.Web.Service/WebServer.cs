@@ -91,14 +91,13 @@ namespace Xeora.Web.Service
                 return 1;
             }
 
-            this.Listen().GetAwaiter().GetResult();
-
+            this.ListenAsync().GetAwaiter().GetResult();
             this._TerminationLock.WaitOne();
             
             return 0;
         }
 
-        private async Task Listen()
+        private async Task ListenAsync()
         {
             while (true)
             {
@@ -107,12 +106,10 @@ namespace Xeora.Web.Service
                     TcpClient remoteClient =
                         await this._TcpListener.AcceptTcpClientAsync();
 
-                    Task connectionTask =
-                        new Task(c => ((Connection)c).Process(),
-                        new Connection(ref remoteClient, this._Certificate),
-                        TaskCreationOptions.DenyChildAttach
+                    ThreadPool.QueueUserWorkItem(
+                        c => ((Connection) c).Process(),
+                        new Connection(ref remoteClient, this._Certificate)
                     );
-                    connectionTask.Start();
                 }
                 catch (InvalidOperationException)
                 {
