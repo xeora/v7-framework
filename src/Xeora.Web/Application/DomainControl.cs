@@ -582,11 +582,11 @@ namespace Xeora.Web.Application
 
         public static void ClearCache()
         {
+            // Clear Compiled Statements Cache
+            Master.Reset();
+
             // Clear Url Mapping Cache
             Basics.Mapping.Url.Reset();
-            
-            // Clear Compiled Statements Cache
-            Master.ClearCache();
 
             // Clear Domain Control Map Cache
             Application.Domain.Reset();

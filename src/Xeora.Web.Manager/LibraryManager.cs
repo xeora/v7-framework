@@ -23,7 +23,8 @@ namespace Xeora.Web.Manager
         private readonly object _AssemblyMethodLock;
         private readonly Dictionary<string, MethodInfo[]> _AssemblyMethods;
 
-        public LibraryManager(string executablesPath, string executableName, string[] assemblySearchPaths)
+        public LibraryManager(string executablesPath, string executableName, string[] assemblySearchPaths) : 
+            base(isCollectible: true)
         {
             if (string.IsNullOrEmpty(executablesPath))
                 throw new ArgumentNullException(nameof(executablesPath));
@@ -617,8 +618,6 @@ namespace Xeora.Web.Manager
             {
                 Monitor.Exit(this._InstanceCreationLock);
             }
-            
-            this.Unload();
         }
     }
 }

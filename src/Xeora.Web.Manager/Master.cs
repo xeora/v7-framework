@@ -2,33 +2,43 @@
 
 namespace Xeora.Web.Manager
 {
-    public class Master
+    public static class Master
     {
-        private static readonly object InitLock = new object();
+        private static readonly object Lock = new object();
         private static bool _Initialized;
 
         public static void Initialize()
         {
-            Monitor.Enter(Master.InitLock);
+            Monitor.Enter(Master.Lock);
             try
             {
                 if (Master._Initialized)
                     return;
 
-                Loader.Initialize(Master.ClearCache);
+                Loader.Initialize();
 
                 Master._Initialized = true;
             }
             finally
             {
-                Monitor.Exit(Master.InitLock);
+                Monitor.Exit(Master.Lock);
             }
         }
 
-        public static void ClearCache()
+        public static void Reset()
         {
-            Application.Dispose();
-            StatementFactory.Dispose();
+            Monitor.Enter(Master.Lock);
+            try
+            {
+                if (!Master._Initialized)
+                    return;
+                
+                Loader.Reload();
+            }
+            finally
+            {
+                Monitor.Exit(Master.Lock);
+            }
         }
     }
 }

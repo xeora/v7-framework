@@ -38,9 +38,17 @@ namespace Xeora.Web.Manager
             return !this._LibraryManager.MissingFileException;
         }
 
-        private void Unload() =>
-            this._LibraryManager?.Dispose();
-        
+        private void Unload()
+        {
+            if (this._LibraryManager == null) return;
+            
+            this._LibraryManager.Dispose();
+            this._LibraryManager.Unload();
+            
+            GC.SuppressFinalize(this._LibraryManager);
+            this._LibraryManager = null;
+        }
+
         private static readonly object PrepareLock = new object();
         private static readonly Dictionary<string, Application> ApplicationCache =
             new Dictionary<string, Application>();

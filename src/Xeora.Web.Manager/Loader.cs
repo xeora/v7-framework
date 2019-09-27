@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace Xeora.Web.Manager
@@ -9,7 +10,7 @@ namespace Xeora.Web.Manager
         private readonly string _CacheRootLocation;
         private readonly string _DomainRootLocation;
 
-        private Loader(Action libraryChanged)
+        private Loader()
         {
             this._CacheRootLocation =
                 System.IO.Path.Combine(
@@ -29,23 +30,9 @@ namespace Xeora.Web.Manager
                     )
                 );
             
-            FileSystemWatcher fileSystemWatcher = 
-                new FileSystemWatcher
-                {
-                    Path = this._DomainRootLocation,
-                    IncludeSubdirectories = true,
-                    Filter = "*.dll",
-                    NotifyFilter = NotifyFilters.LastWrite,
-                    EnableRaisingEvents = true
-                };
-            fileSystemWatcher.Changed += (sender, e) => this.Load(libraryChanged);
-
-            Basics.Console.Register(keyInfo => {
-                if ((keyInfo.Modifiers & ConsoleModifiers.Control) == 0 || keyInfo.Key != ConsoleKey.R)
-                    return;
-
-                this.Load(libraryChanged);
-            });
+            Watcher watcher = 
+                new Watcher(this._DomainRootLocation, Basics.Helpers.Refresh);
+            watcher.Start();
         }
 
         public string Id { get; private set; }
@@ -53,13 +40,23 @@ namespace Xeora.Web.Manager
             System.IO.Path.Combine(this._CacheRootLocation, this.Id);
 
         public static Loader Current { get; private set; }
-        public static void Initialize(Action libraryChanged)
+        public static void Initialize()
         {
-            Loader.Current = new Loader(libraryChanged);
-            Loader.Current.Load(null);
+            Loader.Current = new Loader();
+            Loader.Current.Load();
         }
 
-        private void Load(Action libraryChanged)
+        public static void Reload()
+        {
+            if (Loader.Current == null) return;
+            
+            StatementFactory.Dispose();
+            Application.Dispose();
+            
+            Loader.Current.Load();
+        }
+
+        private void Load()
         {
             try
             {
@@ -71,8 +68,6 @@ namespace Xeora.Web.Manager
 
                 this.LoadExecutables(this._DomainRootLocation);
 
-                libraryChanged?.Invoke();
-
                 Basics.Console.Push(string.Empty, "Application is loaded successfully!", string.Empty, false);
             }
             catch (Exception)
@@ -81,46 +76,45 @@ namespace Xeora.Web.Manager
             }
 
             // Do not block Application load
-            ThreadPool.QueueUserWorkItem((state) => this.Cleanup());
+            ThreadPool.QueueUserWorkItem(state => this.Cleanup());
         }
 
         private void LoadExecutables(string domainRootPath)
         {
-            DirectoryInfo domainsDI =
+            DirectoryInfo domains =
                 new DirectoryInfo(domainRootPath);
 
-            foreach (DirectoryInfo domainDI in domainsDI.GetDirectories())
+            foreach (DirectoryInfo domain in domains.GetDirectories())
             {
                 string domainExecutablesLocation =
-                    System.IO.Path.Combine(domainDI.FullName, "Executables");
+                    System.IO.Path.Combine(domain.FullName, "Executables");
 
-                DirectoryInfo domainExecutablesDI =
+                DirectoryInfo domainExecutables =
                     new DirectoryInfo(domainExecutablesLocation);
-                if (domainExecutablesDI.Exists)
+                if (domainExecutables.Exists)
                 {
-                    foreach (FileInfo executableFI in domainExecutablesDI.GetFiles())
+                    foreach (FileInfo executable in domainExecutables.GetFiles())
                     {
-                        FileInfo applicationLocationFI =
+                        FileInfo applicationLocation =
                             new FileInfo(
-                                System.IO.Path.Combine(this.Path, executableFI.Name));
+                                System.IO.Path.Combine(this.Path, executable.Name));
 
-                        if (applicationLocationFI.Exists)
-                            continue;
+                        if (applicationLocation.Exists) continue;
 
-                        executableFI.CopyTo(applicationLocationFI.FullName, true);
+                        executable.CopyTo(applicationLocation.FullName, true);
                     }
                 }
 
-                DirectoryInfo domainChildrenDI =
-                    new DirectoryInfo(System.IO.Path.Combine(domainDI.FullName, "Addons"));
-                if (domainChildrenDI.Exists)
-                    this.LoadExecutables(domainChildrenDI.FullName);
+                DirectoryInfo domainChildren =
+                    new DirectoryInfo(System.IO.Path.Combine(domain.FullName, "Addons"));
+                if (domainChildren.Exists)
+                    this.LoadExecutables(domainChildren.FullName);
             }
         }
 
-        private bool AvailableToDelete(DirectoryInfo applicationDI)
+        private bool AvailableToDelete(DirectoryInfo application)
         {
-            foreach (FileInfo fI in applicationDI.GetFiles())
+            foreach (FileInfo fI in application.GetFiles())
             {
                 Stream checkStream = null;
                 try
@@ -142,22 +136,22 @@ namespace Xeora.Web.Manager
 
         private void Cleanup()
         {
-            DirectoryInfo cacheRootDI =
+            DirectoryInfo cacheRoot =
                 new DirectoryInfo(this._CacheRootLocation);
-            if (!cacheRootDI.Exists)
+            if (!cacheRoot.Exists)
                 return;
 
-            foreach (DirectoryInfo applicationDI in cacheRootDI.GetDirectories())
+            foreach (DirectoryInfo application in cacheRoot.GetDirectories())
             {
-                if (applicationDI.Name.Equals("PoolSessions") ||
-                    applicationDI.Name.Equals(this.Id))
+                if (application.Name.Equals("PoolSessions") ||
+                    application.Name.Equals(this.Id))
                     continue;
 
-                if (!this.AvailableToDelete(applicationDI)) continue;
+                if (!this.AvailableToDelete(application)) continue;
                 
                 try
                 {
-                    applicationDI.Delete(true);
+                    application.Delete(true);
                 }
                 catch (Exception)
                 {
