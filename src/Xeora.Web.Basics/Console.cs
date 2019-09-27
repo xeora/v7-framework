@@ -92,21 +92,19 @@ namespace Xeora.Web.Basics
                     Console.WriteLine(message);
                 }
 
-                if (string.CompareOrdinal(groupId, Guid.Empty.ToString()) != 0)
-                {
-                    string separator =
-                        "".PadRight(30, '-');
-                    Message separatorMessage =
-                        Message.Create(Type.Info, $"{DateTime.Now:MM/dd/yyyy HH:mm:ss.fff} {separator} {separator}");
-                    Console.WriteLine(separatorMessage);
-                }
+                if (string.CompareOrdinal(groupId, Guid.Empty.ToString()) == 0) return;
+                
+                string separator =
+                    "".PadRight(30, '-');
+                Message separatorMessage =
+                    Message.Create(Type.Info, $"{DateTime.Now:MM/dd/yyyy HH:mm:ss.fff} {separator} {separator}");
+                Console.WriteLine(separatorMessage);
             }
             finally
             {
                 Monitor.Exit(this._FlushingLock);
+                this._Flushing.TryRemove(groupId, out _);
             }
-
-            this._Flushing.TryRemove(groupId, out _);
         }
 
         private static void WriteLine(Message message)
