@@ -8,7 +8,7 @@ using Xeora.Web.Service.Context;
 
 namespace Xeora.Web.Service
 {
-    public class ClientState
+    public static class ClientState
     {
         public static void Handle(IPAddress remoteAddr, Net.NetworkStream streamEnclosure)
         {
