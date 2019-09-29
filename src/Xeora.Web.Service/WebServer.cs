@@ -58,8 +58,13 @@ namespace Xeora.Web.Service
 
                 if (Configuration.Manager.Current.Configuration.Service.Ssl)
                 {
+                    string certPath = 
+                        Path.Combine(this._ConfigurationPath, "server.p12");
+                    if (!File.Exists(certPath))
+                        throw new Exception("SSL certification file 'server.p12' is missing");
+
                     this._Certificate = new X509Certificate2(
-                        Path.Combine(this._ConfigurationPath, "server.p12"),
+                        certPath,
                         Configuration.Manager.Current.Configuration.Service.CertificatePassword
                     );
 
