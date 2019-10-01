@@ -152,6 +152,7 @@ namespace Xeora.Web.Manager
 
         public bool MissingFileException { get; private set; }
 
+        // TODO: Clean up
         private bool ExamInterface(string interfaceFullName)
         {
             Type[] assemblyExTypes =
@@ -228,17 +229,13 @@ namespace Xeora.Web.Manager
             }
         }
 
-        private object GetCreateDomainInstance(Type executingDomain, out bool @new)
+        private object GetCreateDomainInstance(Type executingDomain)
         {
-            @new = false;
-            
             Monitor.Enter(this._InstanceCreationLock);
             try
             {
                 if (this._ExecutableInstances.TryGetValue(executingDomain, out object domainInstance))
                     return domainInstance;
-
-                @new = true;
 
                 Type interfaceType =
                     executingDomain.GetInterface("IDomainExecutable");
@@ -252,32 +249,22 @@ namespace Xeora.Web.Manager
                     domainInstance = 
                         Activator.CreateInstance(executingDomain);
                     this._ExecutableInstances.TryAdd(executingDomain, domainInstance);
-
-                    return domainInstance;
                 }
                 catch (Exception ex)
                 {
                     return new Exception("Unable to create an instance of Xeora Domain Executable!", ex);
                 }
+
+                return this.InitializeDomainInstance(executingDomain, ref domainInstance);
             }
             finally
             {
                 Monitor.Exit(this._InstanceCreationLock);
             }
         }
-        
-        private object LoadDomainExecutable()
-        {
-            Type executingDomain =
-                this._AssemblyDll.GetType($"Xeora.Domain.{this._ExecutableName}", false, true);
-            
-            if (executingDomain == null)
-                return new Exception("Assembly does not belong to any Xeora Domain or Addon!");
-            
-            object domainInstance =
-                this.GetCreateDomainInstance(executingDomain, out bool @new);
-            if (!@new) return domainInstance;
 
+        private object InitializeDomainInstance(Type executingDomain, ref object domainInstance)
+        {
             MethodInfo mI =
                 domainInstance.GetType().GetMethod("Initialize");
             if (mI == null) return new MissingMethodException("Initialize");
@@ -307,6 +294,17 @@ namespace Xeora.Web.Manager
             }
             
             return domainInstance;
+        }
+        
+        private object LoadDomainExecutable()
+        {
+            Type executingDomain =
+                this._AssemblyDll.GetType($"Xeora.Domain.{this._ExecutableName}", false, true);
+            
+            if (executingDomain == null)
+                return new Exception("Assembly does not belong to any Xeora Domain or Addon!");
+            
+            return this.GetCreateDomainInstance(executingDomain);
         }
 
         private bool CheckFunctionResultTypeIsXeoraControl(Type methodReturnType) =>
