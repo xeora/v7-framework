@@ -53,6 +53,8 @@ namespace Xeora.Web.Service
             Basics.Console.Push("Connection is accepted from", string.Format("{0} ({1})", remoteIpEndPoint, Configuration.Manager.Current.Configuration.Service.Ssl ? "Secure" : "Basic"), string.Empty, true);
 
             ClientState.Handle(remoteIpEndPoint.Address, streamEnclosure);
+            
+            streamEnclosure.Close();
         }
 
         private bool MakeSecure(ref Stream remoteStream, IPEndPoint remoteIpEndPoint)

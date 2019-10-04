@@ -8,7 +8,7 @@ namespace Xeora.Web.Service.Net
 {
     public class NetworkStream : Stream
     {
-        private const int BUFFER_SIZE = 1024;
+        private const int BUFFER_SIZE = 2048;
         private readonly Stream _RemoteStream;
 
         private readonly ConcurrentQueue<byte[]> _IncomeCache;
@@ -33,21 +33,25 @@ namespace Xeora.Web.Service.Net
 
         private void StreamListener() 
         {
+            SpinWait spinWait = new SpinWait();
             byte[] buffer = new byte[NetworkStream.BUFFER_SIZE];
 
             do
             {
                 try
                 {
-                    int rC = this._RemoteStream.Read(buffer, 0, buffer.Length);
+                    int rC = 
+                        this._RemoteStream.Read(buffer, 0, buffer.Length);
+                    
+                    if (rC != 0)
+                    {
+                        byte[] cache = new byte[rC];
+                        Array.Copy(buffer, cache, rC);
 
-                    if (rC == 0)
-                        throw new IOException(this._RemoteStream.GetType().Name);
-
-                    byte[] cache = new byte[rC];
-                    Array.Copy(buffer, cache, rC);
-
-                    this._IncomeCache.Enqueue(cache);
+                        this._IncomeCache.Enqueue(cache);
+                    }
+                    else
+                        spinWait.SpinOnce();
                 }
                 catch
                 {
