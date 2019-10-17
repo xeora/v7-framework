@@ -6,6 +6,9 @@ namespace Xeora.Web.Manager
 {
     public class Loader
     {
+        private const string EXECUTABLES = "Executables";
+        private const string ADDONS = "Addons";
+        
         private readonly string _CacheRootLocation;
         private readonly string _DomainRootLocation;
         private readonly Watcher _Watcher;
@@ -88,28 +91,41 @@ namespace Xeora.Web.Manager
             foreach (DirectoryInfo domain in domains.GetDirectories())
             {
                 string domainExecutablesLocation =
-                    System.IO.Path.Combine(domain.FullName, "Executables");
+                    System.IO.Path.Combine(domain.FullName, Loader.EXECUTABLES);
 
                 DirectoryInfo domainExecutables =
                     new DirectoryInfo(domainExecutablesLocation);
                 if (domainExecutables.Exists)
-                {
-                    foreach (FileInfo executable in domainExecutables.GetFiles())
-                    {
-                        FileInfo applicationLocation =
-                            new FileInfo(
-                                System.IO.Path.Combine(this.Path, executable.Name));
-
-                        if (applicationLocation.Exists) continue;
-
-                        executable.CopyTo(applicationLocation.FullName, true);
-                    }
-                }
+                    this.CopyToTarget(domainExecutables, this.Path);
 
                 DirectoryInfo domainChildren =
-                    new DirectoryInfo(System.IO.Path.Combine(domain.FullName, "Addons"));
+                    new DirectoryInfo(System.IO.Path.Combine(domain.FullName, Loader.ADDONS));
                 if (domainChildren.Exists)
                     this.LoadExecutables(domainChildren.FullName);
+            }
+        }
+
+        private void CopyToTarget(DirectoryInfo sourceRoot, string target)
+        {
+            foreach (FileInfo fI in sourceRoot.GetFiles())
+            {
+                FileInfo applicationLocation =
+                    new FileInfo(
+                        System.IO.Path.Combine(target, fI.Name));
+                if (applicationLocation.Exists) continue;
+
+                fI.CopyTo(applicationLocation.FullName, true);
+            }
+
+            foreach (DirectoryInfo dI in sourceRoot.GetDirectories())
+            {
+                DirectoryInfo applicationLocation =
+                    new DirectoryInfo(
+                        System.IO.Path.Combine(target, dI.Name));
+                if (applicationLocation.Exists) continue;
+
+                applicationLocation.Create();
+                this.CopyToTarget(dI, applicationLocation.FullName);
             }
         }
 
