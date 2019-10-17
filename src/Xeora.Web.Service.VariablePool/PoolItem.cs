@@ -1,13 +1,13 @@
 ﻿using System;
 
-namespace Xeora.Web.Application.Services
+namespace Xeora.Web.Service.VariablePool
 {
     [Serializable]
-    public class VariablePool : Basics.Service.IVariablePool
+    public class PoolItem : Basics.Service.IVariablePool
     {
         private readonly Basics.Dss.IDss _Reservation;
 
-        public VariablePool(string sessionId, string keyId, ref Basics.Dss.IDss reservation)
+        public PoolItem(string sessionId, string keyId, ref Basics.Dss.IDss reservation)
         {
             this.SessionId = sessionId;
             this.KeyId = keyId;

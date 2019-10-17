@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Xeora.Web.Application.Services
+namespace Xeora.Web.Service.TaskScheduler
 {
     internal class TaskInfo
     {

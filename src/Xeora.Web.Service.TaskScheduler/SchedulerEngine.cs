@@ -2,14 +2,14 @@
 using System.Threading;
 using System.Collections.Concurrent;
 
-namespace Xeora.Web.Application.Services
+namespace Xeora.Web.Service.TaskScheduler
 {
-    public class ScheduledTasksEngine : Basics.Service.IScheduledTaskEngine
+    public class SchedulerEngine : Basics.Service.ITaskSchedulerEngine
     {
         private readonly ConcurrentDictionary<long, ConcurrentQueue<TaskInfo>> _ExecutionList;
         private readonly ConcurrentDictionary<string, bool> _ListOfCanceled;
 
-        public ScheduledTasksEngine()
+        public SchedulerEngine()
         {
             System.Timers.Timer executionTimer = 
                 new System.Timers.Timer(1000);
@@ -20,7 +20,7 @@ namespace Xeora.Web.Application.Services
             this._ListOfCanceled = new ConcurrentDictionary<string, bool>();
         }
 
-        public string RegisterTask(Action<object[]> scheduledCallBack, object[] @params, DateTime executionTime)
+        public string RegisterTask(Action<object[]> schedulerCallBack, object[] @params, DateTime executionTime)
         {
             long executionId = Tools.DateTime.Format(executionTime);
 
@@ -29,21 +29,21 @@ namespace Xeora.Web.Application.Services
                 queue = new ConcurrentQueue<TaskInfo>();
 
                 if (!this._ExecutionList.TryAdd(executionId, queue))
-                    return this.RegisterTask(scheduledCallBack, @params, executionTime);
+                    return this.RegisterTask(schedulerCallBack, @params, executionTime);
             }
 
-            TaskInfo taskInfo = new TaskInfo(scheduledCallBack, @params, executionTime);
+            TaskInfo taskInfo = new TaskInfo(schedulerCallBack, @params, executionTime);
 
             queue.Enqueue(taskInfo);
 
             return taskInfo.Id;
         }
 
-        public string RegisterTask(Action<object[]> scheduledCallBack, object[] @params, TimeSpan executionTime)
+        public string RegisterTask(Action<object[]> schedulerCallBack, object[] @params, TimeSpan executionTime)
         {
             DateTime absoluteExecutionTime = DateTime.Now.Add(executionTime);
 
-            return this.RegisterTask(scheduledCallBack, @params, absoluteExecutionTime);
+            return this.RegisterTask(schedulerCallBack, @params, absoluteExecutionTime);
         }
 
         public void UnRegisterTask(string id) =>

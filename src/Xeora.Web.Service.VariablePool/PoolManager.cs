@@ -1,39 +1,38 @@
 ﻿using System.Collections.Concurrent;
 using Xeora.Web.Basics.Service;
-using Xeora.Web.Service.Dss;
 
-namespace Xeora.Web.Application.Services
+namespace Xeora.Web.Service.VariablePool
 {
-    public class PoolFactory : ConcurrentDictionary<string, IVariablePool>
+    public class PoolManager : ConcurrentDictionary<string, IVariablePool>
     {
-        private static PoolFactory _Current;
+        private static PoolManager _Current;
         private readonly short _ExpiresInMinutes ;
 
-        private PoolFactory(short expiresInMinutes) =>
+        private PoolManager(short expiresInMinutes) =>
             this._ExpiresInMinutes = expiresInMinutes;
 
         public static void Initialize(short expiresInMinutes)
         {
-            if (PoolFactory._Current != null)
+            if (PoolManager._Current != null)
                 return;
 
-            PoolFactory._Current = new PoolFactory(expiresInMinutes);
+            PoolManager._Current = new PoolManager(expiresInMinutes);
         }
 
         public static void Get(string sessionId, string keyId, out IVariablePool variablePool)
         {
-            if (PoolFactory._Current == null)
+            if (PoolManager._Current == null)
                 throw new Exceptions.VariablePoolNotReadyException();
 
-            PoolFactory._Current.ProvideVariablePool(sessionId, keyId, out variablePool);
+            PoolManager._Current.ProvideVariablePool(sessionId, keyId, out variablePool);
         }
 
         public static void Copy(string keyId, string fromSessionId, string toSessionId)
         {
-            if (PoolFactory._Current == null)
+            if (PoolManager._Current == null)
                 throw new Exceptions.VariablePoolNotReadyException();
 
-            PoolFactory._Current.CopyVariablePool(keyId, fromSessionId, toSessionId);
+            PoolManager._Current.CopyVariablePool(keyId, fromSessionId, toSessionId);
         }
 
         private string CreatePoolKey(string sessionId, string keyId) => $"{sessionId}_{keyId}";
@@ -42,9 +41,9 @@ namespace Xeora.Web.Application.Services
         {
             string poolKey = this.CreatePoolKey(sessionId, keyId);
 
-            Service.Dss.Manager.Current.Reserve(poolKey, this._ExpiresInMinutes, out Basics.Dss.IDss reservation);
+            Dss.Manager.Current.Reserve(poolKey, this._ExpiresInMinutes, out Basics.Dss.IDss reservation);
 
-            variablePool = new VariablePool(sessionId, keyId, ref reservation);
+            variablePool = new PoolItem(sessionId, keyId, ref reservation);
         }
 
         private void CopyVariablePool(string keyId, string fromSessionId, string toSessionId)
