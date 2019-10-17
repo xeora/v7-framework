@@ -20,30 +20,19 @@ namespace Xeora.Web.Manager
             this._DomainRootLocation = domainRootLocation;
             this._WatcherCallback = watcherCallback;
             this._DomainExecutables = new List<FileInfo>();
-            
-            this.Create();
         }
         
-        private void Create() =>
-            this._Watcher = new Thread(this.Watch) {Priority = ThreadPriority.Lowest, IsBackground = true};
-
         public void Start()
         {
+            if (this._Watcher == null) 
+                this._Watcher = new Thread(this.Watch) {Priority = ThreadPriority.Lowest, IsBackground = true};
             if (this._Watcher.IsAlive) return;
             
-            this.LoadExecutables(this._DomainRootLocation);
+            this.CreateWatchList(this._DomainRootLocation);
             this._Watcher.Start();
         }
 
-        public void Stop()
-        {
-            this._Watcher.Abort();
-            this.Create();
-            
-            this._DomainExecutables.Clear();
-        }
-        
-        private void LoadExecutables(string domainRootPath)
+        private void CreateWatchList(string domainRootPath)
         {
             DirectoryInfo domains =
                 new DirectoryInfo(domainRootPath);
@@ -67,14 +56,17 @@ namespace Xeora.Web.Manager
                 DirectoryInfo domainChildren =
                     new DirectoryInfo(Path.Combine(domain.FullName, "Addons"));
                 if (domainChildren.Exists)
-                    this.LoadExecutables(domainChildren.FullName);
+                    this.CreateWatchList(domainChildren.FullName);
             }
         }
 
         private void Watch()
         {
+            bool checking = true;
             do
             {
+                Thread.Sleep(Watcher.WATCHER_INTERVAL);
+                
                 foreach (FileInfo fileInfo in this._DomainExecutables)
                 {
                     DateTime currentLastWrite =
@@ -86,11 +78,14 @@ namespace Xeora.Web.Manager
                     if (DateTime.Compare(currentLastWrite, newLastWrite) == 0) continue;
 
                     Task.Factory.StartNew(() => this._WatcherCallback?.Invoke());
+                    checking = false;
+                    
                     break;
                 }
-                
-                Thread.Sleep(Watcher.WATCHER_INTERVAL);
-            } while (true);
+            } while (checking);
+            
+            this._DomainExecutables.Clear();
+            this._Watcher = null;
         }
     }
 }

@@ -1,8 +1,8 @@
-﻿namespace Xeora.Web.Manager
+﻿namespace Xeora.Web.Manager.Statement
 {
-    public class StatementExecutable
+    public class Executable
     {
-        public StatementExecutable(string executableName, string className, System.Exception exception)
+        public Executable(string executableName, string className, System.Exception exception)
         {
             this.ExecutableName = executableName;
             this.ClassName = className;

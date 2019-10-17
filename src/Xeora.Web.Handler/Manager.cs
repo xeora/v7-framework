@@ -2,23 +2,25 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using Xeora.Web.Basics.Context;
-using Xeora.Web.Application.Services;
 
 namespace Xeora.Web.Handler
 {
     public class Manager
     {
         private readonly ConcurrentDictionary<string, Container> _Handlers;
-
+        private readonly object _RefreshLock;
+        private bool _Refresh;
+        
         private Manager()
         {
             this._Handlers = new ConcurrentDictionary<string, Container>();
+            this._RefreshLock = new object();
 
             Basics.Console.Register(keyInfo => {
                 if ((keyInfo.Modifiers & ConsoleModifiers.Control) == 0 || keyInfo.Key != ConsoleKey.R)
                     return;
 
-                Manager.Refresh();
+                this.Refresh();
             });
         }
 
@@ -31,35 +33,29 @@ namespace Xeora.Web.Handler
                 Monitor.Enter(Manager.Lock);
                 try
                 {
-                    if (Manager._Current == null)
-                        Manager._Current = new Manager();
+                    return Manager._Current ?? (Manager._Current = new Manager());
                 }
                 finally
                 {
                     Monitor.Exit(Manager.Lock);
                 }
-
-                return Manager._Current;
             }
         }
 
         public Basics.IHandler Create(ref IHttpContext context)
         {
-            PoolFactory.Initialize(
-                Basics.Configurations.Xeora.Session.Timeout);
-
             Basics.IHandler handler;
 
-            Monitor.Enter(Manager.RefreshLock);
+            Monitor.Enter(this._RefreshLock);
             try 
             {
                 handler = 
-                    new XeoraHandler(ref context, Manager._Refresh);
-                Manager._Refresh = false;
+                    new XeoraHandler(ref context, this._Refresh);
+                this._Refresh = false;
             }
             finally
             {
-                Monitor.Exit(Manager.RefreshLock);
+                Monitor.Exit(this._RefreshLock);
             }
 
             this.Add(ref handler);
@@ -107,23 +103,21 @@ namespace Xeora.Web.Handler
             else
                 handlerContainer.Removable = true;
         }
-
-        private static readonly object RefreshLock = new object();
-        private static bool _Refresh;
-        internal static void Refresh()
+        
+        public void Refresh()
         {
-            if (!Monitor.TryEnter(Manager.RefreshLock))
+            if (!Monitor.TryEnter(this._RefreshLock))
                 return;
 
-            if (Manager._Refresh)
+            if (this._Refresh)
                 return;
 
-            Manager._Refresh = true;
+            this._Refresh = true;
             
             Basics.Console.Push(
                 string.Empty, "Domains refresh requested!", string.Empty, false, true);
 
-            Monitor.Exit(Manager.RefreshLock);
+            Monitor.Exit(this._RefreshLock);
         }
     }
 }

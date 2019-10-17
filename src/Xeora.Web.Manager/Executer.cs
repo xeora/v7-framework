@@ -1,16 +1,14 @@
 ﻿using System;
-using System.IO;
-using System.IO.Compression;
 using System.Data;
-using System.Threading;
+using Xeora.Web.Manager.Execution;
 
 namespace Xeora.Web.Manager
 {
-    public class AssemblyCore
+    public class Executer
     {
         // This function is for external call out side of the project DO NOT DISABLE IT
         public static Basics.Execution.InvokeResult<T> InvokeBind<T>(Basics.Context.Request.HttpMethod httpMethod, Basics.Execution.Bind bind) =>
-            AssemblyCore.InvokeBind<T>(httpMethod, bind, ExecuterTypes.Undefined);
+            Executer.InvokeBind<T>(httpMethod, bind, ExecuterTypes.Undefined);
 
         public static Basics.Execution.InvokeResult<T> InvokeBind<T>(Basics.Context.Request.HttpMethod httpMethod, Basics.Execution.Bind bind, ExecuterTypes executerType)
         {
@@ -20,15 +18,13 @@ namespace Xeora.Web.Manager
             if (!bind.Ready)
                 throw new Exception("Bind Parameters should be parsed first!");
 
-            Master.Initialize();
-
             Basics.Execution.InvokeResult<T> rInvokeResult =
                 new Basics.Execution.InvokeResult<T>(bind);
 
             try
             {
                 object invokedObject = 
-                    Application.Prepare(bind.Executable).Invoke(
+                    ApplicationFactory.Prepare(bind.Executable).Invoke(
                         httpMethod,
                         bind.Classes,
                         bind.Procedure,
@@ -54,18 +50,16 @@ namespace Xeora.Web.Manager
 
         public static object ExecuteStatement(string[] domainIdAccessTree, string statementBlockId, string statement, object[] parameters, bool cache)
         {
-            StatementExecutable executableInfo =
-                StatementFactory.CreateExecutable(domainIdAccessTree, statementBlockId, statement, parameters != null && parameters.Length > 0, cache);
+            Statement.Executable executableInfo =
+                Statement.Factory.CreateExecutable(domainIdAccessTree, statementBlockId, statement, parameters != null && parameters.Length > 0, cache);
 
             if (executableInfo.Exception != null)
                 return executableInfo.Exception;
 
-            Master.Initialize();
-
             try
             {
                 object invokedObject =
-                    Application.Prepare(executableInfo.ExecutableName).Invoke(
+                    ApplicationFactory.Prepare(executableInfo.ExecutableName).Invoke(
                         Basics.Context.Request.HttpMethod.GET,
                         new string[] { executableInfo.ClassName },
                         "Execute",

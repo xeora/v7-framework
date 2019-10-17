@@ -98,7 +98,7 @@ namespace Xeora.Web.Directives.Elements
             permissionBind.InstanceExecution = true;
 
             Basics.Execution.InvokeResult<PermissionResult> permissionInvokeResult =
-                Manager.AssemblyCore.InvokeBind<PermissionResult>(Helpers.Context.Request.Header.Method, permissionBind, Manager.ExecuterTypes.Undefined);
+                Manager.Executer.InvokeBind<PermissionResult>(Helpers.Context.Request.Header.Method, permissionBind, Manager.ExecuterTypes.Undefined);
 
             if (permissionInvokeResult.Result == null || permissionInvokeResult.Exception != null)
                 return new PermissionResult(PermissionResult.Results.Forbidden);

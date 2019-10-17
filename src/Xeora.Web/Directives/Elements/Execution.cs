@@ -87,7 +87,7 @@ namespace Xeora.Web.Directives.Elements
             );
 
             Basics.Execution.InvokeResult<object> invokeResult =
-                Manager.AssemblyCore.InvokeBind<object>(Helpers.Context.Request.Header.Method, this.Bind, Manager.ExecuterTypes.Other);
+                Manager.Executer.InvokeBind<object>(Helpers.Context.Request.Header.Method, this.Bind, Manager.ExecuterTypes.Other);
 
             if (invokeResult.Exception != null)
                 throw new Exceptions.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);
@@ -103,7 +103,7 @@ namespace Xeora.Web.Directives.Elements
 
             this.Deliver(
                 RenderStatus.Rendered,
-                Manager.AssemblyCore.GetPrimitiveValue(invokeResult.Result)
+                Manager.Executer.GetPrimitiveValue(invokeResult.Result)
             );
         }
     }

@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Reflection;
 
-namespace Xeora.Web.Manager
+namespace Xeora.Web.Manager.Execution
 {
     internal class MethodInfoParameterLengthComparer : IComparer
     {

@@ -1,21 +1,21 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace Xeora.Web.Manager
 {
-    internal class Loader
+    public class Loader
     {
         private readonly string _CacheRootLocation;
         private readonly string _DomainRootLocation;
+        private readonly Watcher _Watcher;
 
-        private Loader()
+        private Loader(Basics.Configuration.IXeora configuration, Action<string, string> reloadHandler)
         {
             this._CacheRootLocation =
                 System.IO.Path.Combine(
-                    Basics.Configurations.Xeora.Application.Main.TemporaryRoot,
-                    Basics.Configurations.Xeora.Application.Main.WorkingPath.WorkingPathId
+                    configuration.Application.Main.TemporaryRoot,
+                    configuration.Application.Main.WorkingPath.WorkingPathId
                 );
 
             if (!Directory.Exists(this._CacheRootLocation))
@@ -24,15 +24,23 @@ namespace Xeora.Web.Manager
             this._DomainRootLocation =
                 System.IO.Path.GetFullPath(
                     System.IO.Path.Combine(
-                        Basics.Configurations.Xeora.Application.Main.PhysicalRoot,
-                        Basics.Configurations.Xeora.Application.Main.ApplicationRoot.FileSystemImplementation,
+                        configuration.Application.Main.PhysicalRoot,
+                        configuration.Application.Main.ApplicationRoot.FileSystemImplementation,
                         "Domains"
                     )
                 );
             
-            Watcher watcher = 
-                new Watcher(this._DomainRootLocation, Basics.Helpers.Refresh);
-            watcher.Start();
+            this._Watcher = 
+                new Watcher(this._DomainRootLocation, () =>
+                {
+                    Basics.Console.Push(string.Empty, "Library changes have been detected!", string.Empty, false, true);
+                    
+                    // Reload
+                    this.Load();
+                    
+                    // Notify
+                    reloadHandler?.Invoke(this.Id, this.Path);
+                });
         }
 
         public string Id { get; private set; }
@@ -40,39 +48,32 @@ namespace Xeora.Web.Manager
             System.IO.Path.Combine(this._CacheRootLocation, this.Id);
 
         public static Loader Current { get; private set; }
-        public static void Initialize()
+        public static void Initialize(Basics.Configuration.IXeora configuration, Action<string, string> reloadHandler)
         {
-            Loader.Current = new Loader();
+            if (Loader.Current == null)
+                Loader.Current = new Loader(configuration, reloadHandler);
             Loader.Current.Load();
         }
-
-        public static void Reload()
-        {
-            if (Loader.Current == null) return;
-            
-            StatementFactory.Dispose();
-            Application.Dispose();
-            
-            Loader.Current.Load();
-        }
-
+        
         private void Load()
         {
             try
             {
                 this.Id = Guid.NewGuid().ToString();
-                string applicationLocation =
-                    System.IO.Path.Combine(this._CacheRootLocation, this.Id);
-                if (!Directory.Exists(applicationLocation))
-                    Directory.CreateDirectory(applicationLocation);
+                
+                if (!Directory.Exists(this.Path))
+                    Directory.CreateDirectory(this.Path);
 
                 this.LoadExecutables(this._DomainRootLocation);
-
-                Basics.Console.Push(string.Empty, "Application is loaded successfully!", string.Empty, false);
+                this._Watcher.Start();
+                
+                Basics.Console.Push(string.Empty, "Application is prepared successfully!", string.Empty, false, true);
             }
             catch (Exception)
             {
-                Basics.Console.Push(string.Empty, "Application loading progress has been FAILED!", string.Empty, false, true, type: Basics.Console.Type.Error);
+                Basics.Console.Push(string.Empty, "Application preparation has been FAILED!", string.Empty, false, true, type: Basics.Console.Type.Error);
+
+                return;
             }
 
             // Do not block Application load
@@ -159,7 +160,7 @@ namespace Xeora.Web.Manager
                 }
             }
 
-            Basics.Console.Push(string.Empty, "Cache is cleaned up!", string.Empty, false);
+            Basics.Console.Push(string.Empty, "Cache is cleaned up!", string.Empty, false, true);
         }
     }
 }

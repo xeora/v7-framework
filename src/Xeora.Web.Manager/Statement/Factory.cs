@@ -10,15 +10,15 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 
-namespace Xeora.Web.Manager
+namespace Xeora.Web.Manager.Statement
 {
-    public class StatementFactory
+    public class Factory
     {
         private readonly ConcurrentDictionary<string, string> _StatementExecutables;
         private readonly Regex _ParamRegEx;
         private readonly object _CacheLock;
 
-        private StatementFactory()
+        private Factory()
         {
             this._StatementExecutables = new ConcurrentDictionary<string, string>();
             this._ParamRegEx = new Regex("\\$(?<Id>\\d+)", RegexOptions.Multiline | RegexOptions.Compiled);
@@ -26,27 +26,27 @@ namespace Xeora.Web.Manager
         }
 
         private static readonly object Lock = new object();
-        private static StatementFactory _Current;
-        private static StatementFactory Current
+        private static Factory _Current;
+        private static Factory Current
         {
             get
             {
-                Monitor.Enter(StatementFactory.Lock);
+                Monitor.Enter(Factory.Lock);
                 try
                 {
-                    if (StatementFactory._Current == null)
-                        StatementFactory._Current = new StatementFactory();
+                    if (Factory._Current == null)
+                        Factory._Current = new Factory();
                 }
                 finally
                 {
-                    Monitor.Exit(StatementFactory.Lock);
+                    Monitor.Exit(Factory.Lock);
                 }
 
-                return StatementFactory._Current;
+                return Factory._Current;
             }
         }
 
-        public static StatementExecutable CreateExecutable(string[] domainIdAccessTree, string statementBlockId, string statement, bool parametric, bool cache)
+        public static Executable CreateExecutable(string[] domainIdAccessTree, string statementBlockId, string statement, bool parametric, bool cache)
         {
             try
             {
@@ -58,16 +58,16 @@ namespace Xeora.Web.Manager
                     );
 
                 string executableName =
-                    StatementFactory.Current.Get(blockKey, statement, parametric, cache);
+                    Factory.Current.Get(blockKey, statement, parametric, cache);
 
                 if (string.IsNullOrEmpty(executableName))
                     throw new Exceptions.GrammarException();
 
-                return new StatementExecutable(executableName, blockKey, null);
+                return new Executable(executableName, blockKey, null);
             }
             catch (Exception ex)
             {
-                return new StatementExecutable(string.Empty, string.Empty, ex);
+                return new Executable(string.Empty, string.Empty, ex);
             }
         }
 
@@ -116,14 +116,14 @@ namespace Xeora.Web.Manager
             codeBlock.AppendLine("using Xeora.Web.Basics.Mapping;");
             codeBlock.AppendLine("namespace Xeora.Domain {");
 
-            codeBlock.AppendFormat("public class {0} : IDomainExecutable {{", executableName);
-            codeBlock.AppendLine("public void Initialize() {}");
-            codeBlock.AppendLine("public void PreExecute(string executionId, ref MethodInfo mI) {}");
-            codeBlock.AppendLine("public void PostExecute(string executionId, ref object result) {}");
-            codeBlock.AppendLine("public void Terminate() {}");
-            codeBlock.AppendLine("public ResolutionResult ResolveUrl(string requestFilePath) => null;");
-            codeBlock.AppendLine("public PermissionResult EnsurePermission(string permissionKey) => null;");
-            codeBlock.AppendLine("public TranslationResult Translate(string languageCode, string translationId) => null;");
+            codeBlock.AppendFormat("public class {0} : DomainExecutable {{", executableName);
+            codeBlock.AppendFormat("public {0}(INegotiator negotiator) : base(negotiator) {{}}", executableName);
+            codeBlock.AppendLine("public override void PreExecute(string executionId, MethodInfo mI) {}");
+            codeBlock.AppendLine("public override void PostExecute(string executionId, ref object result) {}");
+            codeBlock.AppendLine("public override void Terminate() {}");
+            codeBlock.AppendLine("public override ResolutionResult ResolveUrl(string requestFilePath) => null;");
+            codeBlock.AppendLine("public override PermissionResult EnsurePermission(string permissionKey) => null;");
+            codeBlock.AppendLine("public override TranslationResult Translate(string languageCode, string translationId) => null;");
             codeBlock.AppendLine("} /* class */");
 
             codeBlock.AppendFormat("public class {0} {{", blockKey);
@@ -203,16 +203,15 @@ namespace Xeora.Web.Manager
                     );
 
                 EmitResult eR = compiler.Emit(assemblyStream);
-                if (!eR.Success)
-                {
-                    System.Text.StringBuilder sB =
-                        new System.Text.StringBuilder();
+                if (eR.Success) return;
+                
+                System.Text.StringBuilder sB =
+                    new System.Text.StringBuilder();
 
-                    foreach (Diagnostic diag in eR.Diagnostics)
-                        sB.AppendLine(diag.ToString());
+                foreach (Diagnostic diag in eR.Diagnostics)
+                    sB.AppendLine(diag.ToString());
 
-                    throw new Exception(sB.ToString());
-                }
+                throw new Exception(sB.ToString());
             }
             finally
             {
@@ -220,10 +219,15 @@ namespace Xeora.Web.Manager
             }
         }
 
-        public static void Dispose()
+        private void Reset()
         {
-            foreach (string key in StatementFactory.Current._StatementExecutables.Keys)
-                StatementFactory.Current._StatementExecutables.TryRemove(key, out _);
+            lock (this._CacheLock)
+            {
+                this._StatementExecutables.Clear();
+            }
         }
+
+        public static void Dispose() =>
+            Factory.Current.Reset();
     }
 }

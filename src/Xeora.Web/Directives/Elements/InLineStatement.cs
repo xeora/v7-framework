@@ -107,7 +107,7 @@ namespace Xeora.Web.Directives.Elements
                 throw new Exceptions.EmptyBlockException();
 
             object methodResultInfo =
-                Manager.AssemblyCore.ExecuteStatement(instance.IdAccessTree, this.DirectiveId, result, this.RenderParameters(requesterUniqueId), this._Cache);
+                Manager.Executer.ExecuteStatement(instance.IdAccessTree, this.DirectiveId, result, this.RenderParameters(requesterUniqueId), this._Cache);
 
             if (methodResultInfo is Exception exception)
                 throw new Exceptions.ExecutionException(exception.Message, exception.InnerException);
@@ -119,7 +119,7 @@ namespace Xeora.Web.Directives.Elements
                 if (methodResultInfo is RedirectOrder redirectOrder)
                     Helpers.Context.AddOrUpdate("RedirectLocation", redirectOrder.Location);
                 else
-                    renderResult = Manager.AssemblyCore.GetPrimitiveValue(methodResultInfo);
+                    renderResult = Manager.Executer.GetPrimitiveValue(methodResultInfo);
 
                 this.Deliver(RenderStatus.Rendered, renderResult);
 

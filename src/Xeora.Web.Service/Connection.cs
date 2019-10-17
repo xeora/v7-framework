@@ -75,7 +75,7 @@ namespace Xeora.Web.Service
             }
             catch (System.Exception ex)
             {
-                Basics.Console.Push("Ssl Connection FAILED!", ex.Message, ex.ToString(), false, true, type: Basics.Console.Type.Error);
+                Basics.Console.Push("Ssl Connection FAILED!", ex.Message, ex.ToString(), false, type: Basics.Console.Type.Error);
 
                 return false;
             }

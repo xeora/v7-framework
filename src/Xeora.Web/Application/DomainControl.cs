@@ -505,7 +505,7 @@ namespace Xeora.Web.Application
                 resolverBind.InstanceExecution = true;
 
                 Basics.Execution.InvokeResult<Basics.Mapping.ResolutionResult> resolverInvokeResult =
-                    AssemblyCore.InvokeBind<Basics.Mapping.ResolutionResult>(Basics.Helpers.Context.Request.Header.Method, resolverBind, ExecuterTypes.Undefined);
+                    Executer.InvokeBind<Basics.Mapping.ResolutionResult>(Basics.Helpers.Context.Request.Header.Method, resolverBind, ExecuterTypes.Undefined);
 
                 if (resolverInvokeResult.Exception == null)
                     return resolverInvokeResult.Result;
@@ -582,9 +582,6 @@ namespace Xeora.Web.Application
 
         public static void ClearCache()
         {
-            // Clear Compiled Statements Cache
-            Master.Reset();
-
             // Clear Url Mapping Cache
             Basics.Mapping.Url.Reset();
 

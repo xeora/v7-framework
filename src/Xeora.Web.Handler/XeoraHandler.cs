@@ -293,7 +293,7 @@ namespace Xeora.Web.Handler
                 );
 
                 Basics.Execution.InvokeResult<object> invokeResult =
-                    Web.Manager.AssemblyCore.InvokeBind<object>(Helpers.Context.Request.Header.Method, bind, Web.Manager.ExecuterTypes.Undefined);
+                    Web.Manager.Executer.InvokeBind<object>(Helpers.Context.Request.Header.Method, bind, Web.Manager.ExecuterTypes.Undefined);
 
                 if (invokeResult.Exception != null)
                     messageResult = new Message(invokeResult.Exception.ToString());
@@ -302,7 +302,7 @@ namespace Xeora.Web.Handler
                 else if (invokeResult.Result is RedirectOrder redirectOrder)
                     this.Context.AddOrUpdate("RedirectLocation", redirectOrder.Location);
                 else
-                    methodResult = Web.Manager.AssemblyCore.GetPrimitiveValue(invokeResult.Result);
+                    methodResult = Web.Manager.Executer.GetPrimitiveValue(invokeResult.Result);
             }
 
             if (!string.IsNullOrEmpty((string) this.Context["RedirectLocation"])) return;
@@ -374,7 +374,7 @@ namespace Xeora.Web.Handler
             );
 
             Basics.Execution.InvokeResult<object> invokeResult =
-                Web.Manager.AssemblyCore.InvokeBind<object>(Helpers.Context.Request.Header.Method, bind, Web.Manager.ExecuterTypes.Undefined);
+                Web.Manager.Executer.InvokeBind<object>(Helpers.Context.Request.Header.Method, bind, Web.Manager.ExecuterTypes.Undefined);
 
             if (invokeResult.Exception != null)
                 throw new Exceptions.ServiceSocketException(invokeResult.Exception.ToString());

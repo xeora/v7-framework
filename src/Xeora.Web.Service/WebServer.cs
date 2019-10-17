@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+using Xeora.Web.Service.VariablePool;
 
 namespace Xeora.Web.Service
 {
@@ -84,6 +85,25 @@ namespace Xeora.Web.Service
                 this._TcpListener.Start(100);
 
                 Basics.Console.Push("XeoraEngine is started at", string.Format("{0} ({1})", serviceIpEndPoint, Configuration.Manager.Current.Configuration.Service.Ssl ? "Secure" : "Basic"), string.Empty, false, true);
+                
+                PoolManager.Initialize(
+                    Configuration.Manager.Current.Configuration.Session.Timeout);
+                
+                Negotiator negotiator = 
+                    new Negotiator();
+                typeof(Basics.Helpers).InvokeMember(
+                    "Negotiator", 
+                    BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.SetProperty, 
+                    null, 
+                    null, 
+                    new object[]{negotiator}
+                );
+
+                Manager.Loader.Initialize(
+                    Configuration.Manager.Current.Configuration, 
+                    (id, path) => Manager.Execution.ApplicationFactory.Initialize(negotiator, path)
+                );
+                Manager.Execution.ApplicationFactory.Initialize(negotiator, Manager.Loader.Current.Path);
             }
             catch (Exception ex)
             {
@@ -182,12 +202,12 @@ namespace Xeora.Web.Service
             {
                 if (args != null) args.Cancel = true;
 
-                Basics.Console.Push("Terminating XeoraEngine...", string.Empty, string.Empty, false, true);
+                Basics.Console.Push(string.Empty, "Terminating XeoraEngine...", string.Empty, false, true);
                 
                 this._TcpListener?.Stop();
 
                 // Terminate Loaded Domains
-                Manager.Application.Dispose();
+                Manager.Execution.ApplicationFactory.Terminate();
                 Basics.Console.Flush().Wait();
             }
             finally {

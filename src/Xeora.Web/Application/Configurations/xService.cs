@@ -83,7 +83,7 @@ namespace Xeora.Web.Application.Configurations
             );
 
             Basics.Execution.InvokeResult<object> invokeResult =
-                Manager.AssemblyCore.InvokeBind<object>(Basics.Helpers.Context.Request.Header.Method, bind, Manager.ExecuterTypes.Undefined);
+                Manager.Executer.InvokeBind<object>(Basics.Helpers.Context.Request.Header.Method, bind, Manager.ExecuterTypes.Undefined);
 
             return this.GenerateXml(invokeResult.Result);
         }
