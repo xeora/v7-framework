@@ -10,6 +10,8 @@ namespace Xeora.Web.Basics
 {
     public class Helpers
     {
+        internal static INegotiator Negotiator { get; set; }
+        
         /// <summary>
         /// Creates the Xeora Url with variable pool accessibility
         /// </summary>
@@ -65,7 +67,7 @@ namespace Xeora.Web.Basics
         /// cache and rebuild the available domains 
         /// </summary>
         public static void Refresh() =>
-            TypeCache.Current.RemoteInvoke.InvokeMember("ClearCache", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, null);
+            Helpers.Negotiator.ClearCache();
 
         /// <summary>
         /// Resolves the service path info from Url
@@ -150,7 +152,7 @@ namespace Xeora.Web.Basics
         /// <param name="domainIdAccessTree">DomainId Access tree</param>
         /// <param name="domainLanguageId">Domain language identifier</param>
         public static Domain.IDomain CreateNewDomainInstance(string[] domainIdAccessTree, string domainLanguageId) =>
-            (Domain.IDomain)Activator.CreateInstance(TypeCache.Current.Domain, domainIdAccessTree, domainLanguageId);
+            Helpers.Negotiator.CreateNewDomainInstance(domainIdAccessTree, domainLanguageId);
 
         /// <summary>
         /// Gets the current thread handler identifier
@@ -167,7 +169,7 @@ namespace Xeora.Web.Basics
             AppDomain.CurrentDomain.SetData($"HandlerId_{Thread.CurrentThread.ManagedThreadId}", handlerId);
         
         internal static IHandler HandlerInstance =>
-            (IHandler)TypeCache.Current.RemoteInvoke.InvokeMember("GetHandler", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { Helpers.CurrentHandlerId });
+            Helpers.Negotiator.GetHandler(Helpers.CurrentHandlerId);
 
         /// <summary>
         /// Gets the Http Context
@@ -207,58 +209,20 @@ namespace Xeora.Web.Basics
         /// <value>Xeora project domains</value>
         public static Domain.Info.DomainCollection Domains =>
             Helpers.HandlerInstance.DomainControl.GetAvailableDomains();
-            
-        private static readonly object ScheduledTasksLock = new object();
-        private static Service.IScheduledTaskEngine _ScheduledTasks = null;
+
         /// <summary>
         /// Gets Task Scheduler Engine
         /// </summary>
         /// <value>Task Scheduler Engine instance</value>
-        public static Service.IScheduledTaskEngine ScheduledTasks
-        {
-            get
-            {
-                Monitor.Enter(Helpers.ScheduledTasksLock);
-                try
-                {
-                    if (Helpers._ScheduledTasks == null)
-                        Helpers._ScheduledTasks =
-                           (Service.IScheduledTaskEngine)TypeCache.Current.RemoteInvoke.InvokeMember("GetScheduledTaskEngine", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, null);
-                }
-                finally
-                {
-                    Monitor.Exit(Helpers.ScheduledTasksLock);
-                }
+        public static Service.ITaskSchedulerEngine TaskScheduler =>
+            Helpers.Negotiator.TaskScheduler;
 
-                return Helpers._ScheduledTasks;
-            }
-        }
-
-        private static readonly object StatusTrackerLock = new object();
-        private static IStatusTracker _StatusTracker = null;
         /// <summary>
         /// Gets Status Tracker Instance
         /// </summary>
         /// <value>Status Tracker instance</value>
-        public static IStatusTracker StatusTracker
-        {
-            get
-            {
-                Monitor.Enter(Helpers.StatusTrackerLock);
-                try
-                {
-                    if (Helpers._StatusTracker == null)
-                        Helpers._StatusTracker =
-                           (IStatusTracker)TypeCache.Current.StatusTracker.InvokeMember("Current", BindingFlags.Public | BindingFlags.Static | BindingFlags.GetProperty, null, null, null);
-                }
-                finally
-                {
-                    Monitor.Exit(Helpers.StatusTrackerLock);
-                }
-
-                return Helpers._StatusTracker;
-            }
-        }
+        public static IStatusTracker StatusTracker =>
+            Helpers.Negotiator.StatusTracker;
 
         /// <summary>
         /// Gets the variable pool

@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace Xeora.Web.Basics
+﻿namespace Xeora.Web.Basics
 {
     public class Configurations
     {
@@ -10,11 +8,6 @@ namespace Xeora.Web.Basics
         /// </summary>
         /// <value>Xeora framework configuration instance</value>
         public static Configuration.IXeora Xeora =>
-            Configurations._Xeora ?? 
-               (Configurations._Xeora =
-                   (Configuration.IXeora) TypeCache.Current.RemoteInvoke.InvokeMember(
-                       "XeoraSettings",
-                       BindingFlags.Public | BindingFlags.Static | BindingFlags.GetProperty, 
-                       null, null, null));
+            Configurations._Xeora ?? (Configurations._Xeora = Helpers.Negotiator.XeoraSettings);
     }
 }

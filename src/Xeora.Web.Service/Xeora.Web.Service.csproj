@@ -50,10 +50,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Xeora.Web.Handler\Xeora.Web.Handler.csproj" />
+    <ProjectReference Include="..\Xeora.Web.Manager\Xeora.Web.Manager.csproj" />
     <ProjectReference Include="..\Xeora.Web.Service.Context\Xeora.Web.Service.Context.csproj" />
     <ProjectReference Include="..\Xeora.Web.Basics\Xeora.Web.Basics.csproj" />
     <ProjectReference Include="..\Xeora.Web.Configuration\Xeora.Web.Configuration.csproj" />
     <ProjectReference Include="..\Xeora.Web.Service.Net\Xeora.Web.Service.Net.csproj" />
+    <ProjectReference Include="..\Xeora.Web.Service.TaskScheduler\Xeora.Web.Service.TaskScheduler.csproj" />
+    <ProjectReference Include="..\Xeora.Web.Service.VariablePool\Xeora.Web.Service.VariablePool.csproj" />
   </ItemGroup>
 
 </Project>

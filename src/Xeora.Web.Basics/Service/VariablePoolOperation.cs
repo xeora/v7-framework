@@ -27,7 +27,7 @@ namespace Xeora.Web.Basics.Service
                     try
                     {
                         VariablePoolOperation._Cache =
-                            (IVariablePool)TypeCache.Current.RemoteInvoke.InvokeMember("GetVariablePool", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { sessionId, keyId });
+                            Helpers.Negotiator.GetVariablePool(sessionId, keyId);
                     }
                     catch (Exception ex)
                     {
@@ -73,8 +73,8 @@ namespace Xeora.Web.Basics.Service
             return default;
         }
 
-        public void Transfer(string fromSessionId) =>
-            this.TransferRegistrations($"{fromSessionId}_{this._KeyId}");
+        /*public void Transfer(string fromSessionId) =>
+            this.TransferRegistrations($"{fromSessionId}_{this._KeyId}");*/
 
         private object GetVariableFromPool(string name)
         {
@@ -148,18 +148,17 @@ namespace Xeora.Web.Basics.Service
             VariablePoolOperation._Cache.Set(name, null);
         }
 
-        private void TransferRegistrations(string fromSessionId)
+        /*private void TransferRegistrations(string fromSessionId)
         {
             try
             {
-                VariablePoolOperation._Cache =
-                    (IVariablePool)TypeCache.Current.RemoteInvoke.InvokeMember("TransferVariablePool", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { this._KeyId, fromSessionId, this._SessionId });
+                TypeCache.Current.Negotiator.TransferVariablePool(this._KeyId, fromSessionId, this._SessionId);
             }
             catch (Exception ex)
             {
                 throw new TargetInvocationException("Communication Error! Variable Pool is not accessible...", ex);
             }
-        }
+        }*/
 
         private byte[] SerializeNameValuePairs(ConcurrentDictionary<string, object> nameValuePairs)
         {

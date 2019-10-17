@@ -2,10 +2,10 @@
 
 namespace Xeora.Web.Basics.Service
 {
-    public interface IScheduledTaskEngine
+    public interface ITaskSchedulerEngine
     {
-        string RegisterTask(Action<object[]> scheduledCallBack, object[] @params, DateTime executionTime);
-        string RegisterTask(Action<object[]> scheduledCallBack, object[] @params, TimeSpan executionTime);
+        string RegisterTask(Action<object[]> schedulerCallBack, object[] @params, DateTime executionTime);
+        string RegisterTask(Action<object[]> schedulerCallBack, object[] @params, TimeSpan executionTime);
         void UnRegisterTask(string id);
     }
 }
