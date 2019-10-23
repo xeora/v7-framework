@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using Xeora.Web.Configuration;
 
@@ -24,9 +25,9 @@ namespace Xeora.Web.Service
         {
             IPEndPoint remoteIpEndPoint =
                 (IPEndPoint)this._RemoteClient.Client.RemoteEndPoint;
-            Stream remoteStream = this._RemoteClient.GetStream();
-
-            this.Handle(remoteIpEndPoint, ref remoteStream);
+            
+            if (this.CreateStream(remoteIpEndPoint, out Stream remoteStream))
+                this.Handle(remoteIpEndPoint, ref remoteStream);
 
             remoteStream.Close();
             remoteStream.Dispose();
@@ -37,30 +38,21 @@ namespace Xeora.Web.Service
             Basics.Console.Flush();
         }
 
-        private void Handle(IPEndPoint remoteIpEndPoint, ref Stream remoteStream)
+        private bool CreateStream(IPEndPoint remoteIpEndPoint, out Stream remoteStream)
         {
-            if (Configuration.Manager.Current.Configuration.Service.Ssl &&
-                !this.MakeSecure(ref remoteStream, remoteIpEndPoint)) return;
-
-            // If reads create problems and put the loop to infinite. drop the connection.
-            // that's why, 5 seconds timeout should be set to remoteStream
-            // No need to put timeout to write operation because xeora will handle connection state
-            remoteStream.ReadTimeout = READ_TIMEOUT * 1000;
-
-            Net.NetworkStream streamEnclosure = 
-                new Net.NetworkStream(ref remoteStream);
-
-            Basics.Console.Push("Connection is accepted from", string.Format("{0} ({1})", remoteIpEndPoint, Configuration.Manager.Current.Configuration.Service.Ssl ? "Secure" : "Basic"), string.Empty, true);
-
-            ClientState.Handle(remoteIpEndPoint.Address, streamEnclosure);
+            if (Configuration.Manager.Current.Configuration.Service.Ssl)
+            {
+                remoteStream = 
+                    new SslStream(this._RemoteClient.GetStream(), true);
+                return this.Authenticate(remoteIpEndPoint, ref remoteStream);
+            }
             
-            streamEnclosure.Close();
+            remoteStream = this._RemoteClient.GetStream();
+            return true;
         }
-
-        private bool MakeSecure(ref Stream remoteStream, IPEndPoint remoteIpEndPoint)
+        
+        private bool Authenticate(IPEndPoint remoteIpEndPoint, ref Stream remoteStream)
         {
-            remoteStream = new SslStream(remoteStream, false);
-
             try
             {
                 ((SslStream)remoteStream).AuthenticateAsServer(this._Certificate, false, System.Security.Authentication.SslProtocols.Tls12, true);
@@ -79,6 +71,23 @@ namespace Xeora.Web.Service
 
                 return false;
             }
+        }
+
+        private void Handle(IPEndPoint remoteIpEndPoint, ref Stream remoteStream)
+        {
+            // If reads create problems and put the loop to infinite. drop the connection.
+            // that's why, 5 seconds timeout should be set to remoteStream
+            // No need to put timeout to write operation because xeora will handle connection state
+            remoteStream.ReadTimeout = READ_TIMEOUT * 1000;
+
+            Net.NetworkStream streamEnclosure = 
+                new Net.NetworkStream(ref remoteStream);
+
+            Basics.Console.Push("Connection is accepted from", string.Format("{0} ({1})", remoteIpEndPoint, Configuration.Manager.Current.Configuration.Service.Ssl ? "Secure" : "Basic"), string.Empty, true);
+
+            ClientState.Handle(remoteIpEndPoint.Address, streamEnclosure);
+            
+            streamEnclosure.Close();
         }
     }
 }

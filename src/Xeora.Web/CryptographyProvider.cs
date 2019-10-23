@@ -10,7 +10,6 @@ namespace Xeora.Web
         private readonly ConcurrentDictionary<string, DateTime> _Timeouts;
         private readonly object _GetLock = new object();
         
-        private const short PRUNE_INTERVAL = 10 * 60; // 10 minutes
         private readonly object _PruneLock;
 
         private static CryptographyProvider _Current;
@@ -46,7 +45,7 @@ namespace Xeora.Web
             this._PruneLock = new object();
             
             System.Timers.Timer pruneTimer = 
-                new System.Timers.Timer(CryptographyProvider.PRUNE_INTERVAL * 1000);
+                new System.Timers.Timer(Basics.Configurations.Xeora.Session.Timeout * 1000);
             pruneTimer.Elapsed += this.PruneCryptos;
             pruneTimer.Start();
         }

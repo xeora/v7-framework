@@ -34,7 +34,8 @@ namespace Xeora.Web.Service.Net
         private void StreamListener() 
         {
             SpinWait spinWait = new SpinWait();
-            byte[] buffer = new byte[NetworkStream.BUFFER_SIZE];
+            byte[] buffer = 
+                new byte[NetworkStream.BUFFER_SIZE];
 
             do
             {
@@ -42,21 +43,21 @@ namespace Xeora.Web.Service.Net
                 {
                     int rC = 
                         this._RemoteStream.Read(buffer, 0, buffer.Length);
-                    
-                    if (rC != 0)
+                    if (rC == 0)
                     {
-                        byte[] cache = new byte[rC];
-                        Array.Copy(buffer, cache, rC);
-
-                        this._IncomeCache.Enqueue(cache);
-                    }
-                    else
                         spinWait.SpinOnce();
+                        continue;
+                    }
+                    
+                    byte[] cache = 
+                        new byte[rC];
+                    Array.Copy(buffer, cache, cache.Length);
+
+                    this._IncomeCache.Enqueue(cache);
                 }
                 catch
                 {
                     this._Disposed = true;
-
                     return;
                 }
             } while (true);
@@ -78,24 +79,25 @@ namespace Xeora.Web.Service.Net
             SpinWait spinWait = new SpinWait();
             DateTime listenBegins = 
                 DateTime.Now;
-            byte[] buffer = new byte[BUFFER_SIZE];
+            byte[] buffer = 
+                new byte[BUFFER_SIZE];
             bool result = true;
 
             do
             {
-                // Mono Framework SslStream ReadTimeout bug fix.
                 if (DateTime.Now.Subtract(listenBegins).TotalMilliseconds > this._RemoteStream.ReadTimeout)
                     throw new IOException("NetworkStream has a connection timeout", new SocketException());
 
-                int count = this.Read(buffer, 0, buffer.Length);
-
-                if (count > 0)
+                int count = 
+                    this.Read(buffer, 0, buffer.Length);
+                if (count == 0)
                 {
-                    result = callback(buffer, count);
-                    listenBegins = DateTime.Now;
-                }
-                else
                     spinWait.SpinOnce();
+                    continue;
+                }
+
+                result = callback(buffer, count);
+                listenBegins = DateTime.Now;
             } while (result && !this._Disposed);
 
             return !result;

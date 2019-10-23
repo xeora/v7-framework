@@ -7,61 +7,34 @@ namespace Xeora.Web
 {
     public class Cryptography : Basics.ICryptography
     {
-        private readonly ICryptoTransform _Encryptor;
-        private readonly ICryptoTransform _Decryptor;
+        private readonly Aes _Aes;
         
         public Cryptography(string cryptoId)
         {
             if (string.IsNullOrEmpty(cryptoId))
                 throw new ArgumentException(nameof(cryptoId));
             
-            Aes aes = Aes.Create();
-            if (aes == null) 
+            this._Aes = Aes.Create();
+            if (this._Aes == null) 
                 throw new CryptographicException();
             
-            aes.Key = 
-                this.GenerateKey(cryptoId);
-            this.AssignVector(ref aes);
-            aes.Padding = PaddingMode.PKCS7;
-
-            this._Encryptor = 
-                aes.CreateEncryptor();
-            this._Decryptor =
-                aes.CreateDecryptor();
+            this._Aes.Mode = CipherMode.CBC;
+            this._Aes.Padding = PaddingMode.ISO10126;
+            
+            this.AssignCipher(cryptoId);
         }
 
-        private byte[] GenerateKey(string cryptoId)
+        private void AssignCipher(string cryptoId)
         {
-            byte[] applicationPathBytes =
+            byte[] cryptoBytes =
                 Encoding.UTF8.GetBytes(cryptoId);
+            byte[] saltBytes = {1, 2, 3, 4, 5, 6, 7, 8};
             
-            MD5 md5 = 
-                MD5.Create();
-            byte[] key = 
-                md5.ComputeHash(applicationPathBytes);
-            
-            byte[] modKey = 
-                new byte[key.Length * 2];
-            Array.Copy(key, 0, modKey, 16, key.Length);
-            Array.Reverse(key); 
-            Array.Copy(key, 0, modKey, 0, key.Length);
+            Rfc2898DeriveBytes rfc = 
+                new Rfc2898DeriveBytes(cryptoBytes, saltBytes, 1000);
 
-            return modKey;
-        }
-        
-        private void AssignVector(ref Aes aes)
-        {
-            byte[] key = aes.Key;
-            byte[] vector = 
-                new byte[aes.BlockSize / 8];
-            
-            if (key.Length < vector.Length)
-                for (int i = 0; i < vector.Length; i++)
-                    vector[i] = key[i % key.Length];
-            else
-                Array.Copy(key, 0, vector, 0, vector.Length);
-
-            aes.IV = vector;
+            this._Aes.Key = rfc.GetBytes(this._Aes.KeySize / 8);
+            this._Aes.IV = rfc.GetBytes(this._Aes.BlockSize / 8);
         }
 
         public string Encrypt(string input)
@@ -70,29 +43,25 @@ namespace Xeora.Web
             
             try
             {
+                ICryptoTransform encryptor =
+                    this._Aes.CreateEncryptor();
+                
                 encrypted = new MemoryStream();
                 
                 CryptoStream encryptStream = null;
                 try
                 {
+                    byte[] inputBytes =
+                        Encoding.UTF8.GetBytes(input);
+
                     encryptStream = 
-                        new CryptoStream(encrypted, this._Encryptor, CryptoStreamMode.Write);
-                    
-                    StreamWriter writer = null;
-                    try
-                    {
-                        writer = 
-                            new StreamWriter(encryptStream, Encoding.UTF8);
-                        writer.Write(input);
+                        new CryptoStream(encrypted, encryptor, CryptoStreamMode.Write);
+                    encryptStream.Write(inputBytes, 0, inputBytes.Length);
+                    encryptStream.FlushFinalBlock();
                         
-                        // notify session to be persist
-                        Basics.Helpers.Context.Session["_sys_crypto"] =
-                            Guid.NewGuid().ToString();
-                    }
-                    finally
-                    {
-                        writer?.Close();
-                    }
+                    // notify session to be persist
+                    Basics.Helpers.Context.Session["_sys_crypto"] =
+                        Guid.NewGuid().ToString();
                 }
                 finally
                 {
@@ -121,6 +90,9 @@ namespace Xeora.Web
             MemoryStream decryptCache = null;
             try
             {
+                ICryptoTransform decryptor =
+                    this._Aes.CreateDecryptor();
+                
                 decryptCache = 
                     new MemoryStream();
                 for (int i = 0; i < encryptedInput.Length; i += 2)
@@ -131,24 +103,31 @@ namespace Xeora.Web
                         byte.Parse(hex, System.Globalization.NumberStyles.HexNumber));
                 }
                 decryptCache.Seek(0, SeekOrigin.Begin);
-
+                Basics.Console.Push("E2 Data", encryptedInput, string.Empty, false, true);
+                Basics.Console.Push("E2 DataLength", encryptedInput.Length.ToString(), string.Empty, false, true);
+                Basics.Console.Push("StreamLength", decryptCache.Length.ToString(), string.Empty, false, true);
                 CryptoStream decryptStream = null;
                 try
                 {
+                    StringBuilder decrypted = 
+                        new StringBuilder();
+                    
                     decryptStream = 
-                        new CryptoStream(decryptCache, this._Decryptor, CryptoStreamMode.Read);
+                        new CryptoStream(decryptCache, decryptor, CryptoStreamMode.Read);
 
-                    StreamReader reader = null;
-                    try
+                    byte[] buffer = new byte[2048];
+                    int rC;
+                    do
                     {
-                        reader = 
-                            new StreamReader(decryptStream, Encoding.UTF8);
-                        return reader.ReadToEnd();
-                    }
-                    finally
-                    {
-                        reader?.Close();
-                    }
+                        rC = decryptStream.Read(buffer, 0, buffer.Length);
+                        
+                        if (rC > 0)
+                            decrypted.Append(Encoding.UTF8.GetString(buffer, 0, rC));
+                    } while (rC > 0);
+                    
+                    Basics.Console.Push("Result", decrypted.ToString(), string.Empty, false, true);
+
+                    return decrypted.ToString();
                 }
                 finally
                 {
