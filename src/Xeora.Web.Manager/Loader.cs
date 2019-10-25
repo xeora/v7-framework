@@ -67,7 +67,15 @@ namespace Xeora.Web.Manager
                 if (!Directory.Exists(this.Path))
                     Directory.CreateDirectory(this.Path);
 
-                this.LoadExecutables(this._DomainRootLocation);
+                DirectoryInfo domains =
+                    new DirectoryInfo(this._DomainRootLocation);
+                if (!domains.Exists)
+                {
+                    Basics.Console.Push(string.Empty, "Does not have any application to prepare!", string.Empty, false, true, type: Basics.Console.Type.Warn);
+                    return;
+                }
+                
+                this.LoadExecutables(domains);
                 this._Watcher.Start();
                 
                 Basics.Console.Push(string.Empty, "Application is prepared successfully!", string.Empty, false, true);
@@ -83,11 +91,8 @@ namespace Xeora.Web.Manager
             ThreadPool.QueueUserWorkItem(state => this.Cleanup());
         }
 
-        private void LoadExecutables(string domainRootPath)
+        private void LoadExecutables(DirectoryInfo domains)
         {
-            DirectoryInfo domains =
-                new DirectoryInfo(domainRootPath);
-
             foreach (DirectoryInfo domain in domains.GetDirectories())
             {
                 string domainExecutablesLocation =
@@ -101,7 +106,7 @@ namespace Xeora.Web.Manager
                 DirectoryInfo domainChildren =
                     new DirectoryInfo(System.IO.Path.Combine(domain.FullName, Loader.ADDONS));
                 if (domainChildren.Exists)
-                    this.LoadExecutables(domainChildren.FullName);
+                    this.LoadExecutables(domainChildren);
             }
         }
 

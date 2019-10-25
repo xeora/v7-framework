@@ -36,6 +36,7 @@ namespace Xeora.Web.Manager
         {
             DirectoryInfo domains =
                 new DirectoryInfo(domainRootPath);
+            if (!domains.Exists) return;
 
             foreach (DirectoryInfo domain in domains.GetDirectories())
             {

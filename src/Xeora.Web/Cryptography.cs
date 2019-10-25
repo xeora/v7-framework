@@ -103,9 +103,7 @@ namespace Xeora.Web
                         byte.Parse(hex, System.Globalization.NumberStyles.HexNumber));
                 }
                 decryptCache.Seek(0, SeekOrigin.Begin);
-                Basics.Console.Push("E2 Data", encryptedInput, string.Empty, false, true);
-                Basics.Console.Push("E2 DataLength", encryptedInput.Length.ToString(), string.Empty, false, true);
-                Basics.Console.Push("StreamLength", decryptCache.Length.ToString(), string.Empty, false, true);
+
                 CryptoStream decryptStream = null;
                 try
                 {
@@ -125,8 +123,6 @@ namespace Xeora.Web
                             decrypted.Append(Encoding.UTF8.GetString(buffer, 0, rC));
                     } while (rC > 0);
                     
-                    Basics.Console.Push("Result", decrypted.ToString(), string.Empty, false, true);
-
                     return decrypted.ToString();
                 }
                 finally

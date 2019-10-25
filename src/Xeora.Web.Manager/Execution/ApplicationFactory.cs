@@ -77,7 +77,8 @@ namespace Xeora.Web.Manager.Execution
             foreach (string key in this._Cache.Keys)
                 this._Cache[key].Unload();
             
-            Basics.Console.Push(string.Empty, "Applications are unloaded!", string.Empty, false, true);
+            if (this._Cache.Count > 0)
+                Console.Push(string.Empty, "Applications are unloaded!", string.Empty, false, true);
         }
     }
 }
