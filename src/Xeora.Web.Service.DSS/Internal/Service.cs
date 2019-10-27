@@ -6,9 +6,9 @@ namespace Xeora.Web.Service.Dss.Internal
     internal class Service : Basics.Dss.IDss, IService
     {
         private readonly ConcurrentDictionary<string, object> _Items;
-        private readonly int _ExpiresInMinute;
+        private readonly short _ExpiresInMinute;
 
-        public Service(string uniqueId, int expiresInMinutes)
+        public Service(string uniqueId, short expiresInMinutes)
         {
             this.UniqueId = uniqueId;
             this._ExpiresInMinute = expiresInMinutes;

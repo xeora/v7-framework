@@ -240,8 +240,8 @@ namespace Xeora.Web.Service.Dss.External
             {
                 forStream = new MemoryStream();
 
-                BinaryFormatter binFormater = new BinaryFormatter();
-                binFormater.Serialize(forStream, value);
+                BinaryFormatter binFormatter = new BinaryFormatter();
+                binFormatter.Serialize(forStream, value);
 
                 return ((MemoryStream)forStream).ToArray();
             }
@@ -276,8 +276,35 @@ namespace Xeora.Web.Service.Dss.External
             }
         }
 
-        public bool IsExpired => throw new NotImplementedException();
-        public void Extend() =>
-            throw new NotImplementedException();
+        public bool IsExpired => DateTime.Compare(DateTime.Now, this.Expires) > 0;
+
+        public void Extend()
+        {
+            // Make Request
+            BinaryWriter binaryWriter = null;
+            Stream requestStream = null;
+
+            try
+            {
+                requestStream = new MemoryStream();
+                binaryWriter = new BinaryWriter(requestStream);
+
+                /*
+                 * -> EXT\BYTE\CHARS{BYTEVALUELENGTH}
+                 */
+
+                binaryWriter.Write("EXT".ToCharArray());
+                binaryWriter.Write((byte)this.UniqueId.Length);
+                binaryWriter.Write(this.UniqueId.ToCharArray());
+                binaryWriter.Flush();
+
+                this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
+            }
+            finally
+            {
+                binaryWriter?.Close();
+                requestStream?.Close();
+            }
+        }
     }
 }

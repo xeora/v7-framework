@@ -25,7 +25,8 @@ namespace Xeora.Web.Service.Session
             if (reservation == null)
                 throw new Exceptions.SessionCreationException();
 
-            ReservationEnclosure enclosure = new ReservationEnclosure(sessionId, ref reservation);
+            ReservationEnclosure enclosure = 
+                new ReservationEnclosure(sessionId, ref reservation);
 
             if (enclosure.IsExpired)
                 return;

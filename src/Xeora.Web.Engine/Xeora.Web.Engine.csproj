@@ -18,6 +18,7 @@
     <FileVersion>7.2</FileVersion>
     <Deterministic>False</Deterministic>
     <LangVersion>8</LangVersion>
+    <AssemblyName>xeora-engine</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

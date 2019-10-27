@@ -49,7 +49,7 @@ namespace Xeora.Web.Service.Dss.External
             this._ResponseHandler.HandleAsync();
         }
 
-        public void Reserve(string uniqueId, int reservationTimeout, out Basics.Dss.IDss reservationObject)
+        public void Reserve(string uniqueId, short reservationTimeout, out Basics.Dss.IDss reservationObject)
         {
             this.MakeConnection();
 
