@@ -230,15 +230,13 @@ namespace Xeora.Web.Basics.Service
                     Monitor.Enter(VariablePoolPreCache.Lock);
                     try
                     {
-                        if (VariablePoolPreCache._VariablePreCache == null)
-                            VariablePoolPreCache._VariablePreCache = new ConcurrentDictionary<string, ConcurrentDictionary<string, object>>();
+                        return VariablePoolPreCache._VariablePreCache ?? (VariablePoolPreCache._VariablePreCache =
+                                   new ConcurrentDictionary<string, ConcurrentDictionary<string, object>>());
                     }
                     finally
                     {
                         Monitor.Exit(VariablePoolPreCache.Lock);
                     }
-
-                    return VariablePoolPreCache._VariablePreCache;
                 }
             }
 

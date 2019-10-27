@@ -188,9 +188,11 @@ namespace Xeora.Web.Basics
             if (callback == null)
                 return Guid.Empty.ToString();
 
-            string registrationId = Guid.NewGuid().ToString();
-
-            return !this._KeyListeners.TryAdd(registrationId, callback) ? Guid.Empty.ToString() : registrationId;
+            string registrationId = 
+                Guid.NewGuid().ToString();
+            this._KeyListeners.TryAdd(registrationId, callback);
+            
+            return registrationId;
         }
 
         private bool RemoveKeyListener(string callbackId) =>
@@ -205,15 +207,12 @@ namespace Xeora.Web.Basics
                 Monitor.Enter(Console.Lock);
                 try
                 {
-                    if (Console._Current == null)
-                        Console._Current = new Console();
+                    return Console._Current ?? (Console._Current = new Console());
                 }
                 finally
                 {
                     Monitor.Exit(Console.Lock);
                 }
-
-                return Console._Current;
             }
         }
 

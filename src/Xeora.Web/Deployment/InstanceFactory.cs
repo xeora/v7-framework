@@ -19,15 +19,12 @@ namespace Xeora.Web.Deployment
                 Monitor.Enter(InstanceFactory.Lock);
                 try
                 {
-                    if (InstanceFactory._Current == null)
-                        InstanceFactory._Current = new InstanceFactory();
+                    return InstanceFactory._Current ?? (InstanceFactory._Current = new InstanceFactory());
                 }
                 finally
                 {
                     Monitor.Exit(InstanceFactory.Lock);
                 }
-
-                return InstanceFactory._Current;
             }
         }
 
@@ -38,10 +35,9 @@ namespace Xeora.Web.Deployment
 
             if (!this._Instances.TryGetValue(instanceKey, out Domain domain))
             {
-                domain = new Domain(domainIdAccessTree);
-
-                if (!this._Instances.TryAdd(instanceKey, domain))
-                    return this.GetOrCreate(domainIdAccessTree);
+                domain = 
+                    new Domain(domainIdAccessTree);
+                this._Instances.TryAdd(instanceKey, domain);
             }
             else
                 domain.Reload();

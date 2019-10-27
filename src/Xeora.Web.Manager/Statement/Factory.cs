@@ -34,15 +34,12 @@ namespace Xeora.Web.Manager.Statement
                 Monitor.Enter(Factory.Lock);
                 try
                 {
-                    if (Factory._Current == null)
-                        Factory._Current = new Factory();
+                    return Factory._Current ?? (Factory._Current = new Factory());
                 }
                 finally
                 {
                     Monitor.Exit(Factory.Lock);
                 }
-
-                return Factory._Current;
             }
         }
 
@@ -80,7 +77,8 @@ namespace Xeora.Web.Manager.Statement
             
             lock (this._CacheLock)
             {
-                executableName = this.Create(blockKey, statement, parametric);
+                executableName = 
+                    this.Create(blockKey, statement, parametric);
                 this._StatementExecutables.TryAdd(blockKey, executableName);
 
                 return executableName;

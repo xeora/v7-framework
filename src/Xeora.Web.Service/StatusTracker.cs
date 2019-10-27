@@ -19,15 +19,12 @@ namespace Xeora.Web.Service
                 Monitor.Enter(StatusTracker.Lock);
                 try
                 {
-                    if (StatusTracker._Current == null)
-                        StatusTracker._Current = new StatusTracker();
+                    return StatusTracker._Current ?? (StatusTracker._Current = new StatusTracker());
                 }
                 finally
                 {
                     Monitor.Exit(StatusTracker.Lock);
                 }
-
-                return StatusTracker._Current;
             }
         }
 

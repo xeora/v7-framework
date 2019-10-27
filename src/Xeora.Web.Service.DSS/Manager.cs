@@ -36,13 +36,12 @@ namespace Xeora.Web.Service.Dss
                 {
                     if (Manager._Current == null)
                         Manager._Current = new Manager();
+                    return Manager._Current._Manager;
                 }
                 finally
                 {
                     Monitor.Exit(Manager.Lock);
                 }
-
-                return Manager._Current._Manager;
             }
         }
     }

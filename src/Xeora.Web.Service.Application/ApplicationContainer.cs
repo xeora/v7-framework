@@ -19,15 +19,13 @@ namespace Xeora.Web.Service.Application
                 Monitor.Enter(ApplicationContainer.Lock);
                 try
                 {
-                    if (ApplicationContainer._Current == null)
-                        ApplicationContainer._Current = new ApplicationContainer();
+                    return ApplicationContainer._Current ??
+                           (ApplicationContainer._Current = new ApplicationContainer());
                 }
                 finally
                 {
                     Monitor.Exit(ApplicationContainer.Lock);
                 }
-
-                return ApplicationContainer._Current;
             }
         }
 

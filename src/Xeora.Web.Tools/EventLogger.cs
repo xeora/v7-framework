@@ -31,15 +31,12 @@ namespace Xeora.Web.Tools
                 Monitor.Enter(EventLogger.Lock);
                 try
                 {
-                    if (EventLogger._Current == null)
-                        EventLogger._Current = new EventLogger();
+                    return EventLogger._Current ?? (EventLogger._Current = new EventLogger());
                 }
                 finally
                 {
                     Monitor.Exit(EventLogger.Lock);
                 }
-
-                return EventLogger._Current;
             }
         }
 

@@ -61,15 +61,12 @@ namespace Xeora.Web.Application
                 Monitor.Enter(RegularExpression.Lock);
                 try
                 {
-                    if (RegularExpression._Current == null)
-                        RegularExpression._Current = new RegularExpression();
+                    return RegularExpression._Current ?? (RegularExpression._Current = new RegularExpression());
                 }
                 finally
                 {
                     Monitor.Exit(RegularExpression.Lock);
                 }
-
-                return RegularExpression._Current;
             }
         }
 

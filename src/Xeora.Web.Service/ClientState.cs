@@ -15,6 +15,7 @@ namespace Xeora.Web.Service
             string stateId = Guid.NewGuid().ToString();
 
             Basics.Context.IHttpContext context = null;
+            IHandler xeoraHandler = null;
             try
             {
                 DateTime wholeProcessBegins = DateTime.Now;
@@ -27,7 +28,7 @@ namespace Xeora.Web.Service
 
                 DateTime xeoraHandlerProcessBegins = DateTime.Now;
 
-                IHandler xeoraHandler =
+                xeoraHandler =
                     Handler.Manager.Current.Create(ref context);
                 ((Handler.XeoraHandler)xeoraHandler).Handle();
 
@@ -50,8 +51,6 @@ namespace Xeora.Web.Service
                 context.Response.Header.AddOrUpdate("Connection", "close");
 
                 ((HttpResponse)context.Response).Flush(streamEnclosure);
-
-                Handler.Manager.Current.UnMark(xeoraHandler.HandlerId);
 
                 if (Configurations.Xeora.Application.Main.PrintAnalysis)
                 {
@@ -90,6 +89,9 @@ namespace Xeora.Web.Service
             }
             finally
             {
+                if (xeoraHandler != null)
+                    Handler.Manager.Current.UnMark(xeoraHandler.HandlerId);
+                
                 context?.Dispose();
                 
                 Basics.Console.Flush(stateId);

@@ -20,15 +20,11 @@ namespace Xeora.Web
         {
             get
             {
-                if (CryptographyProvider._Current != null)
-                    return CryptographyProvider._Current;
-                
                 Monitor.Enter(CryptographyProvider.ProviderLock);
                 try
                 {
-                    CryptographyProvider._Current = 
-                        new CryptographyProvider();
-                    return CryptographyProvider._Current;
+                    return CryptographyProvider._Current ??
+                           (CryptographyProvider._Current = new CryptographyProvider());
                 }
                 finally
                 {

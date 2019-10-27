@@ -20,13 +20,12 @@ namespace Xeora.Web.Service.Session
                 {
                     if (SessionManager._Current == null)
                         SessionManager._Current = new SessionManager();
+                    return SessionManager._Current._StoreManager;
                 }
                 finally
                 {
                     Monitor.Exit(SessionManager.Lock);
                 }
-
-                return SessionManager._Current._StoreManager;
             }
         }
     }

@@ -26,10 +26,9 @@ namespace Xeora.Web.Service.TaskScheduler
 
             if (!this._ExecutionList.TryGetValue(executionId, out ConcurrentQueue<TaskInfo> queue))
             {
-                queue = new ConcurrentQueue<TaskInfo>();
-
-                if (!this._ExecutionList.TryAdd(executionId, queue))
-                    return this.RegisterTask(schedulerCallBack, @params, executionTime);
+                queue = 
+                    new ConcurrentQueue<TaskInfo>();
+                this._ExecutionList.TryAdd(executionId, queue);
             }
 
             TaskInfo taskInfo = new TaskInfo(schedulerCallBack, @params, executionTime);

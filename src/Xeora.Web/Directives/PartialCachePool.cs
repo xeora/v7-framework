@@ -19,15 +19,12 @@ namespace Xeora.Web.Directives
                 Monitor.Enter(PartialCachePool.Lock);
                 try
                 {
-                    if (PartialCachePool._Current == null)
-                        PartialCachePool._Current = new PartialCachePool();
+                    return PartialCachePool._Current ?? (PartialCachePool._Current = new PartialCachePool());
                 }
                 finally
                 {
                     Monitor.Exit(PartialCachePool.Lock);
                 }
-
-                return PartialCachePool._Current;
             }
         }
 
@@ -35,14 +32,9 @@ namespace Xeora.Web.Directives
         {
             if (!this._PartialCaches.TryGetValue(domainIdAccessTree, out ConcurrentDictionary<string, PartialCacheObject> cacheObjects))
             {
-                cacheObjects = new ConcurrentDictionary<string, PartialCacheObject>();
-
-                if (!this._PartialCaches.TryAdd(domainIdAccessTree, cacheObjects))
-                {
-                    this.AddOrUpdate(domainIdAccessTree, cacheObject);
-
-                    return;
-                }
+                cacheObjects = 
+                    new ConcurrentDictionary<string, PartialCacheObject>();
+                this._PartialCaches.TryAdd(domainIdAccessTree, cacheObjects);
             }
 
             cacheObjects.AddOrUpdate(cacheObject.CacheId, cacheObject, (cCacheId, cCacheObject) => cacheObject);

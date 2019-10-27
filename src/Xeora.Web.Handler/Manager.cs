@@ -44,23 +44,21 @@ namespace Xeora.Web.Handler
 
         public Basics.IHandler Create(ref IHttpContext context)
         {
-            Basics.IHandler handler;
-
             Monitor.Enter(this._RefreshLock);
             try 
             {
-                handler = 
+                Basics.IHandler handler = 
                     new XeoraHandler(ref context, this._Refresh);
                 this._Refresh = false;
+
+                this._Handlers.TryAdd(handler.HandlerId, new Container(ref handler));
+                
+                return handler;
             }
             finally
             {
                 Monitor.Exit(this._RefreshLock);
             }
-
-            this.Add(ref handler);
-
-            return handler;
         }
 
         public Basics.IHandler Get(string handlerId)
@@ -71,18 +69,6 @@ namespace Xeora.Web.Handler
             return !this._Handlers.TryGetValue(handlerId, out Container handlerContainer) 
                     ? null 
                     : handlerContainer.Handler;
-        }
-
-        private void Add(ref Basics.IHandler handler)
-        {
-            if (handler == null)
-                return;
-
-            Container container =
-                new Container(ref handler);
-
-            while (!this._Handlers.TryAdd(handler.HandlerId, container))
-                this.Add(ref handler);
         }
 
         public void Mark(string handlerId)

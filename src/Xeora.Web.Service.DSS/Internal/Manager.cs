@@ -65,10 +65,9 @@ namespace Xeora.Web.Service.Dss.Internal
             if (string.IsNullOrEmpty(uniqueId))
                 throw new Exceptions.ReservationCreationException();
 
-            reservationObject = new Service(uniqueId, reservationTimeout);
-
-            if (!this._ReservationTable.TryAdd(uniqueId, reservationObject))
-                throw new OutOfMemoryException();
+            reservationObject = 
+                new Service(uniqueId, reservationTimeout);
+            this._ReservationTable.TryAdd(uniqueId, reservationObject);
         }
 
         private void PruneReservations(object sender, EventArgs args)
