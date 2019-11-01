@@ -16,7 +16,7 @@ namespace Xeora.Web.Service
         
         public Negotiator() =>
             this._TaskSchedulerEngineLock = new object();
-        
+
         public IHandler GetHandler(string handlerId) =>
             Handler.Manager.Current.Get(handlerId);
         

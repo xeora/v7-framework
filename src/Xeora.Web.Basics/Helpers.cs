@@ -10,7 +10,16 @@ namespace Xeora.Web.Basics
 {
     public class Helpers
     {
-        internal static INegotiator Negotiator { get; set; }
+        internal static DomainPacket Packet { get; set; }
+        internal static INegotiator Negotiator => 
+            Helpers.Packet.Negotiator;
+
+        /// <summary>
+        /// Gets the context name of current execution
+        /// </summary>
+        /// <value>The value of context name of current execution</value>
+        public static string Name => 
+            Helpers.Packet.Name;
         
         /// <summary>
         /// Creates the Xeora Url with variable pool accessibility

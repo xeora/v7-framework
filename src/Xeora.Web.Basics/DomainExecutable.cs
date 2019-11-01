@@ -4,9 +4,9 @@ namespace Xeora.Web.Basics
 {
     public abstract class DomainExecutable
     {
-        protected DomainExecutable(INegotiator negotiator) =>
-            Helpers.Negotiator = negotiator;
-        
+        protected DomainExecutable(DomainPacket packet) =>
+            Helpers.Packet = packet;
+
         /// <summary>
         /// PreExecute Procedure has been called right before the Xeora Executable Call
         /// </summary>

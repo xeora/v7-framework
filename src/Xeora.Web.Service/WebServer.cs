@@ -7,6 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Xeora.Web.Service.VariablePool;
+using Console = System.Console;
 
 namespace Xeora.Web.Service
 {
@@ -92,11 +93,11 @@ namespace Xeora.Web.Service
                 Negotiator negotiator = 
                     new Negotiator();
                 typeof(Basics.Helpers).InvokeMember(
-                    "Negotiator", 
+                    "Packet", 
                     BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.SetProperty, 
                     null, 
                     null, 
-                    new object[]{negotiator}
+                    new object[]{new Basics.DomainPacket("Default", negotiator)}
                 );
 
                 Manager.Loader.Initialize(

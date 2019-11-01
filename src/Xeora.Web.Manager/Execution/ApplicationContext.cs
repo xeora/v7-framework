@@ -27,7 +27,7 @@ namespace Xeora.Web.Manager.Execution
         public ApplicationContext(INegotiator negotiator, string executablesPath, string executableName)
         {
             this._Negotiator = negotiator;
-            
+
             if (string.IsNullOrEmpty(executablesPath))
                 throw new ArgumentNullException(nameof(executablesPath));
             if (string.IsNullOrEmpty(executableName))
@@ -151,7 +151,7 @@ namespace Xeora.Web.Manager.Execution
                 try
                 {
                     domainInstance = 
-                        (DomainExecutable)Activator.CreateInstance(executingDomain, this._Negotiator);
+                        (DomainExecutable)Activator.CreateInstance(executingDomain, new DomainPacket(this.Name, this._Negotiator));
                     this._ExecutableInstances.TryAdd(executingDomain, domainInstance);
                     
                     if (!executingDomain.Name.StartsWith("X") && executingDomain.Name.Length != 33)
