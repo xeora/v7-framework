@@ -114,7 +114,7 @@ namespace Xeora.Web.Directives.Elements
 
                             break;
                         case '&':
-                            // Session Value
+                            // Application Value
                             this.RenderApplicationItem();
 
                             break;
@@ -134,7 +134,7 @@ namespace Xeora.Web.Directives.Elements
 
                             break;
                         case '*':
-                            // Search in All orderby : [InData, DataField, Session, Form Post, QueryString, Cookie] (DOES NOT SUPPORT FILE POSTS)
+                            // Search in All orderby : [InData, DataField, Session, Application, Form Post, QueryString, Cookie] (DOES NOT SUPPORT FILE POSTS)
                             string searchArgKey = this._RawValue.Substring(1);
                             object searchArgValue = null;
 
@@ -291,7 +291,7 @@ namespace Xeora.Web.Directives.Elements
         {
             string applicationItemKey = this._RawValue.Substring(1);
             object applicationItemValue = 
-                Helpers.Context.Session[applicationItemKey];
+                Helpers.Context.Application[applicationItemKey];
 
             this.Deliver(RenderStatus.Rendered, applicationItemValue == null ? string.Empty : applicationItemValue.ToString());
             this.ObjectResult = applicationItemValue;
