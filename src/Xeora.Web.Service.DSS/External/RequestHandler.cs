@@ -29,7 +29,8 @@ namespace Xeora.Web.Service.Dss.External
 
             byte[] headBytes = BitConverter.GetBytes(head);
 
-            byte[] newRequestBytes = new byte[headBytes.Length + requestBytes.Length];
+            byte[] newRequestBytes = 
+                new byte[headBytes.Length + requestBytes.Length];
             Array.Copy(headBytes, 0, newRequestBytes, 0, headBytes.Length);
             Array.Copy(requestBytes, 0, newRequestBytes, headBytes.Length, requestBytes.Length);
 

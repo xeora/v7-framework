@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using Xeora.Web.Basics;
 
 namespace Xeora.Web.Service.Dss.External
 {
@@ -87,7 +88,8 @@ namespace Xeora.Web.Service.Dss.External
 
             try
             {
-                responseStream = new MemoryStream(responseBytes, 0, responseBytes.Length, false);
+                responseStream = 
+                    new MemoryStream(responseBytes, 0, responseBytes.Length, false);
                 binaryReader = new BinaryReader(responseStream);
 
                 /*
@@ -240,7 +242,8 @@ namespace Xeora.Web.Service.Dss.External
             {
                 forStream = new MemoryStream();
 
-                BinaryFormatter binFormatter = new BinaryFormatter();
+                BinaryFormatter binFormatter = 
+                    new BinaryFormatter {Binder = new Binder(Helpers.Name)};
                 binFormatter.Serialize(forStream, value);
 
                 return ((MemoryStream)forStream).ToArray();
@@ -262,8 +265,8 @@ namespace Xeora.Web.Service.Dss.External
             {
                 forStream = new MemoryStream(value);
 
-                BinaryFormatter binFormatter = new BinaryFormatter();
-
+                BinaryFormatter binFormatter =
+                    new BinaryFormatter {Binder = new Binder(Helpers.Name)};
                 return binFormatter.Deserialize(forStream);
             }
             catch (Exception)
