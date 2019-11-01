@@ -11,6 +11,7 @@ namespace Xeora.Web.Basics.Execution
                 { '^', true },
                 { '~', true },
                 { '-', true },
+                { '&', true },
                 { '+', true },
                 { '=', true },
                 { '#', true },

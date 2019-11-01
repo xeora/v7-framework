@@ -30,7 +30,7 @@ namespace Xeora.Web.Directives
         }
 
         private static readonly Regex ControlParametersRegEx =
-            new Regex("\\(((\\|)?(([#]+|[\\^\\-\\+\\*\\~])?([0-9_a-zA-Z]+)|\\=[\\S]*|@([#]+|[\\-])?([0-9_a-zA-Z]+\\.)[\\.0-9_a-zA-Z]+)?)+\\)", RegexOptions.Compiled);
+            new Regex("\\(((\\|)?(([#]+|[\\^\\-\\+\\*\\~\\&])?([0-9_a-zA-Z]+)|\\=[\\S]*|@([#]+|[\\-])?([0-9_a-zA-Z]+\\.)[\\.0-9_a-zA-Z]+)?)+\\)", RegexOptions.Compiled);
         public static string[] CaptureControlParameters(string value)
         {
             string[] controlValueSplitted = value.Split(':');

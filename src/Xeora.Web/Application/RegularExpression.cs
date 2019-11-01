@@ -11,9 +11,9 @@ namespace Xeora.Web.Application
         {
             // CAPTURE REGULAR EXPRESSIONS
             const string characterGroup = "0-9_a-zA-Z";
-            const string simpleVariableRegEx = "([#]+|[\\^\\-\\+\\*\\~])?([" + characterGroup + "]+)";
+            const string simpleVariableRegEx = "([#]+|[\\^\\-\\+\\*\\~\\&])?([" + characterGroup + "]+)";
             const string staticVariableRegEx = "\\=[\\S]*";
-            const string objectVariableRegEx = "@([#]+|[\\-])?([" + characterGroup + "]+\\.)[\\." + characterGroup + "]+";
+            const string objectVariableRegEx = "@([#]+|[\\-\\&])?([" + characterGroup + "]+\\.)[\\." + characterGroup + "]+";
             const string variableRegEx = simpleVariableRegEx + "|" + staticVariableRegEx + "|" + objectVariableRegEx;
             const string directiveIdRegEx = "[\\.\\-" + characterGroup + "]+";
             const string directiveIdWithSlashRegEx = "[\\/\\.\\-" + characterGroup + "]+"; // for template capturing

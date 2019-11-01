@@ -33,6 +33,7 @@ namespace Xeora.Web.Directives.Elements
                         case '^':
                         case '~':
                         case '-':
+                        case '&':
                         case '+':
                         case '=':
                         case '#':
@@ -41,6 +42,7 @@ namespace Xeora.Web.Directives.Elements
                             switch (this._RawValue[1])
                             {
                                 case '-':
+                                case '&':
                                 case '#':
                                     break;
                                 default:
@@ -111,6 +113,11 @@ namespace Xeora.Web.Directives.Elements
                             this.RenderSessionItem();
 
                             break;
+                        case '&':
+                            // Session Value
+                            this.RenderApplicationItem();
+
+                            break;
                         case '+':
                             // Cookies Value
                             this.RenderCookieItem();
@@ -142,9 +149,13 @@ namespace Xeora.Web.Directives.Elements
                             if (searchArgValue == null)
                                 searchArgValue = Helpers.Context.Session[searchArgKey];
 
+                            // Search In Application
+                            if (searchArgValue == null)
+                                searchArgValue = Helpers.Context.Application[searchArgKey];
+                            
                             // Cookie
                             if (searchArgValue == null &&
-                                (Helpers.Context.Request.Header.Cookie[searchArgKey] != null))
+                                Helpers.Context.Request.Header.Cookie[searchArgKey] != null)
                             {
                                 searchArgValue = Helpers.Context.Request.Header.Cookie[searchArgKey].Value;
                             }
@@ -275,6 +286,16 @@ namespace Xeora.Web.Directives.Elements
             this.Deliver(RenderStatus.Rendered, sessionItemValue == null ? string.Empty : sessionItemValue.ToString());
             this.ObjectResult = sessionItemValue;
         }
+        
+        private void RenderApplicationItem()
+        {
+            string applicationItemKey = this._RawValue.Substring(1);
+            object applicationItemValue = 
+                Helpers.Context.Session[applicationItemKey];
+
+            this.Deliver(RenderStatus.Rendered, applicationItemValue == null ? string.Empty : applicationItemValue.ToString());
+            this.ObjectResult = applicationItemValue;
+        }
 
         private void RenderCookieItem()
         {
@@ -357,6 +378,10 @@ namespace Xeora.Web.Directives.Elements
             {
                 case '-':
                     objectItem = Helpers.Context.Session[objectItemKey.Substring(1)];
+
+                    break;
+                case '&':
+                    objectItem = Helpers.Context.Application[objectItemKey.Substring(1)];
 
                     break;
                 case '#':
