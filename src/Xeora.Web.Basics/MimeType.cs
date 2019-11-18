@@ -174,6 +174,7 @@ namespace Xeora.Web.Basics
                     { ".sst", "application/vndms-pkicertstore" },
                     { ".src", "application/x-wais-source" },
                     { ".sv4cpio", "application/x-sv4cpio" },
+                    { ".svg", "image/svg+xml"},
                     { ".tex", "application/x-tex" },
                     { ".tgz", "application/x-compressed" },
                     { ".t", "application/x-troff" },
