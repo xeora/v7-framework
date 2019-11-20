@@ -13,6 +13,8 @@ namespace Xeora.Web.Service.Context
             string sessionCookieKey = Basics.Configurations.Xeora.Session.CookieKey;
 
             this.UniqueId = contextId;
+            this.HashCode = 
+                this.GetOrCreateHashCode(ref request);
             this.Request = request;
             this.Response = new HttpResponse(contextId);
 
@@ -55,6 +57,25 @@ namespace Xeora.Web.Service.Context
             this.Application = ApplicationContainer.Current;
         }
 
+        private string GetOrCreateHashCode(ref Basics.Context.IHttpRequest request)
+        {
+            string requestFilePath =
+                request.Header.Url.RelativePath;
+
+            int biIndex = 
+                requestFilePath.IndexOf(Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation, StringComparison.InvariantCulture);
+            if (biIndex > -1)
+                requestFilePath = requestFilePath.Remove(0, biIndex + Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation.Length);
+
+            System.Text.RegularExpressions.Match mR =
+                System.Text.RegularExpressions.Regex.Match(requestFilePath, "\\d+/");
+
+            if (mR.Success && mR.Index == 0)
+                return mR.Value.Substring(0, mR.Length - 1);
+            
+            return this.GetHashCode().ToString().Replace("-", string.Empty);
+        }
+        
         public string UniqueId { get; }
         public Basics.Context.IHttpRequest Request { get; }
         public Basics.Context.IHttpResponse Response { get; }
@@ -63,37 +84,8 @@ namespace Xeora.Web.Service.Context
 
         public new void AddOrUpdate(string key, object value) =>
             base.AddOrUpdate(key, value);
-
-        private string _HashCode = string.Empty;
-        public string HashCode
-        {
-            get
-            {
-                if (!string.IsNullOrEmpty(this._HashCode))
-                    return this._HashCode;
-
-                string requestFilePath =
-                    this.Request.Header.Url.RelativePath;
-
-                int biIndex = 
-                    requestFilePath.IndexOf(Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation, StringComparison.InvariantCulture);
-                if (biIndex > -1)
-                    requestFilePath = requestFilePath.Remove(0, biIndex + Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation.Length);
-
-                System.Text.RegularExpressions.Match mR =
-                    System.Text.RegularExpressions.Regex.Match(requestFilePath, "\\d+/");
-
-                if (mR.Success && mR.Index == 0)
-                    this._HashCode = mR.Value.Substring(0, mR.Length - 1);
-                else
-                {
-                    this._HashCode = this.GetHashCode().ToString();
-                    this._HashCode = this._HashCode.Replace("-", string.Empty);
-                }
-
-                return this._HashCode;
-            }
-        }
+        
+        public string HashCode { get; }
 
         public void Dispose()
         {
