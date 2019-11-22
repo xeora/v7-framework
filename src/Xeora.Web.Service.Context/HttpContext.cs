@@ -1,62 +1,44 @@
 ﻿using System;
-using Xeora.Web.Service.Application;
-using Xeora.Web.Service.Session;
 
 namespace Xeora.Web.Service.Context
 {
     public class HttpContext : KeyValueCollection<string, object>, Basics.Context.IHttpContext
     {
-        private readonly Basics.Session.IHttpSession _Session;
-
-        public HttpContext(string contextId, ref Basics.Context.IHttpRequest request)
+        public HttpContext(
+            string contextId, 
+            Basics.Context.IHttpRequest request, 
+            Basics.Session.IHttpSession session, 
+            Basics.Application.IHttpApplication application)
         {
-            string sessionCookieKey = Basics.Configurations.Xeora.Session.CookieKey;
-
             this.UniqueId = contextId;
             this.HashCode = 
                 this.GetOrCreateHashCode(ref request);
             this.Request = request;
             this.Response = new HttpResponse(contextId);
-
-            string sessionId = string.Empty;
-            Basics.Context.IHttpCookieInfo sessionIdCookie =
-                this.Request.Header.Cookie[sessionCookieKey];
-            if (sessionIdCookie != null)
-            {
-                sessionId = sessionIdCookie.Value;
-
-                // Remove sessionCookie from the request object
-                ((HttpCookie)this.Request.Header.Cookie).Remove(sessionCookieKey);
-            }
-
-            SessionManager.Current.Acquire(
-                sessionId,
-                out this._Session);
-
+            this.Session = session;
+            this.Application = application;
+            
             ((HttpResponse)this.Response).SessionCookieRequested +=
                 skip =>
                 {
                     if (skip)
                         return null;
 
-                    if (string.CompareOrdinal(sessionId, this._Session.SessionId) == 0)
-                        return null;
-
-                    if (this._Session.Keys.Length == 0)
+                    if (this.Session.Keys.Length == 0)
                         return null;
 
                     // Create SessionCookie
-                    sessionIdCookie =
+                    string sessionCookieKey = 
+                        Basics.Configurations.Xeora.Session.CookieKey;
+                    Basics.Context.IHttpCookieInfo sessionIdCookie =
                         this.Response.Header.Cookie.CreateNewCookie(sessionCookieKey);
-                    sessionIdCookie.Value = this._Session.SessionId;
+                    sessionIdCookie.Value = this.Session.SessionId;
                     sessionIdCookie.HttpOnly = true;
 
                     return sessionIdCookie;
                 };
-
-            this.Application = ApplicationContainer.Current;
         }
-
+        
         private string GetOrCreateHashCode(ref Basics.Context.IHttpRequest request)
         {
             string requestFilePath =
@@ -79,7 +61,7 @@ namespace Xeora.Web.Service.Context
         public string UniqueId { get; }
         public Basics.Context.IHttpRequest Request { get; }
         public Basics.Context.IHttpResponse Response { get; }
-        public Basics.Session.IHttpSession Session => this._Session;
+        public Basics.Session.IHttpSession Session { get; }
         public Basics.Application.IHttpApplication Application { get; }
 
         public new void AddOrUpdate(string key, object value) =>

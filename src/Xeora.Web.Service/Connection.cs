@@ -13,7 +13,7 @@ namespace Xeora.Web.Service
         private readonly TcpClient _RemoteClient;
         private readonly X509Certificate2 _Certificate;
 
-        private const short READ_TIMEOUT = 5; // 5 seconds
+        private const short READ_TIMEOUT = 5000; // 5 seconds
 
         public Connection(ref TcpClient remoteClient, X509Certificate2 certificate)
         {
@@ -78,7 +78,7 @@ namespace Xeora.Web.Service
             // If reads create problems and put the loop to infinite. drop the connection.
             // that's why, 5 seconds timeout should be set to remoteStream
             // No need to put timeout to write operation because xeora will handle connection state
-            remoteStream.ReadTimeout = READ_TIMEOUT * 1000;
+            remoteStream.ReadTimeout = READ_TIMEOUT;
 
             Net.NetworkStream streamEnclosure = 
                 new Net.NetworkStream(ref remoteStream);

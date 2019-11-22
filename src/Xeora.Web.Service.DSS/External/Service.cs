@@ -11,12 +11,13 @@ namespace Xeora.Web.Service.Dss.External
         private readonly RequestHandler _RequestHandler;
         private readonly ResponseHandler _ResponseHandler;
 
-        public Service(ref RequestHandler requestHandler, ref ResponseHandler responseHandler, string uniqueId, DateTime expireDate)
+        public Service(ref RequestHandler requestHandler, ref ResponseHandler responseHandler, string uniqueId, bool reusing, DateTime expireDate)
         {
             this._RequestHandler = requestHandler;
             this._ResponseHandler = responseHandler;
 
             this.UniqueId = uniqueId;
+            this.Reusing = reusing;
             this.Expires = expireDate;
         }
 
@@ -42,6 +43,7 @@ namespace Xeora.Web.Service.Dss.External
         }
 
         public string UniqueId { get; }
+        public bool Reusing { get; }
         public DateTime Expires { get; }
         public string[] Keys => this.GetKeys();
 

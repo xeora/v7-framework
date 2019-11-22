@@ -23,6 +23,5 @@ namespace Xeora.Web.Service.Session
         public string[] Keys => this._Reservation.Keys;
 
         public bool IsExpired => ((Dss.IService)this._Reservation).IsExpired;
-        public void Extend() => ((Dss.IService)this._Reservation).Extend();
     }
 }

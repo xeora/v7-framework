@@ -62,10 +62,7 @@ namespace Xeora.Web.Service.Context.Request
                 if (read - size < 0)
                     this._StreamEnclosure.Return(buffer, read, size - read);
 
-                if (length > 0)
-                    return true;
-
-                return false;
+                return length > 0;
             });
 
             contentStream = contentStreamReference;

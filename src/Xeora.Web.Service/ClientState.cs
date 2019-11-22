@@ -4,7 +4,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Xeora.Web.Basics;
+using Xeora.Web.Service.Application;
 using Xeora.Web.Service.Context;
+using Xeora.Web.Service.Session;
 
 namespace Xeora.Web.Service
 {
@@ -24,7 +26,9 @@ namespace Xeora.Web.Service
                 if (!((HttpRequest)request).Build(stateId, streamEnclosure))
                     return;
 
-                context = new HttpContext(stateId, ref request);
+                ClientState.AcquireSession(request, out Basics.Session.IHttpSession session);
+                context = 
+                    new HttpContext(stateId, request, session, ApplicationContainer.Current);
 
                 DateTime xeoraHandlerProcessBegins = DateTime.Now;
 
@@ -98,6 +102,18 @@ namespace Xeora.Web.Service
             }
         }
 
+        private static void AcquireSession(Basics.Context.IHttpRequest request, out Basics.Session.IHttpSession session)
+        {
+            string sessionCookieKey = 
+                Configurations.Xeora.Session.CookieKey;
+
+            Basics.Context.IHttpCookieInfo sessionIdCookie =
+                request.Header.Cookie[sessionCookieKey];
+            request.Header.Cookie.Remove(sessionCookieKey);
+
+            SessionManager.Current.Acquire(sessionIdCookie?.Value, out session);
+        }
+        
         private static void PushServerError(ref Net.NetworkStream streamEnclosure)
         {
             try

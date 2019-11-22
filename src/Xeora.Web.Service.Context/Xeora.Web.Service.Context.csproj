@@ -50,8 +50,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Xeora.Web.Basics\Xeora.Web.Basics.csproj" />
-    <ProjectReference Include="..\Xeora.Web.Service.Session\Xeora.Web.Service.Session.csproj" />
-    <ProjectReference Include="..\Xeora.Web.Service.Application\Xeora.Web.Service.Application.csproj" />
     <ProjectReference Include="..\Xeora.Web.Service.Net\Xeora.Web.Service.Net.csproj" />
   </ItemGroup>
 

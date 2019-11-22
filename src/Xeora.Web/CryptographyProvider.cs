@@ -62,8 +62,8 @@ namespace Xeora.Web
             }
             finally
             {
-                this.Ping(cryptoId);
                 Monitor.Exit(this._GetLock);
+                this.Ping(cryptoId);
             }
         }
 

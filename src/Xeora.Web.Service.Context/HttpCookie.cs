@@ -8,6 +8,12 @@
                 base.AddOrUpdate(cookie.Name, cookie);
         }
 
+        public new void Remove(string name)
+        {
+            if (base.ContainsKey(name)) 
+                base.Remove(name);
+        }
+
         public Basics.Context.IHttpCookieInfo CreateNewCookie(string name) =>
             new HttpCookieInfo(name);
     }

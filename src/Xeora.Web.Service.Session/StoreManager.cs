@@ -31,8 +31,6 @@ namespace Xeora.Web.Service.Session
             if (enclosure.IsExpired)
                 return;
 
-            enclosure.Extend();
-
             sessionObject = enclosure;
         }
     }

@@ -100,7 +100,7 @@ namespace Xeora.Web.Service.Dss.External
                 new BinaryReader(contentStream);
 
             /*
-             * <- \BYTE\BYTE\CHARS{BYTEVALUELENGTH}\LONG
+             * <- \BYTE\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\LONG
              * <- \BYTE
              */
 
@@ -110,10 +110,11 @@ namespace Xeora.Web.Service.Dss.External
             byte reservationIdLength = binaryReader.ReadByte();
             string reservationId =
                 new string(binaryReader.ReadChars(reservationIdLength));
+            byte reusing = binaryReader.ReadByte();
             DateTime expireDate =
                 new DateTime(binaryReader.ReadInt64());
 
-            reservationObject = new Service(ref this._RequestHandler, ref this._ResponseHandler, reservationId, expireDate);
+            reservationObject = new Service(ref this._RequestHandler, ref this._ResponseHandler, reservationId, reusing == 1, expireDate);
         }
     }
 }
