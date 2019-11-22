@@ -95,15 +95,19 @@ namespace Xeora.Web.Handler
             if (!Monitor.TryEnter(this._RefreshLock))
                 return;
 
-            if (this._Refresh)
-                return;
-
-            this._Refresh = true;
-            
-            Basics.Console.Push(
-                string.Empty, "Domains refresh requested!", string.Empty, false, true);
-
-            Monitor.Exit(this._RefreshLock);
+            try
+            {
+                if (this._Refresh)
+                    return;
+                this._Refresh = true;
+                
+                Basics.Console.Push(
+                    string.Empty, "Domains refresh requested!", string.Empty, false, true);
+            }
+            finally
+            {
+                Monitor.Exit(this._RefreshLock);
+            }
         }
     }
 }
