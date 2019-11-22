@@ -152,10 +152,12 @@ namespace Xeora.Web.Directives.Controls.Elements
                 Task.Factory.StartNew(
                     s =>
                     {
-                        object[] list = (object[]) s;
+                        Tuple<string, Single> @params = 
+                            (Tuple<string, Single>) s;
 
-                        string handlerId = (string) list[0];
-                        Single single = (Single) list[1];
+                        string handlerId = 
+                            @params.Item1;
+                        Single single = @params.Item2;
                         
                         this._SemaphoreSlim.Wait();
                         try
@@ -163,13 +165,13 @@ namespace Xeora.Web.Directives.Controls.Elements
                             Helpers.AssignHandlerId(handlerId);
                             single.Render(requesterUniqueId);
                         }
-                        catch (Exception e)
+                        catch (Exception ex)
                         {
                             if (single.Parent != null)
                                 single.Parent.HasInlineError = true;
                             
-                            Tools.EventLogger.Log(e);
-                            single.Deliver(RenderStatus.Rendered, Mother.CreateErrorOutput(e));
+                            Basics.Console.Push("Execution Exception...", ex.Message, ex.StackTrace, false, true, type: Basics.Console.Type.Error);
+                            single.Deliver(RenderStatus.Rendered, Mother.CreateErrorOutput(ex));
 
                             return;
                         }
@@ -180,7 +182,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                         
                         this.TryCreateRenderedContent();
                     },
-                    new object[] { currentHandlerId, rowSingle }
+                    new Tuple<string, Single>(currentHandlerId, rowSingle)
                 )
             );
         }
@@ -220,10 +222,10 @@ namespace Xeora.Web.Directives.Controls.Elements
                     if (this._RowRenderTasks.Count > 0)
                         Task.WaitAll(this._RowRenderTasks.ToArray());
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Tools.EventLogger.Log(e);
-                    return Mother.CreateErrorOutput(e);
+                    Basics.Console.Push("Execution Exception...", ex.Message, ex.StackTrace, false, true, type: Basics.Console.Type.Error);
+                    return Mother.CreateErrorOutput(ex);
                 }
 
                 return this._RenderedContent.ToString();
@@ -323,7 +325,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             {
                 this.RenderError(requesterUniqueId, Basics.ControlResult.Message.Types.Error, ex.Message);
 
-                Tools.EventLogger.Log(ex);
+                Basics.Console.Push("Execution Exception...", ex.Message, ex.StackTrace, false, true, type: Basics.Console.Type.Error);
             }
             finally
             {

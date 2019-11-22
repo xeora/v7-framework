@@ -40,7 +40,7 @@ namespace Xeora.Web.Manager
             }
             catch (Exception ex)
             {
-                Tools.EventLogger.Log(ex);
+                Basics.Console.Push("Execution Exception...", ex.Message, ex.StackTrace, false, true, type: Basics.Console.Type.Error);
 
                 rInvokeResult.Exception = ex;
             }
@@ -75,7 +75,7 @@ namespace Xeora.Web.Manager
             }
             catch (Exception ex)
             {
-                Tools.EventLogger.Log(ex);
+                Basics.Console.Push("Execution Exception...", ex.Message, ex.StackTrace, false, true, type: Basics.Console.Type.Error);
 
                 return ex;
             }

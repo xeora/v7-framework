@@ -61,9 +61,9 @@ namespace Xeora.Web.Directives
                         {
                             this._CallBack((string)uId);
                         }
-                        catch (Exception e)
+                        catch (Exception ex)
                         {
-                            Tools.EventLogger.Log(e); 
+                            Basics.Console.Push("Execution Exception...", ex.Message, ex.StackTrace, false, true, type: Basics.Console.Type.Error);
                         }
                         finally
                         {
@@ -78,9 +78,9 @@ namespace Xeora.Web.Directives
                 if (callbackJobs.Count > 0)
                     Task.WaitAll(callbackJobs.ToArray());
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Tools.EventLogger.Log(e);
+                Basics.Console.Push("Execution Exception...", ex.Message, ex.StackTrace, false, true, type: Basics.Console.Type.Error);
             }
         }
     }

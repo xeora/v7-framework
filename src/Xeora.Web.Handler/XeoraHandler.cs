@@ -434,7 +434,7 @@ namespace Xeora.Web.Handler
             exceptionLogging.AppendLine("-- Error Content --");
             exceptionLogging.Append(exception);
 
-            Tools.EventLogger.Log(exceptionLogging.ToString());
+            Basics.Console.Push("Execution Exception...", "Xeora Handler is FAILED!", exceptionLogging.ToString(), false, true, type: Basics.Console.Type.Error);
 
             StringBuilder outputStringBuilder =
                 new StringBuilder();

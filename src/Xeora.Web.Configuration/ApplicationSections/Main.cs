@@ -160,11 +160,5 @@ namespace Xeora.Web.Configuration.ApplicationSections
         [DefaultValue(0)]
         [JsonProperty(PropertyName = "bandwidth", DefaultValueHandling = DefaultValueHandling.Populate)]
         public long Bandwidth { get; private set; }
-
-        [JsonProperty(PropertyName = "loggingPath")]
-        private string _LoggingPath { get; set; }
-
-        public string LoggingPath =>
-            string.IsNullOrEmpty(this._LoggingPath) ? Path.Combine(this.PhysicalRoot, "XeoraLogs") : this._LoggingPath;
     }
 }

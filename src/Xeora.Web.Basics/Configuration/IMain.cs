@@ -15,6 +15,5 @@
         bool LogHttpExceptions { get; }
         bool UseHtml5Header { get; }
         long Bandwidth { get; }
-        string LoggingPath { get; }
     }
 }

@@ -82,10 +82,7 @@ namespace Xeora.Web.Service
                 if (ex is IOException && ex.InnerException is SocketException)
                     return;
 
-                Tools.EventLogger.Log(ex);
-
-                if (Configurations.Xeora.Service.Print)
-                    Basics.Console.Push("SYSTEM ERROR", string.Empty, ex.ToString(), false, true, type: Basics.Console.Type.Error);
+                Basics.Console.Push("Execution Exception...", ex.Message, ex.StackTrace, false, true, type: Basics.Console.Type.Error);
 
                 ClientState.PushServerError(ref streamEnclosure);
 

@@ -572,7 +572,7 @@ namespace Xeora.Web.Application
                 }
                 catch (Exception ex)
                 {
-                    Tools.EventLogger.Log(ex);
+                    Basics.Console.Push("Execution Exception...", ex.Message, ex.StackTrace, false, true, type: Basics.Console.Type.Error);
                 }
             }
             DomainControl._AvailableDomains = rDomainInfoCollection;

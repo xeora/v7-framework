@@ -173,7 +173,7 @@ namespace Xeora.Web.Directives
             if (directive.Parent != null)
                 directive.Parent.HasInlineError = true;
 
-            Tools.EventLogger.Log(exception);
+            Basics.Console.Push("Execution Exception...", exception.Message, exception.StackTrace, false, true, type: Basics.Console.Type.Error);
 
             directive.Deliver(RenderStatus.Rendered, Mother.CreateErrorOutput(exception));
         }
