@@ -213,7 +213,5 @@ namespace Xeora.Web.Deployment
                 return languageIds.ToArray();
             }
         }
-
-        public bool Reload() => this.Decompiler.Reload();
     }
 }

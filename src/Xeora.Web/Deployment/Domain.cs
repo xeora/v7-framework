@@ -173,12 +173,6 @@ namespace Xeora.Web.Deployment
             }
         }
 
-        public void Reload()
-        {
-            if (this.Deployment.Reload())
-                this.LoadDomain();
-        }
-
         public void Dispose()
         {
             Settings?.Dispose();

@@ -7,7 +7,7 @@ namespace Xeora.Web.Service.Application
     {
         private readonly ConcurrentDictionary<string, object> _Items;
 
-        public ApplicationContainer() =>
+        private ApplicationContainer() =>
             this._Items = new ConcurrentDictionary<string, object>();
 
         private static readonly object Lock = new object();
@@ -31,13 +31,7 @@ namespace Xeora.Web.Service.Application
 
         public object this[string key]
         {
-            get
-            {
-                if (this._Items.TryGetValue(key, out object value))
-                    return value;
-
-                return null;
-            }
+            get => this._Items.TryGetValue(key, out object value) ? value : null;
             set => this._Items.AddOrUpdate(key, value, (cKey, cValue) => value);
         }
 
@@ -45,8 +39,8 @@ namespace Xeora.Web.Service.Application
         {
             get
             {
-                string[] keys = new string[this._Items.Count];
-
+                string[] keys = 
+                    new string[this._Items.Count];
                 this._Items.Keys.CopyTo(keys, 0);
 
                 return keys;

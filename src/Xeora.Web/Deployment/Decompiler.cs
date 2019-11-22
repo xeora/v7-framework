@@ -22,60 +22,79 @@ namespace Xeora.Web.Deployment
             this._DomainFileEntryListCache = new ConcurrentDictionary<string, FileEntry>();
             this._DomainFileEntryBytesCache = new ConcurrentDictionary<string, byte[]>();
             this._CacheDate = DateTime.MinValue;
-
+            
             this._DomainFileLocation =
                 Path.Combine(domainRoot, "Content.xeora");
             string domainPasswordFileLocation =
                 Path.Combine(domainRoot, "Content.secure");
 
-            if (File.Exists(domainPasswordFileLocation))
+            this._PasswordHash = 
+                this.CreatePasswordHash(domainPasswordFileLocation);
+
+            this.Load();
+        }
+
+        private byte[] CreatePasswordHash(string domainPasswordFileLocation)
+        {
+            if (!File.Exists(domainPasswordFileLocation)) 
+                return null;
+            
+            byte[] securedHash = new byte[16];
+            Stream passwordStream = null;
+            try
             {
-                this._PasswordHash = null;
-
-                byte[] securedHash = new byte[16];
-                Stream passwordStream = null;
-                try
-                {
-                    passwordStream = new FileStream(domainPasswordFileLocation, FileMode.Open, FileAccess.Read);
-                    passwordStream.Read(securedHash, 0, securedHash.Length);
-                }
-                catch (Exception)
-                {
-                    securedHash = null;
-                }
-                finally
-                {
-                    passwordStream?.Close();
-                }
-
-                byte[] fileHash;
-                Stream contentStream = null;
-                try
-                {
-                    contentStream = new FileStream(this._DomainFileLocation, FileMode.Open, FileAccess.Read);
-
-                    MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
-                    fileHash = md5.ComputeHash(contentStream);
-                }
-                catch (Exception)
-                {
-                    fileHash = null;
-                }
-                finally
-                {
-                    contentStream?.Close();
-                }
-
-                if (securedHash != null && (fileHash != null))
-                {
-                    this._PasswordHash = new byte[16];
-
-                    for (int hC = 0; hC < this._PasswordHash.Length; hC++)
-                        this._PasswordHash[hC] = (byte)(securedHash[hC] ^ fileHash[hC]);
-                }
+                passwordStream = 
+                    new FileStream(domainPasswordFileLocation, FileMode.Open, FileAccess.Read);
+                passwordStream.Read(securedHash, 0, securedHash.Length);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            finally
+            {
+                passwordStream?.Close();
             }
 
-            this.Reload();
+            byte[] fileHash;
+            Stream contentStream = null;
+            try
+            {
+                contentStream = 
+                    new FileStream(this._DomainFileLocation, FileMode.Open, FileAccess.Read);
+
+                MD5CryptoServiceProvider md5 = 
+                    new MD5CryptoServiceProvider();
+                fileHash = md5.ComputeHash(contentStream);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            finally
+            {
+                contentStream?.Close();
+            }
+
+            byte[] passwordHash = new byte[16];
+
+            for (int hC = 0; hC < this._PasswordHash.Length; hC++)
+                this._PasswordHash[hC] = (byte)(securedHash[hC] ^ fileHash[hC]);
+
+            return passwordHash;
+        }
+        
+        private void Load()
+        {
+            FileInfo domainFI =
+                new FileInfo(this._DomainFileLocation);
+
+            if (!domainFI.Exists) return;
+            if (DateTime.Compare(this._CacheDate, DateTime.MinValue) != 0 &&
+                DateTime.Compare(this._CacheDate, domainFI.CreationTime) == 0) return;
+            
+            this.PrepareFileList();
+            this._CacheDate = domainFI.CreationTime;
         }
 
         public FileEntry Get(string registrationPath, string fileName)
@@ -193,21 +212,6 @@ namespace Xeora.Web.Deployment
                 gzipCStream?.Close();
                 gzipHelperStream?.Close();
             }
-        }
-
-        public bool Reload()
-        {
-            FileInfo domainFI =
-                new FileInfo(this._DomainFileLocation);
-
-            if (!domainFI.Exists) return false;
-            if (DateTime.Compare(this._CacheDate, DateTime.MinValue) != 0 &&
-                DateTime.Compare(this._CacheDate, domainFI.CreationTime) == 0) return false;
-            
-            this.PrepareFileList();
-            this._CacheDate = domainFI.CreationTime;
-
-            return true;
         }
 
         private void PrepareFileList()

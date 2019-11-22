@@ -19,7 +19,5 @@ namespace Xeora.Web.Deployment
         string ProvideControlsContent();
         string ProvideConfigurationContent();
         string ProvideLanguageContent(string languageId);
-
-        bool Reload();
     }
 }

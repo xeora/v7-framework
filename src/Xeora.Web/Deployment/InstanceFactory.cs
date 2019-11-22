@@ -33,24 +33,26 @@ namespace Xeora.Web.Deployment
             string instanceKey = 
                 string.Join<string>("-", domainIdAccessTree);
 
-            if (!this._Instances.TryGetValue(instanceKey, out Domain domain))
-            {
-                domain = 
-                    new Domain(domainIdAccessTree);
-                this._Instances.TryAdd(instanceKey, domain);
-            }
-            else
-                domain.Reload();
+            if (this._Instances.TryGetValue(instanceKey, out Domain domain)) 
+                return domain;
+            
+            domain = 
+                new Domain(domainIdAccessTree);
+            this._Instances.TryAdd(instanceKey, domain);
 
             return domain;
         }
 
         public void Reset()
         {
-            foreach (string key in this._Instances.Keys)
+            string[] keys = 
+                new string[this._Instances.Keys.Count];
+            this._Instances.Keys.CopyTo(keys, 0);
+            
+            foreach (string key in keys)
             {
-                this._Instances.TryRemove(key, out Domain domain);
-                domain?.Dispose();
+                if (this._Instances.TryRemove(key, out Domain domain))
+                    domain?.Dispose();
             }
         }
 
