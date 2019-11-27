@@ -115,7 +115,7 @@ namespace Xeora.Web.Manager.Statement
             codeBlock.AppendLine("namespace Xeora.Domain {");
 
             codeBlock.AppendFormat("public class {0} : DomainExecutable {{", executableName);
-            codeBlock.AppendFormat("public {0}(INegotiator negotiator) : base(negotiator) {{}}", executableName);
+            codeBlock.AppendFormat("public {0}(DomainPacket packet) : base(packet) {{}}", executableName);
             codeBlock.AppendLine("public override void PreExecute(string executionId, MethodInfo mI) {}");
             codeBlock.AppendLine("public override void PostExecute(string executionId, ref object result) {}");
             codeBlock.AppendLine("public override void Terminate() {}");
