@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Xeora.Web.Basics;
 using Xeora.Web.Basics.Context;
@@ -163,6 +164,8 @@ namespace Xeora.Web.Handler
             }
         }
 
+        private static readonly Regex DomainRequestPath =
+            new Regex("^[a-zA-Z0-9]+(\\-[a-zA-Z0-9]+)*_[a-z]{2}\\-[A-Z]{2}$", RegexOptions.Compiled);
         private void HandleStaticFile()
         {
             string domainContentsPath =
@@ -176,6 +179,8 @@ namespace Xeora.Web.Handler
                 // This is also not a request for default DomainContents
 
                 // Extract the ChildDomainIdAccessTree and LanguageId using RequestPath
+                // Searching something like: /Domain-Level1Child-Level2Child_en-US
+                
                 string requestedDomainWebPath = requestedFileVirtualPath;
                 string browserImplementation =
                     Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation;
@@ -186,26 +191,23 @@ namespace Xeora.Web.Handler
                 if (requestedDomainWebPath.IndexOf(this.Context.HashCode, StringComparison.InvariantCulture) == 0)
                     requestedDomainWebPath = requestedDomainWebPath.Substring(this.Context.HashCode.Length + 1);
 
-                if (requestedDomainWebPath.IndexOf('/') > -1)
+                int slashIndex = requestedDomainWebPath.IndexOf('/');
+                if (slashIndex > -1)
+                    requestedDomainWebPath = requestedDomainWebPath.Substring(0, slashIndex);
+
+                if (XeoraHandler.DomainRequestPath.Match(requestedDomainWebPath).Success)
                 {
-                    requestedDomainWebPath = requestedDomainWebPath.Split('/')[0];
+                    string[] requestedDomainWebPathParts = 
+                        requestedDomainWebPath.Split('_');
 
-                    if (!string.IsNullOrEmpty(requestedDomainWebPath))
-                    {
-                        string[] splittedRequestedDomainWebPath = requestedDomainWebPath.Split('_');
+                    string[] childDomainIdAccessTree = 
+                        requestedDomainWebPathParts[0].Split('-');
+                    string childDomainLanguageId = requestedDomainWebPathParts[1];
 
-                        if (splittedRequestedDomainWebPath.Length == 2)
-                        {
-                            string[] childDomainIdAccessTree = 
-                                splittedRequestedDomainWebPath[0].Split('-');
-                            string childDomainLanguageId = splittedRequestedDomainWebPath[1];
+                    this._DomainControl.OverrideDomain(childDomainIdAccessTree, childDomainLanguageId);
 
-                            this._DomainControl.OverrideDomain(childDomainIdAccessTree, childDomainLanguageId);
-
-                            domainContentsPath = this._DomainControl.Domain.ContentsVirtualPath;
-                            dcpIndex = requestedFileVirtualPath.IndexOf(domainContentsPath, StringComparison.InvariantCulture);
-                        }
-                    }
+                    domainContentsPath = this._DomainControl.Domain.ContentsVirtualPath;
+                    dcpIndex = requestedFileVirtualPath.IndexOf(domainContentsPath, StringComparison.InvariantCulture);
                 }
             }
 
@@ -259,7 +261,6 @@ namespace Xeora.Web.Handler
 
                         break;
                 }
-
             }
         }
 
