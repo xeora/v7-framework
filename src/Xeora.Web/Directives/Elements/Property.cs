@@ -1,10 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
-using Xeora.Web.Basics;
 using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives.Elements

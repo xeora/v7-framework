@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Xeora.Web.Directives.Elements;
+﻿using Xeora.Web.Directives.Elements;
 using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives.Controls.Elements
