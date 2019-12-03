@@ -41,6 +41,8 @@ namespace Xeora.Web.Service.Dss.External
 
         public long MakeRequest(byte[] requestBytes)
         {
+            if (this._DssServiceClient == null || !this._DssServiceClient.Client.Connected) return -1;
+            
             Monitor.Enter(this._StreamLock);
             try
             {

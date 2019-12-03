@@ -71,7 +71,9 @@ namespace Xeora.Web.Service.Dss.External
                 binaryWriter.Write(key.ToCharArray());
                 binaryWriter.Flush();
 
-                requestId = this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
+                requestId = 
+                    this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
+                if (requestId == -1) return null;
             }
             finally
             {
@@ -146,6 +148,7 @@ namespace Xeora.Web.Service.Dss.External
 
                 long requestId =
                     this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
+                if (requestId == -1) return;
 
                 byte[] responseBytes = this._ResponseHandler.WaitForMessage(requestId);
                 if (responseBytes == null || responseBytes.Length == 0)
@@ -186,6 +189,7 @@ namespace Xeora.Web.Service.Dss.External
                 binaryWriter.Flush();
 
                 requestId = this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
+                if (requestId == -1) return keys.ToArray();
             }
             catch
             {

@@ -29,10 +29,11 @@ namespace Xeora.Web.Service.Dss.External
             Monitor.Enter(this._ConnectionLock);
             try
             {
-                if (this._DssServiceClient != null &&
-                   this._DssServiceClient.Connected)
+                if (this._DssServiceClient != null && this._DssServiceClient.Client.Connected)
                     return;
                 
+                this._DssServiceClient?.Dispose();
+
                 this._DssServiceClient = new TcpClient();
                 this._DssServiceClient.Connect(this._ServiceEndPoint);
 
@@ -74,6 +75,11 @@ namespace Xeora.Web.Service.Dss.External
 
                 long requestId =
                     this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
+                if (requestId == -1)
+                {
+                    reservationObject = null;
+                    return;
+                }
 
                 byte[] responseBytes =
                     this._ResponseHandler.WaitForMessage(requestId);

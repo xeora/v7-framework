@@ -51,10 +51,8 @@ namespace Xeora.Web.Service.Dss.External
                 bR += responseStream.Read(head, bR, head.Length - bR);
                 if (bR == 0)
                 {
-                    // give time to fill buffer
-                    Thread.Sleep(1);
-
-                    continue;
+                    this._DssServiceClient.Dispose();
+                    return;
                 }
 
                 if (bR < 8)
