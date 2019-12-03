@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Xeora.Web.Global;
 using Single = Xeora.Web.Directives.Elements.Single;
 
@@ -24,7 +25,7 @@ namespace Xeora.Web.Directives
             base.Add(label, single);
         }
 
-        public void Render(string requesterUniqueId)
+        public void Render()
         {
             IEnumerator<KeyValuePair<string, Single>> bagEnum = 
                 this.GetEnumerator();
@@ -35,8 +36,7 @@ namespace Xeora.Web.Directives
                 {
                     KeyValuePair<string, Single> item = 
                         bagEnum.Current;
-
-                    item.Value.Render(requesterUniqueId);
+                    item.Value.Render();
                 }
             }
             finally

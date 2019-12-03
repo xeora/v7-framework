@@ -2,13 +2,12 @@
 
 namespace Xeora.Web.Directives.Elements
 {
-    public class UpdateBlock : Directive, INameable, IHasChildren
+    public class UpdateBlock : Directive, INameable
     {
         private const string RENDER_ON_REQUEST_MARKER = "!RENDERONREQUEST";
 
         private bool _RenderOnRequest;
         private readonly ContentDescription _Contents;
-        private DirectiveCollection _Children;
         private bool _Parsed;
 
         public UpdateBlock(string rawValue, ArgumentCollection arguments) : 
@@ -25,15 +24,11 @@ namespace Xeora.Web.Directives.Elements
         public override bool Searchable => true;
         public override bool CanAsync => false;
 
-        public DirectiveCollection Children => this._Children;
-
         public override void Parse()
         {
             if (this._Parsed)
                 return;
             this._Parsed = true;
-            
-            this._Children = new DirectiveCollection(this.Mother, this);
 
             string blockContent = this._Contents.Parts[0];
 
@@ -42,7 +37,6 @@ namespace Xeora.Web.Directives.Elements
                 if (!this.Mother.RequestedUpdateBlockIds.Contains(this.DirectiveId))
                 {
                     this._RenderOnRequest = true;
-
                     return;
                 }
 
@@ -53,21 +47,25 @@ namespace Xeora.Web.Directives.Elements
             if (this.Parent != null)
                 this.Arguments.Replace(this.Parent.Arguments);
 
-            this.Mother.RequestParsing(blockContent, ref this._Children, this.Arguments);
+            this.Children = new DirectiveCollection(this.Mother, this);
+            this.Mother.RequestParsing(blockContent, this.Children, this.Arguments);
         }
 
-        public override void Render(string requesterUniqueId)
+        public override bool PreRender()
         {
-            this.Parse();
-
             if (this.Status != RenderStatus.None)
-                return;
+                return false;
             this.Status = RenderStatus.Rendering;
 
-            if (!this._RenderOnRequest)
-                this.Children.Render(this.UniqueId);
-
-            this.Deliver(RenderStatus.Rendered, $"<div id=\"{this.DirectiveId}\">{this.Result}</div>");
+            this.Parse();
+            
+            if (this._RenderOnRequest)
+                this.Deliver(RenderStatus.Rendered, $"<div id=\"{this.DirectiveId}\"></div>");
+            
+            return !this._RenderOnRequest;
         }
+        
+        public override void PostRender() =>
+            this.Deliver(RenderStatus.Rendered, $"<div id=\"{this.DirectiveId}\">{this.Result}</div>");
     }
 }

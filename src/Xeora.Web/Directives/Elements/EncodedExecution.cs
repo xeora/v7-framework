@@ -5,10 +5,9 @@ using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives.Elements
 {
-    public class EncodedExecution : Directive, IHasChildren
+    public class EncodedExecution : Directive
     {
         private readonly ContentDescription _Contents;
-        private DirectiveCollection _Children;
         private bool _Parsed;
 
         private bool _Clean;
@@ -23,16 +22,12 @@ namespace Xeora.Web.Directives.Elements
         public override bool Searchable => false;
         public override bool CanAsync => false;
 
-        public DirectiveCollection Children => this._Children;
-
         public override void Parse()
         {
             if (this._Parsed)
                 return;
             this._Parsed = true;
-
-            this._Children = new DirectiveCollection(this.Mother, this);
-
+            
             // EncodedExecution needs to link ContentArguments of its parent.
             if (this.Parent != null)
                 this.Arguments.Replace(this.Parent.Arguments);
@@ -41,19 +36,23 @@ namespace Xeora.Web.Directives.Elements
             if (string.IsNullOrEmpty(executionContent))
                 throw new Exceptions.EmptyBlockException();
 
-            this.Mother.RequestParsing(executionContent, ref this._Children, this.Arguments);
+            this.Children = new DirectiveCollection(this.Mother, this);
+            this.Mother.RequestParsing(executionContent, this.Children, this.Arguments);
         }
 
-        public override void Render(string requesterUniqueId)
+        public override bool PreRender()
         {
-            this.Parse();
-
             if (this.Status != RenderStatus.None)
-                return;
+                return false;
             this.Status = RenderStatus.Rendering;
 
-            this.Children.Render(this.UniqueId);
+            this.Parse();
+            
+            return true;
+        }
 
+        public override void PostRender()
+        {
             string result = this.Result;
 
             this.ExtractSubDirectives(ref result);

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Xeora.Web.Application.Controls;
 using Xeora.Web.Basics;
 using Xeora.Web.Basics.Domain;
@@ -23,7 +25,6 @@ namespace Xeora.Web.Directives
         {
             this.Pool = new DirectivePool();
             
-
             this.MessageResult = messageResult;
             this.RequestedUpdateBlockIds = 
                 new List<string>();
@@ -32,19 +33,18 @@ namespace Xeora.Web.Directives
             
             this._Directive = directive;
             this._Directive.Mother = this;
+            
+            this.AnalysisBulk = new ConcurrentDictionary<DirectiveTypes, Tuple<int, double>>();
         }
-
-        public Mother(string xeoraContent, Basics.ControlResult.Message messageResult, IReadOnlyCollection<string> updateBlockIdStack) :
-            this(new Single(xeoraContent, null), messageResult, updateBlockIdStack)
-        { }
-
+        
+        public ConcurrentDictionary<DirectiveTypes, Tuple<int, double>> AnalysisBulk { get; }
         public DirectivePool Pool { get; }
 
         public Basics.ControlResult.Message MessageResult { get; }
         public List<string> RequestedUpdateBlockIds { get; }
 
-        public void RequestParsing(string rawValue, ref DirectiveCollection childrenContainer, ArgumentCollection arguments) =>
-            ParseRequested?.Invoke(rawValue, ref childrenContainer, arguments);
+        public void RequestParsing(string rawValue, DirectiveCollection childrenContainer, ArgumentCollection arguments) =>
+            ParseRequested?.Invoke(rawValue, childrenContainer, arguments);
 
         public void RequestInstance(out IDomain instance)
         {
@@ -83,7 +83,35 @@ namespace Xeora.Web.Directives
                 single.Children.Add(result);
             }
 
-            this._Directive.Render(null);
+            this._Directive.Render();
+            
+            if (!Configurations.Xeora.Application.Main.PrintAnalysis) return;
+
+            IEnumerator<KeyValuePair<DirectiveTypes, Tuple<int, double>>> analysisBulkEnumerator =
+                this.AnalysisBulk.GetEnumerator();
+            try
+            {
+                while (analysisBulkEnumerator.MoveNext())
+                {
+                    var (key, value) = analysisBulkEnumerator.Current;
+
+                    Basics.Console.Push(
+                        $"analysed(r) - {key}",
+                        $"c: {value.Item1} - d:{value.Item2}ms - a:{value.Item2 / value.Item1}",
+                        string.Empty, false, groupId: Helpers.Context.UniqueId,
+                        type: value.Item2 / value.Item1 > Configurations.Xeora.Application.Main.AnalysisThreshold
+                            ? Basics.Console.Type.Warn
+                            : Basics.Console.Type.Info);
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+            finally
+            {
+                analysisBulkEnumerator.Dispose();
+            }
         }
 
         public string Result => this._Directive.Result;

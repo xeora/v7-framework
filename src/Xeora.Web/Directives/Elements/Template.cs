@@ -7,33 +7,26 @@ using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives.Elements
 {
-    public class Template : Directive, INameable, IHasChildren
+    public class Template : Directive, INameable
     {
-        private DirectiveCollection _Children;
         private bool _Authenticated;
         private bool _Parsed;
 
         public Template(string rawValue, ArgumentCollection arguments) :
-            base(DirectiveTypes.Template, arguments)
-        {
+            base(DirectiveTypes.Template, arguments) =>
             this.DirectiveId = DirectiveHelper.CaptureDirectiveId(rawValue);
-        }
 
         public string DirectiveId { get; }
 
         public override bool Searchable => true;
         public override bool CanAsync => true;
 
-        public DirectiveCollection Children => this._Children;
-
         public override void Parse()
         {
             if (this._Parsed)
                 return;
             this._Parsed = true;
-
-            this._Children = new DirectiveCollection(this.Mother, this);
-
+            
             this.Mother.RequestInstance(out IDomain instance);
 
             IDomain workingInstance = instance;
@@ -56,7 +49,8 @@ namespace Xeora.Web.Directives.Elements
             if (this.Parent != null)
                 this.Arguments.Replace(this.Parent.Arguments);
 
-            this.Mother.RequestParsing(templateContent, ref this._Children, this.Arguments);
+            this.Children = new DirectiveCollection(this.Mother, this);
+            this.Mother.RequestParsing(templateContent, this.Children, this.Arguments);
         }
 
         private string LoadTemplate(ref IDomain workingInstance)
@@ -206,26 +200,27 @@ namespace Xeora.Web.Directives.Elements
             return null;
         }
 
-        public override void Render(string requesterUniqueId)
+        public override bool PreRender()
         {
-            this.Parse();
-
             if (this.Status != RenderStatus.None)
-                return;
+                return false;
             this.Status = RenderStatus.Rendering;
 
-            if (!this._Authenticated)
-            {
-                this.Deliver(
-                    RenderStatus.Rendered,
-                    "<div style='width:100%; font-weight:bolder; color:#CC0000; text-align:center'>" + SystemMessages.TEMPLATE_AUTH + "!</div>"
-                );
-                return;
-            }
-
-            this.Children.Render(this.UniqueId);
+            this.Parse();
+            
+            if (this._Authenticated) return true;
+            
+            this.Deliver(
+                RenderStatus.Rendered,
+                "<div style='width:100%; font-weight:bolder; color:#CC0000; text-align:center'>" + SystemMessages.TEMPLATE_AUTH + "!</div>"
+            );
+            
+            return false;
+        }
+        
+        public override void PostRender()
+        {
             this.Deliver(RenderStatus.Rendered, this.Result);
-
             this.Scheduler.Fire();
         }
     }

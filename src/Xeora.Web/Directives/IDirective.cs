@@ -8,6 +8,7 @@ namespace Xeora.Web.Directives
 
         IMother Mother { get; set; }
         IDirective Parent { get; set; }
+        DirectiveCollection Children { get; }
         string TemplateTree { get; set; }
         List<string> UpdateBlockIds { get; }
 
@@ -22,7 +23,9 @@ namespace Xeora.Web.Directives
         RenderStatus Status { get; }
 
         void Parse();
-        void Render(string requesterUniqueId);
+        bool PreRender();
+        void Render();
+        void PostRender();
 
         void Deliver(RenderStatus status, string result);
         string Result { get; }

@@ -1,6 +1,8 @@
-﻿using Xeora.Web.Basics;
+﻿using System;
+using Xeora.Web.Basics;
 using Xeora.Web.Basics.Domain.Control;
 using Xeora.Web.Directives.Elements;
+using Attribute = Xeora.Web.Basics.Domain.Control.Attribute;
 
 namespace Xeora.Web.Directives.Controls.Elements
 {
@@ -15,16 +17,10 @@ namespace Xeora.Web.Directives.Controls.Elements
             this._Settings = settings;
         }
 
-        public DirectiveCollection Children => null;
         public bool LinkArguments => true;
 
         public void Parse()
-        { }
-
-        public void Render(string requesterUniqueId)
         {
-            this.Parse();
-
             if (this._Parent.UpdateBlockIds.Count > 0)
                 this._Settings.Updates.Setup(string.Join(">", this._Parent.UpdateBlockIds.ToArray()));
 
@@ -40,12 +36,12 @@ namespace Xeora.Web.Directives.Controls.Elements
 
             if (!string.IsNullOrEmpty(parsedUrl))
             {
-                if (parsedUrl.IndexOf("~/", System.StringComparison.InvariantCulture) == 0)
+                if (parsedUrl.IndexOf("~/", StringComparison.InvariantCulture) == 0)
                 {
                     parsedUrl = parsedUrl.Remove(0, 2);
                     parsedUrl = parsedUrl.Insert(0, Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation);
                 }
-                else if (parsedUrl.IndexOf("¨/", System.StringComparison.InvariantCulture) == 0)
+                else if (parsedUrl.IndexOf("¨/", StringComparison.InvariantCulture) == 0)
                 {
                     parsedUrl = parsedUrl.Remove(0, 2);
                     parsedUrl = parsedUrl.Insert(0, Configurations.Xeora.Application.Main.VirtualRoot);
@@ -54,7 +50,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 this._Parent.Bag.Add("url", parsedUrl, this._Parent.Arguments);
             }
 
-            this._Parent.Bag.Render(requesterUniqueId);
+            this._Parent.Bag.Render();
             
             for (int aC = 0; aC < this._Settings.Attributes.Count; aC++)
             {
@@ -81,8 +77,12 @@ namespace Xeora.Web.Directives.Controls.Elements
 
                 // Render Bind Parameters
                 this._Settings.Bind.Parameters.Prepare(
-                    parameter => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueId)
-                );
+                    parameter =>
+                    {
+                        Tuple<bool, object> result =
+                            Property.Render(this._Parent, parameter.Query);
+                        return result.Item2;
+                    });
 
                 ICryptography cryptography =
                     CryptographyProvider.Current.Get(Helpers.Context.Session.SessionId);
@@ -125,15 +125,17 @@ namespace Xeora.Web.Directives.Controls.Elements
             if (this._Settings.Security.Disabled.Set &&
                 this._Settings.Security.Disabled.Type == SecurityDefinition.DisabledDefinition.Types.Dynamic)
             {
-                this._Parent.Deliver(RenderStatus.Rendered, this._Settings.Security.Disabled.Value);
+                this._Parent.Children.Add(
+                    new Static(this._Settings.Security.Disabled.Value));
                 return;
             }
 
-            this._Parent.Deliver(
-                RenderStatus.Rendered,
-                string.Format(
-                    "<a name=\"{0}\" id=\"{0}\"{1}>{2}</a>",
-                    this._Parent.DirectiveId, this._Settings.Attributes, renderedText
+            this._Parent.Children.Add(
+                new Static(
+                    string.Format(
+                        "<a name=\"{0}\" id=\"{0}\"{1}>{2}</a>",
+                        this._Parent.DirectiveId, this._Settings.Attributes, renderedText
+                    )
                 )
             );
         }

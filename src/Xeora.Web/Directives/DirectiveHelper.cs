@@ -104,20 +104,5 @@ namespace Xeora.Web.Directives
                     return DirectiveTypes.Undefined;
             }
         }
-
-        public static object RenderProperty(IDirective parent, string rawValue, Global.ArgumentCollection arguments, string requesterUniqueId)
-        {
-            DirectiveCollection directives = 
-                new DirectiveCollection(parent.Mother, parent);
-
-            Property property = new Property(rawValue, arguments);
-
-            directives.Add(property);
-            directives.Render(requesterUniqueId);
-
-            parent.Deliver(RenderStatus.Rendering, string.Empty);
-
-            return property.ObjectResult;
-        }
     }
 }

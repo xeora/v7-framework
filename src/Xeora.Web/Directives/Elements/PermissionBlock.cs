@@ -4,7 +4,7 @@ using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives.Elements
 {
-    public class PermissionBlock : Directive, INameable, IHasChildren
+    public class PermissionBlock : Directive, INameable
     {
         private enum ContentTypes
         {
@@ -16,7 +16,7 @@ namespace Xeora.Web.Directives.Elements
         private ContentTypes _SelectedContent = ContentTypes.None;
 
         private readonly ContentDescription _Contents;
-        private DirectiveCollection _Children;
+        private bool _HasStatementContent;
         private bool _Parsed;
 
         public PermissionBlock(string rawValue, ArgumentCollection arguments) :
@@ -31,8 +31,6 @@ namespace Xeora.Web.Directives.Elements
         public override bool Searchable => true;
         public override bool CanAsync => false;
 
-        public DirectiveCollection Children => this._Children;
-
         public override void Parse()
         {
             if (this._SelectedContent == ContentTypes.None)
@@ -41,8 +39,6 @@ namespace Xeora.Web.Directives.Elements
             if (this._Parsed)
                 return;
             this._Parsed = true;
-
-            this._Children = new DirectiveCollection(this.Mother, this);
 
             string statementContent = string.Empty;
             switch (this._SelectedContent)
@@ -56,21 +52,23 @@ namespace Xeora.Web.Directives.Elements
 
                     break;
             }
-
+            
             if (string.IsNullOrEmpty(statementContent))
                 return;
-
+            this._HasStatementContent = true;
+            
             // PermissionBlock needs to link ContentArguments of its parent.
             if (this.Parent != null)
                 this.Arguments.Replace(this.Parent.Arguments);
 
-            this.Mother.RequestParsing(statementContent, ref this._Children, this.Arguments);
+            this.Children = new DirectiveCollection(this.Mother, this);
+            this.Mother.RequestParsing(statementContent, this.Children, this.Arguments);
         }
 
-        public override void Render(string requesterUniqueId)
+        public override bool PreRender()
         {
             if (this.Status != RenderStatus.None)
-                return;
+                return false;
             this.Status = RenderStatus.Rendering;
 
             PermissionResult permissionResult = 
@@ -79,9 +77,13 @@ namespace Xeora.Web.Directives.Elements
             this._SelectedContent = 
                 permissionResult.Result == PermissionResult.Results.Allowed ? ContentTypes.Allowed : ContentTypes.Forbidden;
             this.Parse();
+            
+            return this._HasStatementContent;
+        }
 
-            this.Children.Render(this.UniqueId);
-
+        public override void PostRender()
+        {
+            this.Deliver(RenderStatus.Rendered, this.Result);
             this.Scheduler.Fire();
         }
 

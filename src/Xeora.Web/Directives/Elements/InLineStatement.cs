@@ -10,7 +10,6 @@ namespace Xeora.Web.Directives.Elements
     public class InLineStatement : Directive, INameable, IBoundable
     {
         private readonly ContentDescription _Contents;
-        private DirectiveCollection _Children;
         private bool _Parsed;
 
         private bool _Cache;
@@ -34,15 +33,11 @@ namespace Xeora.Web.Directives.Elements
         public override bool Searchable => false;
         public override bool CanAsync => false;
 
-        public DirectiveCollection Children => this._Children;
-
         public override void Parse()
         {
             if (this._Parsed)
                 return;
             this._Parsed = true;
-
-            this._Children = new DirectiveCollection(this.Mother, this);
 
             // InLineStatement needs to link ContentArguments of its parent.
             if (this.Parent != null)
@@ -52,50 +47,48 @@ namespace Xeora.Web.Directives.Elements
             if (string.IsNullOrEmpty(statementContent))
                 throw new Exceptions.EmptyBlockException();
 
-            this.Mother.RequestParsing(statementContent, ref this._Children, this.Arguments);
+            this.Children = new DirectiveCollection(this.Mother, this);
+            this.Mother.RequestParsing(statementContent, this.Children, this.Arguments);
         }
 
-        public override void Render(string requesterUniqueId)
+        public override bool PreRender()
         {
-            this.Parse();
-
-            string uniqueId =
-                string.IsNullOrEmpty(requesterUniqueId) ? this.UniqueId : requesterUniqueId;
-
             if (this.HasBound)
             {
-                if (string.IsNullOrEmpty(requesterUniqueId))
-                    return;
-
                 this.Mother.Pool.GetByDirectiveId(this.BoundDirectiveId, out IEnumerable<IDirective> directives);
 
-                if (directives == null) return;
+                if (directives == null) return false;
 
                 foreach (IDirective directive in directives)
                 {
-                    if (!(directive is INameable)) return;
+                    if (!(directive is INameable)) return false;
 
                     string directiveId = ((INameable)directive).DirectiveId;
-                    if (string.CompareOrdinal(directiveId, this.BoundDirectiveId) != 0) return;
+                    if (string.CompareOrdinal(directiveId, this.BoundDirectiveId) != 0) return false;
 
                     if (directive.Status == RenderStatus.Rendered) continue;
                     
                     directive.Scheduler.Register(this.UniqueId);
-                    return;
+                    return false;
                 }
             }
 
             if (this.Status != RenderStatus.None)
-                return;
+                return false;
             this.Status = RenderStatus.Rendering;
 
-            this.Children.Render(this.UniqueId);
-            this.ExecuteStatement(uniqueId);
+            this.Parse();
+            
+            return true;
+        }
 
+        public override void PostRender()
+        {
+            this.ExecuteStatement();
             this.Scheduler.Fire();
         }
 
-        private void ExecuteStatement(string requesterUniqueId)
+        private void ExecuteStatement()
         {
             this.Mother.RequestInstance(out Basics.Domain.IDomain instance);
 
@@ -107,7 +100,7 @@ namespace Xeora.Web.Directives.Elements
                 throw new Exceptions.EmptyBlockException();
 
             object methodResultInfo =
-                Manager.Executer.ExecuteStatement(instance.IdAccessTree, this.DirectiveId, result, this.RenderParameters(requesterUniqueId), this._Cache);
+                Manager.Executer.ExecuteStatement(instance.IdAccessTree, this.DirectiveId, result, this.RenderParameters(), this._Cache);
 
             if (methodResultInfo is Exception exception)
                 throw new Exceptions.ExecutionException(exception.Message, exception.InnerException);
@@ -214,18 +207,25 @@ namespace Xeora.Web.Directives.Elements
             return paramDefinition.Substring(8, paramDefinition.Length - 9);
         }
 
-        private object[] RenderParameters(string requesterUniqueId)
+        private object[] RenderParameters()
         {
             if (string.IsNullOrEmpty(this._ParametersDefinition))
                 return null;
 
-            List<object> parameters = new List<object>();
-
-            string[] paramDefs = this._ParametersDefinition.Split('|');
+            List<object> parameters = 
+                new List<object>();
+            string[] paramDefs = 
+                this._ParametersDefinition.Split('|');
 
             foreach (string paramDef in paramDefs)
-                parameters.Add(
-                    DirectiveHelper.RenderProperty(this, paramDef, this.Arguments, requesterUniqueId));
+            {
+                Tuple<bool, object> result =
+                    Directives.Property.Render(this, paramDef);
+
+                if (!result.Item1) continue;
+
+                parameters.Add(result.Item2 == null ? string.Empty : result.Item2.ToString());
+            }
 
             return parameters.ToArray();
         }

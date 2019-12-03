@@ -22,7 +22,7 @@ namespace Xeora.Web.Directives
                     uniqueId =>
                     {
                         this.Mother.Pool.GetByUniqueId(uniqueId, out IDirective directive);
-                        directive?.Render(this.UniqueId);
+                        directive?.Render();
                     }
                 );
 
@@ -33,6 +33,7 @@ namespace Xeora.Web.Directives
 
         public IMother Mother { get; set; }
         public IDirective Parent { get; set; }
+        public DirectiveCollection Children { get; set; }
         public string TemplateTree { get; set; }
         public List<string> UpdateBlockIds { get; }
 
@@ -47,7 +48,16 @@ namespace Xeora.Web.Directives
         public RenderStatus Status { get; protected set; }
 
         public abstract void Parse();
-        public abstract void Render(string requesterUniqueId);
+        public abstract bool PreRender();
+        public void Render()
+        {
+            if (!this.PreRender())
+                return;
+            
+            this.Children.Render();
+            this.PostRender();
+        }
+        public abstract void PostRender();
 
         public void Deliver(RenderStatus status, string result)
         {

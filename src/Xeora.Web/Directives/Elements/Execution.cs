@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Xeora.Web.Basics;
 using Xeora.Web.Global;
 
@@ -26,46 +27,49 @@ namespace Xeora.Web.Directives.Elements
         public override bool CanAsync => false;
 
         public override void Parse()
-        { }
-
-        public override void Render(string requesterUniqueId)
         {
-            this.Parse();
+            // Execution needs to link ContentArguments of its parent.
+            if (this.Parent != null)
+                this.Arguments.Replace(this.Parent.Arguments);
+            
+            this.Children = new DirectiveCollection(this.Mother, this);
+        }
 
-            string uniqueId =
-                string.IsNullOrEmpty(requesterUniqueId) ? this.UniqueId : requesterUniqueId;
-
+        public override bool PreRender()
+        {
             if (this.HasBound)
             {
-                if (string.IsNullOrEmpty(requesterUniqueId))
-                    return;
-
                 this.Mother.Pool.GetByDirectiveId(this.BoundDirectiveId, out IEnumerable<IDirective> directives);
 
-                if (directives == null) return;
+                if (directives == null) return false;
 
                 foreach (IDirective directive in directives)
                 {
-                    if (!(directive is INameable)) return;
+                    if (!(directive is INameable)) return false;
 
                     string directiveId = ((INameable)directive).DirectiveId;
-                    if (string.CompareOrdinal(directiveId, this.BoundDirectiveId) != 0) return;
+                    if (string.CompareOrdinal(directiveId, this.BoundDirectiveId) != 0) return false;
 
                     if (directive.Status == RenderStatus.Rendered) continue;
                     
                     directive.Scheduler.Register(this.UniqueId);
-                    return;
+                    return false;
                 }
             }
 
             if (this.Status != RenderStatus.None)
-                return;
+                return false;
             this.Status = RenderStatus.Rendering;
 
-            this.ExecuteBind(uniqueId);
+            this.Parse();
+            
+            return this.ExecuteBind();
         }
 
-        private void ExecuteBind(string requesterUniqueId)
+        public override void PostRender() => 
+            this.Deliver(RenderStatus.Rendered, this.Result);
+
+        private bool ExecuteBind()
         {
             int level = this.Leveling.Level;
             IDirective leveledDirective = this;
@@ -83,8 +87,12 @@ namespace Xeora.Web.Directives.Elements
             
             // Execution preparation should be done at the same level with it's parent. Because of that, send parent as parameters
             this.Bind.Parameters.Prepare(
-                parameter => DirectiveHelper.RenderProperty(leveledDirective.Parent, parameter.Query, leveledDirective.Parent.Arguments, requesterUniqueId)
-            );
+                parameter =>
+                {
+                    Tuple<bool, object> result =
+                        Directives.Property.Render(leveledDirective, parameter.Query);
+                    return result.Item2;
+                });
 
             Basics.Execution.InvokeResult<object> invokeResult =
                 Manager.Executer.InvokeBind<object>(Helpers.Context.Request.Header.Method, this.Bind, Manager.ExecuterTypes.Other);
@@ -96,15 +104,14 @@ namespace Xeora.Web.Directives.Elements
             {
                 Helpers.Context.AddOrUpdate("RedirectLocation", redirectOrder.Location);
 
-                this.Deliver(RenderStatus.Rendered, string.Empty);
-
-                return;
+                this.Children.Add(
+                    new Static(string.Empty));
+                return true;
             }
 
-            this.Deliver(
-                RenderStatus.Rendered,
-                Manager.Executer.GetPrimitiveValue(invokeResult.Result)
-            );
+            this.Children.Add(
+                new Static(Manager.Executer.GetPrimitiveValue(invokeResult.Result)));
+            return true;
         }
     }
 }

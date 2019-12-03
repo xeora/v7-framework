@@ -2,22 +2,17 @@
 
 namespace Xeora.Web.Directives.Elements
 {
-    public class MessageBlock : Directive, IHasChildren
+    public class MessageBlock : Directive
     {
         private readonly ContentDescription _Contents;
-        private DirectiveCollection _Children;
         private bool _Parsed;
 
         public MessageBlock(string rawValue, ArgumentCollection arguments) :
-            base(DirectiveTypes.MessageBlock, arguments)
-        {
+            base(DirectiveTypes.MessageBlock, arguments) =>
             this._Contents = new ContentDescription(rawValue);
-        }
 
         public override bool Searchable => false;
         public override bool CanAsync => true;
-
-        public DirectiveCollection Children => this._Children;
 
         public override void Parse()
         {
@@ -28,26 +23,25 @@ namespace Xeora.Web.Directives.Elements
             if (this.Mother.MessageResult == null)
                 return;
 
-            this._Children = new DirectiveCollection(this.Mother, this);
-
             this.Arguments.AppendKeyWithValue("MessageType", this.Mother.MessageResult.Type);
             this.Arguments.AppendKeyWithValue("Message", this.Mother.MessageResult.Content);
 
-            this.Mother.RequestParsing(this._Contents.Parts[0], ref this._Children, this.Arguments);
+            this.Children = new DirectiveCollection(this.Mother, this);
+            this.Mother.RequestParsing(this._Contents.Parts[0], this.Children, this.Arguments);
         }
 
-        public override void Render(string requesterUniqueId)
+        public override bool PreRender()
         {
-            this.Parse();
-
             if (this.Status != RenderStatus.None)
-                return;
+                return false;
             this.Status = RenderStatus.Rendering;
 
-            if (this.Mother.MessageResult != null)
-                this.Children.Render(this.UniqueId);
-
-            this.Deliver(RenderStatus.Rendered, this.Result);
+            this.Parse();
+            
+            return this.Mother.MessageResult != null;
         }
+
+        public override void PostRender() =>
+            this.Deliver(RenderStatus.Rendered, this.Result);
     }
 }

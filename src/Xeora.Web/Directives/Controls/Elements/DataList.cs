@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Data;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Xeora.Web.Basics;
 using Xeora.Web.Directives.Elements;
 using Xeora.Web.Global;
@@ -19,34 +14,17 @@ namespace Xeora.Web.Directives.Controls.Elements
         private readonly string[] _Parameters;
         private readonly Application.Controls.DataList _Settings;
 
-        private readonly ConcurrentQueue<Single> _RowQueue;
-        private readonly SemaphoreSlim _SemaphoreSlim;
-        private readonly List<Task> _RowRenderTasks;
-        private readonly object _RenderedContentLock;
-        private readonly StringBuilder _RenderedContent;
-
         public DataList(Control parent, ContentDescription contents, string[] parameters, Application.Controls.DataList settings)
         {
             this._Parent = parent;
             this._Contents = contents;
             this._Parameters = parameters;
             this._Settings = settings;
-
-            this._RowQueue = new ConcurrentQueue<Single>();
-            this._SemaphoreSlim = 
-                new SemaphoreSlim(Configurations.Xeora.Service.Parallelism);
-            this._RowRenderTasks = new List<Task>();
-            this._RenderedContentLock = new object();
-            this._RenderedContent = new StringBuilder();
         }
 
-        public DirectiveCollection Children => null;
         public bool LinkArguments => false;
 
         public void Parse()
-        { }
-
-        public void Render(string requesterUniqueId)
         {
             if (this._Settings.Bind == null)
                 throw new ArgumentNullException(nameof(this._Settings.Bind));
@@ -60,25 +38,17 @@ namespace Xeora.Web.Directives.Controls.Elements
                         DirectiveHelper.CaptureParameterPointer(query);
 
                     if (paramIndex < 0)
-                        return DirectiveHelper.RenderProperty(
-                            this._Parent.Parent, query, 
-                            this._Parent.Parent.Arguments,
-                            requesterUniqueId
-                        );
+                        return Property.Render(this._Parent.Parent, query).Item2;
                     
                     if (paramIndex >= this._Parameters.Length)
                         throw new Exceptions.FormatIndexOutOfRangeException();
 
-                    return DirectiveHelper.RenderProperty(
-                            this._Parent.Parent, this._Parameters[paramIndex], 
-                            this._Parent.Parent.Arguments, 
-                            requesterUniqueId
-                        );
+                    return Property.Render(this._Parent.Parent, this._Parameters[paramIndex]).Item2;
                 }
             );
 
             Basics.Execution.InvokeResult<Basics.ControlResult.IDataSource> invokeResult =
-                Manager.Executer.InvokeBind<Basics.ControlResult.IDataSource>(Basics.Helpers.Context.Request.Header.Method, this._Settings.Bind, Manager.ExecuterTypes.Control);
+                Manager.Executer.InvokeBind<Basics.ControlResult.IDataSource>(Helpers.Context.Request.Header.Method, this._Settings.Bind, Manager.ExecuterTypes.Control);
 
             if (invokeResult.Exception != null)
                 throw new Exceptions.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);
@@ -90,149 +60,56 @@ namespace Xeora.Web.Directives.Controls.Elements
 
             if (invokeResult.Result.Message != null)
             {
-                this.RenderError(requesterUniqueId, invokeResult.Result.Message.Type, invokeResult.Result.Message.Content);
-
+                this.RenderError(invokeResult.Result.Message.Type, invokeResult.Result.Message.Content);
                 return;
             }
 
             switch (invokeResult.Result.Type)
             {
                 case Basics.ControlResult.DataSourceTypes.DirectDataAccess:
-                    this.RenderDirectDataAccess(requesterUniqueId, ref invokeResult);
+                    this.RenderDirectDataAccess(ref invokeResult);
 
                     break;
                 case Basics.ControlResult.DataSourceTypes.ObjectFeed:
-                    this.RenderObjectFeed(requesterUniqueId, ref invokeResult);
+                    this.RenderObjectFeed(ref invokeResult);
 
                     break;
                 case Basics.ControlResult.DataSourceTypes.PartialDataTable:
-                    this.RenderPartialDataTable(requesterUniqueId, ref invokeResult);
+                    this.RenderPartialDataTable(ref invokeResult);
 
                     break;
             }
         }
 
-        private void RenderError(string requesterUniqueId, Basics.ControlResult.Message.Types errorType, string errorContent)
+        private void RenderError(Basics.ControlResult.Message.Types errorType, string errorContent)
         {
             if (!this._Contents.HasMessageTemplate)
-                this._Parent.Deliver(RenderStatus.Rendered, errorContent);
-            else
             {
-                this._Parent.Arguments.AppendKeyWithValue("MessageType", errorType);
-                this._Parent.Arguments.AppendKeyWithValue("Message", errorContent);
-
-                this.RenderRow(requesterUniqueId, -1, this._Parent.Arguments);
-
-                this._Parent.Deliver(RenderStatus.Rendered, this.Result);
+                this._Parent.Children.Add(new Static(errorContent));
+                return;
             }
+
+            this._Parent.Arguments.AppendKeyWithValue("MessageType", errorType);
+            this._Parent.Arguments.AppendKeyWithValue("Message", errorContent);
+
+            this.RenderRow(-1, this._Parent.Arguments);
         }
 
-        private void RenderRow(string requesterUniqueId, int index, ArgumentCollection arguments)
+        private void RenderRow(int index, ArgumentCollection arguments)
         {
-            string currentHandlerId = Basics.Helpers.CurrentHandlerId;
-
             Single rowSingle =
-                new Single(index == -1 ? this._Contents.MessageTemplate : this._Contents.Parts[index % this._Contents.Parts.Count], arguments.Clone())
+                new SingleAsync(index == -1 ? this._Contents.MessageTemplate : this._Contents.Parts[index % this._Contents.Parts.Count], arguments.Clone())
                 {
                     Mother = this._Parent.Parent.Mother,
-                    Parent = this._Parent.Parent,
+                    Parent = this._Parent.Parent
                     
                 };
             rowSingle.UpdateBlockIds.AddRange(this._Parent.Parent.UpdateBlockIds);
 
-            if (index == -1)
-            {
-                while (this._RowQueue.TryDequeue(out Single _)) { }
-                this._RowRenderTasks.Clear();
-                this._RenderedContent.Clear();
-            }
-
-            this._RowQueue.Enqueue(rowSingle);
-            this._RowRenderTasks.Add(
-                Task.Factory.StartNew(
-                    s =>
-                    {
-                        Tuple<string, Single> @params = 
-                            (Tuple<string, Single>) s;
-
-                        string handlerId = 
-                            @params.Item1;
-                        Single single = @params.Item2;
-                        
-                        this._SemaphoreSlim.Wait();
-                        try
-                        {
-                            Helpers.AssignHandlerId(handlerId);
-                            single.Render(requesterUniqueId);
-                        }
-                        catch (Exception ex)
-                        {
-                            if (single.Parent != null)
-                                single.Parent.HasInlineError = true;
-                            
-                            Basics.Console.Push("Execution Exception...", ex.Message, ex.StackTrace, false, true, type: Basics.Console.Type.Error);
-                            single.Deliver(RenderStatus.Rendered, Mother.CreateErrorOutput(ex));
-
-                            return;
-                        }
-                        finally
-                        {
-                            this._SemaphoreSlim.Release();
-                        }
-                        
-                        this.TryCreateRenderedContent();
-                    },
-                    new Tuple<string, Single>(currentHandlerId, rowSingle)
-                )
-            );
+            this._Parent.Children.Add(rowSingle);
         }
 
-        private void TryCreateRenderedContent()
-        {
-            if (!Monitor.TryEnter(this._RenderedContentLock))
-                return;
-
-            try
-            {
-                do
-                {
-                    if (!this._RowQueue.TryPeek(out Single queueSingle))
-                        return;
-
-                    if (queueSingle.Status != RenderStatus.Rendered)
-                        return;
-
-                    if (!this._RowQueue.TryDequeue(out queueSingle))
-                        return;
-
-                    this._RenderedContent.Append(queueSingle.Result);
-                } while (true);
-            }
-            finally
-            {
-                Monitor.Exit(this._RenderedContentLock);
-            }
-        }
-
-        private string Result {
-            get
-            {
-                try
-                {
-                    if (this._RowRenderTasks.Count > 0)
-                        Task.WaitAll(this._RowRenderTasks.ToArray());
-                }
-                catch (Exception ex)
-                {
-                    Basics.Console.Push("Execution Exception...", ex.Message, ex.StackTrace, false, true, type: Basics.Console.Type.Error);
-                    return Mother.CreateErrorOutput(ex);
-                }
-
-                return this._RenderedContent.ToString();
-            }
-        }
-
-        private void RenderPartialDataTable(string requesterUniqueId, ref Basics.Execution.InvokeResult<Basics.ControlResult.IDataSource> invokeResult)
+        private void RenderPartialDataTable(ref Basics.Execution.InvokeResult<Basics.ControlResult.IDataSource> invokeResult)
         {
             ArgumentCollection dataListArgs =
                 new ArgumentCollection();
@@ -258,18 +135,16 @@ namespace Xeora.Web.Directives.Controls.Elements
                 if (!isItemIndexColumnExists)
                     dataListArgs.AppendKeyWithValue("ItemIndex", index);
 
-                this.RenderRow(requesterUniqueId, index, dataListArgs);
+                this.RenderRow(index, dataListArgs);
             }
 
             this._Parent.Parent.Arguments.AppendKeyWithValue(
                 this._Parent.DirectiveId,
                 new DataListOutputInfo(this._Parent.UniqueId, invokeResult.Result.Count, invokeResult.Result.Total, false)
             );
-
-            this._Parent.Deliver(RenderStatus.Rendered, this.Result);
         }
 
-        private void RenderDirectDataAccess(string requesterUniqueId, ref Basics.Execution.InvokeResult<Basics.ControlResult.IDataSource> invokeResult)
+        private void RenderDirectDataAccess(ref Basics.Execution.InvokeResult<Basics.ControlResult.IDataSource> invokeResult)
         {
             IDbCommand dbCommand =
                 (IDbCommand)invokeResult.Result.GetResult();
@@ -309,7 +184,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                     if (!isItemIndexColumnExists)
                         dataListArgs.AppendKeyWithValue("ItemIndex", count);
 
-                    this.RenderRow(requesterUniqueId, count, dataListArgs);
+                    this.RenderRow(count, dataListArgs);
 
                     count++;
                 }
@@ -318,12 +193,10 @@ namespace Xeora.Web.Directives.Controls.Elements
                     this._Parent.DirectiveId,
                     new DataListOutputInfo(this._Parent.UniqueId, count, total == -1 ? count : total, false)
                 );
-
-                this._Parent.Deliver(RenderStatus.Rendered, this.Result);
             }
             catch (Exception ex)
             {
-                this.RenderError(requesterUniqueId, Basics.ControlResult.Message.Types.Error, ex.Message);
+                this.RenderError(Basics.ControlResult.Message.Types.Error, ex.Message);
 
                 Basics.Console.Push("Execution Exception...", ex.Message, ex.StackTrace, false, true, type: Basics.Console.Type.Error);
             }
@@ -342,7 +215,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             }
         }
 
-        private void RenderObjectFeed(string requesterUniqueId, ref Basics.Execution.InvokeResult<Basics.ControlResult.IDataSource> invokeResult)
+        private void RenderObjectFeed(ref Basics.Execution.InvokeResult<Basics.ControlResult.IDataSource> invokeResult)
         {
             object[] objectList =
                 (object[])invokeResult.Result.GetResult();
@@ -358,15 +231,13 @@ namespace Xeora.Web.Directives.Controls.Elements
                 dataListArgs.AppendKeyWithValue("_sys_ItemIndex", index);
                 dataListArgs.AppendKeyWithValue("ItemIndex", index);
 
-                this.RenderRow(requesterUniqueId, index, dataListArgs);
+                this.RenderRow(index, dataListArgs);
             }
 
             this._Parent.Parent.Arguments.AppendKeyWithValue(
                 this._Parent.DirectiveId,
                 new DataListOutputInfo(this._Parent.UniqueId, invokeResult.Result.Count, invokeResult.Result.Total, false)
             );
-
-            this._Parent.Deliver(RenderStatus.Rendered, this.Result);
         }
     }
 }

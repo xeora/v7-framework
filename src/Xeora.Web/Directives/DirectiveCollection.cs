@@ -32,8 +32,8 @@ namespace Xeora.Web.Directives
             item.Mother = this._Mother;
             item.Parent = this._Parent;
             
-            this.AssignTemplateTree(ref item);
-            this.AssignUpdateBlockIds(ref item);
+            DirectiveCollection.AssignTemplateTree(ref item);
+            DirectiveCollection.AssignUpdateBlockIds(ref item);
 
             this._Mother.Pool.Register(item);
 
@@ -50,7 +50,7 @@ namespace Xeora.Web.Directives
                 this.Add(item);
         }
 
-        private void AssignTemplateTree(ref IDirective item)
+        private static void AssignTemplateTree(ref IDirective item)
         {
             if (!string.IsNullOrEmpty(item.TemplateTree))
                 return;
@@ -64,7 +64,7 @@ namespace Xeora.Web.Directives
             item.TemplateTree = $"{item.Parent.TemplateTree}/{item.TemplateTree}";
         }
         
-        private void AssignUpdateBlockIds(ref IDirective item)
+        private static void AssignUpdateBlockIds(ref IDirective item)
         {
             string[] itemUpdateBlockIds = 
                 item.UpdateBlockIds.ToArray();
@@ -75,10 +75,10 @@ namespace Xeora.Web.Directives
             item.UpdateBlockIds.AddRange(itemUpdateBlockIds);
         }
 
-        public void Render(string requesterUniqueId)
+        public void Render()
         {
-            string currentHandlerId = Helpers.CurrentHandlerId;
-
+            string currentHandlerId = 
+                Helpers.CurrentHandlerId;
             List<Task> tasks = new List<Task>();
 
             while (this._Queued.TryDequeue(out int index))
@@ -87,33 +87,47 @@ namespace Xeora.Web.Directives
 
                 if (!directive.CanAsync)
                 {
-                    this.Render(currentHandlerId, requesterUniqueId, directive);
+                    this.Render(directive);
                     continue;
                 }
 
                 tasks.Add(
                     Task.Factory.StartNew(
-                        d =>
+                        s =>
                         {
+                            Tuple<string, IDirective> @params = 
+                                (Tuple<string, IDirective>) s;
+
+                            string handlerId = 
+                                @params.Item1;
+                            IDirective d = @params.Item2;
+                            
+                            Helpers.AssignHandlerId(handlerId);
+                            
                             this._SemaphoreSlim.Wait();
                             try
                             {
-                                this.Render(currentHandlerId, requesterUniqueId, (IDirective) d);
+                                this.Render(d);
                             }
                             finally
                             {
                                 this._SemaphoreSlim.Release();
                             }
                         },
-                        directive
+                        new Tuple<string, IDirective>(currentHandlerId, directive)
                     )
                 );
             }
-            
+
+            this.Deliver(tasks.ToArray());
+        }
+
+        private void Deliver(Task[] tasks)
+        {
             try
             {
-                if (tasks.Count > 0)
-                    Task.WaitAll(tasks.ToArray());
+                if (tasks.Length > 0)
+                    Task.WaitAll(tasks);
                 
                 StringBuilder resultContainer = new StringBuilder();
 
@@ -128,15 +142,14 @@ namespace Xeora.Web.Directives
             }
         }
 
-        private void Render(string handlerId, string requesterUniqueId, IDirective directive)
+        private void Render(IDirective directive)
         {
             try
             {
                 // Analysis Calculation
                 DateTime renderBegins = DateTime.Now;
-
-                Helpers.AssignHandlerId(handlerId);
-                directive.Render(requesterUniqueId);
+                
+                directive.Render();
 
                 if (directive.Parent != null)
                     directive.Parent.HasInlineError |= directive.HasInlineError;
@@ -156,6 +169,10 @@ namespace Xeora.Web.Directives
 
                 double totalMs = 
                     DateTime.Now.Subtract(renderBegins).TotalMilliseconds;
+                this._Mother.AnalysisBulk.AddOrUpdate(
+                    directive.Type, 
+                    new Tuple<int, double>(1, totalMs), 
+                    (k, v) => new Tuple<int, double>(v.Item1 + 1, v.Item2 + totalMs));
                 Basics.Console.Push(
                     $"analysed - {directive.GetType().Name}",
                     $"{totalMs}ms {{{analysisOutput}}}",
@@ -202,7 +219,7 @@ namespace Xeora.Web.Directives
                     {
                         case Basics.Domain.Control.ControlTypes.ConditionalStatement:
                         case Basics.Domain.Control.ControlTypes.VariableBlock:
-                            directive.Render(directives._Parent?.UniqueId);
+                            directive.Render();
 
                             break;
                     }
@@ -212,7 +229,7 @@ namespace Xeora.Web.Directives
                     switch (directive.Type)
                     {
                         case DirectiveTypes.PermissionBlock:
-                            directive.Render(directive.Parent?.UniqueId);
+                            directive.Render();
 
                             break;
                         default:
@@ -222,11 +239,8 @@ namespace Xeora.Web.Directives
                     }
                 }
 
-                DirectiveCollection children =
-                    ((IHasChildren)directive).Children;
-
                 IDirective result =
-                    this.Find(children, directiveId);
+                    this.Find(directive.Children, directiveId);
 
                 if (result != null)
                     return result;

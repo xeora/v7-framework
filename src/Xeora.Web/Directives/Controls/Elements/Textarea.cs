@@ -14,20 +14,14 @@ namespace Xeora.Web.Directives.Controls.Elements
             this._Settings = settings;
         }
 
-        public DirectiveCollection Children => null;
         public bool LinkArguments => true;
 
         public void Parse()
-        { }
-
-        public void Render(string requesterUniqueId)
         {
-            this.Parse();
-
             this._Parent.Bag.Add("content", this._Settings.Content, this._Parent.Arguments);
             foreach (Attribute item in this._Settings.Attributes)
                 this._Parent.Bag.Add(item.Key, item.Value, this._Parent.Arguments);
-            this._Parent.Bag.Render(requesterUniqueId);
+            this._Parent.Bag.Render();
 
             for (int aC = 0; aC < this._Settings.Attributes.Count; aC++)
             {
@@ -42,15 +36,17 @@ namespace Xeora.Web.Directives.Controls.Elements
             if (this._Settings.Security.Disabled.Set &&
                 this._Settings.Security.Disabled.Type == SecurityDefinition.DisabledDefinition.Types.Dynamic)
             {
-                this._Parent.Deliver(RenderStatus.Rendered, this._Settings.Security.Disabled.Value);
+                this._Parent.Children.Add(
+                    new Static(this._Settings.Security.Disabled.Value));
                 return;
             }
 
-            this._Parent.Deliver(
-                RenderStatus.Rendered,
-                string.Format(
+            this._Parent.Children.Add(
+                new Static(
+                    string.Format(
                     "<textarea name=\"{0}\" id=\"{0}\"{1}>{2}</textarea>",
                     this._Parent.DirectiveId, this._Settings.Attributes, renderedContent
+                    )
                 )
             );
         }

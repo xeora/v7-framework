@@ -8,29 +8,29 @@ namespace Xeora.Web.Directives.Elements
         private readonly string _TemplateId;
 
         public HashCodePointedTemplate(string rawValue, ArgumentCollection arguments) : 
-            base(DirectiveTypes.HashCodePointedTemplate, arguments)
-        {
+            base(DirectiveTypes.HashCodePointedTemplate, arguments) =>
             this._TemplateId = DirectiveHelper.CaptureDirectiveId(rawValue);
-        }
 
         public override bool Searchable => false;
         public override bool CanAsync => true;
 
-        public override void Parse()
-        { }
+        public override void Parse() =>
+            this.Children = new DirectiveCollection(this.Mother, this);
 
-        public override void Render(string requesterUniqueId)
+        public override bool PreRender()
         {
-            this.Parse();
-
             if (this.Status != RenderStatus.None)
-                return;
+                return false;
             this.Status = RenderStatus.Rendering;
 
-            this.Deliver(
-                RenderStatus.Rendered,
-                $"{Helpers.Context.HashCode}/{this._TemplateId}"
-            );
+            this.Parse();
+            
+            this.Children.Add(
+                new Static($"{Helpers.Context.HashCode}/{this._TemplateId}"));
+            return true;
         }
+
+        public override void PostRender() =>
+            this.Deliver(RenderStatus.Rendered, this.Result);
     }
 }

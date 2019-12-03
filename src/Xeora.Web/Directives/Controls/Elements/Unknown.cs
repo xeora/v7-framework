@@ -10,13 +10,9 @@ namespace Xeora.Web.Directives.Controls.Elements
         public Unknown(Control parent) =>
             this._Parent = parent;
 
-        public DirectiveCollection Children => null;
         public bool LinkArguments => true;
 
-        public void Parse()
-        { }
-
-        public void Render(string requesterUniqueId) =>
+        public void Parse() =>
             throw new NotSupportedException($"Unknown Custom Control Type! ControlId: {this._Parent.DirectiveId}");
     }
 }

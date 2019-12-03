@@ -3,7 +3,6 @@ using System.Collections;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using Xeora.Web.Directives;
 using Xeora.Web.Directives.Elements;
 using Xeora.Web.Global;
 
@@ -11,7 +10,7 @@ namespace Xeora.Web.Application
 {
     internal class Parser : IDisposable
     {
-        public static void Parse(Action<IDirective> resultHandler, string rawValue, ArgumentCollection arguments)
+        public static void Parse(Action<Directives.IDirective> resultHandler, string rawValue, ArgumentCollection arguments)
         {
             Parser parser = new Parser(resultHandler, rawValue, arguments);
             try
@@ -24,14 +23,14 @@ namespace Xeora.Web.Application
             }
         }
 
-        private readonly Action<IDirective> _ResultHandler;
+        private readonly Action<Directives.IDirective> _ResultHandler;
         private readonly StringReader _Reader;
         private readonly ArgumentCollection _Arguments;
         private readonly StringBuilder _SingleCache;
         private readonly StringBuilder _ContentCache;
         private string _Crumb;
 
-        private Parser(Action<IDirective> resultHandler, string rawValue, ArgumentCollection arguments)
+        private Parser(Action<Directives.IDirective> resultHandler, string rawValue, ArgumentCollection arguments)
         {
             this._ResultHandler = resultHandler;
             this._Reader = new StringReader(rawValue);
@@ -261,34 +260,34 @@ namespace Xeora.Web.Application
 
                 string singleValue = this.ClearTags(singleMatch.Value);
 
-                switch (DirectiveHelper.CaptureDirectiveType(singleMatch.Value))
+                switch (Directives.DirectiveHelper.CaptureDirectiveType(singleMatch.Value))
                 {
-                    case DirectiveTypes.Property:
+                    case Directives.DirectiveTypes.Property:
                         this._ResultHandler.Invoke(
                             new Property(singleValue, this._Arguments));
 
                         break;
-                    case DirectiveTypes.Control:
+                    case Directives.DirectiveTypes.Control:
                         this._ResultHandler.Invoke(
                             new Control(singleValue, null));
 
                         break;
-                    case DirectiveTypes.Template:
+                    case Directives.DirectiveTypes.Template:
                         this._ResultHandler.Invoke(
                             new Template(singleValue, null));
 
                         break;
-                    case DirectiveTypes.Translation:
+                    case Directives.DirectiveTypes.Translation:
                         this._ResultHandler.Invoke(
                             new Translation(singleValue, null));
 
                         break;
-                    case DirectiveTypes.HashCodePointedTemplate:
+                    case Directives.DirectiveTypes.HashCodePointedTemplate:
                         this._ResultHandler.Invoke(
                             new HashCodePointedTemplate(singleValue, null));
 
                         break;
-                    case DirectiveTypes.Execution:
+                    case Directives.DirectiveTypes.Execution:
                         this._ResultHandler.Invoke(
                             new Execution(singleValue, null));
 
@@ -311,53 +310,53 @@ namespace Xeora.Web.Application
 
             string directiveRawValue =
                 $"${(string.IsNullOrEmpty(content.DirectiveType) ? content.DirectiveId : content.DirectiveType)}:";
-            switch (DirectiveHelper.CaptureDirectiveType(directiveRawValue))
+            switch (Directives.DirectiveHelper.CaptureDirectiveType(directiveRawValue))
             {
-                case DirectiveTypes.Control:
+                case Directives.DirectiveTypes.Control:
                     this._ResultHandler.Invoke(
                         new Control(rawValue, null)); 
 
                     break;
-                case DirectiveTypes.ControlAsync:
+                case Directives.DirectiveTypes.ControlAsync:
                     this._ResultHandler.Invoke(
                         new ControlAsync(rawValue, null));
                     break;
-                case DirectiveTypes.InLineStatement:
+                case Directives.DirectiveTypes.InLineStatement:
                     this._ResultHandler.Invoke(
                         new InLineStatement(rawValue, null));
 
                     break;
-                case DirectiveTypes.UpdateBlock:
+                case Directives.DirectiveTypes.UpdateBlock:
                     this._ResultHandler.Invoke(
                         new UpdateBlock(rawValue, null));
 
                     break;
-                case DirectiveTypes.EncodedExecution:
+                case Directives.DirectiveTypes.EncodedExecution:
                     this._ResultHandler.Invoke(
                         new EncodedExecution(rawValue, null));
 
                     break;
-                case DirectiveTypes.MessageBlock:
+                case Directives.DirectiveTypes.MessageBlock:
                     this._ResultHandler.Invoke(
                         new MessageBlock(rawValue, null));
 
                     break;
-                case DirectiveTypes.PermissionBlock:
+                case Directives.DirectiveTypes.PermissionBlock:
                     this._ResultHandler.Invoke(
                         new PermissionBlock(rawValue, null));
 
                     break;
-                case DirectiveTypes.PartialCache:
+                case Directives.DirectiveTypes.PartialCache:
                     this._ResultHandler.Invoke(
                         new PartialCache(rawValue, null));
 
                     break;
-                case DirectiveTypes.ReplaceableTranslation:
+                case Directives.DirectiveTypes.ReplaceableTranslation:
                     this._ResultHandler.Invoke(
                         new ReplaceableTranslation(rawValue, null));
 
                     break;
-                case DirectiveTypes.AsyncGroup:
+                case Directives.DirectiveTypes.AsyncGroup:
                     this._ResultHandler.Invoke(
                         new AsyncGroup(rawValue, null));
 

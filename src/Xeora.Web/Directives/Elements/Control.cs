@@ -8,7 +8,7 @@ using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives.Elements
 {
-    public class Control : Directive, INameable, IBoundable, ILevelable, IHasChildren
+    public class Control : Directive, INameable, IBoundable, ILevelable
     {
         private readonly string _RawValue;
         private IControl _Control;
@@ -122,35 +122,34 @@ namespace Xeora.Web.Directives.Elements
         }
         public override bool CanAsync => false;
 
-        public DirectiveCollection Children => this._Control.Children;
-
         public RenderBag Bag { get; private set; }
 
-        public override void Parse() =>
+        public override void Parse()
+        {
+            this.Children = 
+                new DirectiveCollection(this.Mother, this);
             this._Control.Parse();
+        }
 
-        public override void Render(string requesterUniqueId)
+        public override bool PreRender()
         {
             if (this.HasBound)
             {
-                if (string.IsNullOrEmpty(requesterUniqueId))
-                    return;
-
                 this.Mother.Pool.GetByDirectiveId(this.BoundDirectiveId, out IEnumerable<IDirective> directives);
 
-                if (directives == null) return;
+                if (directives == null) return false;
 
                 foreach (IDirective directive in directives)
                 {
-                    if (!(directive is INameable)) return;
+                    if (!(directive is INameable)) return false;
 
                     string directiveId = ((INameable)directive).DirectiveId;
-                    if (string.CompareOrdinal(directiveId, this.BoundDirectiveId) != 0) return;
+                    if (string.CompareOrdinal(directiveId, this.BoundDirectiveId) != 0) return false;
 
                     if (directive.Status == RenderStatus.Rendered) continue;
                     
                     directive.Scheduler.Register(this.UniqueId);
-                    return;
+                    return false;
                 }
             }
 
@@ -178,11 +177,17 @@ namespace Xeora.Web.Directives.Elements
                 this.Arguments.Replace(this.Parent.Arguments);
 
             if (this.Status != RenderStatus.None)
-                return;
+                return false;
             this.Status = RenderStatus.Rendering;
+            
+            this.Parse();
+            
+            return true;
+        }
 
-            this._Control.Render(requesterUniqueId);
-
+        public override void PostRender()
+        {
+            this.Deliver(RenderStatus.Rendered, this.Result);
             this.Scheduler.Fire();
         }
     }

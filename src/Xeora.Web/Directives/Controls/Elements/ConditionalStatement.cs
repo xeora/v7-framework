@@ -1,18 +1,15 @@
-﻿using Xeora.Web.Directives.Elements;
+﻿using System.Threading.Tasks;
+using Xeora.Web.Directives.Elements;
 using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives.Controls.Elements
 {
     public class ConditionalStatement : IControl
     {
-        private int _SelectedContent = -1;
-
         private readonly Control _Parent;
         private readonly ContentDescription _Contents;
         private readonly string[] _Parameters;
         private readonly Application.Controls.ConditionalStatement _Settings;
-        private DirectiveCollection _Children;
-        private bool _Parsed;
 
         public ConditionalStatement(Control parent, ContentDescription contents, string[] parameters, Application.Controls.ConditionalStatement settings)
         {
@@ -21,26 +18,10 @@ namespace Xeora.Web.Directives.Controls.Elements
             this._Parameters = parameters;
             this._Settings = settings;
         }
-
-        public DirectiveCollection Children => this._Children;
+        
         public bool LinkArguments => true;
 
         public void Parse()
-        {
-            if (this._SelectedContent == -1)
-                return;
-
-            if (this._Parsed)
-                return;
-            this._Parsed = true;
-
-            this._Children = new DirectiveCollection(this._Parent.Mother, this._Parent);
-
-            this._Parent.Mother.RequestParsing(
-                this._Contents.Parts[this._SelectedContent], ref this._Children, this._Parent.Arguments);
-        }
-
-        public void Render(string requesterUniqueId)
         {
             if (this._Settings.Bind == null)
                 throw new System.ArgumentNullException(nameof(this._Settings.Bind));
@@ -49,24 +30,16 @@ namespace Xeora.Web.Directives.Controls.Elements
                 parameter =>
                 {
                     string query = parameter.Query;
-                    int paramIndex = 
+                    int paramIndex =
                         DirectiveHelper.CaptureParameterPointer(query);
 
                     if (paramIndex < 0)
-                        return DirectiveHelper.RenderProperty(
-                                this._Parent, query, 
-                                this._Parent.Arguments,
-                                requesterUniqueId
-                            );
+                        return Property.Render(this._Parent, query).Item2;
                     
                     if (paramIndex >= this._Parameters.Length)
                         throw new Exceptions.FormatIndexOutOfRangeException();
 
-                    return DirectiveHelper.RenderProperty(
-                            this._Parent, this._Parameters[paramIndex], 
-                            this._Parent.Arguments, 
-                            requesterUniqueId
-                        );
+                    return Property.Render(this._Parent, this._Parameters[paramIndex]).Item2;
                 }
             );
 
@@ -86,8 +59,8 @@ namespace Xeora.Web.Directives.Controls.Elements
                     if (string.IsNullOrEmpty(this._Contents.Parts[0]))
                         break;
 
-                    this._SelectedContent = 0;
-                    this.Parse();
+                    this._Parent.Mother.RequestParsing(
+                        this._Contents.Parts[0], this._Parent.Children, this._Parent.Arguments);
 
                     break;
                 case Basics.ControlResult.Conditional.Conditions.False:
@@ -97,20 +70,14 @@ namespace Xeora.Web.Directives.Controls.Elements
                     if (string.IsNullOrEmpty(this._Contents.Parts[1]))
                         break;
 
-                    this._SelectedContent = 1;
-                    this.Parse();
+                    this._Parent.Mother.RequestParsing(
+                        this._Contents.Parts[1], this._Parent.Children, this._Parent.Arguments);
 
                     break;
                 case Basics.ControlResult.Conditional.Conditions.Unknown:
                     // Reserved For Future Uses
-
-                    break;
+                    return;
             }
-
-            if (this._SelectedContent <= -1) return;
-            
-            this._Children.Render(requesterUniqueId);
-            this._Parent.Deliver(RenderStatus.Rendered, this._Parent.Result);
         }
     }
 }

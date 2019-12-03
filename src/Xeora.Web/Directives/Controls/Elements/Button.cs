@@ -1,6 +1,8 @@
-﻿using Xeora.Web.Basics;
+﻿using System;
+using Xeora.Web.Basics;
 using Xeora.Web.Basics.Domain.Control;
 using Xeora.Web.Directives.Elements;
+using Attribute = Xeora.Web.Basics.Domain.Control.Attribute;
 
 namespace Xeora.Web.Directives.Controls.Elements
 {
@@ -15,23 +17,17 @@ namespace Xeora.Web.Directives.Controls.Elements
             this._Settings = settings;
         }
 
-        public DirectiveCollection Children => null;
         public bool LinkArguments => true;
 
         public void Parse()
-        { }
-
-        public void Render(string requesterUniqueId)
         {
-            this.Parse();
-
             if (this._Parent.UpdateBlockIds.Count > 0)
                 this._Settings.Updates.Setup(string.Join(">", this._Parent.UpdateBlockIds.ToArray()));
 
             this._Parent.Bag.Add("text", this._Settings.Text, this._Parent.Arguments);
             foreach (Attribute item in this._Settings.Attributes)
                 this._Parent.Bag.Add(item.Key, item.Value, this._Parent.Arguments);
-            this._Parent.Bag.Render(requesterUniqueId);
+            this._Parent.Bag.Render();
             
             for (int aC = 0; aC < this._Settings.Attributes.Count; aC++)
             {
@@ -52,8 +48,12 @@ namespace Xeora.Web.Directives.Controls.Elements
             {
                 // Render Bind Parameters
                 this._Settings.Bind.Parameters.Prepare(
-                    parameter => DirectiveHelper.RenderProperty(this._Parent, parameter.Query, this._Parent.Arguments, requesterUniqueId)
-                );
+                    parameter =>
+                    {
+                        Tuple<bool, object> result =
+                            Property.Render(this._Parent, parameter.Query);
+                        return result.Item2;
+                    });
 
                 ICryptography cryptography =
                     CryptographyProvider.Current.Get(Helpers.Context.Session.SessionId);
@@ -96,15 +96,17 @@ namespace Xeora.Web.Directives.Controls.Elements
             if (this._Settings.Security.Disabled.Set &&
                 this._Settings.Security.Disabled.Type == SecurityDefinition.DisabledDefinition.Types.Dynamic)
             {
-                this._Parent.Deliver(RenderStatus.Rendered, this._Settings.Security.Disabled.Value);
+                this._Parent.Children.Add(
+                    new Static(this._Settings.Security.Disabled.Value));
                 return;
             }
 
-            this._Parent.Deliver(
-                RenderStatus.Rendered,
-                string.Format(
-                    "<input type=\"button\" name=\"{0}\" id=\"{0}\"{1} />",
-                    this._Parent.DirectiveId, this._Settings.Attributes
+            this._Parent.Children.Add(
+                new Static(
+            string.Format(
+                           "<input type=\"button\" name=\"{0}\" id=\"{0}\"{1} />",
+                           this._Parent.DirectiveId, this._Settings.Attributes
+                       )
                 )
             );
         }

@@ -11,7 +11,6 @@ using Xeora.Web.Basics.Context;
 using Xeora.Web.Basics.ControlResult;
 using Xeora.Web.Basics.X;
 using Xeora.Web.Directives;
-using Xeora.Web.Directives.Elements;
 using Xeora.Web.Application;
 using Xeora.Web.Basics.Context.Request;
 
@@ -280,17 +279,7 @@ namespace Xeora.Web.Handler
                         this.DomainControl.Cryptography.Decrypt(bindInformation));
 
                 bind.Parameters.Prepare(
-                    parameter =>
-                    {
-                        Property property =
-                            new Property(parameter.Query, null);
-
-                        Mother mother = new Mother(property, null, null);
-                        mother.InstanceRequested += (out Basics.Domain.IDomain instance) => instance = this._DomainControl.Domain;
-                        mother.Process();
-
-                        return property.ObjectResult;
-                    }
+                    parameter => Property.Render(null, parameter.Query).Item2
                 );
 
                 Basics.Execution.InvokeResult<object> invokeResult =
@@ -316,8 +305,8 @@ namespace Xeora.Web.Handler
                 string currentUrl = this.Context.Request.Header.Url.RelativePath;
                 currentUrl = currentUrl.Remove(0, currentUrl.IndexOf(applicationRootPath, StringComparison.InvariantCulture));
 
-                System.Text.RegularExpressions.Match mR =
-                    System.Text.RegularExpressions.Regex.Match(currentUrl, $"{applicationRootPath}\\d+/");
+                Match mR =
+                    Regex.Match(currentUrl, $"{applicationRootPath}\\d+/");
 
                 // Not assigned, so assign!
                 if (!mR.Success)
@@ -348,17 +337,7 @@ namespace Xeora.Web.Handler
                 this._DomainControl.GetxSocketBind();
 
             bind.Parameters.Prepare(
-                parameter =>
-                {
-                    Property property =
-                        new Property(parameter.Query, null);
-
-                    Mother mother = new Mother(property, null, null);
-                    mother.InstanceRequested += (out Basics.Domain.IDomain instance) => instance = this._DomainControl.Domain;
-                    mother.Process();
-
-                    return property.ObjectResult;
-                }
+                parameter => Property.Render(null, parameter.Query).Item2
             );
 
             List<KeyValuePair<string, object>> keyValueList = new List<KeyValuePair<string, object>>();
@@ -489,7 +468,7 @@ namespace Xeora.Web.Handler
 
             foreach (string bannedRegEx in Configurations.Xeora.Application.BannedFiles)
             {
-                if (System.Text.RegularExpressions.Regex.IsMatch(requestFilePath, bannedRegEx, System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+                if (Regex.IsMatch(requestFilePath, bannedRegEx, RegexOptions.IgnoreCase))
                     return true;
             }
 

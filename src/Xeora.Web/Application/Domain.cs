@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using Xeora.Web.Basics.Domain.Control.Definitions;
 using Xeora.Web.Directives;
+using Xeora.Web.Directives.Elements;
 using Xeora.Web.Global;
 
 namespace Xeora.Web.Application
@@ -105,7 +106,7 @@ namespace Xeora.Web.Application
         public Basics.RenderResult Render(string xeoraContent, Basics.ControlResult.Message messageResult, string[] updateBlockControlIdStack = null)
         {
             Mother mother =
-                new Mother(xeoraContent, messageResult, updateBlockControlIdStack);
+                new Mother(new Directives.Elements.Single(xeoraContent, null), messageResult, updateBlockControlIdStack);
             mother.ParseRequested += this.OnParseRequest;
             mother.InstanceRequested += this.OnInstanceRequest;
             mother.DeploymentAccessRequested += this.OnDeploymentAccessRequest;
@@ -115,7 +116,7 @@ namespace Xeora.Web.Application
             return new Basics.RenderResult(mother.Result, mother.HasInlineError);
         }
 
-        private void OnParseRequest(string rawValue, ref DirectiveCollection childrenContainer, ArgumentCollection arguments)
+        private void OnParseRequest(string rawValue, DirectiveCollection childrenContainer, ArgumentCollection arguments)
         {
             DateTime parseBegins = DateTime.Now;
 

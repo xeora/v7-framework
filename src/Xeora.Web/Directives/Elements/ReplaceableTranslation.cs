@@ -4,10 +4,9 @@ using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives.Elements
 {
-    public class ReplaceableTranslation : Directive, INameable, IHasChildren
+    public class ReplaceableTranslation : Directive, INameable
     {
         private readonly ContentDescription _Contents;
-        private DirectiveCollection _Children;
         private bool _Parsed;
 
         public ReplaceableTranslation(string rawValue, ArgumentCollection arguments) :
@@ -22,16 +21,12 @@ namespace Xeora.Web.Directives.Elements
         public override bool Searchable => false;
         public override bool CanAsync => false;
 
-        public DirectiveCollection Children => this._Children;
-
         public override void Parse()
         {
             if (this._Parsed)
                 return;
             this._Parsed = true;
-
-            this._Children = new DirectiveCollection(this.Mother, this);
-
+            
             // ReplaceableTranslation needs to link ContentArguments of its parent.
             if (this.Parent != null)
                 this.Arguments.Replace(this.Parent.Arguments);
@@ -39,22 +34,26 @@ namespace Xeora.Web.Directives.Elements
             string formatContent = this._Contents.Parts[0];
             if (string.IsNullOrEmpty(formatContent))
                 throw new Exceptions.EmptyBlockException();
+            
+            this.Children = new DirectiveCollection(this.Mother, this);
+            this.Mother.RequestParsing(formatContent, this.Children, this.Arguments);
+        }
 
-            this.Mother.RequestParsing(formatContent, ref this._Children, this.Arguments);
+        public override bool PreRender()
+        {
+            if (this.Status != RenderStatus.None)
+                return false;
+            this.Status = RenderStatus.Rendering;
+
+            this.Parse();
+            
+            return true;
         }
 
         private static readonly Regex FormatIndexRegEx =
             new Regex("\\{(?<index>\\d+)\\}", RegexOptions.Compiled);
-        public override void Render(string requesterUniqueId)
+        public override void PostRender()
         {
-            this.Parse();
-
-            if (this.Status != RenderStatus.None)
-                return;
-            this.Status = RenderStatus.Rendering;
-
-            this.Children.Render(this.UniqueId);
-            
             this.Mother.RequestInstance(out IDomain instance);
 
             string translationValue =
@@ -80,7 +79,6 @@ namespace Xeora.Web.Directives.Elements
             }
 
             this.Deliver(RenderStatus.Rendered, translationValue);
-
             this.Scheduler.Fire();
         }
     }

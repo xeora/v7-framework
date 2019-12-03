@@ -44,7 +44,8 @@ namespace Xeora.Web.Directives
 
         public void Fire()
         {
-            string handlerId = Helpers.CurrentHandlerId;
+            string handlerId = 
+                Helpers.CurrentHandlerId;
             List<Task> callbackJobs = new List<Task>();
 
             while (this._Queue.TryDequeue(out string uniqueId))

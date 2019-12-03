@@ -9,27 +9,36 @@ namespace Xeora.Web.Directives.Elements
         private readonly string _RawValue;
 
         public Static(string rawValue) :
-            base(DirectiveTypes.Static, null)
-        {
+            base(DirectiveTypes.Static, null) =>
             this._RawValue = rawValue;
-        }
 
         public override bool Searchable => false;
         public override bool CanAsync => true;
 
-        public override void Parse()
-        { }
+        public override void Parse() =>
+            this.Children = new DirectiveCollection(this.Mother, this);
+
+        public override bool PreRender()
+        {
+            if (this.Status != RenderStatus.None)
+                return false;
+            this.Status = RenderStatus.Rendering;
+
+            this.Parse();
+            
+            return true;
+        }
 
         private static readonly Regex RootPathRegEx =
             new Regex("[\"']+(~|¨)/", RegexOptions.Compiled | RegexOptions.Multiline);
-        public override void Render(string requesterUniqueId)
+        public override void PostRender()
         {
-            this.Parse();
-
-            if (this.Status != RenderStatus.None)
+            if (string.IsNullOrEmpty(this._RawValue))
+            {
+                this.Deliver(RenderStatus.Rendered, string.Empty);
                 return;
-            this.Status = RenderStatus.Rendering;
-
+            }
+            
             // Change ~/ values with the exact application root path
             MatchCollection rootPathMatches = Static.RootPathRegEx.Matches(this._RawValue);
             string applicationRoot =
