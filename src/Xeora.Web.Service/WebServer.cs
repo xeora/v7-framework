@@ -44,7 +44,7 @@ namespace Xeora.Web.Service
             this._ConfigurationFile = Path.GetFileName(configurationFilePath);
         }
 
-        public int Start()
+        public async Task<int> StartAsync()
         {
             this.PrintLogo();
 
@@ -117,7 +117,7 @@ namespace Xeora.Web.Service
                 return 1;
             }
 
-            this.ListenAsync().GetAwaiter().GetResult();
+            await this.ListenAsync();
             this._TerminationLock.WaitOne();
             
             return 0;
