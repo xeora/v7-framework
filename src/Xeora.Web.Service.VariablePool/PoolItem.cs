@@ -19,10 +19,10 @@ namespace Xeora.Web.Service.VariablePool
         public string KeyId { get; }
 
         public void Set(string name, byte[] serializedValue) =>
-            this._Reservation[name] = serializedValue;
+            this._Reservation.Set(name, serializedValue);
 
         public byte[] Get(string name) =>
-            (byte[])this._Reservation[name];
+            (byte[])this._Reservation.Get(name);
 
         public void CopyInto(ref Basics.Service.IVariablePool variablePool)
         {

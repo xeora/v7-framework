@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using Xeora.Web.Basics;
+using Xeora.Web.Exceptions;
 
 namespace Xeora.Web.Service.Dss.External
 {
@@ -21,33 +22,186 @@ namespace Xeora.Web.Service.Dss.External
             this.Expires = expireDate;
         }
 
-        public object this[string key]
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(key))
-                    throw new ArgumentNullException(nameof(key));
-                
-                return this.Get(key);
-            }
-            set
-            {
-                if (string.IsNullOrEmpty(key))
-                    throw new ArgumentNullException(nameof(key));
-
-                if (key.Length > 128)
-                    throw new OverflowException("key can not be longer than 128 characters");
-                
-                this.Set(key, value);
-            }
-        }
-
         public string UniqueId { get; }
         public bool Reusing { get; }
         public DateTime Expires { get; }
+
+        public object Get(string key, string lockCode = null)
+        {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentNullException(nameof(key));
+                
+            return this._Get(key, lockCode);
+        }
+        
+        public void Set(string key, object value, string lockCode = null)
+        {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentNullException(nameof(key));
+
+            if (key.Length > 128)
+                throw new OverflowException("key can not be longer than 128 characters");
+                
+            this._Set(key, value, lockCode);
+        }
+
+        public string Lock(string key) => this._Lock(key);
+        public void Release(string key, string lockCode) => this._Release(key, lockCode);
         public string[] Keys => this.GetKeys();
 
-        private object Get(string key)
+        private object _Get(string key, string lockCode)
+        {
+            if (string.IsNullOrEmpty(lockCode)) 
+                lockCode = string.Empty;
+            
+            long requestId;
+
+            // Make Request
+            BinaryWriter binaryWriter = null;
+            Stream requestStream = null;
+
+            try
+            {
+                requestStream = new MemoryStream();
+                binaryWriter = new BinaryWriter(requestStream);
+
+                /*
+                 * -> GET\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}
+                 */
+
+                binaryWriter.Write("GET".ToCharArray());
+                binaryWriter.Write((byte)this.UniqueId.Length);
+                binaryWriter.Write(this.UniqueId.ToCharArray());
+                binaryWriter.Write((byte)key.Length);
+                binaryWriter.Write(key.ToCharArray());
+                binaryWriter.Write((byte)lockCode.Length);
+                binaryWriter.Write(lockCode.ToCharArray());
+                binaryWriter.Flush();
+
+                requestId = 
+                    this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
+                if (requestId == -1) return null;
+            }
+            finally
+            {
+                binaryWriter?.Close();
+                requestStream?.Close();
+            }
+
+            byte[] responseBytes = 
+                this._ResponseHandler.WaitForMessage(requestId);
+            if (responseBytes == null || responseBytes.Length == 0)
+                return null;
+            
+            // Parse Response
+            BinaryReader binaryReader = null;
+            Stream responseStream = null;
+
+            try
+            {
+                responseStream = 
+                    new MemoryStream(responseBytes, 0, responseBytes.Length, false);
+                binaryReader = new BinaryReader(responseStream);
+
+                /*
+                 * <- \BYTE\CHARS{BYTEVALUELENGTH}\BYTE\INTEGER\BYTES{INTEGERVALUELENGTH}
+                 */
+
+                byte remoteKeyLength = binaryReader.ReadByte();
+                string remoteKey = 
+                    new string(binaryReader.ReadChars(remoteKeyLength));
+
+                byte remoteResult = 
+                    binaryReader.ReadByte();
+
+                if (remoteResult == 0)
+                {
+                    int remoteValueLength = binaryReader.ReadInt32();
+                    byte[] remoteValueBytes =
+                        binaryReader.ReadBytes(remoteValueLength);
+
+                    return string.CompareOrdinal(remoteKey, key) == 0
+                        ? this.DeSerialize(remoteValueBytes)
+                        : null;
+                }
+
+                if (remoteResult == 1) // KeyLockedException
+                {
+                    if (string.CompareOrdinal(remoteKey, key) == 0)
+                        throw new KeyLockedException();
+                    return null;
+                }
+                
+                if (string.CompareOrdinal(remoteKey, key) == 0)
+                    throw new DssCommandException();
+                return null;
+            }
+            finally
+            {
+                binaryReader?.Close();
+                responseStream?.Close();
+            }
+        }
+
+        private void _Set(string key, object value, string lockCode)
+        {
+            if (string.IsNullOrEmpty(lockCode))
+                lockCode = string.Empty;
+            
+            // Make Request
+            BinaryWriter binaryWriter = null;
+            Stream requestStream = null;
+
+            try
+            {
+                requestStream = new MemoryStream();
+                binaryWriter = new BinaryWriter(requestStream);
+
+                /*
+                 * -> SET\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}\INTEGER\BYTES{INTEGERVALUELENGTH}
+                 */
+
+                byte[] valueBytes = this.Serialize(value);
+                if (valueBytes.Length > 16777000)
+                    throw new OverflowException("Value is too big to store");
+
+                binaryWriter.Write("SET".ToCharArray());
+                binaryWriter.Write((byte)this.UniqueId.Length);
+                binaryWriter.Write(this.UniqueId.ToCharArray());
+                binaryWriter.Write((byte)key.Length);
+                binaryWriter.Write(key.ToCharArray());
+                binaryWriter.Write((byte)lockCode.Length);
+                binaryWriter.Write(lockCode.ToCharArray());
+                binaryWriter.Write(valueBytes.Length);
+                binaryWriter.Write(valueBytes, 0, valueBytes.Length);
+                binaryWriter.Flush();
+
+                long requestId =
+                    this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
+                if (requestId == -1) return;
+
+                byte[] responseBytes = this._ResponseHandler.WaitForMessage(requestId);
+                if (responseBytes == null || responseBytes.Length == 0)
+                    return;
+
+                switch (responseBytes[0])
+                {
+                    case 0:
+                        return;
+                    case 1:
+                        throw new KeyLockedException();
+                    default:
+                        throw new DssCommandException();                        
+                }
+            }
+            finally
+            {
+                binaryWriter?.Close();
+                requestStream?.Close();
+            }
+        }
+        
+        private string _Lock(string key)
         {
             long requestId;
 
@@ -61,10 +215,10 @@ namespace Xeora.Web.Service.Dss.External
                 binaryWriter = new BinaryWriter(requestStream);
 
                 /*
-                 * -> GET\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}
+                 * -> LCK\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}
                  */
 
-                binaryWriter.Write("GET".ToCharArray());
+                binaryWriter.Write("LCK".ToCharArray());
                 binaryWriter.Write((byte)this.UniqueId.Length);
                 binaryWriter.Write(this.UniqueId.ToCharArray());
                 binaryWriter.Write((byte)key.Length);
@@ -97,19 +251,37 @@ namespace Xeora.Web.Service.Dss.External
                 binaryReader = new BinaryReader(responseStream);
 
                 /*
-                 * <- \BYTE\CHARS{BYTEVALUELENGTH}\INTEGER\BYTES{INTEGERVALUELENGTH}
+                 * <- \BYTE\CHARS{BYTEVALUELENGTH}\BYTE\BYTE\CHARS{BYTEVALUELENGTH}
                  */
-
+                
                 byte remoteKeyLength = binaryReader.ReadByte();
                 string remoteKey = 
                     new string(binaryReader.ReadChars(remoteKeyLength));
 
-                int remoteValueLength = binaryReader.ReadInt32();
-                byte[] remoteValueBytes = 
-                    binaryReader.ReadBytes(remoteValueLength);
+                byte remoteResult = 
+                    binaryReader.ReadByte();
 
-                return string.CompareOrdinal(remoteKey, key) == 0 
-                        ? this.DeSerialize(remoteValueBytes) : null;
+                if (remoteResult == 0)
+                {
+                    int remoteLockCodeLength = binaryReader.ReadByte();
+                    string remoteLockCode =
+                        new string(binaryReader.ReadChars(remoteLockCodeLength));
+
+                    return string.CompareOrdinal(remoteKey, key) == 0 
+                        ? remoteLockCode 
+                        : null;
+                }
+
+                if (remoteResult == 1) // KeyLockedException
+                {
+                    if (string.CompareOrdinal(remoteKey, key) == 0)
+                        throw new KeyLockedException();
+                    return null;
+                }
+                
+                if (string.CompareOrdinal(remoteKey, key) == 0)
+                    throw new DssCommandException();
+                return null;
             }
             finally
             {
@@ -118,7 +290,7 @@ namespace Xeora.Web.Service.Dss.External
             }
         }
 
-        private void Set(string key, object value)
+        private void _Release(string key, string lockCode)
         {            
             // Make Request
             BinaryWriter binaryWriter = null;
@@ -130,20 +302,16 @@ namespace Xeora.Web.Service.Dss.External
                 binaryWriter = new BinaryWriter(requestStream);
 
                 /*
-                 * -> SET\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}\INTEGER\BYTES{INTEGERVALUELENGTH}
+                 * -> RLS\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}
                  */
 
-                byte[] valueBytes = this.Serialize(value);
-                if (valueBytes.Length > 16777000)
-                    throw new OverflowException("Value is too big to store");
-
-                binaryWriter.Write("SET".ToCharArray());
+                binaryWriter.Write("RLS".ToCharArray());
                 binaryWriter.Write((byte)this.UniqueId.Length);
                 binaryWriter.Write(this.UniqueId.ToCharArray());
                 binaryWriter.Write((byte)key.Length);
                 binaryWriter.Write(key.ToCharArray());
-                binaryWriter.Write(valueBytes.Length);
-                binaryWriter.Write(valueBytes, 0, valueBytes.Length);
+                binaryWriter.Write((byte)lockCode.Length);
+                binaryWriter.Write(lockCode.ToCharArray());
                 binaryWriter.Flush();
 
                 long requestId =
@@ -154,8 +322,8 @@ namespace Xeora.Web.Service.Dss.External
                 if (responseBytes == null || responseBytes.Length == 0)
                     return;
 
-                if (responseBytes[0] != 1)
-                    throw new Exceptions.DssValueException();
+                if (responseBytes[0] != 0)
+                    throw new DssCommandException();
             }
             finally
             {
@@ -193,7 +361,7 @@ namespace Xeora.Web.Service.Dss.External
             }
             catch
             {
-                throw new Exceptions.ExternalCommunicationException();
+                throw new ExternalCommunicationException();
             }
             finally
             {
@@ -230,7 +398,7 @@ namespace Xeora.Web.Service.Dss.External
             }
             catch
             {
-                throw new Exceptions.ExternalCommunicationException();
+                throw new ExternalCommunicationException();
             }
             finally
             {

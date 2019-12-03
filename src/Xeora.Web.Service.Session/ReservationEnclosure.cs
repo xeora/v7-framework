@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using Xeora.Web.Exceptions;
 
 namespace Xeora.Web.Service.Session
 {
@@ -14,8 +16,39 @@ namespace Xeora.Web.Service.Session
 
         public object this[string key]
         {
-            get => this._Reservation[key];
-            set => this._Reservation[key] = value;
+            get => this._Reservation.Get(key);
+            set => this._Reservation.Set(key, value);
+        }
+
+        public object Lock(string key, Func<string, object, object> lockHandler)
+        {
+            do
+            {
+                string lockCode = string.Empty;
+                try
+                {
+                    lockCode = this._Reservation.Lock(key);
+                    if (string.IsNullOrEmpty(lockCode))
+                        throw new ArgumentException();
+
+                    object value =
+                        this._Reservation.Get(key, lockCode);
+                    value = lockHandler?.Invoke(key, value);
+                    
+                    this._Reservation.Set(key, value, lockCode);
+
+                    return value;
+                }
+                catch (KeyLockedException)
+                {
+                    Thread.Sleep(1);
+                }
+                finally
+                {
+                    if (!string.IsNullOrEmpty(lockCode))
+                        this._Reservation.Release(key, lockCode);
+                }
+            } while (true);
         }
 
         public string SessionId { get; }

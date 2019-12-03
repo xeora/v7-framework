@@ -8,5 +8,6 @@ namespace Xeora.Web.Basics.Session
         DateTime Expires { get; }
         object this[string key] { get; set; }
         string[] Keys { get; }
+        object Lock(string key, Func<string, object, object> lockHandler);
     }
 }
