@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Xeora.Web.Basics.Domain;
 using Xeora.Web.Basics.Domain.Control.Definitions;
 using Xeora.Web.Global;
+using Xeora.Web.Service.Workers;
 
 namespace Xeora.Web.Directives
 {
@@ -14,6 +15,9 @@ namespace Xeora.Web.Directives
 
     public interface IMother
     {
+        object PropertyLock { get; }
+        Bucket Bucket { get; }
+
         ConcurrentDictionary<DirectiveTypes, Tuple<int, double>> AnalysisBulk { get; }
         DirectivePool Pool { get; }
 

@@ -20,6 +20,7 @@ namespace Xeora.Web.Directives.Elements
 
         public override bool Searchable => false;
         public override bool CanAsync => false;
+        public override bool CanHoldVariable => false;
 
         public override void Parse()
         {
@@ -70,7 +71,7 @@ namespace Xeora.Web.Directives.Elements
                     int.Parse(current.Groups["index"].Value);
 
                 if (formatIndex >= parameters.Length)
-                    throw new Exceptions.FormatIndexOutOfRangeException();
+                    throw new Exceptions.FormatIndexOutOfRangeException(DirectiveTypes.ReplaceableTranslation.ToString());
 
                 translationValue =
                     translationValue.Remove(current.Index, current.Length);

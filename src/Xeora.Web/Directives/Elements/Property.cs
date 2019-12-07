@@ -38,6 +38,7 @@ namespace Xeora.Web.Directives.Elements
                                 case '-':
                                 case '&':
                                 case '#':
+                                case '.':
                                     break;
                                 default:
                                     this.CanAsync = false;
@@ -57,6 +58,7 @@ namespace Xeora.Web.Directives.Elements
 
         public override bool Searchable => false;
         public override bool CanAsync { get; }
+        public override bool CanHoldVariable => false;
 
         public override void Parse() =>
             this.Children = new DirectiveCollection(this.Mother, this);

@@ -1,34 +1,33 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace Xeora.Web.Service.Context
 {
     public class KeyValueCollection<TK, TV> : Basics.Context.IKeyValueCollection<TK, TV>
     {
-        private readonly Dictionary<TK, TV> _Container;
+        private readonly ConcurrentDictionary<TK, TV> _Container;
 
         public KeyValueCollection() =>
-            this._Container = new Dictionary<TK, TV>();
+            this._Container = new ConcurrentDictionary<TK, TV>();
 
         public KeyValueCollection(IEqualityComparer<TK> comparer) =>
-            this._Container = new Dictionary<TK, TV>(comparer);
+            this._Container = new ConcurrentDictionary<TK, TV>(comparer);
 
         internal void AddOrUpdate(TK key, TV value) =>
-            this._Container[key] = value;
+            this._Container.AddOrUpdate(key, value, (k, v) => value);
 
         internal bool ContainsKey(TK key) =>
             this._Container.ContainsKey(key);
 
-        internal void Remove(TK key)
-        {
-            if (this._Container.ContainsKey(key))
-                this._Container.Remove(key);
-        }
+        internal void Remove(TK key) =>
+            this._Container.TryRemove(key, out _);
 
         public TK[] Keys
         {
             get
             {
-                TK[] keys = new TK[this._Container.Count];
+                TK[] keys = 
+                    new TK[this._Container.Count];
 
                 this._Container.Keys.CopyTo(keys, 0);
 
@@ -37,6 +36,6 @@ namespace Xeora.Web.Service.Context
         }
 
         public TV this[TK key] =>
-            !this._Container.ContainsKey(key) ? default : this._Container[key];
+            !this._Container.TryGetValue(key, out TV value) ? default : value;
     }
 }

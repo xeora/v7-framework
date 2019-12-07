@@ -34,12 +34,12 @@ namespace Xeora.Web.Directives.Controls.Elements
                         DirectiveHelper.CaptureParameterPointer(query);
 
                     if (paramIndex < 0)
-                        return Property.Render(this._Parent.Parent, query).Item2;
+                        return Property.Render(this._Parent, query).Item2;
                     
                     if (paramIndex >= this._Parameters.Length)
-                        throw new Exceptions.FormatIndexOutOfRangeException();
+                        throw new Exceptions.FormatIndexOutOfRangeException("VariableBlock");
 
-                    return Property.Render(this._Parent.Parent, this._Parameters[paramIndex]).Item2;
+                    return Property.Render(this._Parent, this._Parameters[paramIndex]).Item2;
                 }
             );
 

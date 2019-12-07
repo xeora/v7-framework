@@ -3,7 +3,6 @@ using System.Data;
 using Xeora.Web.Basics;
 using Xeora.Web.Directives.Elements;
 using Xeora.Web.Global;
-using Single = Xeora.Web.Directives.Elements.Single;
 
 namespace Xeora.Web.Directives.Controls.Elements
 {
@@ -22,8 +21,8 @@ namespace Xeora.Web.Directives.Controls.Elements
             this._Settings = settings;
         }
 
-        public bool LinkArguments => false;
-
+        public bool LinkArguments => true;
+        
         public void Parse()
         {
             if (this._Settings.Bind == null)
@@ -38,12 +37,12 @@ namespace Xeora.Web.Directives.Controls.Elements
                         DirectiveHelper.CaptureParameterPointer(query);
 
                     if (paramIndex < 0)
-                        return Property.Render(this._Parent.Parent, query).Item2;
+                        return Property.Render(this._Parent, query).Item2;
                     
                     if (paramIndex >= this._Parameters.Length)
-                        throw new Exceptions.FormatIndexOutOfRangeException();
+                        throw new Exceptions.FormatIndexOutOfRangeException("DataList");
 
-                    return Property.Render(this._Parent.Parent, this._Parameters[paramIndex]).Item2;
+                    return Property.Render(this._Parent, this._Parameters[paramIndex]).Item2;
                 }
             );
 
@@ -97,15 +96,15 @@ namespace Xeora.Web.Directives.Controls.Elements
 
         private void RenderRow(int index, ArgumentCollection arguments)
         {
-            Single rowSingle =
-                new SingleAsync(index == -1 ? this._Contents.MessageTemplate : this._Contents.Parts[index % this._Contents.Parts.Count], arguments.Clone())
-                {
-                    Mother = this._Parent.Parent.Mother,
-                    Parent = this._Parent.Parent
-                    
-                };
-            rowSingle.UpdateBlockIds.AddRange(this._Parent.Parent.UpdateBlockIds);
-
+            SingleAsync rowSingle =
+                new SingleAsync(
+                    index == -1
+                        ? this._Contents.MessageTemplate
+                        : this._Contents.Parts[index % this._Contents.Parts.Count], 
+                    arguments.Clone()
+                );
+            rowSingle.UpdateBlockIds.AddRange(this._Parent.UpdateBlockIds);
+            
             this._Parent.Children.Add(rowSingle);
         }
 

@@ -26,12 +26,12 @@ namespace Xeora.Web.Service.Dss.External
         public bool Reusing { get; }
         public DateTime Expires { get; }
 
-        public object Get(string key, string lockCode = null)
+        public object Get(string key)
         {
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentNullException(nameof(key));
                 
-            return this._Get(key, lockCode);
+            return this._Get(key);
         }
         
         public void Set(string key, object value, string lockCode = null)
@@ -45,15 +45,22 @@ namespace Xeora.Web.Service.Dss.External
             this._Set(key, value, lockCode);
         }
 
-        public string Lock(string key) => this._Lock(key);
+        public string Lock(string key)
+        {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentNullException(nameof(key));
+                
+            if (key.Length > 128)
+                throw new OverflowException("key can not be longer than 128 characters");
+            
+            return this._Lock(key);
+        }
+
         public void Release(string key, string lockCode) => this._Release(key, lockCode);
         public string[] Keys => this.GetKeys();
 
-        private object _Get(string key, string lockCode)
+        private object _Get(string key)
         {
-            if (string.IsNullOrEmpty(lockCode)) 
-                lockCode = string.Empty;
-            
             long requestId;
 
             // Make Request
@@ -66,7 +73,7 @@ namespace Xeora.Web.Service.Dss.External
                 binaryWriter = new BinaryWriter(requestStream);
 
                 /*
-                 * -> GET\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}
+                 * -> GET\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}
                  */
 
                 binaryWriter.Write("GET".ToCharArray());
@@ -74,8 +81,6 @@ namespace Xeora.Web.Service.Dss.External
                 binaryWriter.Write(this.UniqueId.ToCharArray());
                 binaryWriter.Write((byte)key.Length);
                 binaryWriter.Write(key.ToCharArray());
-                binaryWriter.Write((byte)lockCode.Length);
-                binaryWriter.Write(lockCode.ToCharArray());
                 binaryWriter.Flush();
 
                 requestId = 
@@ -104,37 +109,31 @@ namespace Xeora.Web.Service.Dss.External
                 binaryReader = new BinaryReader(responseStream);
 
                 /*
-                 * <- \BYTE\CHARS{BYTEVALUELENGTH}\BYTE\INTEGER\BYTES{INTEGERVALUELENGTH}
+                 * <- \BYTE\BYTE\CHARS{BYTEVALUELENGTH}\INTEGER\BYTES{INTEGERVALUELENGTH}
                  */
-
-                byte remoteKeyLength = binaryReader.ReadByte();
-                string remoteKey = 
-                    new string(binaryReader.ReadChars(remoteKeyLength));
 
                 byte remoteResult = 
                     binaryReader.ReadByte();
 
-                if (remoteResult == 0)
+                switch (remoteResult)
                 {
-                    int remoteValueLength = binaryReader.ReadInt32();
-                    byte[] remoteValueBytes =
-                        binaryReader.ReadBytes(remoteValueLength);
+                    case 0:
+                        byte remoteKeyLength = 
+                            binaryReader.ReadByte();
+                        string remoteKey = 
+                            new string(binaryReader.ReadChars(remoteKeyLength));
+                        
+                        int remoteValueLength = binaryReader.ReadInt32();
+                        byte[] remoteValueBytes =
+                            binaryReader.ReadBytes(remoteValueLength);
 
-                    return string.CompareOrdinal(remoteKey, key) == 0
-                        ? this.DeSerialize(remoteValueBytes)
-                        : null;
+                        if (string.CompareOrdinal(remoteKey, key) != 0)
+                            throw new DssCommandException();
+                        
+                        return this.DeSerialize(remoteValueBytes);
+                    default:
+                        throw new DssCommandException();
                 }
-
-                if (remoteResult == 1) // KeyLockedException
-                {
-                    if (string.CompareOrdinal(remoteKey, key) == 0)
-                        throw new KeyLockedException();
-                    return null;
-                }
-                
-                if (string.CompareOrdinal(remoteKey, key) == 0)
-                    throw new DssCommandException();
-                return null;
             }
             finally
             {
@@ -188,7 +187,7 @@ namespace Xeora.Web.Service.Dss.External
                 {
                     case 0:
                         return;
-                    case 1:
+                    case 30:
                         throw new KeyLockedException();
                     default:
                         throw new DssCommandException();                        
@@ -251,37 +250,30 @@ namespace Xeora.Web.Service.Dss.External
                 binaryReader = new BinaryReader(responseStream);
 
                 /*
-                 * <- \BYTE\CHARS{BYTEVALUELENGTH}\BYTE\BYTE\CHARS{BYTEVALUELENGTH}
+                 * <- \BYTE\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\BYTE\CHARS{BYTEVALUELENGTH}
                  */
-                
-                byte remoteKeyLength = binaryReader.ReadByte();
-                string remoteKey = 
-                    new string(binaryReader.ReadChars(remoteKeyLength));
 
                 byte remoteResult = 
                     binaryReader.ReadByte();
 
-                if (remoteResult == 0)
+                switch (remoteResult)
                 {
-                    int remoteLockCodeLength = binaryReader.ReadByte();
-                    string remoteLockCode =
-                        new string(binaryReader.ReadChars(remoteLockCodeLength));
+                    case 0:
+                        byte remoteKeyLength = binaryReader.ReadByte();
+                        string remoteKey = 
+                            new string(binaryReader.ReadChars(remoteKeyLength));
+                        
+                        int remoteLockCodeLength = binaryReader.ReadByte();
+                        string remoteLockCode =
+                            new string(binaryReader.ReadChars(remoteLockCodeLength));
 
-                    return string.CompareOrdinal(remoteKey, key) == 0 
-                        ? remoteLockCode 
-                        : null;
+                        if (string.CompareOrdinal(remoteKey, key) != 0)
+                            throw new DssCommandException();
+                        
+                        return remoteLockCode;
+                    default:
+                        throw new DssCommandException();
                 }
-
-                if (remoteResult == 1) // KeyLockedException
-                {
-                    if (string.CompareOrdinal(remoteKey, key) == 0)
-                        throw new KeyLockedException();
-                    return null;
-                }
-                
-                if (string.CompareOrdinal(remoteKey, key) == 0)
-                    throw new DssCommandException();
-                return null;
             }
             finally
             {
@@ -380,33 +372,42 @@ namespace Xeora.Web.Service.Dss.External
 
             try
             {
-                responseStream = new MemoryStream(responseBytes, 0, responseBytes.Length, false);
+                responseStream = 
+                    new MemoryStream(responseBytes, 0, responseBytes.Length, false);
                 binaryReader = new BinaryReader(responseStream);
 
                 /*
-                 * <- \BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}...
+                 * <- \BYTE\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}...
                  */
 
-                do
+                byte remoteResult = 
+                    binaryReader.ReadByte();
+
+                switch (remoteResult)
                 {
-                    byte remoteKeyLength = binaryReader.ReadByte();
-                    if (remoteKeyLength == 0)
-                        break;
+                    case 0:
+                        do
+                        {
+                            byte remoteKeyLength = 
+                                binaryReader.ReadByte();
+                            if (remoteKeyLength == 0) break;
+                            
+                            string remoteKey =
+                                new string(binaryReader.ReadChars(remoteKeyLength));
                     
-                    keys.Add(new string(binaryReader.ReadChars(remoteKeyLength)));
-                } while (binaryReader.PeekChar() > -1);
-            }
-            catch
-            {
-                throw new ExternalCommunicationException();
+                            keys.Add(remoteKey);
+                        } while (binaryReader.PeekChar() > -1);
+                        
+                        return keys.ToArray();
+                    default:
+                        throw new DssCommandException();
+                }
             }
             finally
             {
                 binaryReader?.Close();
                 responseStream?.Close();
             }
-
-            return keys.ToArray();
         }
 
         private byte[] Serialize(object value)

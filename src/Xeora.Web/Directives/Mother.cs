@@ -7,21 +7,25 @@ using Xeora.Web.Basics;
 using Xeora.Web.Basics.Domain;
 using Xeora.Web.Basics.Domain.Control.Definitions;
 using Xeora.Web.Global;
+using Xeora.Web.Service.Workers;
 using Single = Xeora.Web.Directives.Elements.Single;
 
 namespace Xeora.Web.Directives
 {
     public class Mother : IMother
     {
-        private readonly IDirective _Directive;
+        private readonly Single _SingleDirective;
 
         public event ParsingHandler ParseRequested;
         public event InstanceHandler InstanceRequested;
         public event DeploymentAccessHandler DeploymentAccessRequested;
         public event ControlResolveHandler ControlResolveRequested;
 
-        public Mother(IDirective directive, Basics.ControlResult.Message messageResult, IReadOnlyCollection<string> updateBlockIdList)
+        public Mother(Single singleDirective, Basics.ControlResult.Message messageResult, IReadOnlyCollection<string> updateBlockIdList)
         {
+            this.PropertyLock = new object();
+            this.Bucket = Factory.Bucket(Guid.NewGuid().ToString());
+            
             this.Pool = new DirectivePool();
             
             this.MessageResult = messageResult;
@@ -30,12 +34,15 @@ namespace Xeora.Web.Directives
             if (updateBlockIdList != null && updateBlockIdList.Count > 0)
                 this.RequestedUpdateBlockIds.AddRange(updateBlockIdList);
             
-            this._Directive = directive;
-            this._Directive.Mother = this;
+            this._SingleDirective = singleDirective;
+            this._SingleDirective.Mother = this;
             
             this.AnalysisBulk = new ConcurrentDictionary<DirectiveTypes, Tuple<int, double>>();
         }
-        
+
+        public object PropertyLock { get; }
+        public Bucket Bucket { get; }
+
         public ConcurrentDictionary<DirectiveTypes, Tuple<int, double>> AnalysisBulk { get; }
         public DirectivePool Pool { get; }
 
@@ -67,23 +74,26 @@ namespace Xeora.Web.Directives
         {
             if (this.RequestedUpdateBlockIds.Count > 0)
             {
-                if (!(this._Directive is Single single))
-                    throw new Exception("update request container should be single!");
-
-                single.Parse();
-
+                this._SingleDirective.Parse();
+                
                 IDirective result =
-                    single.Children.Find(this.RequestedUpdateBlockIds.Last());
+                    this._SingleDirective.Children.Find(this.RequestedUpdateBlockIds.Last());
 
                 if (result == null)
                     return;
 
-                single.Children.Clear();
-                single.Children.Add(result);
+                this._SingleDirective.Children.Clear();
+                this._SingleDirective.Children.Add(result);
             }
 
-            this._Directive.Render();
-            
+            this._SingleDirective.Render();
+            this.Bucket.Completed();
+
+            this.CreateAnalysisBulkReport();
+        }
+
+        private void CreateAnalysisBulkReport()
+        {
             if (!Configurations.Xeora.Application.Main.PrintAnalysis) return;
 
             IEnumerator<KeyValuePair<DirectiveTypes, Tuple<int, double>>> analysisBulkEnumerator =
@@ -113,8 +123,8 @@ namespace Xeora.Web.Directives
             }
         }
 
-        public string Result => this._Directive.Result;
-        public bool HasInlineError => this._Directive.HasInlineError;
+        public string Result => this._SingleDirective.Result;
+        public bool HasInlineError => this._SingleDirective.HasInlineError;
 
         public static string CreateErrorOutput(Exception exception)
         {

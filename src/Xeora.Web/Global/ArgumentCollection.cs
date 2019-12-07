@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Xeora.Web.Global
 {
@@ -140,6 +141,24 @@ namespace Xeora.Web.Global
             output.Replace(this);
 
             return output;
+        }
+
+        public override string ToString()
+        {
+            lock (this._Lock)
+            {
+                StringBuilder builder = 
+                    new StringBuilder();
+                foreach (KeyValuePair<string, object> pair in this._ArgumentValues)
+                {
+                    if (builder.Length > 0)
+                        builder.Append(", ");
+
+                    builder.AppendFormat("{0}={1}", pair.Key, Convert.ToString(pair.Value));
+                }
+
+                return builder.ToString();
+            }
         }
     }
 }

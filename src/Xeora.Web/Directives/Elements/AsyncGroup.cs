@@ -13,6 +13,7 @@ namespace Xeora.Web.Directives.Elements
 
         public override bool Searchable => true;
         public override bool CanAsync => true;
+        public override bool CanHoldVariable => false;
 
         public override void Parse()
         {

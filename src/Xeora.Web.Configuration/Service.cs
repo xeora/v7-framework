@@ -12,7 +12,7 @@ namespace Xeora.Web.Configuration
             this.Port = 3381;
             this.Ssl = false;
             this.CertificatePassword = string.Empty;
-            this.Parallelism = 8;
+            this.Parallelism = new Parallelism();
             this.Print = false;
         }
 
@@ -33,10 +33,9 @@ namespace Xeora.Web.Configuration
         [DefaultValue("")]
         [JsonProperty(PropertyName = "certificatePassword", DefaultValueHandling = DefaultValueHandling.Populate)]
         public string CertificatePassword { get; private set; }
-
-        [DefaultValue(8)]
-        [JsonProperty(PropertyName = "parallelism", DefaultValueHandling = DefaultValueHandling.Populate)]
-        public byte Parallelism { get; private set; }
+        
+        [JsonProperty(PropertyName = "parallelism")]
+        public Basics.Configuration.IParallelism Parallelism { get; private set; }
 
         [DefaultValue(false)]
         [JsonProperty(PropertyName = "print", DefaultValueHandling = DefaultValueHandling.Populate)]

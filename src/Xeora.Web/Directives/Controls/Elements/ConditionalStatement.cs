@@ -36,7 +36,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                         return Property.Render(this._Parent, query).Item2;
                     
                     if (paramIndex >= this._Parameters.Length)
-                        throw new Exceptions.FormatIndexOutOfRangeException();
+                        throw new Exceptions.FormatIndexOutOfRangeException("ConditionalStatement");
 
                     return Property.Render(this._Parent, this._Parameters[paramIndex]).Item2;
                 }

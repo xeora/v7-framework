@@ -121,6 +121,7 @@ namespace Xeora.Web.Directives.Elements
             }
         }
         public override bool CanAsync => false;
+        public override bool CanHoldVariable => !this._Control.LinkArguments;
 
         public RenderBag Bag { get; private set; }
 

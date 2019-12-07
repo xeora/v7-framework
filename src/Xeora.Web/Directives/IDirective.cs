@@ -19,6 +19,7 @@ namespace Xeora.Web.Directives
 
         bool Searchable { get; }
         bool CanAsync { get; }
+        bool CanHoldVariable { get; }
         bool HasInlineError { get; set; }
         RenderStatus Status { get; }
 

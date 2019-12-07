@@ -7,7 +7,9 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Xeora.Web.Service.VariablePool;
+using Xeora.Web.Service.Workers;
 using Console = System.Console;
+using Task = System.Threading.Tasks.Task;
 
 namespace Xeora.Web.Service
 {
@@ -105,6 +107,7 @@ namespace Xeora.Web.Service
                     (id, path) => Manager.Execution.ApplicationFactory.Initialize(negotiator, path)
                 );
                 Manager.Execution.ApplicationFactory.Initialize(negotiator, Manager.Loader.Current.Path);
+                Factory.Init(Basics.Configurations.Xeora.Service.Parallelism);
             }
             catch (Exception ex)
             {
@@ -131,9 +134,9 @@ namespace Xeora.Web.Service
                 {
                     TcpClient remoteClient =
                         await this._TcpListener.AcceptTcpClientAsync();
-
-                    ThreadPool.QueueUserWorkItem(
-                        c => ((Connection) c).Process(),
+                    
+                    Factory.Queue(
+                        c => ((Connection) c).Process(),  
                         new Connection(ref remoteClient, this._Certificate)
                     );
                 }
@@ -209,6 +212,10 @@ namespace Xeora.Web.Service
 
                 // Terminate Loaded Domains
                 Manager.Execution.ApplicationFactory.Terminate();
+                
+                // Terminate Workers
+                Factory.Kill();
+                
                 Basics.Console.Flush().Wait();
             }
             finally {

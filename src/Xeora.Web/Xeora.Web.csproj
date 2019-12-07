@@ -58,6 +58,7 @@
     <ProjectReference Include="..\Xeora.Web.Exceptions\Xeora.Web.Exceptions.csproj" />
     <ProjectReference Include="..\Xeora.Web.Manager\Xeora.Web.Manager.csproj" />
     <ProjectReference Include="..\Xeora.Web.Service.Dss\Xeora.Web.Service.Dss.csproj" />
+    <ProjectReference Include="..\Xeora.Web.Service.Workers\Xeora.Web.Service.Workers.csproj" />
     <ProjectReference Include="..\Xeora.Web.Tools\Xeora.Web.Tools.csproj" />
   </ItemGroup>
 

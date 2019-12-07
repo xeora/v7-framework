@@ -2,8 +2,8 @@
 {
     public class FormatIndexOutOfRangeException : System.Exception
     {
-        public FormatIndexOutOfRangeException() : 
-            base("ReplaceableTranslation has un-matching index!")
+        public FormatIndexOutOfRangeException(string typeName) : 
+            base($"{typeName} has un-matching index!")
         { }
     }
 }

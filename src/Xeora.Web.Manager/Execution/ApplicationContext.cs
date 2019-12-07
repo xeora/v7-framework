@@ -108,9 +108,9 @@ namespace Xeora.Web.Manager.Execution
             {
                 if (ex.InnerException != null)
                     ex = ex.InnerException;
-                
+
                 Basics.Console.Push(
-                    "Execution Exception...", ex.Message, ex.StackTrace, false, true, 
+                    "Execution Exception...", ex.Message, ex.StackTrace, false, true,
                     type: Basics.Console.Type.Error);
             }
         }
@@ -125,9 +125,9 @@ namespace Xeora.Web.Manager.Execution
             {
                 if (ex.InnerException != null)
                     ex = ex.InnerException;
-                
+
                 Basics.Console.Push(
-                    "Execution Exception...", ex.Message, ex.StackTrace, false, true, 
+                    "Execution Exception...", ex.Message, ex.StackTrace, false, true,
                     type: Basics.Console.Type.Error);
             }
         }
@@ -454,7 +454,7 @@ namespace Xeora.Web.Manager.Execution
             DomainExecutable domainInstance =
                 this.LoadDomainExecutable(out Exception exception);
             if (exception != null) return exception;
-
+            
             try
             {
                 Type assemblyObject = classNames != null 

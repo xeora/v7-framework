@@ -1,74 +1,26 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using Xeora.Web.Exceptions;
+using System.Collections.Generic;
 
 namespace Xeora.Web.Service.Dss.Internal
 {
     internal class Service : Basics.Dss.IDss, IService
     {
-        private readonly ConcurrentDictionary<string, string> _Locks;
-        private readonly ConcurrentDictionary<string, object> _Items;
-        private readonly short _ExpiresInMinute;
+        private readonly object _Lock = new object();
+        private readonly Dictionary<string, ServiceItem> _Items;
+        private readonly int _ExpiresInMinute;
 
-        public Service(string uniqueId, short expiresInMinutes)
+        public Service(string uniqueId, int expiresInMinutes)
         {
             this.UniqueId = uniqueId;
             this._ExpiresInMinute = expiresInMinutes;
             this.Expires = DateTime.Now.AddMinutes(this._ExpiresInMinute);
-            this._Locks = new ConcurrentDictionary<string, string>();
-            this._Items = new ConcurrentDictionary<string, object>();
+            this._Items = new Dictionary<string, ServiceItem>();
         }
 
         public string UniqueId { get; }
         public bool Reusing { get; private set; }
         public DateTime Expires { get; private set; }
-        
-        public object Get(string key, string lockCode = null)
-        {
-            if (string.IsNullOrEmpty(key))
-                throw new ArgumentNullException(nameof(key));
-                
-            if (this._Locks.TryGetValue(key, out string code) && 
-                string.CompareOrdinal(code, lockCode) != 0)
-                throw new KeyLockedException();
-                
-            return this._Items.TryGetValue(key, out object value) ? value : null;
-        }
 
-        public void Set(string key, object value, string lockCode = null)
-        {
-            if (string.IsNullOrEmpty(key))
-                throw new ArgumentNullException(nameof(key));
-                
-            if (key.Length > 128)
-                throw new OverflowException("key can not be longer than 128 characters");
-
-            if (this._Locks.TryGetValue(key, out string code) && 
-                string.CompareOrdinal(code, lockCode) != 0)
-                throw new KeyLockedException();
-            
-            this._Items.AddOrUpdate(key, value, (cKey, cValue) => value);
-        }
-        
-        public string Lock(string key)
-        {
-            if (this._Locks.TryGetValue(key, out _))
-                throw new KeyLockedException();
-
-            string lockCode = 
-                Guid.NewGuid().ToString();
-            this._Locks.TryAdd(key, lockCode);
-
-            return lockCode;
-        }
-
-        public void Release(string key, string lockCode)
-        {
-            if (this._Locks.TryGetValue(key, out string code) &&
-                string.CompareOrdinal(code, lockCode) == 0)
-                this._Locks.TryRemove(key, out _);
-        }
-        
         public string[] Keys
         {
             get
@@ -79,6 +31,75 @@ namespace Xeora.Web.Service.Dss.Internal
 
                 return keys;
             }
+        }
+        
+        public object Get(string key)
+        {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentNullException(nameof(key));
+
+            lock (this._Lock)
+            {
+                return this._Items.TryGetValue(key, out ServiceItem serviceItem) ? serviceItem.Get() : null;
+            }
+        }
+
+        public void Set(string key, object value, string lockCode = null)
+        {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentNullException(nameof(key));
+                
+            if (key.Length > 128)
+                throw new OverflowException("key can not be longer than 128 characters");
+
+            ServiceItem serviceItem;
+            lock (this._Lock)
+            {
+                if (!this._Items.TryGetValue(key, out serviceItem))
+                {
+                    serviceItem = 
+                        new ServiceItem(key, value);
+                    this._Items.Add(key, serviceItem);
+
+                    return;
+                }
+            }
+            serviceItem.Set(value, lockCode);
+        }
+        
+        public string Lock(string key)
+        {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentNullException(nameof(key));
+                
+            if (key.Length > 128)
+                throw new OverflowException("key can not be longer than 128 characters");
+
+            ServiceItem serviceItem;
+            lock (this._Lock)
+            {
+                if (!this._Items.TryGetValue(key, out serviceItem))
+                {
+                    serviceItem = 
+                        new ServiceItem(key);
+                    this._Items.Add(key, serviceItem);
+                }
+            }
+            return serviceItem.Lock();
+        }
+
+        public void Release(string key, string lockCode)
+        {
+            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(lockCode))
+                return;
+            
+            ServiceItem serviceItem;
+            lock (this._Lock)
+            {
+                if (!this._Items.TryGetValue(key, out serviceItem))
+                    return;
+            }
+            serviceItem?.Release(lockCode);
         }
 
         public bool IsExpired => DateTime.Compare(DateTime.Now, this.Expires) > 0;

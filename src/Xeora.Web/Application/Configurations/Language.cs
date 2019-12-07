@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading;
 using System.Xml.XPath;
 using Xeora.Web.Basics.Domain;
 
@@ -6,6 +7,8 @@ namespace Xeora.Web.Application.Configurations
 {
     public class Language : ILanguage
     {
+        private readonly object _Lock = new object();
+        
         private readonly StringReader _XPathStream;
         private readonly XPathNavigator _XPathNavigator;
 
@@ -49,6 +52,7 @@ namespace Xeora.Web.Application.Configurations
 
         public string Get(string translationId)
         {
+            Monitor.Enter(this._Lock);
             try
             {
                 XPathNodeIterator xPathIter =
@@ -66,6 +70,10 @@ namespace Xeora.Web.Application.Configurations
             catch (System.Exception)
             {
                 // Just Handle Exceptions
+            }
+            finally
+            {
+                Monitor.Exit(this._Lock);
             }
 
             return string.Empty;

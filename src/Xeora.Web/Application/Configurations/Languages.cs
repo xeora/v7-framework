@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Xeora.Web.Basics.Domain;
 
@@ -6,12 +7,13 @@ namespace Xeora.Web.Application.Configurations
 {
     public class Languages : ILanguages
     {
-        private readonly Dictionary<string, ILanguage> _Languages;
+        private readonly ConcurrentDictionary<string, ILanguage> _Languages;
         private string _DefaultId;
+        private ILanguage _Current;
 
         public Languages()
         {
-            this._Languages = new Dictionary<string, ILanguage>();
+            this._Languages = new ConcurrentDictionary<string, ILanguage>();
             this._DefaultId = string.Empty;
         }
 
@@ -20,29 +22,22 @@ namespace Xeora.Web.Application.Configurations
             if (item == null)
                 return;
 
-            this._Languages[item.Info.Id] = item;
+            this._Languages.TryAdd(item.Info.Id, item);
             if (item.Default)
                 this._DefaultId = item.Info.Id;
         }
 
         public ILanguageDefinition this[string languageId] =>
-            !this._Languages.ContainsKey(languageId) ? null : this._Languages[languageId];
+            this._Languages.TryGetValue(languageId, out ILanguage language) ? language : null;
 
-        public ILanguage Current { get; private set; }
+        public ILanguage Current => this._Current;
 
         public void Use(string languageId)
         {
             if (string.IsNullOrEmpty(languageId))
                 languageId = this._DefaultId;
 
-            if (!this._Languages.ContainsKey(languageId))
-            {
-                this.Current = null;
-
-                return;
-            }
-            
-            this.Current = this._Languages[languageId];
+            this._Languages.TryGetValue(languageId, out this._Current);
         }
 
         IEnumerator<string> IEnumerable<string>.GetEnumerator() =>

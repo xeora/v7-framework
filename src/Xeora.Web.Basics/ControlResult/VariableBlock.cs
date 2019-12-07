@@ -1,28 +1,45 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace Xeora.Web.Basics.ControlResult
 {
     [Serializable]
-    public class VariableBlock : Dictionary<string, object>
+    public class VariableBlock : IEnumerable<KeyValuePair<string, object>>
     {
-        public VariableBlock() : base(StringComparer.InvariantCultureIgnoreCase)
-        { }
+        private readonly ConcurrentDictionary<string, object> _Items;
+
+        public VariableBlock() =>
+            this._Items = new ConcurrentDictionary<string, object>(StringComparer.InvariantCultureIgnoreCase);
 
         public Message Message { get; set; }
 
-        public new void Add(string key, object value)
-        {
-            if (base.ContainsKey(key))
-                base[key] = value;
-            else
-                base.Add(key, value);
-        }
+        public void Add(string key, object value) =>
+            this._Items.AddOrUpdate(key, value, (k, v) => value);
 
-        public new object this[string key]
+        public object this[string key]
         {
-            get => base.ContainsKey(key) ? base[key] : null;
+            get => this._Items.TryGetValue(key, out object value) ? value : null;
             set => this.Add(key, value);
         }
+
+        public IEnumerable<string> Keys
+        {
+            get
+            {
+                string[] keys = 
+                    new string[this._Items.Keys.Count];
+                this._Items.Keys.CopyTo(keys, 0);
+
+                return keys;
+            }
+        }
+
+        public IEnumerator<KeyValuePair<string, object>> GetEnumerator() =>
+            this._Items.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() =>
+            this.GetEnumerator();
     }
 }

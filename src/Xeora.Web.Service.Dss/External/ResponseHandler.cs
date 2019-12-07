@@ -9,6 +9,8 @@ namespace Xeora.Web.Service.Dss.External
 {
     public class ResponseHandler
     {
+        private readonly object _WaitLock = new object();
+
         private readonly TcpClient _DssServiceClient;
         private readonly ConcurrentDictionary<long, byte[]> _ResponseResults;
 
@@ -35,7 +37,7 @@ namespace Xeora.Web.Service.Dss.External
                 if (this._ResponseResults.TryRemove(requestId, out byte[] message))
                     return message;
 
-                Thread.Sleep(1);
+                lock (this._WaitLock) Monitor.Wait(this._WaitLock);
             } while (true);
         }
 
@@ -103,6 +105,8 @@ namespace Xeora.Web.Service.Dss.External
             finally
             {
                 contentStream?.Close();
+                
+                lock (this._WaitLock) Monitor.PulseAll(this._WaitLock);
             }
         }
     }

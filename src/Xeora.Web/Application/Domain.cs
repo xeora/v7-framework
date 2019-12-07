@@ -45,8 +45,8 @@ namespace Xeora.Web.Application
                 this.Parent = new Domain(parentDomainIdAccessTree);
             }
 
-            this._LanguagesHolder = new LanguagesHolder(this, this.Deployment.Languages);
-
+            this._LanguagesHolder = 
+                new LanguagesHolder(this, this.Deployment.Languages);
             try
             {
                 this._LanguagesHolder.Use(languageId);

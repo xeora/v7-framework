@@ -3,12 +3,12 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <Platforms>AnyCPU;x64;x86</Platforms>
-    <PackageId>Xeora.Web.Service</PackageId>
+    <PackageId>Xeora.Web.Service.Workers</PackageId>
     <Version>7.2.0</Version>
     <Authors>Tuna Celik</Authors>
     <Company>JakPark Solutions</Company>
-    <Product>Xeora - Web Development Framework Service</Product>
-    <Description>Xeora - Web Development Framework Service</Description>
+    <Product>Xeora - Web Development Framework Workers</Product>
+    <Description>Xeora - Web Development Framework Workers</Description>
     <Copyright>Copyright © Tuna Celik 2003 - 2019</Copyright>
     <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
     <RepositoryUrl>https://github.com/xeora/v7</RepositoryUrl>
@@ -49,17 +49,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Xeora.Web.Handler\Xeora.Web.Handler.csproj" />
-    <ProjectReference Include="..\Xeora.Web.Manager\Xeora.Web.Manager.csproj" />
-    <ProjectReference Include="..\Xeora.Web.Service.Application\Xeora.Web.Service.Application.csproj" />
-    <ProjectReference Include="..\Xeora.Web.Service.Context\Xeora.Web.Service.Context.csproj" />
     <ProjectReference Include="..\Xeora.Web.Basics\Xeora.Web.Basics.csproj" />
-    <ProjectReference Include="..\Xeora.Web.Configuration\Xeora.Web.Configuration.csproj" />
-    <ProjectReference Include="..\Xeora.Web.Service.Net\Xeora.Web.Service.Net.csproj" />
-    <ProjectReference Include="..\Xeora.Web.Service.Session\Xeora.Web.Service.Session.csproj" />
-    <ProjectReference Include="..\Xeora.Web.Service.TaskScheduler\Xeora.Web.Service.TaskScheduler.csproj" />
-    <ProjectReference Include="..\Xeora.Web.Service.VariablePool\Xeora.Web.Service.VariablePool.csproj" />
-    <ProjectReference Include="..\Xeora.Web.Service.Workers\Xeora.Web.Service.Workers.csproj" />
   </ItemGroup>
 
 </Project>

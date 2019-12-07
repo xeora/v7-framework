@@ -2,16 +2,14 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Xeora.Web.Basics;
 using Xeora.Web.Directives.Elements;
+using Xeora.Web.Service.Workers;
 
 namespace Xeora.Web.Directives
 {
     public class DirectiveCollection : List<IDirective>
     {
-        private readonly SemaphoreSlim _SemaphoreSlim;
         private readonly ConcurrentQueue<int> _Queued;
 
         private readonly IMother _Mother;
@@ -19,8 +17,6 @@ namespace Xeora.Web.Directives
 
         public DirectiveCollection(IMother mother, IDirective parent)
         {
-            this._SemaphoreSlim = 
-                new SemaphoreSlim(Configurations.Xeora.Service.Parallelism);
             this._Queued = new ConcurrentQueue<int>();
 
             this._Mother = mother;
@@ -56,12 +52,12 @@ namespace Xeora.Web.Directives
                 return;
 
             if (item is INameable nameable)
-                item.TemplateTree = nameable.DirectiveId;
+                item.TemplateTree = $"/{nameable.DirectiveId}";
 
             if (item is Template)
                 return;
             
-            item.TemplateTree = $"{item.Parent.TemplateTree}/{item.TemplateTree}";
+            item.TemplateTree = $"{item.Parent.TemplateTree}{item.TemplateTree}";
         }
         
         private static void AssignUpdateBlockIds(ref IDirective item)
@@ -77,9 +73,10 @@ namespace Xeora.Web.Directives
 
         public void Render()
         {
-            string currentHandlerId = 
+            string handlerId =
                 Helpers.CurrentHandlerId;
-            List<Task> tasks = new List<Task>();
+            Bulk bulk = 
+                this._Mother.Bucket.New();
 
             while (this._Queued.TryDequeue(out int index))
             {
@@ -90,45 +87,29 @@ namespace Xeora.Web.Directives
                     this.Render(directive);
                     continue;
                 }
-
-                tasks.Add(
-                    Task.Factory.StartNew(
-                        s =>
+                
+                Task task = 
+                    bulk.Add(
+                        d =>
                         {
-                            Tuple<string, IDirective> @params = 
-                                (Tuple<string, IDirective>) s;
-
-                            string handlerId = 
-                                @params.Item1;
-                            IDirective d = @params.Item2;
-                            
                             Helpers.AssignHandlerId(handlerId);
-                            
-                            this._SemaphoreSlim.Wait();
-                            try
-                            {
-                                this.Render(d);
-                            }
-                            finally
-                            {
-                                this._SemaphoreSlim.Release();
-                            }
-                        },
-                        new Tuple<string, IDirective>(currentHandlerId, directive)
-                    )
-                );
+                            this.Render(directive);
+                        }, directive
+                    );
+                
+                if (task == null)
+                    this.Render(directive);
             }
 
-            this.Deliver(tasks.ToArray());
-        }
+            bulk.Wait();
 
-        private void Deliver(Task[] tasks)
+            this.Deliver();
+        }
+        
+        private void Deliver()
         {
             try
             {
-                if (tasks.Length > 0)
-                    Task.WaitAll(tasks);
-                
                 StringBuilder resultContainer = new StringBuilder();
 
                 foreach (IDirective directive in this)
@@ -153,36 +134,41 @@ namespace Xeora.Web.Directives
 
                 if (directive.Parent != null)
                     directive.Parent.HasInlineError |= directive.HasInlineError;
-
-                if (!Configurations.Xeora.Application.Main.PrintAnalysis) return;
                 
-                string analysisOutput = directive.UniqueId;
-                switch (directive)
-                {
-                    case INameable nameable:
-                        analysisOutput = $"{analysisOutput} - {nameable.DirectiveId}";
-                        break;
-                    case IHasBind hasBind:
-                        analysisOutput = $"{analysisOutput} - {hasBind.Bind}";
-                        break;
-                }
-
-                double totalMs = 
-                    DateTime.Now.Subtract(renderBegins).TotalMilliseconds;
-                this._Mother.AnalysisBulk.AddOrUpdate(
-                    directive.Type, 
-                    new Tuple<int, double>(1, totalMs), 
-                    (k, v) => new Tuple<int, double>(v.Item1 + 1, v.Item2 + totalMs));
-                Basics.Console.Push(
-                    $"analysed - {directive.GetType().Name}",
-                    $"{totalMs}ms {{{analysisOutput}}}",
-                    string.Empty, false, groupId: Helpers.Context.UniqueId,
-                    type: totalMs > Configurations.Xeora.Application.Main.AnalysisThreshold ? Basics.Console.Type.Warn: Basics.Console.Type.Info);
+                this.CreateAnalysisReport(renderBegins, directive);
             }
             catch (Exception ex)
             {
                 this.HandleError(ex, directive);
             }
+        }
+
+        private void CreateAnalysisReport(DateTime renderBegins, IDirective directive)
+        {
+            if (!Configurations.Xeora.Application.Main.PrintAnalysis) return;
+                
+            string analysisOutput = directive.UniqueId;
+            switch (directive)
+            {
+                case INameable nameable:
+                    analysisOutput = $"{analysisOutput} - {nameable.DirectiveId}";
+                    break;
+                case IHasBind hasBind:
+                    analysisOutput = $"{analysisOutput} - {hasBind.Bind}";
+                    break;
+            }
+
+            double totalMs = 
+                DateTime.Now.Subtract(renderBegins).TotalMilliseconds;
+            this._Mother.AnalysisBulk.AddOrUpdate(
+                directive.Type, 
+                new Tuple<int, double>(1, totalMs), 
+                (k, v) => new Tuple<int, double>(v.Item1 + 1, v.Item2 + totalMs));
+            Basics.Console.Push(
+                $"analysed - {directive.GetType().Name}",
+                $"{totalMs}ms {{{analysisOutput}}}",
+                string.Empty, false, groupId: Helpers.Context.UniqueId,
+                type: totalMs > Configurations.Xeora.Application.Main.AnalysisThreshold ? Basics.Console.Type.Warn: Basics.Console.Type.Info);
         }
 
         private void HandleError(Exception exception, IDirective directive)

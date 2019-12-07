@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Xeora.Web.Basics;
 using Xeora.Web.Global;
 
@@ -235,7 +236,15 @@ namespace Xeora.Web.Directives
         {
             string objectPath = 
                 this._RawValue.Substring(1);
-            string[] objectPaths = objectPath.Split('.');
+
+            string[] objectPaths;
+            if (objectPath.StartsWith('.'))
+            {
+                objectPaths = objectPath.Substring(1).Split('.');
+                objectPaths[0] = $".{objectPaths[0]}";
+            }
+            else
+                objectPaths = objectPath.Split('.');
 
             if (objectPaths.Length < 2)
                 throw new Exceptions.GrammarException();
@@ -257,7 +266,14 @@ namespace Xeora.Web.Directives
                     IDirective searchDirective = this._Directive;
                     this.LocateLeveledContentInfo(ref objectItemKey, ref searchDirective);
 
-                    objectItem = searchDirective?.Arguments[objectItemKey];
+                    objectItem = 
+                        searchDirective?.Arguments[objectItemKey];
+                    if (objectItem is DataListOutputInfo)
+                        objectItem = null;
+
+                    break;
+                case '.':
+                    objectItem = this._Directive.Arguments[objectItemKey.Substring(1)];
 
                     break;
                 default:
@@ -284,7 +300,8 @@ namespace Xeora.Web.Directives
             }
 
             if (objectItem == null) return new Tuple<bool, object>(true, null);
-
+            
+            Monitor.Enter(this._Directive.Mother.PropertyLock);
             try
             {
                 for (int i = 1; i < objectPaths.Length; i++)
@@ -292,23 +309,23 @@ namespace Xeora.Web.Directives
                     if (objectItem == null)
                         break;
 
-                    string invokeMember = 
+                    string invokeMember =
                         objectPaths[i];
                     object[] invokeParameters = null;
-                    
+
                     if (objectItem is IDictionary || objectItem is IDictionary<object, object>)
                     {
                         invokeMember = "Item";
                         invokeParameters = new object[] {objectPaths[i]};
                     }
                     
-                    objectItem = 
+                    objectItem =
                         objectItem.GetType().InvokeMember(
-                            invokeMember, 
-                            BindingFlags.GetProperty, 
-                            null, 
+                            invokeMember,
+                            BindingFlags.GetProperty,
+                            null,
                             objectItem,
-                            invokeParameters); 
+                            invokeParameters);
                 }
 
                 return new Tuple<bool, object>(true, objectItem);
@@ -317,6 +334,10 @@ namespace Xeora.Web.Directives
             {
                 return new Tuple<bool, object>(true, null);
             }
+            finally
+            {
+                Monitor.Exit(this._Directive.Mother.PropertyLock);
+            }
         }
 
         private void LocateLeveledContentInfo(ref string searchItemKey, ref IDirective directive)
@@ -324,12 +345,14 @@ namespace Xeora.Web.Directives
             do
             {
                 if (directive == null) return;
+                if (searchItemKey.IndexOf("#", StringComparison.InvariantCulture) != 0) return;
                 
                 searchItemKey = 
                     searchItemKey.Substring(1);
-                if (searchItemKey.IndexOf("#", StringComparison.InvariantCulture) != 0) return;
-
-                directive = directive.Parent;
+                do
+                {
+                    directive = directive.Parent;
+                } while (directive != null && !directive.CanHoldVariable);
             } while (true);
         }
 

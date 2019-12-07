@@ -15,7 +15,7 @@ namespace Xeora.Web.Application
 
         public bool Default => this._Language.Default;
         public Basics.Domain.Info.Language Info => this._Language.Info;
-
+        
         public string Get(string translationId)
         {
             try
@@ -28,7 +28,7 @@ namespace Xeora.Web.Application
             catch (Exceptions.TranslationNotFoundException)
             {
                 if (this._Owner.Parent == null) return string.Empty;
-                
+
                 this._Owner.Parent.Languages.Use(this.Info.Id);
 
                 if (this._Owner.Parent.Languages.Current != null)
