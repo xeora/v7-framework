@@ -26,14 +26,18 @@ namespace Xeora.Web.Service.Workers
 
             short worker = Factory._Parallelism.Worker;
             if (worker < 1) worker = 1;
-            short bucket = Factory._Parallelism.Bucket;
-            if (bucket < 4) bucket = 4;
             
             for (short i = 0; i < worker; i++)
                 this._Workers.TryAdd(i, new Worker(i, Factory._Parallelism.WorkerThread, false));
             
             this._BucketRegistrations = new Dictionary<string, Bucket>();
             this._Buckets = new BlockingCollection<Worker>();
+
+            int bucket = worker;
+            if (!this._Workers.TryGetValue(0, out Worker workerObject))
+                bucket *= Worker.THREAD_COUNT;
+            else
+                bucket *= workerObject.ThreadCount;
 
             int bucketCount = Factory._Parallelism.BucketThread;
             for (short i = 0; i < bucket; i++)

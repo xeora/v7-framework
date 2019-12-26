@@ -7,10 +7,9 @@ namespace Xeora.Web.Configuration
     {
         public Parallelism()
         {
-            this.Worker = 4;
-            this.WorkerThread = 8;
-            this.Bucket = 32;
-            this.BucketThread = 4;
+            this.Worker = 2;
+            this.WorkerThread = 4;
+            this.BucketThread = 8;
         }
         
         [DefaultValue(4)]
@@ -21,10 +20,6 @@ namespace Xeora.Web.Configuration
         [JsonProperty(PropertyName = "workerThread", DefaultValueHandling = DefaultValueHandling.Populate)]
         public short WorkerThread { get; private set; }
         
-        [DefaultValue(32)]
-        [JsonProperty(PropertyName = "bucket", DefaultValueHandling = DefaultValueHandling.Populate)]
-        public short Bucket { get; private set; }
-
         [DefaultValue(4)]
         [JsonProperty(PropertyName = "bucketThread", DefaultValueHandling = DefaultValueHandling.Populate)]
         public short BucketThread { get; private set; }

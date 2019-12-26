@@ -6,7 +6,7 @@ namespace Xeora.Web.Service.Workers
 {
     internal class Worker
     {
-        private const short THREAD_COUNT = 4;
+        internal const short THREAD_COUNT = 8;
 
         private readonly short _Id;
         private readonly bool _Silent;
