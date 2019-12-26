@@ -11,29 +11,26 @@ namespace Xeora.Web.Basics.Service
     public sealed class VariablePoolOperation
     {
         private static readonly object Lock = new object();
-        private static IVariablePool _Cache;
 
         private readonly string _SessionId;
         private readonly string _KeyId;
         private readonly string _SessionKeyId;
+        private readonly IVariablePool _VariablePool;
 
         public VariablePoolOperation(string sessionId, string keyId)
         {
             Monitor.Enter(VariablePoolOperation.Lock);
             try
             {
-                if (VariablePoolOperation._Cache == null)
-                {
                     try
                     {
-                        VariablePoolOperation._Cache =
+                        this._VariablePool =
                             Helpers.Negotiator.GetVariablePool(sessionId, keyId);
                     }
                     catch (Exception ex)
                     {
                         throw new TargetInvocationException("Communication Error! Variable Pool is not accessible...", ex);
                     }
-                }
             }
             finally
             {
@@ -84,7 +81,7 @@ namespace Xeora.Web.Basics.Service
             if (rObject != null) return rObject;
             
             byte[] serializedValue = 
-                VariablePoolOperation._Cache.Get(name);
+                this._VariablePool.Get(name);
 
             if (serializedValue == null) return null;
             
@@ -136,7 +133,7 @@ namespace Xeora.Web.Basics.Service
                 forStream?.Close();
             }
 
-            VariablePoolOperation._Cache.Set(name, serializedValue);
+            this._VariablePool.Set(name, serializedValue);
         }
 
         private void UnRegisterVariableFromPool(string name)
@@ -145,7 +142,7 @@ namespace Xeora.Web.Basics.Service
 
             // Unregister Variable From Pool Immediately. 
             // Otherwise it will cause cache reload in the same domain call
-            VariablePoolOperation._Cache.Set(name, null);
+            this._VariablePool.Set(name, null);
         }
 
         /*private void TransferRegistrations(string fromSessionId)

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using Xeora.Web.Basics.Service;
 
 namespace Xeora.Web.Service.VariablePool
@@ -34,6 +35,9 @@ namespace Xeora.Web.Service.VariablePool
 
             PoolManager._Current.CopyVariablePool(keyId, fromSessionId, toSessionId);
         }
+
+        public static void KeepAlive(string sessionId, string keyId) =>
+            PoolManager.Get(sessionId, keyId, out _);
 
         private string CreatePoolKey(string sessionId, string keyId) => $"{sessionId}_{keyId}";
 

@@ -3,7 +3,7 @@
 namespace Xeora.Web.Service.VariablePool
 {
     [Serializable]
-    public class PoolItem : Basics.Service.IVariablePool
+    internal class PoolItem : Basics.Service.IVariablePool
     {
         private readonly Basics.Dss.IDss _Reservation;
 

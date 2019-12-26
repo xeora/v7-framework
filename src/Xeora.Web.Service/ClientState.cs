@@ -7,6 +7,7 @@ using Xeora.Web.Basics;
 using Xeora.Web.Service.Application;
 using Xeora.Web.Service.Context;
 using Xeora.Web.Service.Session;
+using Xeora.Web.Service.VariablePool;
 
 namespace Xeora.Web.Service
 {
@@ -29,6 +30,7 @@ namespace Xeora.Web.Service
                 ClientState.AcquireSession(request, out Basics.Session.IHttpSession session);
                 context = 
                     new HttpContext(stateId, request, session, ApplicationContainer.Current);
+                PoolManager.KeepAlive(session.SessionId, context.HashCode);
 
                 DateTime xeoraHandlerProcessBegins = DateTime.Now;
 
