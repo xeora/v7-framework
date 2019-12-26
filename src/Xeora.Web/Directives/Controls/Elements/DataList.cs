@@ -103,7 +103,6 @@ namespace Xeora.Web.Directives.Controls.Elements
                         : this._Contents.Parts[index % this._Contents.Parts.Count], 
                     arguments.Clone()
                 );
-            rowSingle.UpdateBlockIds.AddRange(this._Parent.UpdateBlockIds);
             
             this._Parent.Children.Add(rowSingle);
         }
