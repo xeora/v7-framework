@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Xeora.Web.Configuration
@@ -10,7 +11,7 @@ namespace Xeora.Web.Configuration
         {
             this.Main = new ApplicationSections.Main();
             this.RequestTagFilter = new ApplicationSections.RequestTagFilter();
-            this.CustomMimes = new Basics.Configuration.IMimeItem[] { };
+            this.CustomMimes = new ApplicationSections.MimeItem[] { };
             this._BannedFiles = new string[] { };
         }
 
@@ -21,7 +22,7 @@ namespace Xeora.Web.Configuration
         public Basics.Configuration.IRequestTagFilter RequestTagFilter { get; private set; }
 
         [JsonProperty(PropertyName = "customMimes")]
-        public Basics.Configuration.IMimeItem[] CustomMimes { get; private set; }
+        public IEnumerable<Basics.Configuration.IMimeItem> CustomMimes { get; private set; }
 
         [JsonProperty(PropertyName = "bannedFiles")]
         private string[] _BannedFiles { get; set; }
