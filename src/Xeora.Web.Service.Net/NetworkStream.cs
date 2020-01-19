@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace Xeora.Web.Service.Net
@@ -22,7 +23,8 @@ namespace Xeora.Web.Service.Net
 
             this._IncomeCache = new ConcurrentQueue<byte[]>();
             this._Residual = new ConcurrentStack<byte[]>();
-
+            this.KeepAlive = false;
+            
             Thread streamListenerThread = new Thread(this.StreamListener)
             {
                 IsBackground = true,
@@ -63,6 +65,26 @@ namespace Xeora.Web.Service.Net
             } while (true);
         }
 
+        public bool Alive()
+        {
+            if (!this.KeepAlive) return false;
+            
+            SpinWait spinWait = new SpinWait();
+            DateTime aliveBegins = 
+                DateTime.Now;
+            
+            do
+            {
+                if (DateTime.Now.Subtract(aliveBegins).TotalMilliseconds > this._RemoteStream.ReadTimeout)
+                    return false;
+                if (this._IncomeCache.Count != 0) return true;
+                
+                spinWait.SpinOnce();
+            } while (!this._Disposed);
+
+            return false;
+        }
+        
         public override int Read(byte[] buffer, int offset, int count)
         {
             int initialOffset = offset;
@@ -171,12 +193,16 @@ namespace Xeora.Web.Service.Net
             this._Residual.Push(stackData);
         }
 
+        public bool KeepAlive { get; set; }
         public override bool CanRead => this._RemoteStream.CanRead;
         public override bool CanSeek => this._RemoteStream.CanSeek;
         public override bool CanWrite => this._RemoteStream.CanWrite;
         public override long Length => this._RemoteStream.Length;
         public override long Position { get => this._RemoteStream.Position; set => this._RemoteStream.Position = value; }
 
+        public override int ReadTimeout => this._RemoteStream.ReadTimeout;
+        public override int WriteTimeout => this._RemoteStream.WriteTimeout;
+        
         public override void Flush() =>
             this._RemoteStream.Flush();
 
