@@ -12,7 +12,7 @@
     <FileVersion>7.2</FileVersion>
     <Deterministic>False</Deterministic>
     <Description>Xeora - Web Development Framework Managers</Description>
-    <Copyright>Copyright © Tuna Celik 2003 - 2019</Copyright>
+    <Copyright>Copyright © Tuna Celik 2003 - 2020</Copyright>
     <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
     <RepositoryUrl>https://github.com/xeora/v7</RepositoryUrl>
     <LangVersion>8</LangVersion>
