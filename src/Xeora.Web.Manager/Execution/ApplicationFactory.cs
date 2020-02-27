@@ -40,10 +40,10 @@ namespace Xeora.Web.Manager.Execution
         }
 
         public static void Terminate() => 
-            ApplicationFactory._Current.Unload();
+            ApplicationFactory._Current?.Unload();
         
         public static Application Prepare(string executableName) =>
-            ApplicationFactory._Current.GetOrCreate(executableName);
+            ApplicationFactory._Current?.GetOrCreate(executableName);
 
         private Application GetOrCreate(string executableName)
         {

@@ -97,6 +97,9 @@ namespace Xeora.Web.Service.Workers
             Monitor.Enter(Factory.Lock);
             try
             {
+                if (Factory._Parallelism == null)
+                    return null;
+                
                 return Factory._Current ?? 
                        (Factory._Current = new Factory());
             }
@@ -194,12 +197,12 @@ namespace Xeora.Web.Service.Workers
         }
 
         public static Task Queue(Action<object> startHandler, object state) =>
-            Factory.CreateOrGet()._Queue(startHandler, state);
-        
+            Factory.CreateOrGet()?._Queue(startHandler, state);
+
         public static Bucket Bucket(string trackingId) =>
-            Factory.CreateOrGet()._Bucket(trackingId);
+            Factory.CreateOrGet()?._Bucket(trackingId);
 
         public static void Kill() =>
-            Factory.CreateOrGet()._Kill();
+            Factory.CreateOrGet()?._Kill();
     }
 }
