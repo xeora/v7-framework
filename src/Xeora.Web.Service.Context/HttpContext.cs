@@ -33,6 +33,7 @@ namespace Xeora.Web.Service.Context
                     Basics.Context.IHttpCookieInfo sessionIdCookie =
                         this.Response.Header.Cookie.CreateNewCookie(sessionCookieKey);
                     sessionIdCookie.Value = this.Session.SessionId;
+                    sessionIdCookie.Expires = this.Session.Expires;
                     sessionIdCookie.HttpOnly = true;
 
                     return sessionIdCookie;
