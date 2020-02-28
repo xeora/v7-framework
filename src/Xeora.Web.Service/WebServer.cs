@@ -104,8 +104,11 @@ namespace Xeora.Web.Service
 
                 Manager.Loader.Initialize(
                     Configuration.Manager.Current.Configuration, 
-                    (id, path) => Manager.Execution.ApplicationFactory.Initialize(negotiator, path)
-                );
+                    (id, path) =>
+                    {
+                        Manager.Execution.ApplicationFactory.Initialize(negotiator, path);
+                        Manager.Statement.Factory.Dispose();
+                    });
                 Manager.Execution.ApplicationFactory.Initialize(negotiator, Manager.Loader.Current.Path);
                 Factory.Init(Basics.Configurations.Xeora.Service.Parallelism);
             }
