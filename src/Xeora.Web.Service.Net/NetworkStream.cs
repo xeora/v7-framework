@@ -77,7 +77,7 @@ namespace Xeora.Web.Service.Net
             {
                 if (DateTime.Now.Subtract(aliveBegins).TotalMilliseconds > this._RemoteStream.ReadTimeout)
                     return false;
-                if (this._IncomeCache.Count != 0) return true;
+                if (!this._IncomeCache.IsEmpty) return true;
                 
                 spinWait.SpinOnce();
             } while (!this._Disposed);
