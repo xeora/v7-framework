@@ -9,5 +9,6 @@ namespace Xeora.Web.Basics.Session
         object this[string key] { get; set; }
         string[] Keys { get; }
         object Lock(string key, Func<string, object, object> lockHandler);
+        T As<T>(string key);
     }
 }

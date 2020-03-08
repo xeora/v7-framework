@@ -33,6 +33,15 @@ namespace Xeora.Web.Service.Session
             return value;
         }
 
+        public T As<T>(string key)
+        {
+            object value =
+                this[key];
+            if (value == null) return default;
+
+            return (T) Convert.ChangeType(value, typeof(T));
+        }
+
         public string SessionId { get; }
         public DateTime Expires => this._Reservation.Expires;
         public string[] Keys => this._Reservation.Keys;
