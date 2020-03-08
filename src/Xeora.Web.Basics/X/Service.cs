@@ -405,8 +405,16 @@ namespace Xeora.Web.Basics.X
 
                     return result;
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    Console.Push(
+                        "X Serializer Exception...", 
+                        e.Message, 
+                        e.ToString(), 
+                        false, 
+                        true,
+                        type: Console.Type.Error);
+                    
                     return null;
                 }
                 finally
@@ -420,6 +428,9 @@ namespace Xeora.Web.Basics.X
 
             public static object Deserialize(byte[] serializedBytes)
             {
+                if (serializedBytes == null || serializedBytes.Length == 0) 
+                    return null;
+                
                 System.Runtime.Serialization.Formatters.Binary.BinaryFormatter binaryFormatter =
                     new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
                     {
@@ -433,8 +444,16 @@ namespace Xeora.Web.Basics.X
 
                     return binaryFormatter.Deserialize(serializationStream);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    Console.Push(
+                        "X Deserializer Exception...", 
+                        e.Message, 
+                        e.ToString(), 
+                        false, 
+                        true,
+                        type: Console.Type.Error);
+                    
                     return null;
                 }
                 finally

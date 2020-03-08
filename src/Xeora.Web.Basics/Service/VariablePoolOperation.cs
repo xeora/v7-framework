@@ -124,8 +124,16 @@ namespace Xeora.Web.Basics.Service
 
                 serializedValue = ((MemoryStream)forStream).ToArray();
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.Push(
+                    "VP Serializer Exception...", 
+                    e.Message, 
+                    e.ToString(), 
+                    false, 
+                    true,
+                    type: Console.Type.Error);
+                
                 serializedValue = new byte[] { };
             }
             finally

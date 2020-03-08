@@ -423,8 +423,16 @@ namespace Xeora.Web.Service.Dss.External
 
                 return ((MemoryStream)forStream).ToArray();
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Basics.Console.Push(
+                    "Dss Serializer Exception...", 
+                    e.Message, 
+                    e.ToString(), 
+                    false, 
+                    true,
+                    type: Basics.Console.Type.Error);
+                
                 return new byte[] { };
             }
             finally
@@ -435,6 +443,9 @@ namespace Xeora.Web.Service.Dss.External
 
         private object DeSerialize(byte[] value)
         {
+            if (value == null || value.Length == 0) 
+                return null;
+            
             Stream forStream = null;
             try
             {
@@ -444,8 +455,16 @@ namespace Xeora.Web.Service.Dss.External
                     new BinaryFormatter {Binder = new Binder(Helpers.Name)};
                 return binFormatter.Deserialize(forStream);
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Basics.Console.Push(
+                    "Dss Deserializer Exception...", 
+                    e.Message, 
+                    e.ToString(), 
+                    false, 
+                    true,
+                    type: Basics.Console.Type.Error);
+                
                 return null;
             }
             finally

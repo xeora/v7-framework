@@ -18,8 +18,16 @@ namespace Xeora.Web.Tools.Serialization
 
                 return ((MemoryStream)forStream).ToArray();
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Basics.Console.Push(
+                    "Bin. Serializer Exception...", 
+                    e.Message, 
+                    e.ToString(), 
+                    false, 
+                    true,
+                    type: Basics.Console.Type.Error);
+                
                 return null;
             }
             finally
@@ -30,6 +38,9 @@ namespace Xeora.Web.Tools.Serialization
 
         public static T DeSerialize<T>(byte[] value)
         {
+            if (value == null || value.Length == 0) 
+                return default;
+            
             Stream forStream = null;
             try
             {
@@ -39,8 +50,16 @@ namespace Xeora.Web.Tools.Serialization
 
                 return (T)Convert.ChangeType(binFormatter.Deserialize(forStream), typeof(T));
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Basics.Console.Push(
+                    "Bin. Deserializer Exception...", 
+                    e.Message, 
+                    e.ToString(), 
+                    false, 
+                    true,
+                    type: Basics.Console.Type.Error);
+                
                 return default;
             }
             finally
