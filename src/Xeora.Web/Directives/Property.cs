@@ -311,18 +311,42 @@ namespace Xeora.Web.Directives
 
                     string invokeMember =
                         objectPaths[i];
+                    BindingFlags invokeAttribute =
+                        BindingFlags.GetProperty;
                     object[] invokeParameters = null;
 
+                    Type objectType = 
+                        objectItem.GetType();
+                    
                     if (objectItem is IDictionary || objectItem is IDictionary<object, object>)
                     {
                         invokeMember = "Item";
+                        invokeAttribute = BindingFlags.GetProperty;
                         invokeParameters = new object[] {objectPaths[i]};
+                    }
+                    else if (objectType.IsArray && long.TryParse(invokeMember, out long itemIndex))
+                    {
+                        invokeMember = "GetValue";
+                        invokeAttribute = BindingFlags.InvokeMethod;
+                        invokeParameters = new object[] {itemIndex};
+                    }
+                    else
+                    {
+                        MemberInfo[] memberInfos =
+                            objectType.GetMember("Item");
+
+                        if (memberInfos.Length > 0)
+                        {
+                            invokeMember = "Item";
+                            invokeAttribute = BindingFlags.GetProperty;
+                            invokeParameters = new object[] {objectPaths[i]};
+                        }
                     }
                     
                     objectItem =
                         objectItem.GetType().InvokeMember(
                             invokeMember,
-                            BindingFlags.GetProperty,
+                            invokeAttribute,
                             null,
                             objectItem,
                             invokeParameters);
