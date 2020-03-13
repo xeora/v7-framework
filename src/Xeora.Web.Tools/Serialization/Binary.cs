@@ -8,6 +8,8 @@ namespace Xeora.Web.Tools.Serialization
     {
         public static byte[] Serialize(object value)
         {
+            if (value == null) return null;
+            
             Stream forStream = null;
             try
             {

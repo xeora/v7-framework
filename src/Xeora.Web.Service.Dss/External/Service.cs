@@ -412,6 +412,8 @@ namespace Xeora.Web.Service.Dss.External
 
         private byte[] Serialize(object value)
         {
+            if (value == null) return new byte[] { };
+            
             Stream forStream = null;
             try
             {
