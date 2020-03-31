@@ -78,8 +78,8 @@ namespace Xeora.Web.Deployment
 
             byte[] passwordHash = new byte[16];
 
-            for (int hC = 0; hC < this._PasswordHash.Length; hC++)
-                this._PasswordHash[hC] = (byte)(securedHash[hC] ^ fileHash[hC]);
+            for (int hC = 0; hC < passwordHash.Length; hC++)
+                passwordHash[hC] = (byte)(securedHash[hC] ^ fileHash[hC]);
 
             return passwordHash;
         }
