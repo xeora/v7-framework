@@ -7,6 +7,7 @@ namespace Xeora.Web.Service.Context
         public HttpContext(
             string contextId, 
             Basics.Context.IHttpRequest request, 
+            Basics.Context.IHttpResponse response,
             Basics.Session.IHttpSession session, 
             Basics.Application.IHttpApplication application)
         {
@@ -14,7 +15,7 @@ namespace Xeora.Web.Service.Context
             this.HashCode = 
                 this.GetOrCreateHashCode(ref request);
             this.Request = request;
-            this.Response = new HttpResponse(contextId);
+            this.Response = response;
             this.Session = session;
             this.Application = application;
             

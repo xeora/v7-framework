@@ -24,14 +24,28 @@ namespace Xeora.Web.Service
                 try
                 {
                     DateTime wholeProcessBegins = DateTime.Now;
-
+                    
                     Basics.Context.IHttpRequest request = new HttpRequest(remoteAddr);
                     if (!((HttpRequest) request).Build(stateId, streamEnclosure))
                         return;
+                    
+                    Basics.Context.IHttpResponse response = 
+                        new HttpResponse(
+                            stateId, 
+                            string.Compare(
+                                    request.Header["Connection"], 
+                                    "keep-alive",
+                                    StringComparison.OrdinalIgnoreCase) == 0,
+                            header =>
+                        {
+                            header.AddOrUpdate("Server", "XeoraEngine");
+                            header.AddOrUpdate("X-Powered-By", "Xeora");
+                            header.AddOrUpdate("X-Framework-Version", WebServer.GetVersionText());
+                        });
 
                     ClientState.AcquireSession(request, out Basics.Session.IHttpSession session);
                     context =
-                        new HttpContext(stateId, request, session, ApplicationContainer.Current);
+                        new HttpContext(stateId, request, response, session, ApplicationContainer.Current);
                     PoolManager.KeepAlive(session.SessionId, context.HashCode);
 
                     DateTime xeoraHandlerProcessBegins = DateTime.Now;
@@ -54,24 +68,6 @@ namespace Xeora.Web.Service
                     }
 
                     DateTime responseFlushBegins = DateTime.Now;
-
-                    context.Response.Header.AddOrUpdate("Server", "XeoraEngine");
-                    context.Response.Header.AddOrUpdate("X-Powered-By", "Xeora");
-                    context.Response.Header.AddOrUpdate("X-Framework-Version", WebServer.GetVersionText());
-
-                    if (string.Compare(context.Request.Header["Connection"], "keep-alive",
-                            StringComparison.OrdinalIgnoreCase) == 0)
-                    {
-                        context.Response.Header.AddOrUpdate("Connection", "keep-alive");
-                        context.Response.Header.AddOrUpdate("Keep-Alive",
-                            $"timeout={streamEnclosure.ReadTimeout / 1000}");
-                        streamEnclosure.KeepAlive = true;
-                    }
-                    else
-                    {
-                        context.Response.Header.AddOrUpdate("Connection", "close");
-                        streamEnclosure.KeepAlive = false;
-                    }
 
                     ((HttpResponse) context.Response).Flush(streamEnclosure);
 

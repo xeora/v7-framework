@@ -14,12 +14,14 @@ namespace Xeora.Web.Service.Context
 
         private readonly string _TempLocation;
         private readonly Stream _ResponseOutput;
+        private readonly bool _KeepAlive;
+        private readonly Action<Basics.Context.Response.IHttpResponseHeader> _ServerResponseStampHandler;
 
         private string _RedirectedUrl = string.Empty;
 
         public event SessionCookieRequestedHandler SessionCookieRequested;
 
-        public HttpResponse(string contextId)
+        public HttpResponse(string contextId, bool keepAlive, Action<Basics.Context.Response.IHttpResponseHeader> serverResponseStampHandler)
         {
             this._TempLocation = 
                 Path.Combine(
@@ -30,6 +32,9 @@ namespace Xeora.Web.Service.Context
             this._ResponseOutput = 
                 new FileStream(this._TempLocation, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
 
+            this._KeepAlive = keepAlive;
+            this._ServerResponseStampHandler = serverResponseStampHandler;
+            
             this.Header = new HttpResponseHeader();
         }
 
@@ -45,6 +50,12 @@ namespace Xeora.Web.Service.Context
             if (string.IsNullOrWhiteSpace(this.Header["Content-Length"]))
                 this.Header.AddOrUpdate("Content-Length", this._ResponseOutput.Length.ToString());
 
+            this.Header.AddOrUpdate("Connection", this._KeepAlive ? "keep-alive" : "close");
+            if (this._KeepAlive)
+                this.Header.AddOrUpdate("Keep-Alive", $"timeout={streamEnclosure.ReadTimeout / 1000}");
+
+            this._ServerResponseStampHandler(this.Header);
+            
             StringBuilder sB = new StringBuilder();
 
             sB.AppendFormat("HTTP/1.1 {0} {1}", this.Header.Status.Code, this.Header.Status.Message);
@@ -120,14 +131,18 @@ namespace Xeora.Web.Service.Context
             if (this.IsRedirected)
             {
                 this.Redirect(streamEnclosure);
+                
+                streamEnclosure.KeepAlive = false;
 
                 return;
             }
 
             this.PushHeaders(streamEnclosure);
-
+            
             this._ResponseOutput.Seek(0, SeekOrigin.Begin);
             this._ResponseOutput.CopyTo(streamEnclosure);
+            
+            streamEnclosure.KeepAlive = this._KeepAlive;
         }
 
         internal void Dispose()
