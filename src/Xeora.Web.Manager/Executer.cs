@@ -21,29 +21,20 @@ namespace Xeora.Web.Manager
             Basics.Execution.InvokeResult<T> rInvokeResult =
                 new Basics.Execution.InvokeResult<T>(bind);
 
-            try
-            {
-                object invokedObject = 
-                    ApplicationFactory.Prepare(bind.Executable).Invoke(
-                        httpMethod,
-                        bind.Classes,
-                        bind.Procedure,
-                        bind.Parameters.Values,
-                        bind.InstanceExecution,
-                        executerType
-                    );
+            object invokedObject = 
+                ApplicationFactory.Prepare(bind.Executable).Invoke(
+                    httpMethod,
+                    bind.Classes,
+                    bind.Procedure,
+                    bind.Parameters.Values,
+                    bind.InstanceExecution,
+                    executerType
+                );
 
-                if (invokedObject is Exception exception)
-                    throw exception;
-
+            if (invokedObject is Exception exception)
+                rInvokeResult.Exception = exception;
+            else
                 rInvokeResult.Result = (T)invokedObject;
-            }
-            catch (Exception ex)
-            {
-                Basics.Console.Push("Execution Exception...", ex.Message, ex.StackTrace, false, true, type: Basics.Console.Type.Error);
-
-                rInvokeResult.Exception = ex;
-            }
 
             return rInvokeResult;
         }
