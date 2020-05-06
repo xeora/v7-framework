@@ -104,7 +104,7 @@ namespace Xeora.Web.Directives.Elements
                 Manager.Executer.ExecuteStatement(instance.IdAccessTree, this.DirectiveId, result, this.RenderParameters(), this._Cache);
 
             if (methodResultInfo is Exception exception)
-                throw new Exceptions.ExecutionException(exception.Message, exception.InnerException);
+                throw new Exceptions.ExecutionException(exception);
 
             if (methodResultInfo != null)
             {

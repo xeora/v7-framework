@@ -444,8 +444,7 @@ namespace Xeora.Web.Manager.Execution
         {
             if (string.IsNullOrEmpty(functionName))
                 throw new ArgumentNullException(nameof(functionName));
-            if (functionParams == null)
-                functionParams = new object[] { };
+            functionParams ??= new object[] { };
 
             string executionId = 
                 Guid.NewGuid().ToString();

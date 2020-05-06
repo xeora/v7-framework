@@ -99,7 +99,7 @@ namespace Xeora.Web.Directives.Elements
                 Manager.Executer.InvokeBind<object>(Helpers.Context.Request.Header.Method, this.Bind, Manager.ExecuterTypes.Other);
 
             if (invokeResult.Exception != null)
-                throw new Exceptions.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);
+                throw new Exceptions.ExecutionException(invokeResult.Exception);
 
             if (invokeResult.Result is Basics.ControlResult.RedirectOrder redirectOrder)
             {

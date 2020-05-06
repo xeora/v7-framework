@@ -46,7 +46,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                 Manager.Executer.InvokeBind<Basics.ControlResult.Conditional>(Basics.Helpers.Context.Request.Header.Method, this._Settings.Bind, Manager.ExecuterTypes.Control);
 
             if (invokeResult.Exception != null)
-                throw new Exceptions.ExecutionException(invokeResult.Exception.Message, invokeResult.Exception.InnerException);
+                throw new Exceptions.ExecutionException(invokeResult.Exception);
             // ----
 
             if (invokeResult.Result == null)

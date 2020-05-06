@@ -10,8 +10,8 @@
             base($"Execution failed! - {message}")
         { }
 
-        public ExecutionException(string message, System.Exception innerException) : 
-            base($"Execution failed! - {message}", innerException)
+        public ExecutionException(System.Exception exception) : 
+            base($"Execution failed! - {exception.Message}", exception)
         { }
     }
 }
