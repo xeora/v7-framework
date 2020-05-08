@@ -101,7 +101,7 @@ namespace Xeora.Web.Service
                     if (ex is IOException && ex.InnerException is SocketException)
                         return;
 
-                    Basics.Console.Push("Execution Exception...", ex.Message, ex.StackTrace, false, true,
+                    Basics.Console.Push("Execution Exception...", ex.Message, ex.ToString(), false, true,
                         type: Basics.Console.Type.Error);
 
                     ClientState.PushServerError(ref streamEnclosure);

@@ -176,7 +176,7 @@ namespace Xeora.Web.Directives
             if (directive.Parent != null)
                 directive.Parent.HasInlineError = true;
 
-            Basics.Console.Push("Execution Exception...", exception.Message, exception.StackTrace, false, true, type: Basics.Console.Type.Error);
+            Basics.Console.Push("Execution Exception...", exception.Message, exception.ToString(), false, true, type: Basics.Console.Type.Error);
 
             directive.Deliver(RenderStatus.Rendered, Mother.CreateErrorOutput(exception));
         }

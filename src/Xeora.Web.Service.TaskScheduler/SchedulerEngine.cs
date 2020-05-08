@@ -75,7 +75,7 @@ namespace Xeora.Web.Service.TaskScheduler
                             }
                             catch (Exception ex)
                             {
-                                Basics.Console.Push("Execution Exception...", ex.Message, ex.StackTrace, false, true, type: Basics.Console.Type.Error);
+                                Basics.Console.Push("Execution Exception...", ex.Message, ex.ToString(), false, true, type: Basics.Console.Type.Error);
                             }
                         },
                         taskInfo

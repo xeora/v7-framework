@@ -110,7 +110,7 @@ namespace Xeora.Web.Manager.Execution
                     ex = ex.InnerException;
 
                 Basics.Console.Push(
-                    "Execution Exception...", ex.Message, ex.StackTrace, false, true,
+                    "Execution Exception...", ex.Message, ex.ToString(), false, true,
                     type: Basics.Console.Type.Error);
             }
         }
@@ -127,7 +127,7 @@ namespace Xeora.Web.Manager.Execution
                     ex = ex.InnerException;
 
                 Basics.Console.Push(
-                    "Execution Exception...", ex.Message, ex.StackTrace, false, true,
+                    "Execution Exception...", ex.Message, ex.ToString(), false, true,
                     type: Basics.Console.Type.Error);
             }
         }
@@ -170,7 +170,7 @@ namespace Xeora.Web.Manager.Execution
                         ex = ex.InnerException;
 
                     Basics.Console.Push(
-                        "Execution Exception...", ex.Message, ex.StackTrace, false, true,
+                        "Execution Exception...", ex.Message, ex.ToString(), false, true,
                         type: Basics.Console.Type.Error);
 
                     exception = new Exception("Xeora Domain executable could not be initialized!", ex);
@@ -512,7 +512,7 @@ namespace Xeora.Web.Manager.Execution
                         ex = ex.InnerException;
 
                     Basics.Console.Push(
-                        "Execution Exception...", ex.Message, ex.StackTrace, false, true,
+                        "Execution Exception...", ex.Message, ex.ToString(), false, true,
                         type: Basics.Console.Type.Error);
                 }
             }

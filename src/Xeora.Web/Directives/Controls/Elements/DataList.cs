@@ -196,7 +196,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             {
                 this.RenderError(Basics.ControlResult.Message.Types.Error, ex.Message);
 
-                Basics.Console.Push("Execution Exception...", ex.Message, ex.StackTrace, false, true, type: Basics.Console.Type.Error);
+                Basics.Console.Push("Execution Exception...", ex.Message, ex.ToString(), false, true, type: Basics.Console.Type.Error);
             }
             finally
             {

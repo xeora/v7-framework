@@ -31,7 +31,7 @@ namespace Xeora.Web.Service.Workers
             {
                 this._Exception = ex;
                 
-                Basics.Console.Push("ThreadPool Exception...", ex.Message, ex.StackTrace, false, true,
+                Basics.Console.Push("ThreadPool Exception...", ex.Message, ex.ToString(), false, true,
                     type: Basics.Console.Type.Error);
             }
             finally
