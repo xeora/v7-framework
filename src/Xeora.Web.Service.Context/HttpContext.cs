@@ -35,6 +35,7 @@ namespace Xeora.Web.Service.Context
                         this.Response.Header.Cookie.CreateNewCookie(sessionCookieKey);
                     sessionIdCookie.Value = this.Session.SessionId;
                     sessionIdCookie.Expires = this.Session.Expires;
+                    sessionIdCookie.SameSite = Basics.Context.SameSiteTypes.None;
                     sessionIdCookie.HttpOnly = true;
 
                     return sessionIdCookie;
