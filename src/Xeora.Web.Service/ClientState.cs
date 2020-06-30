@@ -45,7 +45,7 @@ namespace Xeora.Web.Service
 
                     ClientState.AcquireSession(request, out Basics.Session.IHttpSession session);
                     context =
-                        new HttpContext(stateId, request, response, session, ApplicationContainer.Current);
+                        new HttpContext(stateId, Configurations.Xeora.Service.Ssl, request, response, session, ApplicationContainer.Current);
                     PoolManager.KeepAlive(session.SessionId, context.HashCode);
 
                     DateTime xeoraHandlerProcessBegins = DateTime.Now;

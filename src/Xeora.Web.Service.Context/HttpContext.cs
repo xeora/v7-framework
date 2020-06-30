@@ -6,6 +6,7 @@ namespace Xeora.Web.Service.Context
     {
         public HttpContext(
             string contextId, 
+            bool secure,
             Basics.Context.IHttpRequest request, 
             Basics.Context.IHttpResponse response,
             Basics.Session.IHttpSession session, 
@@ -35,7 +36,8 @@ namespace Xeora.Web.Service.Context
                         this.Response.Header.Cookie.CreateNewCookie(sessionCookieKey);
                     sessionIdCookie.Value = this.Session.SessionId;
                     sessionIdCookie.Expires = this.Session.Expires;
-                    sessionIdCookie.SameSite = Basics.Context.SameSiteTypes.None;
+                    sessionIdCookie.SameSite = secure ? Basics.Context.SameSiteTypes.None : Basics.Context.SameSiteTypes.Lax;
+                    sessionIdCookie.Secure = secure;
                     sessionIdCookie.HttpOnly = true;
 
                     return sessionIdCookie;
