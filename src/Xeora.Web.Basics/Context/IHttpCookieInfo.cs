@@ -9,6 +9,7 @@ namespace Xeora.Web.Basics.Context
         DateTime Expires { get; set; }
         string Domain { get; set; }
         string Path { get; set; }
+        SameSiteTypes SameSite { get; set; }
         bool Secure { get; set; }
         bool HttpOnly { get; set; }
     }
