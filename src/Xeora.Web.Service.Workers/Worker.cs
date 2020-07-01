@@ -55,8 +55,14 @@ namespace Xeora.Web.Service.Workers
                 workerThread.PrintThreadDetails();
         }
 
-        public void Promise(ActionContainer container) =>
-            this._Queue.Add(container);    
+        public bool Promise(ActionContainer container)
+        {
+            if (this._Queue.IsAddingCompleted)
+                return false;
+            
+            this._Queue.Add(container);
+            return true;
+        }
 
         public bool PromiseSafe(ActionContainer container)
         {
@@ -69,8 +75,7 @@ namespace Xeora.Web.Service.Workers
                     return false;
             }
 
-            this._Queue.Add(container);
-            return true;
+            return this.Promise(container);
         }
 
         public void Kill()

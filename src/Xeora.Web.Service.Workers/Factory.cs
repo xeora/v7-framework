@@ -149,7 +149,9 @@ namespace Xeora.Web.Service.Workers
                         {
                             Monitor.Exit(this._BucketRegistrationLock);
                         }
-                        this._Buckets.Add(worker);
+                        
+                        if (!this._Buckets.IsAddingCompleted)
+                            this._Buckets.Add(worker);
                     },
                     () => worker.PrintReport()
                 );
