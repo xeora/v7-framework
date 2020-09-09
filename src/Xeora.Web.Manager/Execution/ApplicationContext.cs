@@ -98,7 +98,7 @@ namespace Xeora.Web.Manager.Execution
                 $"Executable Execution Error! RequestInfo: {compileErrorObject}", innerException);
         }
 
-        private void InvokePreExecution(DomainExecutable domainInstance, string executionId, MethodInfo assemblyMethod)
+        private static void InvokePreExecution(DomainExecutable domainInstance, string executionId, MethodInfo assemblyMethod)
         {
             try
             {
@@ -115,7 +115,7 @@ namespace Xeora.Web.Manager.Execution
             }
         }
 
-        private void InvokePostExecution(DomainExecutable domainInstance, string executionId, ref object result)
+        private static void InvokePostExecution(DomainExecutable domainInstance, string executionId, ref object result)
         {
             try
             {
@@ -194,7 +194,7 @@ namespace Xeora.Web.Manager.Execution
             return null;
         }
 
-        private bool CheckFunctionResultTypeIsXeoraControl(Type methodReturnType)
+        private static bool CheckFunctionResultTypeIsXeoraControl(Type methodReturnType)
         {
             if (methodReturnType == null) return false;
             
@@ -290,14 +290,14 @@ namespace Xeora.Web.Manager.Execution
             return assemblyMethod;
         }
 
-        private MethodInfo FindBestMatch(MethodInfo[] possibleMethodInfos, ref object[] functionParams, ExecuterTypes executerType)
+        private MethodInfo FindBestMatch(IEnumerable<MethodInfo> possibleMethodInfos, ref object[] functionParams, ExecuterTypes executerType)
         {
             MethodInfo worstMatch = null;
 
             foreach (MethodInfo methodInfo in possibleMethodInfos)
             {
                 bool isXeoraControl =
-                    this.CheckFunctionResultTypeIsXeoraControl(methodInfo.ReturnType);
+                    ApplicationContext.CheckFunctionResultTypeIsXeoraControl(methodInfo.ReturnType);
 
                 switch (executerType)
                 {
@@ -342,9 +342,9 @@ namespace Xeora.Web.Manager.Execution
         /// <returns>Match weight</returns>
         /// <param name="methodParams">Method parameters</param>
         /// <param name="functionParams">Pushed parameters</param>
-        private int ExamParameters(ParameterInfo[] methodParams, ref object[] functionParams)
+        private int ExamParameters(IReadOnlyList<ParameterInfo> methodParams, ref object[] functionParams)
         {
-            if (methodParams.Length == 0)
+            if (methodParams.Count == 0)
             {
                 if (functionParams.Length == 0)
                     return 0;
@@ -352,15 +352,15 @@ namespace Xeora.Web.Manager.Execution
                 return -1;
             }
 
-            if (methodParams.Length > functionParams.Length)
+            if (methodParams.Count > functionParams.Length)
                 return -1;
 
             object[] functionParamsReBuild =
                 (object[])functionParams.Clone();
 
-            for (int pC = 0; pC < methodParams.Length; pC++)
+            for (int pC = 0; pC < methodParams.Count; pC++)
             {
-                if (pC != methodParams.Length - 1)
+                if (pC != methodParams.Count - 1)
                 {
                     if (this.FixFunctionParameter(methodParams[pC].ParameterType, ref functionParamsReBuild[pC]))
                         continue;
@@ -373,7 +373,7 @@ namespace Xeora.Web.Manager.Execution
 
                 if (!checkIsParamArrayDefined)
                 {
-                    if (methodParams.Length != functionParamsReBuild.Length)
+                    if (methodParams.Count != functionParamsReBuild.Length)
                         return -1;
 
                     if (!this.FixFunctionParameter(methodParams[pC].ParameterType, ref functionParamsReBuild[pC]))
@@ -386,7 +386,7 @@ namespace Xeora.Web.Manager.Execution
                 Type paramArrayType = 
                     methodParams[pC].ParameterType.GetElementType();
                 Array paramArrayValues =
-                    Array.CreateInstance(paramArrayType, functionParamsReBuild.Length - methodParams.Length + 1);
+                    Array.CreateInstance(paramArrayType, functionParamsReBuild.Length - methodParams.Count + 1);
 
                 for (int pavC = 0; pC < functionParamsReBuild.Length; pavC++, pC++)
                 {
@@ -395,8 +395,8 @@ namespace Xeora.Web.Manager.Execution
                     paramArrayValues.SetValue(functionParamsReBuild[pC], pavC);
                 }
 
-                Array.Resize(ref functionParamsReBuild, methodParams.Length);
-                functionParamsReBuild[methodParams.Length - 1] = paramArrayValues;
+                Array.Resize(ref functionParamsReBuild, methodParams.Count);
+                functionParamsReBuild[methodParams.Count - 1] = paramArrayValues;
 
                 functionParams = functionParamsReBuild;
                 return 1;
@@ -405,7 +405,7 @@ namespace Xeora.Web.Manager.Execution
             return -1;
         }
 
-        private Exception GetMethodException(Basics.Context.Request.HttpMethod httpMethod, string[] classNames, string functionName, object[] functionParams)
+        private Exception GetMethodException(Basics.Context.Request.HttpMethod httpMethod, string[] classNames, string functionName, IReadOnlyCollection<object> functionParams)
         {
             System.Text.StringBuilder sB = new System.Text.StringBuilder();
 
@@ -417,7 +417,7 @@ namespace Xeora.Web.Manager.Execution
             sB.AppendLine();
             sB.AppendFormat("FunctionName: {0}", functionName);
             sB.AppendLine();
-            sB.AppendFormat("FunctionParamsLength: {0}", functionParams.Length);
+            sB.AppendFormat("FunctionParamsLength: {0}", functionParams.Count);
             foreach (object param in functionParams)
                 sB.AppendFormat(", {0}", param.GetType());
             sB.AppendLine();
@@ -427,7 +427,7 @@ namespace Xeora.Web.Manager.Execution
             return new TargetException(sB.ToString());
         }
 
-        private object InvokeMethod(bool instanceExecute, Type executingDomain, MethodInfo assemblyMethod, object[] functionParams)
+        private object InvokeMethod(bool instanceExecute, Type executingDomain, MethodBase assemblyMethod, object[] functionParams)
         {
             if (!instanceExecute)
                 return assemblyMethod.Invoke(executingDomain, BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod, null, functionParams, System.Globalization.CultureInfo.InvariantCulture);
@@ -466,7 +466,7 @@ namespace Xeora.Web.Manager.Execution
                 if (assemblyMethod == null)
                     return this.GetMethodException(httpMethod, classNames, functionName, functionParams);
 
-                this.InvokePreExecution(domainInstance, executionId, assemblyMethod);
+                ApplicationContext.InvokePreExecution(domainInstance, executionId, assemblyMethod);
 
                 result = this.InvokeMethod(instanceExecute, assemblyObject, assemblyMethod, functionParams);
             }
@@ -476,7 +476,7 @@ namespace Xeora.Web.Manager.Execution
             }
             finally
             {
-                this.InvokePostExecution(domainInstance, executionId, ref result);
+                ApplicationContext.InvokePostExecution(domainInstance, executionId, ref result);
             }
             
             return result;
@@ -496,9 +496,9 @@ namespace Xeora.Web.Manager.Execution
                 
                 try
                 {
-                    domainInstance.Terminate();;
+                    domainInstance.Terminate();
                     
-                    if (!executingDomain.Name.StartsWith("X") && executingDomain.Name.Length != 33)
+                    if (!executingDomain!.Name.StartsWith("X") && executingDomain.Name.Length != 33)
                     {
                         Basics.Console.Push(
                             string.Empty,

@@ -39,7 +39,7 @@ namespace Xeora.Web.Directives.Controls.Elements
             }
 
             string itemIndex = 
-                System.Convert.ToString(this._Parent.Arguments["_sys_ItemIndex"]);
+                Convert.ToString(this._Parent.Arguments["_sys_ItemIndex"]);
             string checkBoxId = this._Parent.DirectiveId;
 
             if (!string.IsNullOrEmpty(itemIndex))
@@ -55,7 +55,7 @@ namespace Xeora.Web.Directives.Controls.Elements
                     parameter =>
                     {
                         Tuple<bool, object> result =
-                            Directives.Property.Render(this._Parent, parameter.Query);
+                            Property.Render(this._Parent, parameter.Query);
                         return result.Item2;
                     });
 

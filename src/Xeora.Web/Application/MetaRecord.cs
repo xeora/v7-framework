@@ -24,21 +24,13 @@ namespace Xeora.Web.Application
             if (string.IsNullOrEmpty(value))
                 value = string.Empty;
 
-            switch (tagSpace)
+            name = tagSpace switch
             {
-                case Basics.MetaRecord.TagSpaces.name:
-                    name = $"name::{name}";
-
-                    break;
-                case Basics.MetaRecord.TagSpaces.httpequiv:
-                    name = $"httpequiv::{name}";
-
-                    break;
-                case Basics.MetaRecord.TagSpaces.property:
-                    name = $"property::{name}";
-
-                    break;
-            }
+                Basics.MetaRecord.TagSpaces.name => $"name::{name}",
+                Basics.MetaRecord.TagSpaces.httpequiv => $"httpequiv::{name}",
+                Basics.MetaRecord.TagSpaces.property => $"property::{name}",
+                _ => name
+            };
 
             this._CustomRecords.AddOrUpdate(name, value, (cName, cValue) => value);
         }

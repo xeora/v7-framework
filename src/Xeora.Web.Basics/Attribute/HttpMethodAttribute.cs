@@ -12,8 +12,7 @@
         {
             this.Method = method;
 
-            if (bindProcedureName == null)
-                bindProcedureName = string.Empty;
+            bindProcedureName ??= string.Empty;
             this.BindProcedureName = bindProcedureName;
         }
 

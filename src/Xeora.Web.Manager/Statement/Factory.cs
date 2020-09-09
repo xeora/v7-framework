@@ -26,7 +26,7 @@ namespace Xeora.Web.Manager.Statement
         }
 
         private static readonly object Lock = new object();
-        private static Factory _Current;
+        private static Factory _current;
         private static Factory Current
         {
             get
@@ -34,7 +34,7 @@ namespace Xeora.Web.Manager.Statement
                 Monitor.Enter(Factory.Lock);
                 try
                 {
-                    return Factory._Current ?? (Factory._Current = new Factory());
+                    return Factory._current ?? (Factory._current = new Factory());
                 }
                 finally
                 {
@@ -43,7 +43,7 @@ namespace Xeora.Web.Manager.Statement
             }
         }
 
-        public static Executable CreateExecutable(string[] domainIdAccessTree, string statementBlockId, string statement, bool parametric, bool cache)
+        public static Executable CreateExecutable(IEnumerable<string> domainIdAccessTree, string statementBlockId, string statement, bool parametric, bool cache)
         {
             try
             {
@@ -93,7 +93,7 @@ namespace Xeora.Web.Manager.Statement
             statement =
                 this.Prepare(executableName, blockKey, statement, parametric);
 
-            this.Compile(executableName, statement);
+            Factory.Compile(executableName, statement);
 
             return executableName;
         }
@@ -158,7 +158,7 @@ namespace Xeora.Web.Manager.Statement
             return codeBlock.ToString();
         }
 
-        private void Compile(string executableName, string codeBlock)
+        private static void Compile(string executableName, string codeBlock)
         {
             SyntaxTree syntaxTree =
                 CSharpSyntaxTree.ParseText(codeBlock);

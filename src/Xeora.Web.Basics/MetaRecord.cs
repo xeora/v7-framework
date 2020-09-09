@@ -2,7 +2,7 @@
 
 namespace Xeora.Web.Basics
 {
-    public class MetaRecord
+    public static class MetaRecord
     {
         public enum Tags
         {
@@ -34,35 +34,22 @@ namespace Xeora.Web.Basics
         /// <param name="tag">MetaTag</param>
         public static string GetTagHtmlName(Tags tag)
         {
-            switch (tag)
+            return tag switch
             {
-                case Tags.author:
-                    return "Author";
-                case Tags.cachecontrol:
-                    return "Cache-Control";
-                case Tags.contentlanguage:
-                    return "Content-Language";
-                case Tags.contenttype:
-                    return "Content-Type";
-                case Tags.copyright:
-                    return "Copyright";
-                case Tags.description:
-                    return "Description";
-                case Tags.expires:
-                    return "Expires";
-                case Tags.googlebot:
-                    return "Googlebot";
-                case Tags.keywords:
-                    return "Keywords";
-                case Tags.pragma:
-                    return "Pragma";
-                case Tags.refresh:
-                    return "Refresh";
-                case Tags.robots:
-                    return "Robots";
-            }
-
-            return string.Empty;
+                Tags.author => "Author",
+                Tags.cachecontrol => "Cache-Control",
+                Tags.contentlanguage => "Content-Language",
+                Tags.contenttype => "Content-Type",
+                Tags.copyright => "Copyright",
+                Tags.description => "Description",
+                Tags.expires => "Expires",
+                Tags.googlebot => "Googlebot",
+                Tags.keywords => "Keywords",
+                Tags.pragma => "Pragma",
+                Tags.refresh => "Refresh",
+                Tags.robots => "Robots",
+                _ => string.Empty
+            };
         }
 
         /// <summary>

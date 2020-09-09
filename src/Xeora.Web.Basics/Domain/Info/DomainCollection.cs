@@ -13,14 +13,14 @@ namespace Xeora.Web.Basics.Domain.Info
         {
             base.Add(value);
 
-            this._NameIndexMap.Add(value.Id, base.Count - 1);
+            this._NameIndexMap.Add(value.Id, Count - 1);
         }
 
         public void Remove(string id)
         {
             if (!this._NameIndexMap.ContainsKey(id)) return;
             
-            base.RemoveAt(this._NameIndexMap[id]);
+            RemoveAt(this._NameIndexMap[id]);
 
             this._NameIndexMap.Clear();
 

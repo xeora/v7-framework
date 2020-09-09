@@ -47,17 +47,17 @@ namespace Xeora.Web.Configuration
         public Xeora Configuration { get; private set; }
 
         public static void Initialize(string configurationPath, string configurationFile) =>
-            Manager._Current = new Manager(configurationPath, configurationFile);
+            Manager._current = new Manager(configurationPath, configurationFile);
 
-        private static Manager _Current;
+        private static Manager _current;
         public static Manager Current
         {
             get
             {
-                if (Manager._Current == null)
+                if (Manager._current == null)
                     throw new Exceptions.ConfigurationManagerNotReadyException();
 
-                return Manager._Current;
+                return Manager._current;
             }
         }
     }

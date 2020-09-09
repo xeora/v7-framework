@@ -25,7 +25,7 @@ namespace Xeora.Web.Handler
         }
 
         private static readonly object Lock = new object();
-        private static Manager _Current;
+        private static Manager _current;
         public static Manager Current
         {
             get
@@ -33,7 +33,7 @@ namespace Xeora.Web.Handler
                 Monitor.Enter(Manager.Lock);
                 try
                 {
-                    return Manager._Current ?? (Manager._Current = new Manager());
+                    return Manager._current ?? (Manager._current = new Manager());
                 }
                 finally
                 {

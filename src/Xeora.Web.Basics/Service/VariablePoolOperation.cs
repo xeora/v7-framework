@@ -22,15 +22,12 @@ namespace Xeora.Web.Basics.Service
             Monitor.Enter(VariablePoolOperation.Lock);
             try
             {
-                    try
-                    {
-                        this._VariablePool =
-                            Helpers.Negotiator.GetVariablePool(sessionId, keyId);
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new TargetInvocationException("Communication Error! Variable Pool is not accessible...", ex);
-                    }
+                this._VariablePool =
+                    Helpers.Negotiator.GetVariablePool(sessionId, keyId);
+            }
+            catch (Exception ex)
+            {
+                throw new TargetInvocationException("Communication Error! Variable Pool is not accessible...", ex);
             }
             finally
             {
@@ -88,8 +85,8 @@ namespace Xeora.Web.Basics.Service
             Stream forStream = null;
             try
             {
-                BinaryFormatter binFormatter = new BinaryFormatter();
-                binFormatter.Binder = new OverrideBinder();
+                BinaryFormatter binFormatter = 
+                    new BinaryFormatter {Binder = new OverrideBinder()};
 
                 forStream = new MemoryStream(serializedValue);
 
@@ -224,18 +221,18 @@ namespace Xeora.Web.Basics.Service
         // VariablePool registration requires serialization...
         // Use PreCache for only read keys do not use for variable registration!
         // It is suitable for repeating requests...
-        private class VariablePoolPreCache
+        private static class VariablePoolPreCache
         {
             private static readonly object Lock = new object();
-            private static ConcurrentDictionary<string, ConcurrentDictionary<string, object>> _VariablePreCache;
-            public static ConcurrentDictionary<string, ConcurrentDictionary<string, object>> VariablePreCache
+            private static ConcurrentDictionary<string, ConcurrentDictionary<string, object>> _variablePreCache;
+            private static ConcurrentDictionary<string, ConcurrentDictionary<string, object>> VariablePreCache
             {
                 get
                 {
                     Monitor.Enter(VariablePoolPreCache.Lock);
                     try
                     {
-                        return VariablePoolPreCache._VariablePreCache ?? (VariablePoolPreCache._VariablePreCache =
+                        return VariablePoolPreCache._variablePreCache ?? (VariablePoolPreCache._variablePreCache =
                                    new ConcurrentDictionary<string, ConcurrentDictionary<string, object>>());
                     }
                     finally
@@ -250,10 +247,7 @@ namespace Xeora.Web.Basics.Service
                 if (!VariablePoolPreCache.VariablePreCache.TryGetValue(sessionKeyId,
                     out ConcurrentDictionary<string, object> nameValuePairs)) return null;
                 
-                if (nameValuePairs.TryGetValue(name, out object value) && value != null)
-                    return value;
-
-                return null;
+                return nameValuePairs.TryGetValue(name, out object value) ? value : null;
             }
 
             public static void CacheVariable(string sessionKeyId, string name, object value)

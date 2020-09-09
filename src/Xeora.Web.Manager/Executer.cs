@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using Xeora.Web.Manager.Execution;
 
 namespace Xeora.Web.Manager
 {
-    public class Executer
+    public static class Executer
     {
         // This function is for external call out side of the project DO NOT DISABLE IT
         public static Basics.Execution.InvokeResult<T> InvokeBind<T>(Basics.Context.Request.HttpMethod httpMethod, Basics.Execution.Bind bind) =>
@@ -39,7 +40,7 @@ namespace Xeora.Web.Manager
             return rInvokeResult;
         }
 
-        public static object ExecuteStatement(string[] domainIdAccessTree, string statementBlockId, string statement, object[] parameters, bool cache)
+        public static object ExecuteStatement(IEnumerable<string> domainIdAccessTree, string statementBlockId, string statement, object[] parameters, bool cache)
         {
             Statement.Executable executableInfo =
                 Statement.Factory.CreateExecutable(domainIdAccessTree, statementBlockId, statement, parameters != null && parameters.Length > 0, cache);
@@ -52,7 +53,7 @@ namespace Xeora.Web.Manager
                 object invokedObject =
                     ApplicationFactory.Prepare(executableInfo.ExecutableName).Invoke(
                         Basics.Context.Request.HttpMethod.GET,
-                        new string[] { executableInfo.ClassName },
+                        new [] { executableInfo.ClassName },
                         "Execute",
                         parameters,
                         false,

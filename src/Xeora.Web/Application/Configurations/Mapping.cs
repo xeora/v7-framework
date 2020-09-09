@@ -25,7 +25,7 @@ namespace Xeora.Web.Application.Configurations
             try
             {
                 XPathNodeIterator xPathIter = 
-                    this._XPathNavigator.Select(string.Format("//Mapping"));
+                    this._XPathNavigator.Select("//Mapping");
 
                 if (xPathIter.MoveNext())
                 {
@@ -41,7 +41,7 @@ namespace Xeora.Web.Application.Configurations
                 if (!this.Active) return;
                 
                 // Read Mapping Options
-                xPathIter = this._XPathNavigator.Select(string.Format("//Mapping/Map"));
+                xPathIter = this._XPathNavigator.Select("//Mapping/Map");
 
                 string request = string.Empty;
 

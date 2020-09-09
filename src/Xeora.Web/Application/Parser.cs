@@ -128,7 +128,8 @@ namespace Xeora.Web.Application
                 line = this._Reader.ReadLine();
             }
 
-            int separatorIndex = this.SearchForContentSeparator(this._ContentCache.ToString(), directiveId, openingPattern);
+            int separatorIndex = 
+                Parser.SearchForContentSeparator(this._ContentCache.ToString(), directiveId, openingPattern);
             if (separatorIndex > -1)
                 this._ContentCache.Insert(separatorIndex + directiveId.Length + 2, modifierText);
 
@@ -145,7 +146,7 @@ namespace Xeora.Web.Application
                 return false;
 
             int ccIndex =
-                this.SearchForContentClosing(ref nestedCount, line, directiveId, openingPattern);
+                Parser.SearchForContentClosing(ref nestedCount, line, directiveId, openingPattern);
             if (ccIndex > -1 && nestedCount == 0)
             {
                 this._ContentCache.Append(line, 0, ccIndex);
@@ -163,7 +164,7 @@ namespace Xeora.Web.Application
             return false;
         }
         
-        private int SearchForContentSeparator(string capturedContent, string directiveId, Regex openingPattern)
+        private static int SearchForContentSeparator(string capturedContent, string directiveId, Regex openingPattern)
         {
             string ccSearch =
                 $"}}:{directiveId}:{{";
@@ -202,7 +203,7 @@ namespace Xeora.Web.Application
             return ccIndex;
         }
 
-        private int SearchForContentClosing(ref int nestedCount, string line, string directiveId, Regex openingPattern)
+        private static int SearchForContentClosing(ref int nestedCount, string line, string directiveId, Regex openingPattern)
         {
             Match coMatch =
                 openingPattern.Match(line);
@@ -258,7 +259,7 @@ namespace Xeora.Web.Application
                     this._ResultHandler.Invoke(
                         new Static(rawValue.Substring(lastIndex, singleMatch.Index - lastIndex)));
 
-                string singleValue = this.ClearTags(singleMatch.Value);
+                string singleValue = Parser.ClearTags(singleMatch.Value);
 
                 switch (Directives.DirectiveHelper.CaptureDirectiveType(singleMatch.Value))
                 {
@@ -306,7 +307,7 @@ namespace Xeora.Web.Application
         {
             string rawValue = 
                 this._ContentCache.ToString();
-            rawValue = this.ClearTags(rawValue);
+            rawValue = Parser.ClearTags(rawValue);
 
             string directiveRawValue =
                 $"${(string.IsNullOrEmpty(content.DirectiveType) ? content.DirectiveId : content.DirectiveType)}:";
@@ -364,7 +365,7 @@ namespace Xeora.Web.Application
             }
         }
 
-        private string ClearTags(string rawValue)
+        private static string ClearTags(string rawValue)
         {
             if (string.IsNullOrEmpty(rawValue) || 
                 rawValue.Length <= 2 || 

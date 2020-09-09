@@ -40,7 +40,7 @@ namespace Xeora.Web.Service.Context
 
         public Basics.Context.Response.IHttpResponseHeader Header { get; }
 
-        private void PushHeaders(Net.NetworkStream streamEnclosure)
+        private void PushHeaders(Stream streamEnclosure)
         {
             this.Header.AddOrUpdate("Date", DateTime.Now.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", CultureInfo.InvariantCulture));
 
@@ -96,7 +96,7 @@ namespace Xeora.Web.Service.Context
         public void Redirect(string url) => this._RedirectedUrl = url;
         public bool IsRedirected => !string.IsNullOrEmpty(this._RedirectedUrl);
 
-        private void Redirect(Net.NetworkStream streamEnclosure)
+        private void Redirect(Stream streamEnclosure)
         {
             StringBuilder sB = new StringBuilder();
 

@@ -2,7 +2,6 @@
 using System.IO;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace Xeora.Web.Service.Net
@@ -91,7 +90,7 @@ namespace Xeora.Web.Service.Net
 
             offset = this.ConsumeResidual(buffer, offset, count);
             if (initialOffset + count > offset)
-                offset = this.ConsumeIncomeCache(buffer, offset, (initialOffset + count) - offset);
+                offset = this.ConsumeIncomeCache(buffer, offset, initialOffset + count - offset);
 
             return offset - initialOffset;
         }

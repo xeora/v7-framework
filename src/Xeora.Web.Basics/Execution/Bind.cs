@@ -61,18 +61,18 @@ namespace Xeora.Web.Basics.Execution
             if (string.IsNullOrEmpty(bind))
                 return null;
 
-            string[] splittedBind1 = bind.Split('?');
+            string[] bindLocationParts = bind.Split('?');
 
-            if (splittedBind1.Length != 2)
+            if (bindLocationParts.Length != 2)
                 return null;
 
-            string executable = splittedBind1[0];
-            string[] splittedBind2 = splittedBind1[1].Split(',');
+            string executable = bindLocationParts[0];
+            string[] bindExecutionParts = bindLocationParts[1].Split(',');
 
             string[] classes = null;
             string procedure;
 
-            string[] classProcSearch = splittedBind2[0].Split('.');
+            string[] classProcSearch = bindExecutionParts[0].Split('.');
 
             if (classProcSearch.Length == 1)
                 procedure = classProcSearch[0];
@@ -81,12 +81,12 @@ namespace Xeora.Web.Basics.Execution
                 classes = new string[classProcSearch.Length - 1];
                 Array.Copy(classProcSearch, 0, classes, 0, classes.Length);
 
-                procedure = classProcSearch[classProcSearch.Length - 1];
+                procedure = classProcSearch[^1];
             }
 
             string[] parameters = null;
-            if (splittedBind2.Length > 1)
-                parameters = string.Join(",", splittedBind2, 1, splittedBind2.Length - 1).Split('|');
+            if (bindExecutionParts.Length > 1)
+                parameters = string.Join(",", bindExecutionParts, 1, bindExecutionParts.Length - 1).Split('|');
 
             return new Bind(executable, classes, procedure, parameters);
         }

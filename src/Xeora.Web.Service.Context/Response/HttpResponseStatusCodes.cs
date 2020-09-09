@@ -6,81 +6,81 @@ namespace Xeora.Web.Service.Context.Response
     {
         public HttpResponseStatusCodes()
         {
-            base.TryAdd(100, "Continue");
-            base.TryAdd(101, "Switching Protocols");
-            base.TryAdd(102, "Processing");
-            base.TryAdd(103, "Early Hints");
+            TryAdd(100, "Continue");
+            TryAdd(101, "Switching Protocols");
+            TryAdd(102, "Processing");
+            TryAdd(103, "Early Hints");
 
-            base.TryAdd(200, "OK");
-            base.TryAdd(201, "Created");
-            base.TryAdd(202, "Accepted");
-            base.TryAdd(203, "Non-Authoritative Information");
-            base.TryAdd(204, "No Content");
-            base.TryAdd(205, "Reset Content");
-            base.TryAdd(206, "Partial Content");
-            base.TryAdd(207, "Multi-Status");
-            base.TryAdd(208, "Already Reported");
-            base.TryAdd(218, "Has Inline Errors");
-            base.TryAdd(226, "IM Used");
+            TryAdd(200, "OK");
+            TryAdd(201, "Created");
+            TryAdd(202, "Accepted");
+            TryAdd(203, "Non-Authoritative Information");
+            TryAdd(204, "No Content");
+            TryAdd(205, "Reset Content");
+            TryAdd(206, "Partial Content");
+            TryAdd(207, "Multi-Status");
+            TryAdd(208, "Already Reported");
+            TryAdd(218, "Has Inline Errors");
+            TryAdd(226, "IM Used");
 
-            base.TryAdd(300, "Multiple Choices");
-            base.TryAdd(301, "Moved Permanently");
-            base.TryAdd(302, "Found");
-            base.TryAdd(303, "See Other");
-            base.TryAdd(304, "Not Modified");
-            base.TryAdd(305, "Use Proxy");
-            base.TryAdd(306, "Switch Proxy");
-            base.TryAdd(307, "Temporary Redirect");
-            base.TryAdd(308, "Permanent Redirect");
+            TryAdd(300, "Multiple Choices");
+            TryAdd(301, "Moved Permanently");
+            TryAdd(302, "Found");
+            TryAdd(303, "See Other");
+            TryAdd(304, "Not Modified");
+            TryAdd(305, "Use Proxy");
+            TryAdd(306, "Switch Proxy");
+            TryAdd(307, "Temporary Redirect");
+            TryAdd(308, "Permanent Redirect");
 
-            base.TryAdd(400, "Bad Request");
-            base.TryAdd(401, "Unauthorized");
-            base.TryAdd(402, "Payment Required");
-            base.TryAdd(403, "Forbidden");
-            base.TryAdd(404, "Not Found");
-            base.TryAdd(405, "Method Not Allowed");
-            base.TryAdd(406, "Not Acceptable");
-            base.TryAdd(407, "Proxy Authentication Required");
-            base.TryAdd(408, "Request Timeout");
-            base.TryAdd(409, "Conflict");
-            base.TryAdd(410, "Gone");
-            base.TryAdd(411, "Length Required");
-            base.TryAdd(412, "Precondition Failed");
-            base.TryAdd(413, "Payload Too Large");
-            base.TryAdd(414, "URI Too Long");
-            base.TryAdd(415, "Unsupported Media Type");
-            base.TryAdd(416, "Range Not Satisfiable");
-            base.TryAdd(417, "Expectation Failed");
-            base.TryAdd(418, "I'm a teapot");
-            base.TryAdd(421, "Misdirected Request");
-            base.TryAdd(422, "Unprocessable Entity");
-            base.TryAdd(423, "Locked");
-            base.TryAdd(424, "Failed Dependency");
-            base.TryAdd(426, "Upgrade Required");
-            base.TryAdd(428, "Precondition Required");
-            base.TryAdd(429, "Too Many Requests");
-            base.TryAdd(431, "Request Header Fields Too Large");
-            base.TryAdd(451, "Unavailable For Legal Reasons");
+            TryAdd(400, "Bad Request");
+            TryAdd(401, "Unauthorized");
+            TryAdd(402, "Payment Required");
+            TryAdd(403, "Forbidden");
+            TryAdd(404, "Not Found");
+            TryAdd(405, "Method Not Allowed");
+            TryAdd(406, "Not Acceptable");
+            TryAdd(407, "Proxy Authentication Required");
+            TryAdd(408, "Request Timeout");
+            TryAdd(409, "Conflict");
+            TryAdd(410, "Gone");
+            TryAdd(411, "Length Required");
+            TryAdd(412, "Precondition Failed");
+            TryAdd(413, "Payload Too Large");
+            TryAdd(414, "URI Too Long");
+            TryAdd(415, "Unsupported Media Type");
+            TryAdd(416, "Range Not Satisfiable");
+            TryAdd(417, "Expectation Failed");
+            TryAdd(418, "I'm a teapot");
+            TryAdd(421, "Misdirected Request");
+            TryAdd(422, "Unprocessable Entity");
+            TryAdd(423, "Locked");
+            TryAdd(424, "Failed Dependency");
+            TryAdd(426, "Upgrade Required");
+            TryAdd(428, "Precondition Required");
+            TryAdd(429, "Too Many Requests");
+            TryAdd(431, "Request Header Fields Too Large");
+            TryAdd(451, "Unavailable For Legal Reasons");
 
-            base.TryAdd(500, "Internal Server Error");
-            base.TryAdd(501, "Not Implemented");
-            base.TryAdd(502, "Bad Gateway");
-            base.TryAdd(503, "Service Unavailable");
-            base.TryAdd(504, "Gateway Timeout");
-            base.TryAdd(505, "HTTP Version Not Supported");
-            base.TryAdd(506, "Variant Also Negotiates");
-            base.TryAdd(507, "Insufficient Storage");
-            base.TryAdd(508, "Loop Detected");
-            base.TryAdd(510, "Not Extended");
-            base.TryAdd(511, "Network Authentication Required");
+            TryAdd(500, "Internal Server Error");
+            TryAdd(501, "Not Implemented");
+            TryAdd(502, "Bad Gateway");
+            TryAdd(503, "Service Unavailable");
+            TryAdd(504, "Gateway Timeout");
+            TryAdd(505, "HTTP Version Not Supported");
+            TryAdd(506, "Variant Also Negotiates");
+            TryAdd(507, "Insufficient Storage");
+            TryAdd(508, "Loop Detected");
+            TryAdd(510, "Not Extended");
+            TryAdd(511, "Network Authentication Required");
         }
 
-        private static HttpResponseStatusCodes _StatusCodes;
+        private static HttpResponseStatusCodes _statusCodes;
         public static HttpResponseStatusCodes StatusCodes =>
-            HttpResponseStatusCodes._StatusCodes ??
-                       (HttpResponseStatusCodes._StatusCodes = new HttpResponseStatusCodes());
+            HttpResponseStatusCodes._statusCodes ??
+                       (HttpResponseStatusCodes._statusCodes = new HttpResponseStatusCodes());
 
         public string GetMessage(short code) => 
-            !base.TryGetValue(code, out var message) ? "Unrecognised HTTP Code" : message;
+            !TryGetValue(code, out var message) ? "Unrecognised HTTP Code" : message;
     }
 }

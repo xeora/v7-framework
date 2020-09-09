@@ -6,10 +6,7 @@
 
         public HttpRequestQueryString(Basics.Context.IUrl url)
         {
-            if (url == null)
-                url = new Url("/");
-
-            this._Url = url;
+            this._Url = url ?? new Url("/");
             this.Parse();
         }
 
@@ -35,10 +32,10 @@
                     value = System.Web.HttpUtility.UrlDecode(value);
                 }
 
-                if (base.ContainsKey(key))
+                if (ContainsKey(key))
                     value = $"{base[key]},{value}";
 
-                base.AddOrUpdate(key, value);
+                AddOrUpdate(key, value);
             }
         }
     }

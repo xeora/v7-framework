@@ -39,7 +39,7 @@ namespace Xeora.Web.Directives
                 case "DomainContents":
                     return this.RenderDomainContents();
                 case "PageRenderDuration":
-                    return this.RenderPageRenderDuration();
+                    return Property.RenderPageRenderDuration();
                 default:
                     switch (this._RawValue[0])
                     {
@@ -119,7 +119,7 @@ namespace Xeora.Web.Directives
             return new Tuple<bool, object>(true, instance.ContentsVirtualPath);
         }
 
-        private Tuple<bool, object> RenderPageRenderDuration() => 
+        private static Tuple<bool, object> RenderPageRenderDuration() => 
             new Tuple<bool, object>(true, "<!--_sys_PAGERENDERDURATION-->");
 
         private Tuple<bool, object> RenderQueryString()
@@ -218,7 +218,7 @@ namespace Xeora.Web.Directives
             string searchVariableKey = this._RawValue;
 
             IDirective searchDirective = this._Directive;
-            this.LocateLeveledContentInfo(ref searchVariableKey, ref searchDirective);
+            Property.LocateLeveledContentInfo(ref searchVariableKey, ref searchDirective);
 
             object argItem =
                 searchDirective?.Arguments[searchVariableKey];
@@ -264,7 +264,7 @@ namespace Xeora.Web.Directives
                     break;
                 case '#':
                     IDirective searchDirective = this._Directive;
-                    this.LocateLeveledContentInfo(ref objectItemKey, ref searchDirective);
+                    Property.LocateLeveledContentInfo(ref objectItemKey, ref searchDirective);
 
                     objectItem = 
                         searchDirective?.Arguments[objectItemKey];
@@ -364,7 +364,7 @@ namespace Xeora.Web.Directives
             }
         }
 
-        private void LocateLeveledContentInfo(ref string searchItemKey, ref IDirective directive)
+        private static void LocateLeveledContentInfo(ref string searchItemKey, ref IDirective directive)
         {
             do
             {

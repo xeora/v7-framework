@@ -55,13 +55,13 @@ namespace Xeora.Web.Basics.Domain.Control
 
             foreach (Attribute aI in this)
             {
-                if (string.Compare(aI.Key, "key", System.StringComparison.InvariantCultureIgnoreCase) != 0)
-                {
-                    if (aI.Key == null || aI.Key.Trim().Length == 0)
-                        sB.AppendFormat(" {0}", aI.Value);
-                    else
-                        sB.AppendFormat(" {0}=\"{1}\"", aI.Key, aI.Value.Replace("\"", "\\\""));
-                }
+                if (string.Compare(aI.Key, "key", StringComparison.InvariantCultureIgnoreCase) == 0) 
+                    continue;
+                
+                if (aI.Key == null || aI.Key.Trim().Length == 0)
+                    sB.AppendFormat(" {0}", aI.Value);
+                else
+                    sB.AppendFormat(" {0}=\"{1}\"", aI.Key, aI.Value.Replace("\"", "\\\""));
             }
 
             return sB.ToString();

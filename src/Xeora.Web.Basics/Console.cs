@@ -173,7 +173,7 @@ namespace Xeora.Web.Basics
                         Action<ConsoleKeyInfo> action = 
                             enumerator.Current.Value;
 
-                        ThreadPool.QueueUserWorkItem(state => ((Action<ConsoleKeyInfo>)state).Invoke(keyInfo), action);
+                        ThreadPool.QueueUserWorkItem(state => ((Action<ConsoleKeyInfo>)state)?.Invoke(keyInfo), action);
                     }
                 }
                 finally
@@ -199,7 +199,7 @@ namespace Xeora.Web.Basics
             !string.IsNullOrEmpty(callbackId) && this._KeyListeners.TryRemove(callbackId, out _);
 
         private static readonly object Lock = new object();
-        private static Console _Current;
+        private static Console _current;
         private static Console Current
         {
             get
@@ -207,7 +207,7 @@ namespace Xeora.Web.Basics
                 Monitor.Enter(Console.Lock);
                 try
                 {
-                    return Console._Current ?? (Console._Current = new Console());
+                    return Console._current ?? (Console._current = new Console());
                 }
                 finally
                 {

@@ -77,10 +77,7 @@ namespace Xeora.Web.Application
                 ((Domain)this.Domain).SetLanguageChangedListener(language =>
                 {
                     Basics.Context.IHttpCookieInfo languageCookie =
-                        this._Context.Request.Header.Cookie[this._CookieSearchKeyForLanguage];
-
-                    if (languageCookie == null)
-                        languageCookie = this._Context.Response.Header.Cookie.CreateNewCookie(this._CookieSearchKeyForLanguage);
+                        this._Context.Request.Header.Cookie[this._CookieSearchKeyForLanguage] ?? this._Context.Response.Header.Cookie.CreateNewCookie(this._CookieSearchKeyForLanguage);
 
                     languageCookie.Value = language.Info.Id;
                     languageCookie.Expires = DateTime.Now.AddDays(30);
@@ -105,7 +102,7 @@ namespace Xeora.Web.Application
         private void SelectDomain(string languageId)
         {
             string requestedServiceId =
-                this.GetRequestedServiceId(this._Context.Request.Header.Url);
+                DomainControl.GetRequestedServiceId(this._Context.Request.Header.Url);
 
             if (string.IsNullOrEmpty(requestedServiceId))
             {
@@ -142,7 +139,7 @@ namespace Xeora.Web.Application
             }
         }
 
-        private string GetRequestedServiceId(Basics.Context.IUrl url)
+        private static string GetRequestedServiceId(Basics.Context.IUrl url)
         {
             string requestFilePath =
                 url.RelativePath;
@@ -341,7 +338,7 @@ namespace Xeora.Web.Application
             // first test if it is domain content path
             if (url.RelativePath.IndexOf(currentDomainContentPath, StringComparison.Ordinal) == 0) return null;
             
-            string requestFilePath = this.GetRequestedServiceId(url);
+            string requestFilePath = DomainControl.GetRequestedServiceId(url);
 
             if (string.IsNullOrEmpty(requestFilePath))
                 return Basics.ServiceDefinition.Parse(workingInstance.Settings.Configurations.DefaultTemplate, false);
@@ -420,7 +417,7 @@ namespace Xeora.Web.Application
         public void OverrideDomain(string[] domainIdAccessTree, string languageId) =>
             this.Domain = new Domain(domainIdAccessTree, languageId);
 
-        public void ProvideXeoraJsStream(out Stream outputStream)
+        public static void ProvideXeoraJsStream(out Stream outputStream)
         {
             outputStream =
                 Assembly.GetExecutingAssembly().GetManifestResourceStream(
@@ -492,30 +489,26 @@ namespace Xeora.Web.Application
 
         private Basics.Mapping.ResolutionResult ResolveUrl(ref Basics.Domain.IDomain workingInstance, string requestFilePath)
         {
-            if (workingInstance == null)
-                workingInstance = this.Domain;
+            workingInstance ??= this.Domain;
 
-            if (workingInstance != null &&
-                workingInstance.Settings.Mappings.Active &&
-                !string.IsNullOrEmpty(workingInstance.Settings.Mappings.ResolverExecutable))
-            {
-                Basics.Execution.Bind resolverBind =
-                    Basics.Execution.Bind.Make($"{workingInstance.Settings.Mappings.ResolverExecutable}?ResolveURL,rfp");
-                resolverBind.Parameters.Prepare(parameter => requestFilePath);
-                resolverBind.InstanceExecution = true;
+            if (workingInstance == null || !workingInstance.Settings.Mappings.Active ||
+                string.IsNullOrEmpty(workingInstance.Settings.Mappings.ResolverExecutable)) return null;
+            
+            Basics.Execution.Bind resolverBind =
+                Basics.Execution.Bind.Make($"{workingInstance.Settings.Mappings.ResolverExecutable}?ResolveURL,rfp");
+            resolverBind.Parameters.Prepare(parameter => requestFilePath);
+            resolverBind.InstanceExecution = true;
 
-                Basics.Execution.InvokeResult<Basics.Mapping.ResolutionResult> resolverInvokeResult =
-                    Executer.InvokeBind<Basics.Mapping.ResolutionResult>(Basics.Helpers.Context.Request.Header.Method, resolverBind, ExecuterTypes.Undefined);
+            Basics.Execution.InvokeResult<Basics.Mapping.ResolutionResult> resolverInvokeResult =
+                Executer.InvokeBind<Basics.Mapping.ResolutionResult>(Basics.Helpers.Context.Request.Header.Method, resolverBind, ExecuterTypes.Undefined);
 
-                if (resolverInvokeResult.Exception == null)
-                    return resolverInvokeResult.Result;
-            }
-
-            return null;
+            return resolverInvokeResult.Exception == null 
+                ? resolverInvokeResult.Result 
+                : null;
         }
 
         // Cache for performance consideration
-        private static Basics.Domain.Info.DomainCollection _AvailableDomains;
+        private static Basics.Domain.Info.DomainCollection _availableDomains;
         public Basics.Domain.Info.DomainCollection GetAvailableDomains()
         {
             DirectoryInfo domainDI = new DirectoryInfo(
@@ -528,24 +521,23 @@ namespace Xeora.Web.Application
                 )
             );
 
-            if (DomainControl._AvailableDomains != null)
+            if (DomainControl._availableDomains != null)
             {
-                if (DomainControl._AvailableDomains.Count != domainDI.GetDirectories().Length)
+                if (DomainControl._availableDomains.Count != domainDI.GetDirectories().Length)
                 {
-                    DomainControl._AvailableDomains = null;
+                    DomainControl._availableDomains = null;
                     return this.GetAvailableDomains();
                 }
 
                 foreach (DirectoryInfo dI in domainDI.GetDirectories())
                 {
-                    if (DomainControl._AvailableDomains[dI.Name] == null)
-                    {
-                        DomainControl._AvailableDomains = null;
-                        return this.GetAvailableDomains();
-                    }
+                    if (DomainControl._availableDomains[dI.Name] != null) continue;
+                    
+                    DomainControl._availableDomains = null;
+                    return this.GetAvailableDomains();
                 }
 
-                return DomainControl._AvailableDomains;
+                return DomainControl._availableDomains;
             }
 
             Basics.Domain.Info.DomainCollection rDomainInfoCollection =
@@ -575,9 +567,9 @@ namespace Xeora.Web.Application
                     Basics.Console.Push("Execution Exception...", ex.Message, ex.ToString(), false, true, type: Basics.Console.Type.Error);
                 }
             }
-            DomainControl._AvailableDomains = rDomainInfoCollection;
+            DomainControl._availableDomains = rDomainInfoCollection;
 
-            return DomainControl._AvailableDomains;
+            return DomainControl._availableDomains;
         }
 
         public static void ClearCache()

@@ -17,9 +17,8 @@ namespace Xeora.Web.Application
 
         private void BuildDomain(string[] domainIdAccessTree, string languageId)
         {
-            if (domainIdAccessTree == null)
-                domainIdAccessTree = Basics.Configurations.Xeora.Application.Main.DefaultDomain;
-
+            domainIdAccessTree ??= Basics.Configurations.Xeora.Application.Main.DefaultDomain;
+            
             try
             {
                 this.Deployment = Web.Deployment.InstanceFactory.Current.GetOrCreate(domainIdAccessTree);
@@ -106,16 +105,16 @@ namespace Xeora.Web.Application
         {
             Mother mother =
                 new Mother(new Directives.Elements.Single(xeoraContent, null), messageResult, updateBlockControlIdStack);
-            mother.ParseRequested += this.OnParseRequest;
+            mother.ParseRequested += Domain.OnParseRequest;
             mother.InstanceRequested += this.OnInstanceRequest;
-            mother.DeploymentAccessRequested += this.OnDeploymentAccessRequest;
-            mother.ControlResolveRequested += this.OnControlResolveRequest;
+            mother.DeploymentAccessRequested += Domain.OnDeploymentAccessRequest;
+            mother.ControlResolveRequested += Domain.OnControlResolveRequest;
             mother.Process();
 
             return new Basics.RenderResult(mother.Result, mother.HasInlineError);
         }
 
-        private void OnParseRequest(string rawValue, DirectiveCollection childrenContainer, ArgumentCollection arguments)
+        private static void OnParseRequest(string rawValue, DirectiveCollection childrenContainer, ArgumentCollection arguments)
         {
             DateTime parseBegins = DateTime.Now;
 
@@ -137,7 +136,7 @@ namespace Xeora.Web.Application
                 type: totalMs > Basics.Configurations.Xeora.Application.Main.AnalysisThreshold ? Basics.Console.Type.Warn: Basics.Console.Type.Info);
         }
 
-        private void OnDeploymentAccessRequest(ref Basics.Domain.IDomain domain, out Deployment.Domain deployment) =>
+        private static void OnDeploymentAccessRequest(ref Basics.Domain.IDomain domain, out Deployment.Domain deployment) =>
             deployment = ((Domain)domain).Deployment;
 
         private void OnInstanceRequest(out Basics.Domain.IDomain domain) =>
@@ -145,7 +144,7 @@ namespace Xeora.Web.Application
         
         private static readonly ConcurrentDictionary<string, IBase> ControlsCache =
             new ConcurrentDictionary<string, IBase>();
-        private void OnControlResolveRequest(string controlId, ref Basics.Domain.IDomain domain, out IBase control)
+        private static void OnControlResolveRequest(string controlId, ref Basics.Domain.IDomain domain, out IBase control)
         {
             if (Domain.ControlsCache.TryGetValue(controlId, out IBase intactControl))
             {

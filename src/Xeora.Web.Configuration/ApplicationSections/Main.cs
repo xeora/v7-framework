@@ -46,7 +46,7 @@ namespace Xeora.Web.Configuration.ApplicationSections
                 if (virtualRoot.IndexOf('/') != 0)
                     virtualRoot = $"/{virtualRoot}";
 
-                if (virtualRoot[virtualRoot.Length - 1] != '/')
+                if (virtualRoot[^1] != '/')
                     virtualRoot = $"{virtualRoot}/";
 
                 this._VirtualRoot = virtualRoot;

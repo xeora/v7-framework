@@ -24,8 +24,8 @@ namespace Xeora.Web.Manager
         
         public void Start()
         {
-            if (this._Watcher == null) 
-                this._Watcher = new Thread(this.Watch) {Priority = ThreadPriority.Lowest, IsBackground = true};
+            this._Watcher ??= 
+                new Thread(this.Watch) {Priority = ThreadPriority.Lowest, IsBackground = true};
             if (this._Watcher.IsAlive) return;
             
             this.CreateWatchList(this._DomainRootLocation);

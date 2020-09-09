@@ -27,7 +27,7 @@ namespace Xeora.Web.Service
             this._TerminationLock = new Mutex();
             
             // Application Domain UnHandled Exception Event Handling
-            AppDomain.CurrentDomain.UnhandledException += this.OnUnhandledExceptions;
+            AppDomain.CurrentDomain.UnhandledException += WebServer.OnUnhandledExceptions;
             // !---
 
             // Application Domain SIGTERM Event Handling
@@ -48,7 +48,7 @@ namespace Xeora.Web.Service
 
         public async Task<int> StartAsync()
         {
-            this.PrintLogo();
+            WebServer.PrintLogo();
 
             try
             {
@@ -156,7 +156,7 @@ namespace Xeora.Web.Service
             }
         }
 
-        private void PrintLogo()
+        private static void PrintLogo()
         {
             Console.WriteLine();
             Console.WriteLine("____  ____                               ");
@@ -177,7 +177,7 @@ namespace Xeora.Web.Service
             return $"{vI.Major}.{vI.Minor}.{vI.Build}";
         }
 
-        private void OnUnhandledExceptions(object source, UnhandledExceptionEventArgs args)
+        private static void OnUnhandledExceptions(object source, UnhandledExceptionEventArgs args)
         {
             if (args?.ExceptionObject != null)
             {

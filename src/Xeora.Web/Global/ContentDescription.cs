@@ -50,7 +50,7 @@ namespace Xeora.Web.Global
                 firstContentEndIndex -= colonIndex + 2; // 2 = 1: make it length + 1: skip colon
             }
 
-            blockContent = this.CleanupParameters(firstContentEndIndex, blockContent);
+            blockContent = ContentDescription.CleanupParameters(firstContentEndIndex, blockContent);
 
             // ControlIdWithIndex is Like ControlId~INDEX
             string controlIdWithIndex = 
@@ -77,7 +77,7 @@ namespace Xeora.Web.Global
             this.PrepareDescription(coreContent, controlIdWithIndex, isSpecialDirective);
         }
 
-        private string CleanupParameters(int firstContentEndIndex, string blockContent)
+        private static string CleanupParameters(int firstContentEndIndex, string blockContent)
         {
             int parameterBeginIndex = blockContent.IndexOf('(');
             if (parameterBeginIndex == -1) return blockContent;

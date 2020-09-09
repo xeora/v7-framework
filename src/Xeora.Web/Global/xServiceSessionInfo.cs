@@ -40,10 +40,10 @@ namespace Xeora.Web.Global
         {
             get
             {
-                foreach (KeyValuePair<string, object> item in this._SessionItems)
+                foreach (var (itemKey, itemValue) in this._SessionItems)
                 {
-                    if (string.Compare(item.Key, key, StringComparison.OrdinalIgnoreCase) == 0)
-                        return item.Value;
+                    if (string.Compare(itemKey, key, StringComparison.OrdinalIgnoreCase) == 0)
+                        return itemValue;
                 }
 
                 return null;

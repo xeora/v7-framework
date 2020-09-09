@@ -9,7 +9,7 @@ namespace Xeora.Web.Service.Context.Request
         private readonly Net.NetworkStream _StreamEnclosure;
 
         private Basics.Context.Request.HttpMethod _Method;
-        private int _ContentLength = 0;
+        private int _ContentLength;
 
         public HttpRequestHeader(Net.NetworkStream streamEnclosure) : 
             base(StringComparer.OrdinalIgnoreCase)
@@ -114,7 +114,7 @@ namespace Xeora.Web.Service.Context.Request
 
                                 break;
                             default:
-                                base.AddOrUpdate(key, value);
+                                AddOrUpdate(key, value);
 
                                 break;
                         }

@@ -25,7 +25,7 @@ namespace Xeora.Web.Service
                 (IPEndPoint)this._RemoteClient.Client.RemoteEndPoint;
             
             if (this.CreateStream(remoteIpEndPoint, out Stream remoteStream))
-                this.Handle(remoteIpEndPoint, ref remoteStream);
+                Connection.Handle(remoteIpEndPoint, ref remoteStream);
 
             remoteStream.Close();
             remoteStream.Dispose();
@@ -71,7 +71,7 @@ namespace Xeora.Web.Service
             }
         }
 
-        private void Handle(IPEndPoint remoteIpEndPoint, ref Stream remoteStream)
+        private static void Handle(IPEndPoint remoteIpEndPoint, ref Stream remoteStream)
         {
             // If reads create problems and put the loop to infinite. drop the connection.
             // that's why, 5 seconds timeout should be set to remoteStream

@@ -96,8 +96,8 @@ namespace Xeora.Web.Directives.Elements
 
         private void ExtractSubDirectives(ref string blockContent)
         {
-            Dictionary<string, System.Func<string, string>> subDirectives =
-                new Dictionary<string, System.Func<string, string>>() {
+            Dictionary<string, Func<string, string>> subDirectives =
+                new Dictionary<string, Func<string, string>> {
                     {
                         "!CLEAN",
                         d =>

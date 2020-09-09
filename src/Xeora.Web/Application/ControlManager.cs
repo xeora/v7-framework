@@ -50,13 +50,13 @@ namespace Xeora.Web.Application
                 return new Unknown();
 
             ControlTypes type = 
-                this.ReadType(xPathControlNav.Clone());
+                ControlManager.ReadType(xPathControlNav.Clone());
             if (type == ControlTypes.Unknown)
                 return new Unknown();
 
-            Bind bind = this.ReadBind(xPathControlNav.Clone());
+            Bind bind = ControlManager.ReadBind(xPathControlNav.Clone());
             SecurityDefinition security = 
-                this.ReadSecurityDefinition(xPathControlNav.Clone());
+                ControlManager.ReadSecurityDefinition(xPathControlNav.Clone());
 
             switch (type)
             {
@@ -68,52 +68,52 @@ namespace Xeora.Web.Application
                     return new VariableBlock(bind, security);
                 case ControlTypes.Button:
                     return new Button(bind, security,
-                        this.ReadValue(xPathControlNav.Clone(), "text"),
-                        this.ReadUpdates(xPathControlNav.Clone()),
-                        this.ReadAttributes(xPathControlNav.Clone()));
+                        ControlManager.ReadValue(xPathControlNav.Clone(), "text"),
+                        ControlManager.ReadUpdates(xPathControlNav.Clone()),
+                        ControlManager.ReadAttributes(xPathControlNav.Clone()));
                 case ControlTypes.Checkbox:
                     return new Checkbox(bind, security,
-                        this.ReadValue(xPathControlNav.Clone(), "text"),
-                        this.ReadUpdates(xPathControlNav.Clone()),
-                        this.ReadAttributes(xPathControlNav.Clone()));
+                        ControlManager.ReadValue(xPathControlNav.Clone(), "text"),
+                        ControlManager.ReadUpdates(xPathControlNav.Clone()),
+                        ControlManager.ReadAttributes(xPathControlNav.Clone()));
                 case ControlTypes.RadioButton:
                     return new RadioButton(bind, security,
-                        this.ReadValue(xPathControlNav.Clone(), "text"),
-                        this.ReadUpdates(xPathControlNav.Clone()),
-                        this.ReadAttributes(xPathControlNav.Clone()));
+                        ControlManager.ReadValue(xPathControlNav.Clone(), "text"),
+                        ControlManager.ReadUpdates(xPathControlNav.Clone()),
+                        ControlManager.ReadAttributes(xPathControlNav.Clone()));
                 case ControlTypes.ImageButton:
                     return new ImageButton(bind, security,
-                        this.ReadValue(xPathControlNav.Clone(), "source"),
-                        this.ReadUpdates(xPathControlNav.Clone()),
-                        this.ReadAttributes(xPathControlNav.Clone()));
+                        ControlManager.ReadValue(xPathControlNav.Clone(), "source"),
+                        ControlManager.ReadUpdates(xPathControlNav.Clone()),
+                        ControlManager.ReadAttributes(xPathControlNav.Clone()));
                 case ControlTypes.LinkButton:
                     return new LinkButton(bind, security,
-                        this.ReadValue(xPathControlNav.Clone(), "text"),
-                        this.ReadValue(xPathControlNav.Clone(), "url"),
-                        this.ReadUpdates(xPathControlNav.Clone()),
-                        this.ReadAttributes(xPathControlNav.Clone()));
+                        ControlManager.ReadValue(xPathControlNav.Clone(), "text"),
+                        ControlManager.ReadValue(xPathControlNav.Clone(), "url"),
+                        ControlManager.ReadUpdates(xPathControlNav.Clone()),
+                        ControlManager.ReadAttributes(xPathControlNav.Clone()));
                 case ControlTypes.Textbox:
                     return new Textbox(bind, security,
-                        this.ReadValue(xPathControlNav.Clone(), "text"),
-                        this.ReadValue(xPathControlNav.Clone(), "defaultbuttonid"),
-                        this.ReadUpdates(xPathControlNav.Clone()),
-                        this.ReadAttributes(xPathControlNav.Clone()));
+                        ControlManager.ReadValue(xPathControlNav.Clone(), "text"),
+                        ControlManager.ReadValue(xPathControlNav.Clone(), "defaultbuttonid"),
+                        ControlManager.ReadUpdates(xPathControlNav.Clone()),
+                        ControlManager.ReadAttributes(xPathControlNav.Clone()));
                 case ControlTypes.Password:
                     return new Password(bind, security,
-                        this.ReadValue(xPathControlNav.Clone(), "text"),
-                        this.ReadValue(xPathControlNav.Clone(), "defaultbuttonid"),
-                        this.ReadUpdates(xPathControlNav.Clone()),
-                        this.ReadAttributes(xPathControlNav.Clone()));
+                        ControlManager.ReadValue(xPathControlNav.Clone(), "text"),
+                        ControlManager.ReadValue(xPathControlNav.Clone(), "defaultbuttonid"),
+                        ControlManager.ReadUpdates(xPathControlNav.Clone()),
+                        ControlManager.ReadAttributes(xPathControlNav.Clone()));
                 case ControlTypes.Textarea:
                     return new Textarea(bind, security,
-                        this.ReadValue(xPathControlNav.Clone(), "content"),
-                        this.ReadAttributes(xPathControlNav.Clone()));
+                        ControlManager.ReadValue(xPathControlNav.Clone(), "content"),
+                        ControlManager.ReadAttributes(xPathControlNav.Clone()));
             }
 
             return new Unknown();
         }
 
-        private ControlTypes ReadType(XPathNavigator xPathControlNav)
+        private static ControlTypes ReadType(XPathNavigator xPathControlNav)
         {
             XPathNavigator target =
                 xPathControlNav.SelectSingleNode("*[translate(local-name(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = 'type']");
@@ -121,13 +121,12 @@ namespace Xeora.Web.Application
             if (target == null || !target.MoveToFirstChild())
                 return ControlTypes.Unknown;
 
-            if (Enum.TryParse(target.Value, true, out ControlTypes controlType))
-                return controlType;
-
-            return ControlTypes.Unknown;
+            return Enum.TryParse(target.Value, true, out ControlTypes controlType) 
+                ? controlType 
+                : ControlTypes.Unknown;
         }
 
-        private Bind ReadBind(XPathNavigator xPathControlNav)
+        private static Bind ReadBind(XPathNavigator xPathControlNav)
         {
             XPathNavigator target =
                 xPathControlNav.SelectSingleNode("*[translate(local-name(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = 'bind']");
@@ -138,7 +137,7 @@ namespace Xeora.Web.Application
             return Bind.Make(target.Value);
         }
 
-        private AttributeCollection ReadAttributes(XPathNavigator xPathControlNav)
+        private static AttributeCollection ReadAttributes(XPathNavigator xPathControlNav)
         {
             AttributeCollection attributes = 
                 new AttributeCollection();
@@ -164,7 +163,7 @@ namespace Xeora.Web.Application
             return attributes;
         }
 
-        private SecurityDefinition ReadSecurityDefinition(XPathNavigator xPathControlNav)
+        private static SecurityDefinition ReadSecurityDefinition(XPathNavigator xPathControlNav)
         {
             SecurityDefinition security =
                 new SecurityDefinition();
@@ -216,7 +215,7 @@ namespace Xeora.Web.Application
             return security;
         }
 
-        private Updates ReadUpdates(XPathNavigator xPathControlNav)
+        private static Updates ReadUpdates(XPathNavigator xPathControlNav)
         {
             XPathNavigator target =
                 xPathControlNav.SelectSingleNode("*[translate(local-name(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = 'updates']");
@@ -245,7 +244,7 @@ namespace Xeora.Web.Application
             return new Updates(local, blocks.ToArray());
         }
 
-        private string ReadValue(XPathNavigator xPathControlNav, string tag)
+        private static string ReadValue(XPathNavigator xPathControlNav, string tag)
         {
             XPathNavigator target =
                 xPathControlNav.SelectSingleNode(

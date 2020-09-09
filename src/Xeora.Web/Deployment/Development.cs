@@ -77,7 +77,7 @@ namespace Xeora.Web.Deployment
 
             try
             {
-                return this.ReadFileAsString(templateFile);
+                return Development.ReadFileAsString(templateFile);
             }
             catch (FileNotFoundException)
             {
@@ -92,7 +92,7 @@ namespace Xeora.Web.Deployment
 
             try
             {
-                return this.ReadFileAsString(controlsXmlFile);
+                return Development.ReadFileAsString(controlsXmlFile);
             }
             catch (FileNotFoundException ex)
             {
@@ -107,7 +107,7 @@ namespace Xeora.Web.Deployment
 
             try
             {
-                return this.ReadFileAsString(configurationFile);
+                return Development.ReadFileAsString(configurationFile);
             }
             catch (FileNotFoundException ex)
             {
@@ -120,10 +120,10 @@ namespace Xeora.Web.Deployment
             string languageFile =
                 Path.Combine(this.LanguagesRegistration, $"{languageId}.xml");
 
-            return this.ReadFileAsString(languageFile);
+            return Development.ReadFileAsString(languageFile);
         }
 
-        private string ReadFileAsString(string fileLocation)
+        private static string ReadFileAsString(string fileLocation)
         {
             byte[] buffer = new byte[102400];
 
@@ -133,7 +133,7 @@ namespace Xeora.Web.Deployment
                 fileStream = new FileStream(fileLocation, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
                 Encoding encoding =
-                    this.DetectEncoding(ref fileStream);
+                    Development.DetectEncoding(ref fileStream);
                 StringBuilder fileContent = new StringBuilder();
 
                 int rB;
@@ -172,7 +172,7 @@ namespace Xeora.Web.Deployment
 
         public bool Reload() => false;
 
-        private Encoding DetectEncoding(ref Stream inStream)
+        private static Encoding DetectEncoding(ref Stream inStream)
         {
             inStream.Seek(0, SeekOrigin.Begin);
 

@@ -126,7 +126,7 @@ namespace Xeora.Web.Directives.Elements
         private void ExtractSubDirectives(ref string blockContent)
         {
             Dictionary<string, Func<string, string>> subDirectives =
-                new Dictionary<string, Func<string, string>>() {
+                new Dictionary<string, Func<string, string>> {
                     {
                         "!NOCACHE",
                         d =>
@@ -140,7 +140,7 @@ namespace Xeora.Web.Directives.Elements
                         d =>
                         {
                             this._ParametersDefinition = 
-                                this.ParseParameters(ref d);
+                                InLineStatement.ParseParameters(ref d);
                             return d;
                         }
                     }
@@ -187,15 +187,15 @@ namespace Xeora.Web.Directives.Elements
             blockContent = blockContent.Trim();
         }
 
-        private string ParseParameters(ref string directives)
+        private static string ParseParameters(ref string directives)
         {
-            string paramMarker = "!PARAMS(";
+            const string paramMarker = "!PARAMS(";
 
             int openBracketIdx = directives.IndexOf(paramMarker, StringComparison.InvariantCulture);
             if (openBracketIdx == -1)
                 return null;
 
-            int closeBracketIdx = directives.LastIndexOf(")", System.StringComparison.InvariantCulture);
+            int closeBracketIdx = directives.LastIndexOf(")", StringComparison.InvariantCulture);
             if (closeBracketIdx == -1)
                 throw new Exceptions.GrammarException();
             closeBracketIdx++;

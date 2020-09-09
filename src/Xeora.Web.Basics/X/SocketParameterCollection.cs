@@ -14,10 +14,10 @@ namespace Xeora.Web.Basics.X
 
             if (parameters == null) return;
             
-            foreach (KeyValuePair<string, object> item in parameters)
+            foreach (var (key, value) in parameters)
             {
-                if (!this._Parameters.ContainsKey(item.Key))
-                    this._Parameters.Add(item.Key, item.Value);
+                if (!this._Parameters.ContainsKey(key))
+                    this._Parameters.Add(key, value);
             }
         }
 

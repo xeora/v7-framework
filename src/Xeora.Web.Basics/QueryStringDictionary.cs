@@ -27,11 +27,11 @@ namespace Xeora.Web.Basics
 
             foreach (string queryStringItem in queryString.Split('&'))
             {
-                string[] splittedQueryStringItem = queryStringItem.Split('=');
+                string[] queryStringItems = queryStringItem.Split('=');
 
-                string key = splittedQueryStringItem[0];
+                string key = queryStringItems[0];
                 string value = 
-                    string.Join("=", splittedQueryStringItem, 1, splittedQueryStringItem.Length - 1);
+                    string.Join("=", queryStringItems, 1, queryStringItems.Length - 1);
 
                 if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(value))
                     queryStringDictionary[key] = value;
@@ -41,7 +41,7 @@ namespace Xeora.Web.Basics
         }
 
         /// <summary>
-        /// Make the query string dictionary using keyvalue pairs
+        /// Make the query string dictionary using key-value pairs
         /// </summary>
         /// <returns>The query string dictionary</returns>
         /// <param name="queryStrings">Query strings</param>

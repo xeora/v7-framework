@@ -11,7 +11,7 @@ namespace Xeora.Web.Service.Application
             this._Items = new ConcurrentDictionary<string, object>();
 
         private static readonly object Lock = new object();
-        private static Basics.Application.IHttpApplication _Current;
+        private static Basics.Application.IHttpApplication _current;
         public static Basics.Application.IHttpApplication Current
         {
             get
@@ -19,8 +19,8 @@ namespace Xeora.Web.Service.Application
                 Monitor.Enter(ApplicationContainer.Lock);
                 try
                 {
-                    return ApplicationContainer._Current ??
-                           (ApplicationContainer._Current = new ApplicationContainer());
+                    return ApplicationContainer._current ??
+                           (ApplicationContainer._current = new ApplicationContainer());
                 }
                 finally
                 {

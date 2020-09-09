@@ -21,14 +21,10 @@ namespace Xeora.Web.Application.Controls
         public override IBase Clone()
         {
             Bind bind = null;
-
-            if (base.Bind != null)
-                base.Bind.Clone(out bind);
+            Bind?.Clone(out bind);
 
             SecurityDefinition security = null;
-
-            if (base.Security != null)
-                base.Security.Clone(out security);
+            Security?.Clone(out security);
 
             return new ImageButton(bind, security, this.Source, this.Updates.Clone(), this.Attributes.Clone());
         }

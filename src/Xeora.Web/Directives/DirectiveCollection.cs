@@ -119,7 +119,7 @@ namespace Xeora.Web.Directives
             }
             catch (Exception ex)
             {
-                this.HandleError(ex, this._Parent);
+                DirectiveCollection.HandleError(ex, this._Parent);
             }
         }
 
@@ -139,24 +139,20 @@ namespace Xeora.Web.Directives
             }
             catch (Exception ex)
             {
-                this.HandleError(ex, directive);
+                DirectiveCollection.HandleError(ex, directive);
             }
         }
 
         private void CreateAnalysisReport(DateTime renderBegins, IDirective directive)
         {
             if (!Configurations.Xeora.Application.Main.PrintAnalysis) return;
-                
-            string analysisOutput = directive.UniqueId;
-            switch (directive)
+            
+            string analysisOutput = directive switch
             {
-                case INameable nameable:
-                    analysisOutput = $"{analysisOutput} - {nameable.DirectiveId}";
-                    break;
-                case IHasBind hasBind:
-                    analysisOutput = $"{analysisOutput} - {hasBind.Bind}";
-                    break;
-            }
+                INameable nameable => $"{directive.UniqueId} - {nameable.DirectiveId}",
+                IHasBind hasBind => $"{directive.UniqueId} - {hasBind.Bind}",
+                _ => directive.UniqueId
+            };
 
             double totalMs = 
                 DateTime.Now.Subtract(renderBegins).TotalMilliseconds;
@@ -171,7 +167,7 @@ namespace Xeora.Web.Directives
                 type: totalMs > Configurations.Xeora.Application.Main.AnalysisThreshold ? Basics.Console.Type.Warn: Basics.Console.Type.Info);
         }
 
-        private void HandleError(Exception exception, IDirective directive)
+        private static void HandleError(Exception exception, IDirective directive)
         {
             if (directive.Parent != null)
                 directive.Parent.HasInlineError = true;

@@ -1,6 +1,6 @@
 ﻿namespace Xeora.Web.Global
 {
-    public class SystemMessages
+    public static class SystemMessages
     {
         public const string IDMUSTBESET = "Id must be set";
         public const string PATH_NOTEXISTS = "Path is not Exists";

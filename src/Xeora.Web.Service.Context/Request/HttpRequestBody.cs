@@ -37,8 +37,7 @@ namespace Xeora.Web.Service.Context.Request
 
         private void ReadToEndInto(ref Stream contentStream)
         {
-            if (contentStream == null)
-                contentStream = new MemoryStream();
+            contentStream ??= new MemoryStream();
 
             if (this._Header.ContentLength > 0)
                 this.ReadWithLength(this._Header.ContentLength, ref contentStream);
@@ -378,7 +377,7 @@ namespace Xeora.Web.Service.Context.Request
                     return true;
                 }
 
-                this.AddToResidual(ref containerStream, SeekOrigin.Current, (size - (eofIndex - 2)) * -1, (size - (eofIndex - 2)));
+                this.AddToResidual(ref containerStream, SeekOrigin.Current, (size - (eofIndex - 2)) * -1, size - (eofIndex - 2));
 
                 byte[] newLineTest = new byte[2];
                 this._StreamEnclosure.Read(newLineTest, 0, newLineTest.Length);
@@ -389,7 +388,7 @@ namespace Xeora.Web.Service.Context.Request
                     eofIndex -= 1;
 
                 containerStream.Seek(0, SeekOrigin.Begin);
-                containerStream.SetLength((totalRead - size) + eofIndex);
+                containerStream.SetLength(totalRead - size + eofIndex);
 
                 return false;
             });
@@ -398,14 +397,12 @@ namespace Xeora.Web.Service.Context.Request
         private void ParseApplicationXwwwFormUrlEncoded()
         {
             Stream contentStream = null;
-            StreamReader sR;
-
             try
             {
                 this.ReadToEndInto(ref contentStream);
                 contentStream.Seek(0, SeekOrigin.Begin);
 
-                sR = this._Header.ContentEncoding != null 
+                StreamReader sR = this._Header.ContentEncoding != null 
                     ? new StreamReader(contentStream, this._Header.ContentEncoding, true) 
                     : new StreamReader(contentStream, true);
 

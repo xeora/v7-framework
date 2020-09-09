@@ -8,10 +8,10 @@ namespace Xeora.Web.Directives
             new Regex("\\[[\\.\\w\\-]+\\]", RegexOptions.Compiled);
         public static string CaptureBoundDirectiveId(string value)
         {
-            string[] controlValueSplitted = value.Split(':');
+            string[] controlValueParts = value.Split(':');
 
             Match cpIdMatch =
-                DirectiveHelper.BoundDirectiveIdRegEx.Match(controlValueSplitted[0]);
+                DirectiveHelper.BoundDirectiveIdRegEx.Match(controlValueParts[0]);
 
             return cpIdMatch.Success ? cpIdMatch.Value.Substring(1, cpIdMatch.Length - 2) : string.Empty;
         }
@@ -20,10 +20,10 @@ namespace Xeora.Web.Directives
             new Regex("[\\/\\.\\w\\-]+", RegexOptions.Compiled);
         public static string CaptureDirectiveId(string rawValue)
         {
-            string[] controlValueSplitted = rawValue.Split(':');
+            string[] controlValueParts = rawValue.Split(':');
 
             Match cpIdMatch =
-                DirectiveHelper.DirectiveIdRegEx.Match(controlValueSplitted[1]);
+                DirectiveHelper.DirectiveIdRegEx.Match(controlValueParts[1]);
 
             return cpIdMatch.Success ? cpIdMatch.Value : string.Empty;
         }
@@ -32,10 +32,10 @@ namespace Xeora.Web.Directives
             new Regex("\\(((\\|)?(([#]+|[\\^\\-\\+\\*\\~\\&])?([0-9_a-zA-Z]+)|\\=[\\S]*|@([#]+|[\\-\\&\\.])?([0-9_a-zA-Z]+\\.)[\\.0-9_a-zA-Z]+)?)+\\)", RegexOptions.Compiled);
         public static string[] CaptureControlParameters(string value)
         {
-            string[] controlValueSplitted = value.Split(':');
+            string[] controlValueParts = value.Split(':');
 
             Match cpIdMatch =
-                DirectiveHelper.ControlParametersRegEx.Match(controlValueSplitted[1]);
+                DirectiveHelper.ControlParametersRegEx.Match(controlValueParts[1]);
 
             if (!cpIdMatch.Success) return new string[] { };
             
@@ -69,39 +69,24 @@ namespace Xeora.Web.Directives
             
             string directiveType = 
                 cpIdMatch.Result("${DirectiveType}");
-            switch (directiveType)
+            return directiveType switch
             {
-                case "C":
-                    return DirectiveTypes.Control;
-                case "AC":
-                    return DirectiveTypes.ControlAsync;
-                case "T":
-                    return DirectiveTypes.Template;
-                case "L":
-                    return DirectiveTypes.Translation;
-                case "O":
-                    return DirectiveTypes.ReplaceableTranslation;
-                case "P":
-                    return DirectiveTypes.HashCodePointedTemplate;
-                case "F":
-                    return DirectiveTypes.Execution;
-                case "S":
-                    return DirectiveTypes.InLineStatement;
-                case "H":
-                    return DirectiveTypes.UpdateBlock;
-                case "E":
-                    return DirectiveTypes.PermissionBlock;
-                case "XF":
-                    return DirectiveTypes.EncodedExecution;
-                case "MB":
-                    return DirectiveTypes.MessageBlock;
-                case "PC":
-                    return DirectiveTypes.PartialCache;
-                case "AG":
-                    return DirectiveTypes.AsyncGroup;
-                default:
-                    return DirectiveTypes.Undefined;
-            }
+                "C" => DirectiveTypes.Control,
+                "AC" => DirectiveTypes.ControlAsync,
+                "T" => DirectiveTypes.Template,
+                "L" => DirectiveTypes.Translation,
+                "O" => DirectiveTypes.ReplaceableTranslation,
+                "P" => DirectiveTypes.HashCodePointedTemplate,
+                "F" => DirectiveTypes.Execution,
+                "S" => DirectiveTypes.InLineStatement,
+                "H" => DirectiveTypes.UpdateBlock,
+                "E" => DirectiveTypes.PermissionBlock,
+                "XF" => DirectiveTypes.EncodedExecution,
+                "MB" => DirectiveTypes.MessageBlock,
+                "PC" => DirectiveTypes.PartialCache,
+                "AG" => DirectiveTypes.AsyncGroup,
+                _ => DirectiveTypes.Undefined
+            };
         }
     }
 }

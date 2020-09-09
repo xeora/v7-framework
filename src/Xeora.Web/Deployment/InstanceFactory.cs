@@ -11,7 +11,7 @@ namespace Xeora.Web.Deployment
             this._Instances = new ConcurrentDictionary<string, Domain>();
 
         private static readonly object Lock = new object();
-        private static InstanceFactory _Current;
+        private static InstanceFactory _current;
         public static InstanceFactory Current
         {
             get
@@ -19,7 +19,7 @@ namespace Xeora.Web.Deployment
                 Monitor.Enter(InstanceFactory.Lock);
                 try
                 {
-                    return InstanceFactory._Current ?? (InstanceFactory._Current = new InstanceFactory());
+                    return InstanceFactory._current ?? (InstanceFactory._current = new InstanceFactory());
                 }
                 finally
                 {
@@ -52,7 +52,7 @@ namespace Xeora.Web.Deployment
             foreach (string key in keys)
             {
                 if (this._Instances.TryRemove(key, out Domain domain))
-                    domain?.Dispose();
+                    domain.Dispose();
             }
         }
 

@@ -46,17 +46,14 @@ namespace Xeora.Web.Application
             Basics.Execution.Bind translatorBind =
                 Basics.Execution.Bind.Make($"{this._Owner.Settings.Configurations.LanguageExecutable}?Translate,p1|p2");
             translatorBind.Parameters.Prepare(
-                 parameter => 
+                 parameter =>
                  {
-                     switch(parameter.Key)
+                     return parameter.Key switch
                      {
-                         case "p1":
-                             return this._Language.Info.Id;
-                         case "p2":
-                             return translationId;
-                         default:
-                             return string.Empty;
-                     }
+                         "p1" => this._Language.Info.Id,
+                         "p2" => translationId,
+                         _ => string.Empty
+                     };
                  }
              );
             translatorBind.InstanceExecution = true;

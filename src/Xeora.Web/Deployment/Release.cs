@@ -29,14 +29,14 @@ namespace Xeora.Web.Deployment
             // !--
         }
 
-        public string DomainRootPath { get; private set; }
+        public string DomainRootPath { get; }
         public string ChildrenRegistration => Path.Combine(this.DomainRootPath, "Addons");
         public string ContentsRegistration(string languageId) => $"\\Contents\\{languageId}\\";
         public string ExecutablesRegistration => Path.Combine(this.DomainRootPath, "Executables");
         public string TemplatesRegistration => "\\Templates\\";
         public string LanguagesRegistration => "\\Languages\\";
 
-        private Decompiler Decompiler { get; set; }
+        private Decompiler Decompiler { get; }
 
         public void ProvideContentFileStream(string languageId, string requestedFilePath, out Stream outputStream)
         {
@@ -87,7 +87,7 @@ namespace Xeora.Web.Deployment
 
         public string ProvideTemplateContent(string serviceFullPath)
         {
-            // Compiled Xeora Content File Index header seperates
+            // Compiled Xeora Content File Index header separates
             // PATH and FILE differently. serviceFullPath contain filename with 
             // path name which is not fitting Index header records.
             string registrationPath = this.TemplatesRegistration;

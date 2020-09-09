@@ -7,10 +7,10 @@
 
         public static long Format(System.DateTime vDateTime, bool formatJustDate = false)
         {
-            string tString = string.Format("{0:0000}{1:00}{2:00}", vDateTime.Year, vDateTime.Month, vDateTime.Day);
+            string tString = $"{vDateTime.Year:0000}{vDateTime.Month:00}{vDateTime.Day:00}";
 
             if (!formatJustDate)
-                tString = string.Format("{0}{1:00}{2:00}{3:00}", tString, vDateTime.Hour, vDateTime.Minute, vDateTime.Second);
+                tString = $"{tString}{vDateTime.Hour:00}{vDateTime.Minute:00}{vDateTime.Second:00}";
 
             return long.Parse(tString);
         }

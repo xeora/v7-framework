@@ -8,7 +8,7 @@ namespace Xeora.Web.Service.Workers
 {
     public class Factory
     {
-        private static IParallelism _Parallelism;
+        private static IParallelism _parallelism;
 
         private readonly ConcurrentDictionary<short, Worker> _Workers;
         private short _CurrentIndex;
@@ -24,11 +24,11 @@ namespace Xeora.Web.Service.Workers
                 new ConcurrentDictionary<short, Worker>();
             this._CurrentIndex = 0;
 
-            short worker = Factory._Parallelism.Worker;
+            short worker = Factory._parallelism.Worker;
             if (worker < 1) worker = 1;
             
             for (short i = 0; i < worker; i++)
-                this._Workers.TryAdd(i, new Worker(i, Factory._Parallelism.WorkerThread, false));
+                this._Workers.TryAdd(i, new Worker(i, Factory._parallelism.WorkerThread, false));
             
             this._BucketRegistrations = new Dictionary<string, Bucket>();
             this._Buckets = new BlockingCollection<Worker>();
@@ -39,11 +39,11 @@ namespace Xeora.Web.Service.Workers
             else
                 bucket *= workerObject.ThreadCount;
 
-            int bucketCount = Factory._Parallelism.BucketThread;
+            int bucketCount = Factory._parallelism.BucketThread;
             for (short i = 0; i < bucket; i++)
             {
                 Worker bucketWorker =
-                    new Worker(i, Factory._Parallelism.BucketThread, true);
+                    new Worker(i, Factory._parallelism.BucketThread, true);
                 bucketCount = bucketWorker.ThreadCount;
                 
                 this._Buckets.Add(bucketWorker);
@@ -91,17 +91,17 @@ namespace Xeora.Web.Service.Workers
         }
         
         private static readonly object Lock = new object();
-        private static Factory _Current;
+        private static Factory _current;
         private static Factory CreateOrGet()
         {
             Monitor.Enter(Factory.Lock);
             try
             {
-                if (Factory._Parallelism == null)
+                if (Factory._parallelism == null)
                     return null;
                 
-                return Factory._Current ?? 
-                       (Factory._Current = new Factory());
+                return Factory._current ?? 
+                       (Factory._current = new Factory());
             }
             finally
             {
@@ -111,7 +111,7 @@ namespace Xeora.Web.Service.Workers
         
         private Task _Queue(Action<object> startHandler, object state)
         {
-            if (Factory._Current == null)
+            if (Factory._current == null)
                 throw new Exception("Factory is not initialized");
             
             ActionContainer actionContainer = 
@@ -123,7 +123,7 @@ namespace Xeora.Web.Service.Workers
 
         private Bucket _Bucket(string trackingId)
         {
-            if (Factory._Current == null)
+            if (Factory._current == null)
                 throw new Exception("Factory is not initialized");
 
             Monitor.Enter(this._BucketRegistrationLock);
@@ -172,7 +172,7 @@ namespace Xeora.Web.Service.Workers
         
         private void _Kill()
         {
-            if (Factory._Current == null) return;
+            if (Factory._current == null) return;
             
             Basics.Console.Push(string.Empty, "Worker Factory is draining...", string.Empty, false, true);
             
@@ -189,12 +189,12 @@ namespace Xeora.Web.Service.Workers
             foreach (KeyValuePair<short, Worker> pair in this._Workers)
                 pair.Value.Kill();
             
-            Factory._Current = null;
+            Factory._current = null;
         }
 
         public static void Init(IParallelism parallelism)
         {
-            Factory._Parallelism = parallelism;
+            Factory._parallelism = parallelism;
             Factory.CreateOrGet();
         }
 

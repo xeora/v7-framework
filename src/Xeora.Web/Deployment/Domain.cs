@@ -51,7 +51,7 @@ namespace Xeora.Web.Deployment
 
         public string[] DomainIdAccessTree { get; }
         public Basics.Domain.Info.DeploymentTypes DeploymentType { get; }
-        private IDeployment Deployment { get; set; }
+        private IDeployment Deployment { get; }
 
         private string CreateDomainAccessPathString()
         {

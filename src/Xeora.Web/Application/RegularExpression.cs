@@ -23,7 +23,7 @@ namespace Xeora.Web.Application
             const string parametersRegEx = "\\(((\\|)?(" + variableRegEx + ")?)+\\)";
             const string procedureRegEx = directiveIdRegEx + "\\?" + directiveIdRegEx + "(\\,((\\|)?(" + variableRegEx + ")?)*)?";
 
-            string singleRegEx =
+            const string singleRegEx =
                 "\\$" +
                 "(" +
                     "(" + variableRegEx + ")\\$" + // Capture Variable
@@ -35,9 +35,9 @@ namespace Xeora.Web.Application
                         procedureRegEx + "\\$" + // Capture Procedure
                     ")" + 
                 ")";
-            string contentOpeningRegEx = "\\$((?<DirectiveId>" + directiveIdRegEx + ")|(?<DirectiveType>" + directivePointerRegEx + ")(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:(?<DirectiveId>" + directiveIdRegEx + ")(" + parametersRegEx + ")?)\\:\\{";
-            string contentSeparatorRegEx = "\\}:(?<DirectiveId>" + directiveIdRegEx + ")\\:\\{";
-            string contentClosingRegEx = "\\}:(?<DirectiveId>" + directiveIdRegEx + ")\\$";
+            const string contentOpeningRegEx = "\\$((?<DirectiveId>" + directiveIdRegEx + ")|(?<DirectiveType>" + directivePointerRegEx + ")(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:(?<DirectiveId>" + directiveIdRegEx + ")(" + parametersRegEx + ")?)\\:\\{";
+            const string contentSeparatorRegEx = "\\}:(?<DirectiveId>" + directiveIdRegEx + ")\\:\\{";
+            const string contentClosingRegEx = "\\}:(?<DirectiveId>" + directiveIdRegEx + ")\\$";
 
             this._SpecificContentOpeningRegEx = "\\$(({0})|({1})(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:({0}))(\\(|\\:)";
             // !---
@@ -53,7 +53,7 @@ namespace Xeora.Web.Application
         }
 
         private static readonly object Lock = new object();
-        private static RegularExpression _Current;
+        private static RegularExpression _current;
         public static RegularExpression Current
         {
             get
@@ -61,7 +61,7 @@ namespace Xeora.Web.Application
                 Monitor.Enter(RegularExpression.Lock);
                 try
                 {
-                    return RegularExpression._Current ?? (RegularExpression._Current = new RegularExpression());
+                    return RegularExpression._current ?? (RegularExpression._current = new RegularExpression());
                 }
                 finally
                 {
@@ -75,24 +75,20 @@ namespace Xeora.Web.Application
         public Regex ContentSeparatorPattern { get; }
         public Regex ContentClosingPattern { get; }
 
-        private string CorrectDirectiveIdForRegex(string input) =>
-            input
-                .Replace(".", "\\.");
+        private static string CorrectDirectiveIdForRegex(string input) =>
+            input.Replace(".", "\\.");
 
-        private string CorrectDirectiveTypeForRegex(string input)
+        private static string CorrectDirectiveTypeForRegex(string input)
         {
-            switch (input)
+            return input switch
             {
-                case "C":
-                    return input.Replace("C", "(A)?C");
-                case "AC":
-                    return input.Replace("AC", "(A)?C");
-                default:
-                    return input;
-            }
+                "C" => input.Replace("C", "(A)?C"),
+                "AC" => input.Replace("AC", "(A)?C"),
+                _ => input
+            };
         }
 
         public Regex SpecificContentOpeningPattern(string directiveId, string directiveType) =>
-            new Regex(string.Format(this._SpecificContentOpeningRegEx, this.CorrectDirectiveIdForRegex(directiveId), this.CorrectDirectiveTypeForRegex(directiveType)),RegexOptions.Singleline);
+            new Regex(string.Format(this._SpecificContentOpeningRegEx, RegularExpression.CorrectDirectiveIdForRegex(directiveId), RegularExpression.CorrectDirectiveTypeForRegex(directiveType)),RegexOptions.Singleline);
     }
 }

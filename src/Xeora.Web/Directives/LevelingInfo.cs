@@ -17,10 +17,10 @@ namespace Xeora.Web.Directives
             new Regex("\\#\\d+(\\+)?", RegexOptions.Compiled);
         public static LevelingInfo Create(string value)
         {
-            string[] controlValueSplitted = value.Split(':');
+            string[] controlValueParts = value.Split(':');
 
             Match cLevelingMatch = 
-                LevelingInfo.LevelingRegEx.Match(controlValueSplitted[0]);
+                LevelingInfo.LevelingRegEx.Match(controlValueParts[0]);
 
             if (!cLevelingMatch.Success) return new LevelingInfo(0, true);
             

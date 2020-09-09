@@ -51,11 +51,10 @@ namespace Xeora.Web.Global
             {
                 this._ArgumentValues.Clear();
 
-                foreach (KeyValuePair<string, int> pair in this._ArgumentIndices)
+                foreach (var (key, value) in this._ArgumentIndices)
                 {
-                    if (pair.Value >= values.Length) continue;
-                    
-                    this._ArgumentValues[pair.Key] = values[pair.Value];
+                    if (value >= values.Length) continue;
+                    this._ArgumentValues[key] = values[value];
                 }
             }
         }
@@ -69,11 +68,11 @@ namespace Xeora.Web.Global
             
             lock (this._Lock)
             {
-                foreach (KeyValuePair<string, int> pair in collection.GetIndices())
-                    this._ArgumentIndices[pair.Key] = pair.Value;
+                foreach (var (key, value) in collection.GetIndices())
+                    this._ArgumentIndices[key] = value;
                 
-                foreach (KeyValuePair<string, object> pair in collection.GetValues())
-                    this._ArgumentValues[pair.Key] = pair.Value;
+                foreach (var (key, value) in collection.GetValues())
+                    this._ArgumentValues[key] = value;
             }
         }
 
@@ -84,8 +83,8 @@ namespace Xeora.Web.Global
             
             lock (this._Lock)
             {
-                foreach (KeyValuePair<string, int> pair in this._ArgumentIndices)
-                    indices.Add(new KeyValuePair<string, int>(pair.Key, pair.Value));
+                foreach (var (key, value) in this._ArgumentIndices)
+                    indices.Add(new KeyValuePair<string, int>(key, value));
             }
 
             return indices.ToArray();
@@ -98,8 +97,8 @@ namespace Xeora.Web.Global
             
             lock (this._Lock)
             {
-                foreach (KeyValuePair<string, object> pair in this._ArgumentValues)
-                    values.Add(new KeyValuePair<string, object>(pair.Key, pair.Value));
+                foreach (var (key, value) in this._ArgumentValues)
+                    values.Add(new KeyValuePair<string, object>(key, value));
             }
 
             return values.ToArray();
@@ -149,12 +148,12 @@ namespace Xeora.Web.Global
             {
                 StringBuilder builder = 
                     new StringBuilder();
-                foreach (KeyValuePair<string, object> pair in this._ArgumentValues)
+                foreach (var (key, value) in this._ArgumentValues)
                 {
                     if (builder.Length > 0)
                         builder.Append(", ");
 
-                    builder.AppendFormat("{0}={1}", pair.Key, Convert.ToString(pair.Value));
+                    builder.AppendFormat("{0}={1}", key, Convert.ToString(value));
                 }
 
                 return builder.ToString();

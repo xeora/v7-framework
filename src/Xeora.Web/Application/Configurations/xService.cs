@@ -21,7 +21,7 @@ namespace Xeora.Web.Application.Configurations
             foreach (DictionaryEntry item in items)
                 sessionInfo.AddSessionItem(item.Key.ToString(), item.Value);
 
-            this.VariablePool.Set(publicKey, sessionInfo);
+            xService.VariablePool.Set(publicKey, sessionInfo);
 
             return null;
         }
@@ -29,7 +29,7 @@ namespace Xeora.Web.Application.Configurations
         public object ReadSessionVariable(string publicKey, string name)
         {
             Global.xServiceSessionInfo sessionInfo =
-                (Global.xServiceSessionInfo)this.VariablePool.Get(publicKey);
+                (Global.xServiceSessionInfo)xService.VariablePool.Get(publicKey);
 
             if (sessionInfo == null)
                 return null;
@@ -46,7 +46,7 @@ namespace Xeora.Web.Application.Configurations
             else
                 sessionInfo = null;
 
-            this.VariablePool.Set(publicKey, sessionInfo);
+            xService.VariablePool.Set(publicKey, sessionInfo);
 
             return rObject;
         }
@@ -270,6 +270,6 @@ namespace Xeora.Web.Application.Configurations
             return new Basics.RenderResult(xmlStream.ToString(), false);
         }
 
-        private Basics.Service.VariablePoolOperation VariablePool => Basics.Helpers.VariablePoolForxService;
+        private static Basics.Service.VariablePoolOperation VariablePool => Basics.Helpers.VariablePoolForxService;
     }
 }

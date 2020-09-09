@@ -24,26 +24,25 @@ namespace Xeora.Web.Basics.Execution
             this.Key = string.Empty;
             this.Value = null;
 
-            if (!string.IsNullOrEmpty(parameter))
+            if (string.IsNullOrEmpty(parameter)) return;
+            
+            this.Query = parameter;
+            this.Key = parameter;
+
+            if (!this._Operators.ContainsKey(this.Key[0]))
+                return;
+
+            if (this.Key[0] != '#')
+                this.Key = this.Key.Substring(1);
+            else
             {
-                this.Query = parameter;
-                this.Key = parameter;
-
-                if (!this._Operators.ContainsKey(this.Key[0]))
-                    return;
-
-                if (this.Key[0] != '#')
-                    this.Key = this.Key.Substring(1);
-                else
+                do
                 {
-                    do
-                    {
-                        if (this.Key[0] != '#')
-                            break;
+                    if (this.Key[0] != '#')
+                        break;
 
-                        this.Key = this.Key.Substring(1);
-                    } while (this.Key.Length > 0);
-                }
+                    this.Key = this.Key.Substring(1);
+                } while (this.Key.Length > 0);
             }
         }
 

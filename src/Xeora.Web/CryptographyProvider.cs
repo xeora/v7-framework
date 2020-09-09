@@ -12,7 +12,7 @@ namespace Xeora.Web
         
         private readonly object _PruneLock;
 
-        private static CryptographyProvider _Current;
+        private static CryptographyProvider _current;
         private static readonly object ProviderLock = 
             new object();
         
@@ -23,8 +23,8 @@ namespace Xeora.Web
                 Monitor.Enter(CryptographyProvider.ProviderLock);
                 try
                 {
-                    return CryptographyProvider._Current ??
-                           (CryptographyProvider._Current = new CryptographyProvider());
+                    return CryptographyProvider._current ??
+                           (CryptographyProvider._current = new CryptographyProvider());
                 }
                 finally
                 {

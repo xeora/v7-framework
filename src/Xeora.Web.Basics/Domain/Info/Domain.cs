@@ -2,10 +2,10 @@
 {
     public class Domain
     {
-        public Domain(DeploymentTypes deploymentType, string Id, Language[] languages)
+        public Domain(DeploymentTypes deploymentType, string id, Language[] languages)
         {
             this.DeploymentType = deploymentType;
-            this.Id = Id;
+            this.Id = id;
             this.Languages = languages;
             this.Children = new DomainCollection();
         }

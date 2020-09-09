@@ -22,12 +22,12 @@ namespace Xeora.Web.Basics
 
             foreach (Assembly ayAssembly in ayAssemblies)
             {
-                if (sShortAssemblyName == ayAssembly.FullName.Substring(0, assemblyName.IndexOf(',')))
-                {
-                    OverrideBinder.AssemblyCache.TryAdd(sShortAssemblyName, ayAssembly);
-
-                    return this.GetDeserializeType(ayAssembly, typeName);
-                }
+                if (sShortAssemblyName != ayAssembly.FullName?.Substring(0, assemblyName.IndexOf(','))) 
+                    continue;
+                
+                OverrideBinder.AssemblyCache.TryAdd(sShortAssemblyName, ayAssembly);
+                
+                return this.GetDeserializeType(ayAssembly, typeName);
             }
 
             return null;
@@ -36,7 +36,7 @@ namespace Xeora.Web.Basics
         private Type GetDeserializeType(Assembly assembly, string typeName)
         {
             string typeNameL = 
-                this.GetTypeFullNames(typeName, out string[] remainAssemblyNames);
+                OverrideBinder.GetTypeFullNames(typeName, out string[] remainAssemblyNames);
 
             Type tempType = assembly.GetType(typeNameL);
 
@@ -67,7 +67,7 @@ namespace Xeora.Web.Basics
 
         }
 
-        private string GetTypeFullNames(string typeName, out string[] remainAssemblyNames)
+        private static string GetTypeFullNames(string typeName, out string[] remainAssemblyNames)
         {
             int bI = typeName.IndexOf('[', 0);
 

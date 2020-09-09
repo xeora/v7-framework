@@ -10,7 +10,7 @@ namespace Xeora.Web.Service.Session
             this._StoreManager = new StoreManager(Basics.Configurations.Xeora.Session.Timeout);
 
         private static readonly object Lock = new object();
-        private static SessionManager _Current;
+        private static SessionManager _current;
         public static IHttpSessionManager Current
         {
             get
@@ -18,9 +18,8 @@ namespace Xeora.Web.Service.Session
                 Monitor.Enter(SessionManager.Lock);
                 try
                 {
-                    if (SessionManager._Current == null)
-                        SessionManager._Current = new SessionManager();
-                    return SessionManager._Current._StoreManager;
+                    SessionManager._current ??= new SessionManager();
+                    return SessionManager._current._StoreManager;
                 }
                 finally
                 {

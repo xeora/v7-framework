@@ -11,15 +11,15 @@ namespace Xeora.Web.Basics
             Extension
         }
 
-        private static Dictionary<string, string> _ExtensionMap;
+        private static Dictionary<string, string> _extensionMap;
         private static Dictionary<string, string> MimeMapping
         {
             get
             {
-                if (MimeType._ExtensionMap != null) 
-                    return MimeType._ExtensionMap;
+                if (MimeType._extensionMap != null) 
+                    return MimeType._extensionMap;
                 
-                MimeType._ExtensionMap = new Dictionary<string, string>
+                MimeType._extensionMap = new Dictionary<string, string>
                 {
                     { ".323", "text/h323" },
                     { ".asx", "video/x-ms-asf" },
@@ -221,9 +221,9 @@ namespace Xeora.Web.Basics
 
                 // Load Custom Mime Definitions
                 foreach (Configuration.IMimeItem item in Configurations.Xeora.Application.CustomMimes)
-                    MimeType._ExtensionMap[item.Extension] = item.Type;
+                    MimeType._extensionMap[item.Extension] = item.Type;
 
-                return MimeType._ExtensionMap;
+                return MimeType._extensionMap;
             }
         }
 
@@ -235,27 +235,23 @@ namespace Xeora.Web.Basics
                     if (string.IsNullOrEmpty(searchValue))
                         return "application/octet-stream";
 
-                    if (MimeType.MimeMapping.ContainsKey(searchValue))
-                        return MimeType.MimeMapping[searchValue];
-
-                    return "application/octet-stream";
+                    return MimeType.MimeMapping.ContainsKey(searchValue)
+                        ? MimeType.MimeMapping[searchValue]
+                        : "application/octet-stream";
                 case MimeLookups.Extension:
                     if (string.IsNullOrEmpty(searchValue))
                         return ".dat";
 
-                    if (MimeType.MimeMapping.ContainsValue(searchValue))
+                    foreach (var (key, value) in MimeType.MimeMapping)
                     {
-                        foreach (KeyValuePair<string, string> item in MimeType.MimeMapping)
-                        {
-                            if (string.CompareOrdinal(item.Value, searchValue) == 0)
-                                return item.Key;
-                        }
+                        if (string.CompareOrdinal(value, searchValue) == 0)
+                            return key;
                     }
 
                     return ".dat";
+                default:
+                    throw new Exception("ResolveMime should never reach here!");
             }
-
-            throw new Exception("ResolveMime should never reach here!");
         }
 
         /// <summary>

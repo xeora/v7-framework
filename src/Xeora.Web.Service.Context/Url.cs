@@ -24,7 +24,7 @@ namespace Xeora.Web.Service.Context
             if (firstQuestionMarkIndex > -1)
             {
                 this.RelativePath = 
-                    this.CleanUpDashRepetition(this.Raw.Substring(0, firstQuestionMarkIndex));
+                    Url.CleanUpDashRepetition(this.Raw.Substring(0, firstQuestionMarkIndex));
                 this.QueryString = 
                     this.Raw.Substring(firstQuestionMarkIndex + 1);
                 this.Relative = $"{this.RelativePath}?{this.QueryString}";
@@ -32,12 +32,12 @@ namespace Xeora.Web.Service.Context
                 return;
             }
 
-            this.RelativePath = this.CleanUpDashRepetition(this.Raw);
+            this.RelativePath = Url.CleanUpDashRepetition(this.Raw);
             this.QueryString = string.Empty;
             this.Relative = this.RelativePath;
         }
 
-        private string CleanUpDashRepetition(string input)
+        private static string CleanUpDashRepetition(string input)
         {
             int doubleDashIndex;
             do

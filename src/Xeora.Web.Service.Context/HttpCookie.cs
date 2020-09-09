@@ -10,7 +10,7 @@
 
         public new void Remove(string name)
         {
-            if (base.ContainsKey(name)) 
+            if (ContainsKey(name)) 
                 base.Remove(name);
         }
 

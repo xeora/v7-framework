@@ -21,16 +21,16 @@ namespace Xeora.Web.Manager.Execution
         }
 
         private static readonly object InitLock = new object();
-        private static ApplicationFactory _Current;
+        private static ApplicationFactory _current;
         public static void Initialize(INegotiator negotiator, string executablesPath)
         {
             Monitor.Enter(ApplicationFactory.InitLock);
             try
             {
-                if (ApplicationFactory._Current != null)
-                    ApplicationFactory._Current.Unload();
+                if (ApplicationFactory._current != null)
+                    ApplicationFactory._current.Unload();
                 
-                ApplicationFactory._Current = 
+                ApplicationFactory._current = 
                     new ApplicationFactory(negotiator, executablesPath);
             }
             finally
@@ -40,10 +40,10 @@ namespace Xeora.Web.Manager.Execution
         }
 
         public static void Terminate() => 
-            ApplicationFactory._Current?.Unload();
+            ApplicationFactory._current?.Unload();
         
         public static Application Prepare(string executableName) =>
-            ApplicationFactory._Current?.GetOrCreate(executableName);
+            ApplicationFactory._current?.GetOrCreate(executableName);
 
         private Application GetOrCreate(string executableName)
         {

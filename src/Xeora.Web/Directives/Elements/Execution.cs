@@ -13,9 +13,9 @@ namespace Xeora.Web.Directives.Elements
             this.Leveling = LevelingInfo.Create(rawValue);
             this.BoundDirectiveId = DirectiveHelper.CaptureBoundDirectiveId(rawValue);
             
-            string[] controlValueSplitted = 
+            string[] controlValueParts = 
                 rawValue.Split(':');
-            this.Bind = Basics.Execution.Bind.Make(string.Join(":", controlValueSplitted, 1, controlValueSplitted.Length - 1));
+            this.Bind = Basics.Execution.Bind.Make(string.Join(":", controlValueParts, 1, controlValueParts.Length - 1));
         }
 
         public LevelingInfo Leveling { get; }

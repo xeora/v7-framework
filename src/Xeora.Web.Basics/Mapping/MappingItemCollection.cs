@@ -42,10 +42,8 @@ namespace Xeora.Web.Basics.Mapping
         {
             public int Compare(MappingItem x, MappingItem y)
             {
-                if (x.Priority > y.Priority)
-                    return -1;
-                if (x.Priority < y.Priority)
-                    return 1;
+                if (x.Priority > y.Priority) return -1;
+                if (x.Priority < y.Priority) return 1;
 
                 return 0;
             }

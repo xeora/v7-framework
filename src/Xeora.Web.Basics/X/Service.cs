@@ -240,12 +240,12 @@ namespace Xeora.Web.Basics.X
             PartialDataTable partialDataTable =
                 new PartialDataTable();
 
-            int.TryParse(xPathIter.Current?.GetAttribute("total", xPathIter.Current.NamespaceURI), out int Total);
+            int.TryParse(xPathIter.Current?.GetAttribute("total", xPathIter.Current.NamespaceURI), out int total);
             System.Globalization.CultureInfo cultureInfo =
                 new System.Globalization.CultureInfo(xPathIter.Current?.GetAttribute("cultureinfo", xPathIter.Current.NamespaceURI));
 
             partialDataTable.Locale = cultureInfo;
-            partialDataTable.Total = Total;
+            partialDataTable.Total = total;
 
             if (xPathIter.Current != null && xPathIter.Current.MoveToFirstChild())
             {
@@ -375,7 +375,7 @@ namespace Xeora.Web.Basics.X
             return null;
         }
 
-        private class Serializer
+        private static class Serializer
         {
             public static string BinaryToBase64(object @object) =>
                 Convert.ToBase64String(Serializer.Serialize(@object));

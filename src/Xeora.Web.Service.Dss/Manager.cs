@@ -8,25 +8,16 @@ namespace Xeora.Web.Service.Dss
 
         private Manager()
         {
-            switch (Basics.Configurations.Xeora.Dss.ServiceType)
+            this._Manager = Basics.Configurations.Xeora.Dss.ServiceType switch
             {
-                case Basics.Configuration.DssServiceTypes.External:
-                    this._Manager = 
-                        new External.Manager(
-                            Basics.Configurations.Xeora.Dss.ServiceEndPoint
-                        );
-
-                    break;
-                default:
-                    this._Manager =
-                        new Internal.Manager();
-                    
-                    break;
-            }
+                Basics.Configuration.DssServiceTypes.External => 
+                    new External.Manager(Basics.Configurations.Xeora.Dss.ServiceEndPoint),
+                _ => new Internal.Manager()
+            };
         }
 
         private static readonly object Lock = new object();
-        private static Manager _Current;
+        private static Manager _current;
         public static IManager Current
         {
             get 
@@ -34,9 +25,8 @@ namespace Xeora.Web.Service.Dss
                 Monitor.Enter(Manager.Lock);
                 try
                 {
-                    if (Manager._Current == null)
-                        Manager._Current = new Manager();
-                    return Manager._Current._Manager;
+                    Manager._current ??= new Manager();
+                    return Manager._current._Manager;
                 }
                 finally
                 {

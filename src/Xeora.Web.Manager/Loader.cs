@@ -53,8 +53,7 @@ namespace Xeora.Web.Manager
         public static Loader Current { get; private set; }
         public static void Initialize(Basics.Configuration.IXeora configuration, Action<string, string> reloadHandler)
         {
-            if (Loader.Current == null)
-                Loader.Current = new Loader(configuration, reloadHandler);
+            Loader.Current ??= new Loader(configuration, reloadHandler);
             Loader.Current.Load();
         }
         
@@ -134,7 +133,7 @@ namespace Xeora.Web.Manager
             }
         }
 
-        private bool AvailableToDelete(DirectoryInfo application)
+        private static bool AvailableToDelete(DirectoryInfo application)
         {
             foreach (FileInfo fI in application.GetFiles())
             {
@@ -169,7 +168,7 @@ namespace Xeora.Web.Manager
                     application.Name.Equals(this.Id))
                     continue;
 
-                if (!this.AvailableToDelete(application)) continue;
+                if (!Loader.AvailableToDelete(application)) continue;
                 
                 try
                 {

@@ -66,7 +66,7 @@ namespace Xeora.Web.Handler
             int helfIdx = rootPath.IndexOf("¨/", StringComparison.Ordinal);
 
             rootPath = rootPath.Remove(0, helfIdx + 2);
-            rootPath = rootPath.Insert(0, Basics.Configurations.Xeora.Application.Main.VirtualRoot);
+            rootPath = rootPath.Insert(0, Configurations.Xeora.Application.Main.VirtualRoot);
 
             this.Context.Request.RewritePath(rootPath);
 
@@ -228,7 +228,7 @@ namespace Xeora.Web.Handler
             int scriptFileNameIndex =
                 requestedFileVirtualPath.IndexOf(scriptFileName, StringComparison.InvariantCulture);
             bool isScriptRequesting =
-                scriptFileNameIndex > -1 && (requestedFileVirtualPath.Length - scriptFileName.Length) == scriptFileNameIndex;
+                scriptFileNameIndex > -1 && requestedFileVirtualPath.Length - scriptFileName.Length == scriptFileNameIndex;
 
             if (isScriptRequesting)
             {
@@ -462,7 +462,7 @@ namespace Xeora.Web.Handler
             this.Context.Response.Write(outputBytes, 0, outputBytes.Length);
         }
 
-        private bool IsRequestedStaticFileBanned(string requestFilePath)
+        private static bool IsRequestedStaticFileBanned(string requestFilePath)
         {
             requestFilePath = requestFilePath.Replace(Configurations.Xeora.Application.Main.PhysicalRoot, string.Empty);
 
@@ -485,7 +485,7 @@ namespace Xeora.Web.Handler
             requestFilePath = Path.GetFullPath(requestFilePath);
 
             if (!File.Exists(requestFilePath) ||
-                (File.Exists(requestFilePath) && this.IsRequestedStaticFileBanned(requestFilePath)))
+                File.Exists(requestFilePath) && XeoraHandler.IsRequestedStaticFileBanned(requestFilePath))
             {
                 this.Context.Response.Header.Status.Code = 404;
                 this.Context.AddOrUpdate("RedirectLocation", null);
@@ -622,7 +622,7 @@ namespace Xeora.Web.Handler
 
         private void PostBuildInJavaScriptToClient()
         {
-            this._DomainControl.ProvideXeoraJsStream(out Stream requestFileStream);
+            Xeora.Web.Application.DomainControl.ProvideXeoraJsStream(out Stream requestFileStream);
 
             try
             {
@@ -744,10 +744,11 @@ namespace Xeora.Web.Handler
 
         private void CreateHtmlTag(ref StringWriter writer, string bodyContent)
         {
-            if (Configurations.Xeora.Application.Main.UseHtml5Header)
-                writer.WriteLine("<!doctype html>");
-            else
-                writer.WriteLine("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">");
+            writer.WriteLine(
+                Configurations.Xeora.Application.Main.UseHtml5Header
+                    ? "<!doctype html>"
+                    : "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">"
+            );
 
             writer.WriteLine("<html>");
 
@@ -793,31 +794,31 @@ namespace Xeora.Web.Handler
         {
             bool isContentTypeAdded = false, isPragmaAdded = false, isCacheControlAdded = false, isExpiresAdded = false;
 
-            foreach (KeyValuePair<Basics.MetaRecord.Tags, string> pair in this._DomainControl.MetaRecord.CommonTags)
+            foreach (var (key, value) in this._DomainControl.MetaRecord.CommonTags)
             {
-                switch (Basics.MetaRecord.QueryTagSpace(pair.Key))
+                switch (Basics.MetaRecord.QueryTagSpace(key))
                 {
                     case Basics.MetaRecord.TagSpaces.name:
                         writer.WriteLine(
-                            $"<meta name=\"{Basics.MetaRecord.GetTagHtmlName(pair.Key)}\" content=\"{pair.Value}\" />"
+                            $"<meta name=\"{Basics.MetaRecord.GetTagHtmlName(key)}\" content=\"{value}\" />"
                         );
 
                         break;
                     case Basics.MetaRecord.TagSpaces.httpequiv:
                         writer.WriteLine(
-                            $"<meta http-equiv=\"{Basics.MetaRecord.GetTagHtmlName(pair.Key)}\" content=\"{pair.Value}\" />"
+                            $"<meta http-equiv=\"{Basics.MetaRecord.GetTagHtmlName(key)}\" content=\"{value}\" />"
                         );
 
                         break;
                     case Basics.MetaRecord.TagSpaces.property:
                         writer.WriteLine(
-                            $"<meta property=\"{Basics.MetaRecord.GetTagHtmlName(pair.Key)}\" content=\"{pair.Value}\" />"
+                            $"<meta property=\"{Basics.MetaRecord.GetTagHtmlName(key)}\" content=\"{value}\" />"
                         );
 
                         break;
                 }
 
-                switch (pair.Key)
+                switch (key)
                 {
                     case Basics.MetaRecord.Tags.contenttype:
                         isContentTypeAdded = true;
@@ -838,26 +839,26 @@ namespace Xeora.Web.Handler
                 }
             }
 
-            foreach (KeyValuePair<string, string> pair in this._DomainControl.MetaRecord.CustomTags)
+            foreach (var (key, value) in this._DomainControl.MetaRecord.CustomTags)
             {
-                string keyName = pair.Key;
+                string keyName = key;
                 switch (Basics.MetaRecord.QueryTagSpace(ref keyName))
                 {
                     case Basics.MetaRecord.TagSpaces.name:
                         writer.WriteLine(
-                            $"<meta name=\"{keyName}\" content=\"{pair.Value}\" />"
+                            $"<meta name=\"{keyName}\" content=\"{value}\" />"
                         );
 
                         break;
                     case Basics.MetaRecord.TagSpaces.httpequiv:
                         writer.WriteLine(
-                            $"<meta http-equiv=\"{keyName}\" content=\"{pair.Value}\" />"
+                            $"<meta http-equiv=\"{keyName}\" content=\"{value}\" />"
                         );
 
                         break;
                     case Basics.MetaRecord.TagSpaces.property:
                         writer.WriteLine(
-                            $"<meta property=\"{keyName}\" content=\"{pair.Value}\" />"
+                            $"<meta property=\"{keyName}\" content=\"{value}\" />"
                         );
 
                         break;
@@ -903,7 +904,7 @@ namespace Xeora.Web.Handler
             writer.WriteLine("</body>");
         }
 
-        private void CompressUnsafe(ref Stream outputStream, out Stream gzippedStream)
+        private static void CompressUnsafe(ref Stream outputStream, out Stream gzippedStream)
         {
             byte[] contentBuffer = new byte[102400];
 
@@ -956,7 +957,7 @@ namespace Xeora.Web.Handler
                 Stream gzippedStream = null;
                 try
                 {
-                    this.CompressUnsafe(ref outputStream, out gzippedStream);
+                    XeoraHandler.CompressUnsafe(ref outputStream, out gzippedStream);
 
                     if (gzippedStream != null && gzippedStream.Length < outputStream.Length)
                     {

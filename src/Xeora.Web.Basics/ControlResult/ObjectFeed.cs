@@ -16,8 +16,7 @@ namespace Xeora.Web.Basics.ControlResult
             this.Type = DataSourceTypes.ObjectFeed;
             this.Message = null;
 
-            if (objects == null)
-                objects = new object[] { };
+            objects ??= new object[] { };
             this._Objects = objects;
         }
 

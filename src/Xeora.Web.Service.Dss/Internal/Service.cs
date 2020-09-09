@@ -25,11 +25,14 @@ namespace Xeora.Web.Service.Dss.Internal
         {
             get
             {
-                string[] keys = 
-                    new string[this._Items.Count];
-                this._Items.Keys.CopyTo(keys, 0);
+                lock (this._Lock)
+                {
+                    string[] keys =
+                        new string[this._Items.Count];
+                    this._Items.Keys.CopyTo(keys, 0);
 
-                return keys;
+                    return keys;
+                }
             }
         }
         
@@ -99,7 +102,7 @@ namespace Xeora.Web.Service.Dss.Internal
                 if (!this._Items.TryGetValue(key, out serviceItem))
                     return;
             }
-            serviceItem?.Release(lockCode);
+            serviceItem.Release(lockCode);
         }
 
         public bool IsExpired => DateTime.Compare(DateTime.Now, this.Expires) > 0;

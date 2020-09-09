@@ -140,10 +140,9 @@ namespace Xeora.Web.Basics
             if (requestFilePath.IndexOf('?') > -1)
                 requestFilePath = requestFilePath.Substring(0, requestFilePath.IndexOf('?'));
 
-            if (string.IsNullOrEmpty(requestFilePath))
-                return ServiceDefinition.Parse(Helpers.CurrentDomainInstance.Settings.Configurations.DefaultTemplate, false);
-
-            return ServiceDefinition.Parse(requestFilePath, false);
+            return string.IsNullOrEmpty(requestFilePath)
+                ? ServiceDefinition.Parse(Helpers.CurrentDomainInstance.Settings.Configurations.DefaultTemplate, false)
+                : ServiceDefinition.Parse(requestFilePath, false);
         }
 
         /// <summary>

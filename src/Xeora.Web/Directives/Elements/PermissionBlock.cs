@@ -41,19 +41,13 @@ namespace Xeora.Web.Directives.Elements
                 return;
             this._Parsed = true;
 
-            string statementContent = string.Empty;
-            switch (this._SelectedContent)
+            string statementContent = this._SelectedContent switch
             {
-                case ContentTypes.Allowed:
-                    statementContent = this._Contents.Parts[0];
+                ContentTypes.Allowed => this._Contents.Parts[0],
+                ContentTypes.Forbidden => this._Contents.MessageTemplate,
+                _ => string.Empty
+            };
 
-                    break;
-                case ContentTypes.Forbidden:
-                    statementContent = this._Contents.MessageTemplate;
-
-                    break;
-            }
-            
             if (string.IsNullOrEmpty(statementContent))
                 return;
             this._HasStatementContent = true;
