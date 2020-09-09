@@ -3,15 +3,15 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Xeora.Web.Service.Dss.External
 {
     public class ResponseHandler
     {
-        private readonly object _WaitLock = new object();
-
         private readonly TcpClient _DssServiceClient;
+        
+        private readonly BlockingCollection<bool> _NotificationChannel = 
+            new BlockingCollection<bool>();
         private readonly ConcurrentDictionary<long, byte[]> _ResponseResults;
 
         public ResponseHandler(ref TcpClient dssServiceClient)
@@ -20,28 +20,22 @@ namespace Xeora.Web.Service.Dss.External
             this._ResponseResults = new ConcurrentDictionary<long, byte[]>();
         }
 
-        public async void HandleAsync()
-        {
-            try
-            {
-                await Task.Run(this.Handle);
-            }
-            catch
-            { /* Just Handle Exceptions */ }
-        }
+        // Push handler to work in a different core using thread, It was async before.
+        public void StartHandler() =>
+            ThreadPool.QueueUserWorkItem(this.Handle);
 
         public byte[] WaitForMessage(long requestId)
         {
             do
             {
+                this._NotificationChannel.Take();
                 if (this._ResponseResults.TryRemove(requestId, out byte[] message))
                     return message;
-
-                lock (this._WaitLock) Monitor.Wait(this._WaitLock);
+                this._NotificationChannel.Add(true);
             } while (true);
         }
 
-        private void Handle()
+        private void Handle(object state)
         {
             byte[] head = new byte[8];
             int bR = 0;
@@ -106,7 +100,7 @@ namespace Xeora.Web.Service.Dss.External
             {
                 contentStream?.Close();
                 
-                lock (this._WaitLock) Monitor.PulseAll(this._WaitLock);
+                this._NotificationChannel.Add(true);
             }
         }
     }

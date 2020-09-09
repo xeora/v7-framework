@@ -47,7 +47,7 @@ namespace Xeora.Web.Service.Dss.External
 
             this._RequestHandler = new RequestHandler(ref this._DssServiceClient);
             this._ResponseHandler = new ResponseHandler(ref this._DssServiceClient);
-            this._ResponseHandler.HandleAsync();
+            this._ResponseHandler.StartHandler();
         }
 
         public void Reserve(string uniqueId, short reservationTimeout, out Basics.Dss.IDss reservationObject)
