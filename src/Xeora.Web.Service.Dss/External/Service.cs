@@ -130,7 +130,7 @@ namespace Xeora.Web.Service.Dss.External
                         if (string.CompareOrdinal(remoteKey, key) != 0)
                             throw new DssCommandException();
                         
-                        return this.DeSerialize(remoteValueBytes);
+                        return Service.DeSerialize(remoteValueBytes);
                     default:
                         throw new DssCommandException();
                 }
@@ -160,7 +160,7 @@ namespace Xeora.Web.Service.Dss.External
                  * -> SET\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}\INTEGER\BYTES{INTEGERVALUELENGTH}
                  */
 
-                byte[] valueBytes = this.Serialize(value);
+                byte[] valueBytes = Service.Serialize(value);
                 if (valueBytes.Length > 16777000)
                     throw new OverflowException("Value is too big to store");
 
@@ -410,7 +410,7 @@ namespace Xeora.Web.Service.Dss.External
             }
         }
 
-        private byte[] Serialize(object value)
+        private static byte[] Serialize(object value)
         {
             if (value == null) return new byte[] { };
             
@@ -443,7 +443,7 @@ namespace Xeora.Web.Service.Dss.External
             }
         }
 
-        private object DeSerialize(byte[] value)
+        private static object DeSerialize(byte[] value)
         {
             if (value == null || value.Length == 0) 
                 return null;
