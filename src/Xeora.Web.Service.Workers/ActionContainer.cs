@@ -1,14 +1,14 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Text;
-using System.Threading;
 
 namespace Xeora.Web.Service.Workers
 {
     internal class ActionContainer
     {
-        private readonly object _WaitLock = new object();
+        private readonly BlockingCollection<bool> _NotificationChannel = 
+            new BlockingCollection<bool>();
         private Exception _Exception;
-        private bool _Completed;
         
         public ActionContainer(Action<object> action, object state)
         {
@@ -36,11 +36,8 @@ namespace Xeora.Web.Service.Workers
             }
             finally
             {
-                lock (this._WaitLock)
-                {
-                    this._Completed = true;
-                    Monitor.PulseAll(this._WaitLock);
-                }
+                this._NotificationChannel.Add(true);
+                this._NotificationChannel.CompleteAdding();
             }
         }
 
@@ -86,13 +83,8 @@ namespace Xeora.Web.Service.Workers
         
         public Exception Wait()
         {
-            lock (this._WaitLock)
-            {
-                if (this._Completed) return this._Exception;
-                
-                Monitor.Wait(this._WaitLock);
-                return this._Exception;
-            }
+            this._NotificationChannel.Take();
+            return this._Exception;
         }
     }
 }
