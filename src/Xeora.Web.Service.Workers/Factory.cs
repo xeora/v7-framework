@@ -9,9 +9,7 @@ namespace Xeora.Web.Service.Workers
     public class Factory
     {
         private static IParallelism _parallelism;
-
         private readonly ConcurrentDictionary<short, Worker> _Workers;
-        private short _CurrentIndex;
         
         private readonly BlockingCollection<Worker> _Buckets;
         private readonly Dictionary<string, Bucket> _BucketRegistrations;
@@ -22,7 +20,6 @@ namespace Xeora.Web.Service.Workers
         {
             this._Workers = 
                 new ConcurrentDictionary<short, Worker>();
-            this._CurrentIndex = 0;
 
             short worker = Factory._parallelism.Worker;
             if (worker < 1) worker = 1;
@@ -71,6 +68,8 @@ namespace Xeora.Web.Service.Workers
 
         private void FactoryThread()
         {
+            short currentIndex = 0;
+            
             while (!this._ActionQueue.IsAddingCompleted)
             {
                 try
@@ -78,9 +77,9 @@ namespace Xeora.Web.Service.Workers
                     ActionContainer container = 
                         this._ActionQueue.Take();
                     
-                    if (this._Workers.TryGetValue(this._CurrentIndex, out Worker worker))
+                    if (this._Workers.TryGetValue(currentIndex, out Worker worker))
                         worker.Promise(container);
-                    this._CurrentIndex = (short) ((this._CurrentIndex + 1) % this._Workers.Count);
+                    currentIndex = (short) ((currentIndex + 1) % this._Workers.Count);
                 }
                 catch
                 {
