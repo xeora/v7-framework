@@ -11,13 +11,16 @@ namespace Xeora.Web.Basics.ControlResult
         public ObjectFeed() : this(null)
         { }
 
-        public ObjectFeed(object[] objects)
+        public ObjectFeed(object[] objects) : this(objects, Guid.Empty)
+        { }
+        
+        public ObjectFeed(object[] objects, Guid resultId)
         {
             this.Type = DataSourceTypes.ObjectFeed;
             this.Message = null;
 
-            objects ??= new object[] { };
-            this._Objects = objects;
+            this.ResultId = resultId;
+            this._Objects = objects ?? new object[] {};
         }
 
         public DataSourceTypes Type { get; }
@@ -36,6 +39,7 @@ namespace Xeora.Web.Basics.ControlResult
             set => this._Total = value;
         }
 
+        public Guid ResultId { get; set; }
         public object GetResult() =>
             this._Objects;
     }

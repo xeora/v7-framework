@@ -30,6 +30,7 @@ namespace Xeora.Web.Basics.ControlResult
         public long Count => 0;
         public long Total { get; set; }
 
+        public Guid ResultId { get; set; }
         public object GetResult() => _DbCommand;
     }
 }

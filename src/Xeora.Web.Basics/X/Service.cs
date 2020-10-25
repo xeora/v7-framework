@@ -241,11 +241,13 @@ namespace Xeora.Web.Basics.X
                 new PartialDataTable();
 
             int.TryParse(xPathIter.Current?.GetAttribute("total", xPathIter.Current.NamespaceURI), out int total);
+            Guid.TryParse(xPathIter.Current?.GetAttribute("resultId", xPathIter.Current.NamespaceURI), out Guid resultId);
             System.Globalization.CultureInfo cultureInfo =
                 new System.Globalization.CultureInfo(xPathIter.Current?.GetAttribute("cultureinfo", xPathIter.Current.NamespaceURI));
 
             partialDataTable.Locale = cultureInfo;
             partialDataTable.Total = total;
+            partialDataTable.ResultId = resultId;
 
             if (xPathIter.Current != null && xPathIter.Current.MoveToFirstChild())
             {

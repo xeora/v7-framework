@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Xeora.Web.Basics.Domain;
 using Xeora.Web.Basics.Domain.Control;
 using Xeora.Web.Basics.Domain.Control.Definitions;
@@ -49,7 +50,8 @@ namespace Xeora.Web.Directives.Elements
                             this,
                             new ContentDescription(this._RawValue),
                             DirectiveHelper.CaptureControlParameters(this._RawValue),
-                            (Application.Controls.DataList)control
+                            (Application.Controls.DataList)control,
+                            this.CacheHandler
                         );
 
                     break;
@@ -125,6 +127,25 @@ namespace Xeora.Web.Directives.Elements
 
         public RenderBag Bag { get; private set; }
 
+        private string[] _InstanceIdAccessTree;
+        private string _CacheId;
+        private bool CacheHandler(Guid resultId)
+        {
+            if (Equals(resultId, Guid.Empty)) return false;
+            
+            this.Mother.RequestInstance(out IDomain instance);
+            this._InstanceIdAccessTree = instance.IdAccessTree;
+            this._CacheId = 
+                ResultCacheObject.CreateUniqueCacheId(resultId, this, ref instance);
+            ResultCachePool.Current.Get(this._InstanceIdAccessTree, this._CacheId, out ResultCacheObject cacheObject);
+
+            if (cacheObject == null) return false;
+            
+            this.Children.Add(new Static(cacheObject.Content));
+
+            return true;
+        }
+        
         public override void Parse()
         {
             this.Children = 
@@ -189,6 +210,17 @@ namespace Xeora.Web.Directives.Elements
         public override void PostRender()
         {
             this.Deliver(RenderStatus.Rendered, this.Result);
+
+            if (this._Control is DataList control && 
+                !Equals(control.ResultId, Guid.Empty) &&
+                !string.IsNullOrEmpty(this._CacheId))
+            {
+                ResultCachePool.Current.AddOrUpdate(
+                    this._InstanceIdAccessTree,
+                    new ResultCacheObject(this._CacheId, this.Result)
+                );
+            }
+
             this.Scheduler.Fire();
         }
     }

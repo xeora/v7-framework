@@ -8,15 +8,20 @@ namespace Xeora.Web.Basics.ControlResult
     {
         private long _Total;
 
-        public PartialDataTable() : 
-            this(new DataTable())
+        public PartialDataTable() :
+            this(new DataTable()) 
         { }
 
-        public PartialDataTable(DataTable source)
+        public PartialDataTable(DataTable source) :
+            this(source, Guid.Empty)
+        { }
+        
+        public PartialDataTable(DataTable source, Guid resultId)
         {
             this.Type = DataSourceTypes.PartialDataTable;
             this.Message = null;
 
+            this.ResultId = resultId;
             this.Replace(source);
         }
 
@@ -36,6 +41,7 @@ namespace Xeora.Web.Basics.ControlResult
             set => this._Total = value; 
         }
 
+        public Guid ResultId { get; set; }
         public object GetResult() => this;
 
         public void Replace(DataTable source)

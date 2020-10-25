@@ -13,14 +13,21 @@ namespace Xeora.Web.Directives.Controls.Elements
         private readonly string[] _Parameters;
         private readonly Application.Controls.DataList _Settings;
 
-        public DataList(Control parent, ContentDescription contents, string[] parameters, Application.Controls.DataList settings)
+        private readonly Func<Guid, bool> _CacheHandler;
+        
+        public DataList(Control parent, ContentDescription contents, string[] parameters, 
+            Application.Controls.DataList settings, Func<Guid, bool> cacheHandler)
         {
             this._Parent = parent;
             this._Contents = contents;
             this._Parameters = parameters;
             this._Settings = settings;
+
+            this._CacheHandler = cacheHandler;
         }
 
+        public Guid ResultId { get; private set; }
+        
         public bool LinkArguments => true;
         
         public void Parse()
@@ -62,7 +69,11 @@ namespace Xeora.Web.Directives.Controls.Elements
                 this.RenderError(invokeResult.Result.Message.Type, invokeResult.Result.Message.Content);
                 return;
             }
-
+            
+            if (this._CacheHandler(invokeResult.Result.ResultId))
+                return;
+            this.ResultId = invokeResult.Result.ResultId;
+            
             switch (invokeResult.Result.Type)
             {
                 case Basics.ControlResult.DataSourceTypes.DirectDataAccess:

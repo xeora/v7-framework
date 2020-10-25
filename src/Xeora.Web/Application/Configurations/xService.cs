@@ -184,6 +184,7 @@ namespace Xeora.Web.Application.Configurations
                 {
                     xmlWriter.WriteAttributeString("type", result.GetType().Name);
                     xmlWriter.WriteAttributeString("total", partialDataTable.Total.ToString());
+                    xmlWriter.WriteAttributeString("resultId", partialDataTable.ResultId.ToString());
                     xmlWriter.WriteAttributeString("cultureinfo", CultureInfo.CurrentCulture.ToString());
 
                     DataTable dT = partialDataTable.Copy();

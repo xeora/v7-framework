@@ -1,4 +1,6 @@
-﻿namespace Xeora.Web.Basics.ControlResult
+﻿using System;
+
+namespace Xeora.Web.Basics.ControlResult
 {
     public interface IDataSource
     {
@@ -8,6 +10,7 @@
         long Count { get; }
         long Total { get; set; }
 
+        Guid ResultId { get; set; }
         object GetResult();
     }
 }
