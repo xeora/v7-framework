@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <Platforms>AnyCPU;x64;x86</Platforms>
     <PackageId>Xeora.Web.Basics</PackageId>
-    <Version>7.2.7603</Version>
+    <Version>7.2.7617</Version>
     <Description>Xeora - Web Development Framework Basics</Description>
     <Product>Xeora - Web Development Framework Basics</Product>
     <Copyright>Copyright © Tuna Celik 2003 - 2020</Copyright>
