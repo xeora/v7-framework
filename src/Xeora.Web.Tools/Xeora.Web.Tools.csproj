@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <Platforms>AnyCPU;x64;x86</Platforms>
     <PackageId>Xeora.Web.Tools</PackageId>
     <Version>7.2.6974</Version>
