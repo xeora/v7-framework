@@ -115,8 +115,23 @@ namespace Xeora.Web.Service.Context
             this.Write(buffer, 0, buffer.Length);
         }
 
-        public void Write(byte[] buffer, int offset, int count) =>
+        public void Write(byte[] buffer, int offset, int count)
+        {
+            if (this._HeaderFlushed)
+            {
+                Net.NetworkStream streamEnclosure = null;
+                StreamEnclosureRequested?.Invoke(out streamEnclosure);
+            
+                if (streamEnclosure == null)
+                    throw new Exception("Inaccessible stream enclosure to do realtime streaming on http response socket!");
+                
+                streamEnclosure.Write(buffer, offset, count);
+                
+                return;
+            }
+            
             this._ResponseOutput.Write(buffer, offset, count);
+        }
 
         public void Redirect(string url) => this._RedirectedUrl = url;
         public bool IsRedirected => !string.IsNullOrEmpty(this._RedirectedUrl);
