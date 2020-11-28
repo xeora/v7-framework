@@ -6,6 +6,7 @@ namespace Xeora.Web.Basics.Context
     {
         Response.IHttpResponseHeader Header { get; }
 
+        void ActivateStreaming();
         void Write(string value, Encoding encoding);
         void Write(byte[] buffer, int offset, int count);
 

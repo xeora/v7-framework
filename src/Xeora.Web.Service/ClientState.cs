@@ -8,12 +8,13 @@ using Xeora.Web.Service.Application;
 using Xeora.Web.Service.Context;
 using Xeora.Web.Service.Session;
 using Xeora.Web.Service.VariablePool;
+using NetworkStream = Xeora.Web.Service.Net.NetworkStream;
 
 namespace Xeora.Web.Service
 {
     public static class ClientState
     {
-        public static void Handle(IPAddress remoteAddr, Net.NetworkStream streamEnclosure)
+        public static void Handle(IPAddress remoteAddr, NetworkStream streamEnclosure)
         {
             do
             {
@@ -42,6 +43,8 @@ namespace Xeora.Web.Service
                             header.AddOrUpdate("X-Powered-By", "Xeora");
                             header.AddOrUpdate("X-Framework-Version", WebServer.GetVersionText());
                         });
+                    ((HttpResponse) response).StreamEnclosureRequested +=
+                        (out NetworkStream enclosure) => enclosure = streamEnclosure;
 
                     ClientState.AcquireSession(request, out Basics.Session.IHttpSession session);
                     context =

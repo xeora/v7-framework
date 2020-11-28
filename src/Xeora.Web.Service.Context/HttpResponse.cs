@@ -8,6 +8,7 @@ using Xeora.Web.Service.Context.Response;
 namespace Xeora.Web.Service.Context
 {
     public delegate Basics.Context.IHttpCookieInfo SessionCookieRequestedHandler(bool skip);
+    public delegate void StreamEnclosureRequestedHandler(out Net.NetworkStream streamEnclosure);
     public class HttpResponse : Basics.Context.IHttpResponse
     {
         public static readonly char[] Newline = { '\r', '\n' };
@@ -17,11 +18,14 @@ namespace Xeora.Web.Service.Context
         private readonly bool _KeepAlive;
         private readonly Action<Basics.Context.Response.IHttpResponseHeader> _ServerResponseStampHandler;
 
+        private bool _HeaderFlushed;
         private string _RedirectedUrl = string.Empty;
 
         public event SessionCookieRequestedHandler SessionCookieRequested;
+        public event StreamEnclosureRequestedHandler StreamEnclosureRequested;
 
-        public HttpResponse(string contextId, bool keepAlive, Action<Basics.Context.Response.IHttpResponseHeader> serverResponseStampHandler)
+        public HttpResponse(string contextId, bool keepAlive, 
+            Action<Basics.Context.Response.IHttpResponseHeader> serverResponseStampHandler)
         {
             this._TempLocation = 
                 Path.Combine(
@@ -34,14 +38,16 @@ namespace Xeora.Web.Service.Context
 
             this._KeepAlive = keepAlive;
             this._ServerResponseStampHandler = serverResponseStampHandler;
-            
+
             this.Header = new HttpResponseHeader();
         }
-
+        
         public Basics.Context.Response.IHttpResponseHeader Header { get; }
 
         private void PushHeaders(Stream streamEnclosure)
         {
+            if (this._HeaderFlushed) return;
+            
             this.Header.AddOrUpdate("Date", DateTime.Now.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", CultureInfo.InvariantCulture));
 
             if (string.IsNullOrWhiteSpace(this.Header["Content-Type"]))
@@ -82,8 +88,27 @@ namespace Xeora.Web.Service.Context
 
             byte[] buffer = Encoding.ASCII.GetBytes(sB.ToString());
             streamEnclosure.Write(buffer, 0, buffer.Length);
+
+            this._HeaderFlushed = true;
         }
 
+        public void ActivateStreaming()
+        {
+            if (this.IsRedirected)
+                throw new Exception("Not possible to activate streaming when request has been already redirected!");
+            
+            if (string.IsNullOrWhiteSpace(this.Header["Content-Length"]))
+                throw new Exception("Content-Length should be defined in header to activate streaming for http response!");
+
+            Net.NetworkStream streamEnclosure = null;
+            StreamEnclosureRequested?.Invoke(out streamEnclosure);
+            
+            if (streamEnclosure == null)
+                throw new Exception("Inaccessible stream enclosure to activate streaming on http response!");
+            
+            this.PushHeaders(streamEnclosure);
+        }
+        
         public void Write(string value, Encoding encoding)
         {
             byte[] buffer = encoding.GetBytes(value);
