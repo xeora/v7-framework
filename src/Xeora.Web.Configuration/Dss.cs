@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Net;
 using Xeora.Web.Basics.Configuration;
@@ -28,10 +29,26 @@ namespace Xeora.Web.Configuration
                 int colonIndex = this._ServiceEndPoint.IndexOf(':');
                 if (colonIndex == -1)
                     this._ServiceEndPoint = $"{this._ServiceEndPoint}:5531";
-                
-                if (!IPAddress.TryParse(this._ServiceEndPoint.Split(':')[0], out IPAddress serviceIp))
-                    serviceIp = IPAddress.Parse("127.0.0.1");
-                
+
+                string serverAddress =
+                    this._ServiceEndPoint.Split(':')[0];
+
+                IPAddress serviceIp = IPAddress.Parse("127.0.0.1");
+                try
+                {
+                    IPAddress[] ipAddresses =
+                        Dns.GetHostAddresses(serverAddress);
+
+                    if (ipAddresses.Length == 0)
+                        throw new Exception("Service EndPoint is not possible to resolved");
+
+                    serviceIp = ipAddresses[0];
+                }
+                catch (Exception ex)
+                {
+                    Basics.Console.Push("Dss EndPoint resolution error!", ex.Message, string.Empty, false, true);
+                }
+
                 if (!int.TryParse(this._ServiceEndPoint.Split(':')[1], out int servicePort))
                     servicePort = 5531;
                 
