@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp5.0</TargetFramework>
-    <Platforms>AnyCPU;x64;x86</Platforms>
+    <Platforms>AnyCPU;x64;x86;arm64</Platforms>
     <StartupObject>Xeora.Web.Engine.Program</StartupObject>
     <PackageId>Xeora.Web.Engine</PackageId>
     <Version>7.2.0</Version>
@@ -21,6 +21,12 @@
     <AssemblyName>xeora-engine</AssemblyName>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|arm64'">
+    <DebugType>none</DebugType>
+    <OutputPath>../../build/Core/arm64/</OutputPath>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+  
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebugType>none</DebugType>
     <OutputPath>../../build/Core/x64/</OutputPath>
@@ -41,6 +47,13 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug\</OutputPath>
+    <AppendTargetFrameworkToOutputFolder>false</AppendTargetFrameworkToOutputFolder>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|arm64'">
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\Debug\</OutputPath>

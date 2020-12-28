@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp5.0</TargetFramework>
-    <Platforms>AnyCPU;x64;x86</Platforms>
+    <Platforms>AnyCPU;x64;x86;arm64</Platforms>
     <PackageId>Xeora.Web.Tools</PackageId>
     <Version>7.2.6974</Version>
     <Description>Xeora - Web Development Framework Tools</Description>
@@ -50,6 +50,16 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|arm64'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|arm64'">
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\Xeora.Web.Basics\Xeora.Web.Basics.csproj" />
   </ItemGroup>

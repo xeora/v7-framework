@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp5.0</TargetFramework>
-    <Platforms>AnyCPU;x64;x86</Platforms>
+    <Platforms>AnyCPU;x64;x86;arm64</Platforms>
     <PackageId>Xeora.Web.Service.VariablePool</PackageId>
     <Version>7.2.0</Version>
     <Authors>Tuna Celik</Authors>
@@ -48,6 +48,16 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|arm64'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|arm64'">
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\Xeora.Web.Basics\Xeora.Web.Basics.csproj" />
     <ProjectReference Include="..\Xeora.Web.Exceptions\Xeora.Web.Exceptions.csproj" />
