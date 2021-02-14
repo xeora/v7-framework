@@ -84,7 +84,7 @@ namespace Xeora.Web.Service.Dss.External
                 binaryWriter.Flush();
 
                 requestId = 
-                    this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
+                    this._RequestHandler?.MakeRequest(((MemoryStream)requestStream).ToArray()) ?? -1;
                 if (requestId == -1) return null;
             }
             finally
@@ -176,7 +176,7 @@ namespace Xeora.Web.Service.Dss.External
                 binaryWriter.Flush();
 
                 long requestId =
-                    this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
+                    this._RequestHandler?.MakeRequest(((MemoryStream)requestStream).ToArray()) ?? -1;
                 if (requestId == -1) return;
 
                 byte[] responseBytes = this._ResponseHandler.WaitForMessage(requestId);
@@ -225,7 +225,7 @@ namespace Xeora.Web.Service.Dss.External
                 binaryWriter.Flush();
 
                 requestId = 
-                    this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
+                    this._RequestHandler?.MakeRequest(((MemoryStream)requestStream).ToArray()) ?? -1;
                 if (requestId == -1) return null;
             }
             finally
@@ -307,7 +307,7 @@ namespace Xeora.Web.Service.Dss.External
                 binaryWriter.Flush();
 
                 long requestId =
-                    this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
+                    this._RequestHandler?.MakeRequest(((MemoryStream)requestStream).ToArray()) ?? -1;
                 if (requestId == -1) return;
 
                 byte[] responseBytes = this._ResponseHandler.WaitForMessage(requestId);
@@ -348,7 +348,7 @@ namespace Xeora.Web.Service.Dss.External
                 binaryWriter.Write(this.UniqueId.ToCharArray());
                 binaryWriter.Flush();
 
-                requestId = this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
+                requestId = this._RequestHandler?.MakeRequest(((MemoryStream)requestStream).ToArray()) ?? -1;
                 if (requestId == -1) return keys.ToArray();
             }
             catch
@@ -497,6 +497,9 @@ namespace Xeora.Web.Service.Dss.External
                 binaryWriter.Write(this.UniqueId.ToCharArray());
                 binaryWriter.Flush();
 
+                if (this._RequestHandler == null)
+                    throw new ExternalCommunicationException();
+                
                 this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
             }
             finally

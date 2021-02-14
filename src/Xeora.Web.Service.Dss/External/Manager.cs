@@ -24,6 +24,16 @@ namespace Xeora.Web.Service.Dss.External
             this._ServiceEndPoint = serviceEndPoint;
         }
 
+        private void Reset()
+        {
+            this._DssServiceClient?.Close();
+            this._DssServiceClient?.Dispose();
+            this._DssServiceClient = null;
+
+            this._ResponseHandler = null;
+            this._RequestHandler = null;
+        }
+
         private void MakeConnection()
         {
             Monitor.Enter(this._ConnectionLock);
@@ -31,14 +41,19 @@ namespace Xeora.Web.Service.Dss.External
             {
                 if (this._DssServiceClient != null && this._DssServiceClient.Client.Connected)
                     return;
-                
+
                 this._DssServiceClient?.Dispose();
 
                 this._DssServiceClient = new TcpClient();
                 this._DssServiceClient.Connect(this._ServiceEndPoint);
 
-                if (!this._DssServiceClient.Connected)
+                if (!this._DssServiceClient.Client.Connected)
                     throw new Exceptions.ExternalCommunicationException();
+            }
+            catch (Exceptions.ExternalCommunicationException)
+            {
+                this.Reset();
+                throw;
             }
             finally
             {
@@ -69,12 +84,12 @@ namespace Xeora.Web.Service.Dss.External
 
                 binaryWriter.Write("ACQ".ToCharArray());
                 binaryWriter.Write(reservationTimeout);
-                binaryWriter.Write((byte)uniqueId.Length);
+                binaryWriter.Write((byte) uniqueId.Length);
                 binaryWriter.Write(uniqueId.ToCharArray());
                 binaryWriter.Flush();
 
                 long requestId =
-                    this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
+                    _RequestHandler?.MakeRequest(((MemoryStream) requestStream).ToArray()) ?? -1;
                 if (requestId == -1)
                 {
                     reservationObject = null;
@@ -85,6 +100,11 @@ namespace Xeora.Web.Service.Dss.External
                     this._ResponseHandler.WaitForMessage(requestId);
 
                 this.ParseResponse(responseBytes, out reservationObject);
+            }
+            catch (Exceptions.ExternalCommunicationException)
+            {
+                this.Reset();
+                throw;
             }
             finally
             {
