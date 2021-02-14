@@ -8,6 +8,7 @@ namespace Xeora.Web.Service.Dss.External
 {
     public class ResponseHandler
     {
+        private const int REQUEST_HEADER_LENGTH = 8; // 8 bytes first 5 bytes are requestId, remain 3 bytes are request length.
         private readonly TcpClient _DssServiceClient;
         
         private readonly BlockingCollection<bool> _NotificationChannel = 
@@ -45,13 +46,9 @@ namespace Xeora.Web.Service.Dss.External
             {
                 // Read Head
                 bR += responseStream.Read(head, bR, head.Length - bR);
-                if (bR == 0)
-                {
-                    this._DssServiceClient.Dispose();
-                    return;
-                }
+                if (bR == 0) return;
 
-                if (bR < 8)
+                if (bR < ResponseHandler.REQUEST_HEADER_LENGTH)
                     continue;
 
                 this.Consume(ref responseStream, head);
