@@ -4,13 +4,13 @@
     <TargetFramework>netcoreapp5.0</TargetFramework>
     <Platforms>AnyCPU;x64;x86;arm64</Platforms>
     <PackageId>Xeora.Web.Handler</PackageId>
-    <Version>7.2.0</Version>
-    <AssemblyVersion>7.2.*</AssemblyVersion>
-    <FileVersion>7.2</FileVersion>
+    <Version>7.3.0</Version>
+    <AssemblyVersion>7.3.*</AssemblyVersion>
+    <FileVersion>7.3</FileVersion>
     <Deterministic>False</Deterministic>
     <Product>Xeora - Web Development Framework Handlers</Product>
     <Description>Xeora - Web Development Framework Handlers</Description>
-    <Copyright>Copyright © Tuna Celik 2003 - 2020</Copyright>
+    <Copyright>Copyright © Tuna Celik 2003 - 2021</Copyright>
     <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
     <Authors>Tuna Celik</Authors>
     <Company>JakPark Solutions</Company>

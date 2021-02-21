@@ -7,12 +7,12 @@
     <Product>Xeora - Web Development Framework Managers</Product>
     <Company>JakPark Solutions</Company>
     <Authors>Tuna Celik</Authors>
-    <Version>7.2.0</Version>
-    <AssemblyVersion>7.2.*</AssemblyVersion>
-    <FileVersion>7.2</FileVersion>
+    <Version>7.3.0</Version>
+    <AssemblyVersion>7.3.*</AssemblyVersion>
+    <FileVersion>7.3</FileVersion>
     <Deterministic>False</Deterministic>
     <Description>Xeora - Web Development Framework Managers</Description>
-    <Copyright>Copyright © Tuna Celik 2003 - 2020</Copyright>
+    <Copyright>Copyright © Tuna Celik 2003 - 2021</Copyright>
     <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
     <RepositoryUrl>https://github.com/xeora/v7</RepositoryUrl>
     <LangVersion>8</LangVersion>
