@@ -77,12 +77,11 @@ namespace Xeora.CLI.Basics
                         if (domainCount < this._DomainInfos.Count)
                             this._DomainInfos[domainCount].DomainIdRoute = args[aC + 1];
                         else
-                        {
                             this._DomainInfos.Add(new DomainInfo {DomainIdRoute = args[aC + 1]});
-                            domainCount++;
-                        }
                         
+                        domainCount++;
                         aC++;
+                        
                         break;
                     case "-p":
                     case "--password":
@@ -95,14 +94,13 @@ namespace Xeora.CLI.Basics
                         }
                         
                         if (passwordCount < this._DomainInfos.Count)
-                            this._DomainInfos[^1].Password = args[aC + 1];
+                            this._DomainInfos[passwordCount].Password = args[aC + 1];
                         else
-                        {
                             this._DomainInfos.Add(new DomainInfo {Password = args[aC + 1]});
-                            passwordCount++;
-                        }
 
+                        passwordCount++;
                         aC++;
+                        
                         break;
                     case "-o":
                     case "--output":
