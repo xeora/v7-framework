@@ -10,7 +10,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xeora.Web", "Xeora.Web\Xeor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xeora.Web.Service", "Xeora.Web.Service\Xeora.Web.Service.csproj", "{475B1A49-578A-4D8C-908A-59256429F344}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xeora.Web.Engine", "Xeora.Web.Engine\Xeora.Web.Engine.csproj", "{126D9500-541E-47D6-A32C-499120B71167}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xeora.CLI", "Xeora.CLI\Xeora.CLI.csproj", "{126D9500-541E-47D6-A32C-499120B71167}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xeora.Web.Service.Context", "Xeora.Web.Service.Context\Xeora.Web.Service.Context.csproj", "{C0F7CF19-4139-4AC6-9D2F-52E8BF24FDA7}"
 EndProject

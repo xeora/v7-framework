@@ -18,11 +18,12 @@ namespace Xeora.Web.Service
         private readonly Mutex _TerminationLock;
         private readonly string _ConfigurationPath;
         private readonly string _ConfigurationFile;
+        private readonly string _Name;
 
         private TcpListener _TcpListener;
         private X509Certificate2 _Certificate;
 
-        public WebServer(string configurationFilePath)
+        public WebServer(string configurationFilePath, string name)
         {
             this._TerminationLock = new Mutex();
             
@@ -44,6 +45,7 @@ namespace Xeora.Web.Service
             
             this._ConfigurationPath = Path.GetDirectoryName(configurationFilePath);
             this._ConfigurationFile = Path.GetFileName(configurationFilePath);
+            this._Name = name;
         }
 
         public async Task<int> StartAsync()
@@ -87,7 +89,7 @@ namespace Xeora.Web.Service
                 this._TcpListener = new TcpListener(serviceIpEndPoint);
                 this._TcpListener.Start(100);
 
-                Basics.Console.Push("XeoraEngine is started at", string.Format("{0} ({1})", serviceIpEndPoint, Configuration.Manager.Current.Configuration.Service.Ssl ? "Secure" : "Basic"), string.Empty, false, true);
+                Basics.Console.Push("XeoraEngine is started at", string.Format("{0} ({1}){2}", serviceIpEndPoint, Configuration.Manager.Current.Configuration.Service.Ssl ? "Secure" : "Basic", string.IsNullOrEmpty(this._Name) ? string.Empty: $" - {this._Name}"), string.Empty, false, true);
                 
                 PoolManager.Initialize(
                     Configuration.Manager.Current.Configuration.Session.Timeout);

@@ -85,8 +85,7 @@ namespace Xeora.Web.Basics
             do
             {
                 bI = remainFullName.IndexOf('[', bI);
-
-                if (bI <= -1) continue;
+                if (bI == -1) continue;
                 
                 int eI = remainFullName.IndexOf(']', bI + 1);
                 int bIc = remainFullName.IndexOf('[', bI + 1);

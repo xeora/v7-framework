@@ -4,13 +4,13 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp5.0</TargetFramework>
     <Platforms>AnyCPU;x64;x86;arm64</Platforms>
-    <StartupObject>Xeora.Web.Engine.Program</StartupObject>
-    <PackageId>Xeora.Web.Engine</PackageId>
+    <StartupObject>Xeora.CLI.Program</StartupObject>
+    <PackageId>Xeora.CLI</PackageId>
     <Version>7.2.0</Version>
     <Authors>Tuna Celik</Authors>
     <Company>JakPark Solutions</Company>
-    <Product>Xeora - Web Development Framework Engine</Product>
-    <Description>Xeora - Web Development Framework Engine</Description>
+    <Product>Xeora - Web Development Framework CLI</Product>
+    <Description>Xeora - Web Development Framework CLI</Description>
     <Copyright>Copyright © Tuna Celik 2003 - 2020</Copyright>
     <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
     <RepositoryUrl>https://github.com/xeora/v7</RepositoryUrl>
@@ -18,7 +18,9 @@
     <FileVersion>7.2</FileVersion>
     <Deterministic>False</Deterministic>
     <LangVersion>8</LangVersion>
-    <AssemblyName>xeora-engine</AssemblyName>
+    <AssemblyName>xeora</AssemblyName>
+    <RootNamespace>Xeora.CLI</RootNamespace>
+    <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|arm64'">
