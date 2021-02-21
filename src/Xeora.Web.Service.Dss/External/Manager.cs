@@ -39,7 +39,7 @@ namespace Xeora.Web.Service.Dss.External
             Monitor.Enter(this._ConnectionLock);
             try
             {
-                if (this._DssServiceClient != null && this._DssServiceClient.Client.Connected)
+                if (this._DssServiceClient != null && this._DssServiceClient.Connected)
                     return;
 
                 this._DssServiceClient?.Dispose();
@@ -47,7 +47,7 @@ namespace Xeora.Web.Service.Dss.External
                 this._DssServiceClient = new TcpClient();
                 this._DssServiceClient.Connect(this._ServiceEndPoint);
 
-                if (!this._DssServiceClient.Client.Connected)
+                if (!this._DssServiceClient.Connected)
                     throw new Exceptions.ExternalCommunicationException();
             }
             catch (Exceptions.ExternalCommunicationException)
@@ -89,7 +89,7 @@ namespace Xeora.Web.Service.Dss.External
                 binaryWriter.Flush();
 
                 long requestId =
-                    _RequestHandler?.MakeRequest(((MemoryStream) requestStream).ToArray()) ?? -1;
+                    this._RequestHandler?.MakeRequest(((MemoryStream) requestStream).ToArray()) ?? -1;
                 if (requestId == -1)
                 {
                     reservationObject = null;
