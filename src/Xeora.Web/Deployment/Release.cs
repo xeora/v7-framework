@@ -9,7 +9,7 @@ namespace Xeora.Web.Deployment
         public Release(string domainRootPath)
         {
             this.DomainRootPath = domainRootPath;
-            this.Decompiler = new Decompiler(this.DomainRootPath);
+            this.Extractor = new Extractor(this.DomainRootPath);
             this.CheckIntegrity();
         }
 
@@ -17,9 +17,9 @@ namespace Xeora.Web.Deployment
         {
             // -- Control Those System Essential Files are Exists! --
             FileEntry controlsXmlFileEntry =
-                this.Decompiler.Get(this.TemplatesRegistration, "Controls.xml");
+                this.Extractor.Get(this.TemplatesRegistration, "Controls.xml");
             FileEntry configurationFileEntry =
-                this.Decompiler.Get(this.TemplatesRegistration, "Configuration.xml");
+                this.Extractor.Get(this.TemplatesRegistration, "Configuration.xml");
 
             if (configurationFileEntry.Index == -1)
                 throw new Exceptions.DeploymentException(Global.SystemMessages.ESSENTIAL_CONFIGURATIONNOTFOUND + "!");
@@ -36,7 +36,7 @@ namespace Xeora.Web.Deployment
         public string TemplatesRegistration => "\\Templates\\";
         public string LanguagesRegistration => "\\Languages\\";
 
-        private Decompiler Decompiler { get; }
+        private Extractor Extractor { get; }
 
         public void ProvideContentFileStream(string languageId, string requestedFilePath, out Stream outputStream)
         {
@@ -60,7 +60,7 @@ namespace Xeora.Web.Deployment
             }
 
             FileEntry fileEntry =
-                this.Decompiler.Get(
+                this.Extractor.Get(
                     string.Concat(
                         this.ContentsRegistration(languageId),
                         requestPath
@@ -74,7 +74,7 @@ namespace Xeora.Web.Deployment
             outputStream = new MemoryStream();
 
             RequestResults requestResult =
-                this.Decompiler.Read(fileEntry.Index, fileEntry.CompressedLength, ref outputStream);
+                this.Extractor.Read(fileEntry.Index, fileEntry.CompressedLength, ref outputStream);
 
             switch (requestResult)
             {
@@ -103,7 +103,7 @@ namespace Xeora.Web.Deployment
             // !--
 
             FileEntry fileEntry =
-                this.Decompiler.Get(
+                this.Extractor.Get(
                     registrationPath, $"{fileName}.xchtml");
 
             if (fileEntry.Index == -1)
@@ -122,7 +122,7 @@ namespace Xeora.Web.Deployment
         public string ProvideControlsContent()
         {
             FileEntry fileEntry =
-                this.Decompiler.Get(this.TemplatesRegistration, "Controls.xml");
+                this.Extractor.Get(this.TemplatesRegistration, "Controls.xml");
 
             if (fileEntry.Index == -1)
                 return string.Empty;
@@ -140,7 +140,7 @@ namespace Xeora.Web.Deployment
         public string ProvideConfigurationContent()
         {
             FileEntry fileEntry =
-                this.Decompiler.Get(this.TemplatesRegistration, "Configuration.xml");
+                this.Extractor.Get(this.TemplatesRegistration, "Configuration.xml");
 
             if (fileEntry.Index == -1)
                 return string.Empty;
@@ -158,7 +158,7 @@ namespace Xeora.Web.Deployment
         public string ProvideLanguageContent(string languageId)
         {
             FileEntry fileEntry =
-                this.Decompiler.Get(this.LanguagesRegistration, $"{languageId}.xml");
+                this.Extractor.Get(this.LanguagesRegistration, $"{languageId}.xml");
 
             return fileEntry.Index == -1 ? string.Empty : this.ReadFileAsString(fileEntry);
         }
@@ -171,7 +171,7 @@ namespace Xeora.Web.Deployment
                 contentStream = new MemoryStream();
 
                 RequestResults requestResult =
-                    this.Decompiler.Read(fileEntry.Index, fileEntry.CompressedLength, ref contentStream);
+                    this.Extractor.Read(fileEntry.Index, fileEntry.CompressedLength, ref contentStream);
 
                 switch (requestResult)
                 {
@@ -201,7 +201,7 @@ namespace Xeora.Web.Deployment
                     new List<string>();
 
                 IEnumerable<FileEntry> searchResult =
-                    this.Decompiler.Search(this.LanguagesRegistration, string.Empty);
+                    this.Extractor.Search(this.LanguagesRegistration, string.Empty);
 
                 foreach (FileEntry fileEntry in searchResult)
                 {

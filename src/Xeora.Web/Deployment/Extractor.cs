@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Xeora.Web.Deployment
 {
-    internal class Decompiler
+    internal class Extractor
     {
         private readonly string _DomainFileLocation;
         private readonly byte[] _PasswordHash;
@@ -17,7 +17,7 @@ namespace Xeora.Web.Deployment
         private readonly ConcurrentDictionary<string, byte[]> _DomainFileEntryBytesCache;
         private DateTime _CacheDate;
 
-        public Decompiler(string domainRoot)
+        public Extractor(string domainRoot)
         {
             this._DomainFileEntryListCache = new ConcurrentDictionary<string, FileEntry>();
             this._DomainFileEntryBytesCache = new ConcurrentDictionary<string, byte[]>();
@@ -133,7 +133,7 @@ namespace Xeora.Web.Deployment
         {
             if (index == -1)
                 throw new IndexOutOfRangeException();
-            if (length < 1)
+            if (length < 0)
                 throw new ArgumentOutOfRangeException();
             if (outputStream == null)
                 throw new NullReferenceException();
