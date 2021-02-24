@@ -13,7 +13,7 @@ namespace Xeora.Web.Service.Dss.Internal
         {
             this.UniqueId = uniqueId;
             this._ExpiresInMinute = expiresInMinutes;
-            this.Expires = DateTime.Now.AddMinutes(this._ExpiresInMinute);
+            this.Expires = DateTime.UtcNow.AddMinutes(this._ExpiresInMinute);
             this._Items = new Dictionary<string, ServiceItem>();
         }
 
@@ -105,11 +105,11 @@ namespace Xeora.Web.Service.Dss.Internal
             serviceItem.Release(lockCode);
         }
 
-        public bool IsExpired => DateTime.Compare(DateTime.Now, this.Expires) > 0;
+        public bool IsExpired => DateTime.Compare(DateTime.UtcNow, this.Expires) > 0;
 
         public void Extend()
         {
-            this.Expires = DateTime.Now.AddMinutes(this._ExpiresInMinute);
+            this.Expires = DateTime.UtcNow.AddMinutes(this._ExpiresInMinute);
             this.Reusing = true;
         }
     }

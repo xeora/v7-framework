@@ -475,7 +475,7 @@ namespace Xeora.Web.Service.Dss.External
             }
         }
 
-        public bool IsExpired => DateTime.Compare(DateTime.Now, this.Expires) > 0;
+        public bool IsExpired => DateTime.Compare(DateTime.UtcNow, this.Expires) > 0;
 
         public void Extend()
         {
