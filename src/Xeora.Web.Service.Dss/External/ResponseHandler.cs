@@ -41,20 +41,27 @@ namespace Xeora.Web.Service.Dss.External
             byte[] head = new byte[8];
             int bR = 0;
 
-            Stream responseStream = this._DssServiceClient.GetStream();
-            do
+            try
             {
-                // Read Head
-                bR += responseStream.Read(head, bR, head.Length - bR);
-                if (bR == 0) return;
+                Stream responseStream = this._DssServiceClient.GetStream();
+                do
+                {
+                    // Read Head
+                    bR += responseStream.Read(head, bR, head.Length - bR);
+                    if (bR == 0) return;
 
-                if (bR < ResponseHandler.REQUEST_HEADER_LENGTH)
-                    continue;
+                    if (bR < ResponseHandler.REQUEST_HEADER_LENGTH)
+                        continue;
 
-                this.Consume(ref responseStream, head);
+                    this.Consume(ref responseStream, head);
 
-                bR = 0;
-            } while (true);
+                    bR = 0;
+                } while (true);
+            }
+            catch (SocketException)
+            {
+                // Just Keep Silent
+            }
         }
 
         private void Consume(ref Stream responseStream, byte[] contentHead)
