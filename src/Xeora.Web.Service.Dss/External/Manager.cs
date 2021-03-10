@@ -238,7 +238,7 @@ namespace Xeora.Web.Service.Dss.External
                     new string(binaryReader.ReadChars(reservationIdLength));
                 byte reusing = binaryReader.ReadByte();
                 DateTime expireDate =
-                    new DateTime(binaryReader.ReadInt64());
+                    new DateTime(binaryReader.ReadInt64(), DateTimeKind.Utc);
 
                 reservationObject = new Service(ref this._RequestHandler, ref this._ResponseHandler, reservationId,
                     reusing == 1, expireDate);
