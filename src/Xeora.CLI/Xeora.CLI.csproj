@@ -6,7 +6,7 @@
     <Platforms>AnyCPU;x64;x86;arm64</Platforms>
     <StartupObject>Xeora.CLI.Program</StartupObject>
     <PackageId>Xeora.CLI</PackageId>
-    <Version>7.3.0</Version>
+    <Version>7.4.0</Version>
     <Authors>Tuna Celik</Authors>
     <Company>JakPark Solutions</Company>
     <Product>Xeora - Web Development Framework CLI</Product>
@@ -14,8 +14,8 @@
     <Copyright>Copyright © Tuna Celik 2003 - 2021</Copyright>
     <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
     <RepositoryUrl>https://github.com/xeora/v7</RepositoryUrl>
-    <AssemblyVersion>7.3.*</AssemblyVersion>
-    <FileVersion>7.3</FileVersion>
+    <AssemblyVersion>7.4.*</AssemblyVersion>
+    <FileVersion>7.4</FileVersion>
     <Deterministic>False</Deterministic>
     <LangVersion>8</LangVersion>
     <AssemblyName>xeora</AssemblyName>

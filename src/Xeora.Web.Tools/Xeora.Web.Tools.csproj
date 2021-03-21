@@ -4,7 +4,7 @@
     <TargetFramework>netcoreapp5.0</TargetFramework>
     <Platforms>AnyCPU;x64;x86;arm64</Platforms>
     <PackageId>Xeora.Web.Tools</PackageId>
-    <Version>7.3.0</Version>
+    <Version>7.4.0</Version>
     <Description>Xeora - Web Development Framework Tools</Description>
     <Product>Xeora - Web Development Framework Tools</Product>
     <Copyright>Copyright © Tuna Celik 2003 - 2021</Copyright>
@@ -12,11 +12,11 @@
     <Company>JakPark Solutions</Company>
     <RepositoryUrl>https://github.com/xeora/v7</RepositoryUrl>
     <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
-    <AssemblyVersion>7.3.*</AssemblyVersion>
-    <FileVersion>7.3</FileVersion>
+    <AssemblyVersion>7.4.*</AssemblyVersion>
+    <FileVersion>7.4</FileVersion>
     <Deterministic>False</Deterministic>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageVersion>7.3.0</PackageVersion>
+    <PackageVersion>7.4.0</PackageVersion>
     <LangVersion>8</LangVersion>
   </PropertyGroup>
 

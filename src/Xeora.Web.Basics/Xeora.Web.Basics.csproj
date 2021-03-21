@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <Platforms>AnyCPU</Platforms>
     <PackageId>Xeora.Web.Basics</PackageId>
-    <Version>7.3.7726</Version>
+    <Version>7.4.7750</Version>
     <Description>Xeora - Web Development Framework Basics</Description>
     <Product>Xeora - Web Development Framework Basics</Product>
     <Copyright>Copyright © Tuna Celik 2003 - 2021</Copyright>
@@ -12,8 +12,8 @@
     <Company>JakPark Solutions</Company>
     <RepositoryUrl>https://github.com/xeora/v7</RepositoryUrl>
     <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
-    <AssemblyVersion>7.3.*</AssemblyVersion>
-    <FileVersion>7.3</FileVersion>
+    <AssemblyVersion>7.4.*</AssemblyVersion>
+    <FileVersion>7.4</FileVersion>
     <Deterministic>False</Deterministic>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

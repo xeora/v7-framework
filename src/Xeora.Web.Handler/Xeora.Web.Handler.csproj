@@ -4,9 +4,9 @@
     <TargetFramework>netcoreapp5.0</TargetFramework>
     <Platforms>AnyCPU;x64;x86;arm64</Platforms>
     <PackageId>Xeora.Web.Handler</PackageId>
-    <Version>7.3.0</Version>
-    <AssemblyVersion>7.3.*</AssemblyVersion>
-    <FileVersion>7.3</FileVersion>
+    <Version>7.4.0</Version>
+    <AssemblyVersion>7.4.*</AssemblyVersion>
+    <FileVersion>7.4</FileVersion>
     <Deterministic>False</Deterministic>
     <Product>Xeora - Web Development Framework Handlers</Product>
     <Description>Xeora - Web Development Framework Handlers</Description>
