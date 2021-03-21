@@ -2,6 +2,7 @@
 {
     public interface IManager
     {
-        void Reserve(string uniqueId, short reservationTimeout, out Basics.Dss.IDss reservationObject);
+        // Returns If Reservation was created before (true: created before, false: newly created)
+        bool Reserve(string uniqueId, short reservationTimeout, out Basics.Dss.IDss reservationObject);
     }
 }

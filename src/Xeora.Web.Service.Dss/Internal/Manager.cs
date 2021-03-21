@@ -26,15 +26,17 @@ namespace Xeora.Web.Service.Dss.Internal
             pruneTimer.Start();
         }
 
-        public void Reserve(string uniqueId, short reservationTimeout, out Basics.Dss.IDss reservationObject)
+        public bool Reserve(string uniqueId, short reservationTimeout, out Basics.Dss.IDss reservationObject)
         {
             lock (this._ReservationLock)
             {
                 if (this.Get(uniqueId, out reservationObject))
-                    return;
+                    return true;
 
                 this.Create(uniqueId, reservationTimeout, out reservationObject);
             }
+
+            return false;
         }
 
         private bool Get(string uniqueId, out Basics.Dss.IDss reservationObject)

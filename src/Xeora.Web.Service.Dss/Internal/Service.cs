@@ -7,9 +7,9 @@ namespace Xeora.Web.Service.Dss.Internal
     {
         private readonly object _Lock = new object();
         private readonly Dictionary<string, ServiceItem> _Items;
-        private readonly int _ExpiresInMinute;
+        private readonly short _ExpiresInMinute;
 
-        public Service(string uniqueId, int expiresInMinutes)
+        public Service(string uniqueId, short expiresInMinutes)
         {
             this.UniqueId = uniqueId;
             this._ExpiresInMinute = expiresInMinutes;

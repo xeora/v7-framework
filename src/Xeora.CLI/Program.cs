@@ -27,6 +27,10 @@ namespace Xeora.CLI
                     cliCommand = new Create();
 
                     break;
+                case "dss":
+                    cliCommand = new Dss();
+
+                    break;
                 case "run":
                     cliCommand = new Run();
 
@@ -87,6 +91,7 @@ namespace Xeora.CLI
             Console.WriteLine("   framework                   download/update xeora framework executable");
             Console.WriteLine("   publish                     publish the xeora project to the target");
             Console.WriteLine("   run                         run the xeora project");
+            Console.WriteLine("   dss                         start the xeora dss service");
             Console.WriteLine();
         }
     }

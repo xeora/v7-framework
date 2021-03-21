@@ -160,7 +160,8 @@ namespace Xeora.Web.Service.Dss.External
             }
         }
 
-        public void Reserve(string uniqueId, short reservationTimeout, out Basics.Dss.IDss reservationObject)
+        // Always returns false
+        public bool Reserve(string uniqueId, short reservationTimeout, out Basics.Dss.IDss reservationObject)
         {
             this.MakeConnection();
 
@@ -188,13 +189,15 @@ namespace Xeora.Web.Service.Dss.External
                 if (requestId == -1)
                 {
                     reservationObject = null;
-                    return;
+                    return false;
                 }
 
                 byte[] responseBytes =
                     this._ResponseHandler.WaitForMessage(requestId);
 
                 this.ParseReservation(responseBytes, out reservationObject);
+
+                return false;
             }
             catch (Exceptions.ExternalCommunicationException)
             {

@@ -61,6 +61,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Xeora.Web.Basics\Xeora.Web.Basics.csproj" />
     <ProjectReference Include="..\Xeora.Web.Exceptions\Xeora.Web.Exceptions.csproj" />
+    <ProjectReference Include="..\Xeora.Web.Service.Workers\Xeora.Web.Service.Workers.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="External\" />
