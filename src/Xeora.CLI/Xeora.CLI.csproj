@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp5.0</TargetFramework>
-    <Platforms>AnyCPU;x64;x86;arm64</Platforms>
+    <Platforms>x64;arm64</Platforms>
     <StartupObject>Xeora.CLI.Program</StartupObject>
     <PackageId>Xeora.CLI</PackageId>
     <Version>7.4.0</Version>
@@ -21,57 +21,37 @@
     <AssemblyName>xeora</AssemblyName>
     <RootNamespace>Xeora.CLI</RootNamespace>
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
+    <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|arm64'">
     <DebugType>none</DebugType>
-    <OutputPath>../../build/Core/arm64/</OutputPath>
+    <OutputPath>../build/arm64/</OutputPath>
     <DebugSymbols>false</DebugSymbols>
+    <PlatformTarget>arm64</PlatformTarget>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebugType>none</DebugType>
-    <OutputPath>../../build/Core/x64/</OutputPath>
+    <OutputPath>../build/x64/</OutputPath>
     <DebugSymbols>false</DebugSymbols>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
-    <DebugType>none</DebugType>
-    <OutputPath>../../build/Core/Any/</OutputPath>
-    <DebugSymbols>false</DebugSymbols>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\</OutputPath>
-    <AppendTargetFrameworkToOutputFolder>false</AppendTargetFrameworkToOutputFolder>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\</OutputPath>
-    <AppendTargetFrameworkToOutputFolder>false</AppendTargetFrameworkToOutputFolder>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|arm64'">
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\Debug\</OutputPath>
+    <PlatformTarget>arm64</PlatformTarget>
     <AppendTargetFrameworkToOutputFolder>false</AppendTargetFrameworkToOutputFolder>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>../../build/Core/Any/</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
+    <PlatformTarget>x64</PlatformTarget>
     <AppendTargetFrameworkToOutputFolder>false</AppendTargetFrameworkToOutputFolder>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>none</DebugType>
-    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>

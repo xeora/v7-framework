@@ -18,6 +18,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <LangVersion>8</LangVersion>
+    <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
@@ -31,6 +32,7 @@
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <AppendTargetFrameworkToOutputFolder>false</AppendTargetFrameworkToOutputFolder>
   </PropertyGroup>
 
   <ItemGroup>

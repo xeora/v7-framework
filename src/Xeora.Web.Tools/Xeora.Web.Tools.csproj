@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp5.0</TargetFramework>
-    <Platforms>AnyCPU;x64;x86;arm64</Platforms>
+    <Platforms>x64;arm64</Platforms>
     <PackageId>Xeora.Web.Tools</PackageId>
     <Version>7.4.0</Version>
     <Description>Xeora - Web Development Framework Tools</Description>
@@ -18,46 +18,33 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageVersion>7.4.0</PackageVersion>
     <LangVersion>8</LangVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
-    <DebugType>none</DebugType>
-    <DebugSymbols>false</DebugSymbols>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <DebugType>none</DebugType>
-    <DebugSymbols>false</DebugSymbols>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>none</DebugType>
-    <DebugSymbols>false</DebugSymbols>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
+    <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|arm64'">
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
+    <PlatformTarget>arm64</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|arm64'">
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
+    <PlatformTarget>arm64</PlatformTarget>
+    <AppendTargetFrameworkToOutputFolder>false</AppendTargetFrameworkToOutputFolder>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <PlatformTarget>x64</PlatformTarget>
+    <AppendTargetFrameworkToOutputFolder>false</AppendTargetFrameworkToOutputFolder>
   </PropertyGroup>
   
   <ItemGroup>

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp5.0</TargetFramework>
-    <Platforms>AnyCPU;x64;x86;arm64</Platforms>
+    <Platforms>x64;arm64</Platforms>
     <PackageId>Xeora.Web</PackageId>
     <Product>Xeora - Web Development Framework Managers</Product>
     <Company>JakPark Solutions</Company>
@@ -16,47 +16,33 @@
     <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
     <RepositoryUrl>https://github.com/xeora/v7</RepositoryUrl>
     <LangVersion>8</LangVersion>
+    <Configurations>Debug;Release</Configurations>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|arm64'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <PlatformTarget>arm64</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|arm64'">
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <PlatformTarget>arm64</PlatformTarget>
+    <AppendTargetFrameworkToOutputFolder>false</AppendTargetFrameworkToOutputFolder>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>none</DebugType>
-    <DebugSymbols>false</DebugSymbols>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|arm64'">
-    <DebugType>none</DebugType>
-    <DebugSymbols>false</DebugSymbols>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|arm64'">
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <DebugType>none</DebugType>
-    <DebugSymbols>false</DebugSymbols>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
-    <DebugType>none</DebugType>
-    <DebugSymbols>false</DebugSymbols>
+    <AppendTargetFrameworkToOutputFolder>false</AppendTargetFrameworkToOutputFolder>
   </PropertyGroup>
 
   <ItemGroup>
@@ -70,12 +56,5 @@
     <ProjectReference Include="..\Xeora.Web.Service.Dss\Xeora.Web.Service.Dss.csproj" />
     <ProjectReference Include="..\Xeora.Web.Service.Workers\Xeora.Web.Service.Workers.csproj" />
     <ProjectReference Include="..\Xeora.Web.Tools\Xeora.Web.Tools.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Directives\Controls\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Controller\ControllerWithChildren.cs" />
   </ItemGroup>
 </Project>
