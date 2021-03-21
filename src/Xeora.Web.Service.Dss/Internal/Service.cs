@@ -55,19 +55,24 @@ namespace Xeora.Web.Service.Dss.Internal
             if (key.Length > 128)
                 throw new OverflowException("key can not be longer than 128 characters");
 
-            ServiceItem serviceItem;
             lock (this._Lock)
             {
-                if (!this._Items.TryGetValue(key, out serviceItem))
+                if (this._Items.TryGetValue(key, out ServiceItem serviceItem))
                 {
-                    serviceItem = 
-                        new ServiceItem(key, value);
-                    this._Items.Add(key, serviceItem);
-
+                    serviceItem.Set(value, lockCode);
+                    
+                    if (value == null)
+                        this._Items.Remove(key);
+                        
                     return;
                 }
+                
+                if (value == null) return;
+                
+                serviceItem = 
+                    new ServiceItem(key, value, lockCode);
+                this._Items.Add(key, serviceItem);
             }
-            serviceItem.Set(value, lockCode);
         }
         
         public string Lock(string key)

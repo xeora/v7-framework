@@ -12,12 +12,15 @@ namespace Xeora.Web.Service.Dss.Internal
         private readonly object _Lock = new object();
         private readonly Queue<string> _LockQueue;
 
-        public ServiceItem(string key, object initialValue = null)
+        public ServiceItem(string key, object initialValue = null, string initialLockCode = null)
         {
             this.Key = key;
             this._Value = initialValue;
             
             this._LockQueue = new Queue<string>();
+            
+            if (!string.IsNullOrEmpty(initialLockCode))
+                this._LockQueue.Enqueue(initialLockCode);
         }
         
         public string Key { get; }
