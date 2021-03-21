@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Xeora.Web.Service.Workers;
 using Task = System.Threading.Tasks.Task;
 
 namespace Xeora.Web.Service.Dss
@@ -12,6 +12,9 @@ namespace Xeora.Web.Service.Dss
     public class Server
     {
         private readonly Mutex _TerminationLock;
+        private readonly ConcurrentDictionary<Guid, TcpClient> _Clients;
+        private readonly Thread _ClientCleanupThread;
+        
         private readonly IPEndPoint _ServiceEndPoint;
         private TcpListener _TcpListener;
         private readonly IManager _Manager;
@@ -19,7 +22,38 @@ namespace Xeora.Web.Service.Dss
         public Server(IPEndPoint serviceEndPoint)
         {
             this._TerminationLock = new Mutex();
-            
+            this._Clients = new ConcurrentDictionary<Guid, TcpClient>();
+            this._ClientCleanupThread = new Thread(() =>
+            {
+                Basics.Console.Push(string.Empty, "Started client cleanup thread...", string.Empty, false, true);
+                try
+                {
+                    while (true)
+                    {
+                        Thread.Sleep(TimeSpan.FromSeconds(10));
+
+                        int purged = 0;
+                        foreach (Guid key in this._Clients.Keys)
+                        {
+                            if (!this._Clients.TryGetValue(key, out TcpClient client)) continue;
+                            if (client.Connected) continue;
+                            
+                            this._Clients.TryRemove(key, out _);
+                            purged++;
+                        }
+
+                        if (purged == 0) continue;
+                        Basics.Console.Push(string.Empty, $"Purged {purged} client(s)", string.Empty, false, true);
+                    }
+                }
+                catch 
+                { /* Just Handle Exceptions */ }
+            })
+            {
+                IsBackground = true, 
+                Priority = ThreadPriority.Lowest
+            };
+
             // Application Domain UnHandled Exception Event Handling
             AppDomain.CurrentDomain.UnhandledException += Server.OnUnhandledExceptions;
             // !---
@@ -44,6 +78,8 @@ namespace Xeora.Web.Service.Dss
                 this._TcpListener.Start(100);
 
                 Basics.Console.Push("XeoraDss is started at", this._ServiceEndPoint.ToString(), string.Empty, false, true);
+                
+                this._ClientCleanupThread.Start();
             }
             catch (Exception ex)
             {
@@ -71,8 +107,10 @@ namespace Xeora.Web.Service.Dss
                     TcpClient remoteClient =
                         await this._TcpListener.AcceptTcpClientAsync();
                     
-                    Factory.Queue(
-                        c => ((Connection) c).Process(),
+                    this._Clients.TryAdd(Guid.NewGuid(), remoteClient);
+                    
+                    ThreadPool.QueueUserWorkItem(
+                        c => ((Connection) c)?.Process(),
                         new Connection(ref remoteClient, this._Manager)
                     );
                 }
@@ -146,8 +184,15 @@ namespace Xeora.Web.Service.Dss
                 
                 this._TcpListener?.Stop();
                 
-                // Terminate Workers
-                Factory.Kill();
+                this._ClientCleanupThread.Interrupt();
+                    
+                // Kill all connections (if any applicable)
+                Basics.Console.Push(string.Empty, "Killing connected clients...", string.Empty, false, true);
+                foreach (Guid key in this._Clients.Keys)
+                {
+                    this._Clients.TryRemove(key, out TcpClient client);
+                    client?.Close();
+                }
 
                 Basics.Console.Flush().Wait();
             }
