@@ -79,9 +79,9 @@ namespace Xeora.CLI.Basics
             
             try
             {
-                WebServer webServer = 
-                    new WebServer(this._SettingsFile, this._Name);
-                return await webServer.StartAsync();
+                Server server = 
+                    new Server(this._SettingsFile, this._Name);
+                return await server.StartAsync();
             }
             catch (Exception e)
             {

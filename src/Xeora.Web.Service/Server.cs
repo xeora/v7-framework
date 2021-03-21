@@ -13,7 +13,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Xeora.Web.Service
 {
-    public class WebServer
+    public class Server
     {
         private readonly Mutex _TerminationLock;
         private readonly string _ConfigurationPath;
@@ -23,12 +23,12 @@ namespace Xeora.Web.Service
         private TcpListener _TcpListener;
         private X509Certificate2 _Certificate;
 
-        public WebServer(string configurationFilePath, string name)
+        public Server(string configurationFilePath, string name)
         {
             this._TerminationLock = new Mutex();
             
             // Application Domain UnHandled Exception Event Handling
-            AppDomain.CurrentDomain.UnhandledException += WebServer.OnUnhandledExceptions;
+            AppDomain.CurrentDomain.UnhandledException += Server.OnUnhandledExceptions;
             // !---
 
             // Application Domain SIGTERM Event Handling
@@ -50,7 +50,7 @@ namespace Xeora.Web.Service
 
         public async Task<int> StartAsync()
         {
-            WebServer.PrintLogo();
+            Server.PrintLogo();
 
             try
             {
@@ -169,7 +169,7 @@ namespace Xeora.Web.Service
             Console.WriteLine("|____||____|'.__.' '.__.' [___]   \\'-;__/ ");
 
             Console.WriteLine();
-            Console.WriteLine($"Web Development Framework, v{WebServer.GetVersionText()}");
+            Console.WriteLine($"Web Development Framework, v{Server.GetVersionText()}");
             Console.WriteLine();
         }
 

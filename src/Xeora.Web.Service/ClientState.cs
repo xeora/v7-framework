@@ -41,7 +41,7 @@ namespace Xeora.Web.Service
                         {
                             header.AddOrUpdate("Server", "XeoraEngine");
                             header.AddOrUpdate("X-Powered-By", "Xeora");
-                            header.AddOrUpdate("X-Framework-Version", WebServer.GetVersionText());
+                            header.AddOrUpdate("X-Framework-Version", Server.GetVersionText());
                         });
                     ((HttpResponse) response).StreamEnclosureRequested +=
                         (out NetworkStream enclosure) => enclosure = streamEnclosure;
