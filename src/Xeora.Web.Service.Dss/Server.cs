@@ -30,7 +30,7 @@ namespace Xeora.Web.Service.Dss
                 {
                     while (true)
                     {
-                        Thread.Sleep(TimeSpan.FromSeconds(10));
+                        Thread.Sleep(TimeSpan.FromHours(1));
 
                         int purged = 0;
                         foreach (Guid key in this._Clients.Keys)
