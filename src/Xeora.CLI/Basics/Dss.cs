@@ -96,9 +96,9 @@ namespace Xeora.CLI.Basics
             }
 
             if (ipAddress != null)
-                this._IpAddress = IPAddress.Parse("127.0.0.1");
+                this._IpAddress = ipAddress;
             if (port > 0)
-                this._Port = 5531;
+                this._Port = port;
             
             return 0;
         }
