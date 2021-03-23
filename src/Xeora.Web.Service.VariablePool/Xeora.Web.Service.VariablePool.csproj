@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp5.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <Platforms>x64;arm64</Platforms>
     <PackageId>Xeora.Web.Service.VariablePool</PackageId>
     <Version>7.4.0</Version>
@@ -15,7 +15,7 @@
     <AssemblyVersion>7.4.*</AssemblyVersion>
     <FileVersion>7.4</FileVersion>
     <Deterministic>False</Deterministic>
-    <LangVersion>8</LangVersion>
+    <LangVersion>9</LangVersion>
     <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
 

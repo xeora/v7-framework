@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp5.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <Platforms>x64;arm64</Platforms>
     <PackageId>Xeora.Web.Exceptions</PackageId>
     <Version>7.4.0</Version>
@@ -17,7 +17,7 @@
     <Deterministic>False</Deterministic>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageVersion>7.4.0</PackageVersion>
-    <LangVersion>8</LangVersion>
+    <LangVersion>9</LangVersion>
     <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
 
