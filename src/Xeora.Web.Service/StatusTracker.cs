@@ -37,5 +37,33 @@ namespace Xeora.Web.Service
 
             return status;
         }
+
+        public int GetRange(short min, short max)
+        {
+            int status = 0;
+            
+            foreach (short key in this._Status.Keys)
+            {
+                if (key > max && key < min) continue;
+                status += this.Get(key);
+            }
+
+            return status;
+        }
+        
+        public int Get1xx() =>
+            this.GetRange(100, 199);
+        
+        public int Get2xx() =>
+            this.GetRange(200, 299);
+        
+        public int Get3xx() =>
+            this.GetRange(300, 399);
+        
+        public int Get4xx() =>
+            this.GetRange(400, 499);
+
+        public int Get5xx() =>
+            this.GetRange(500, 599);
     }
 }
