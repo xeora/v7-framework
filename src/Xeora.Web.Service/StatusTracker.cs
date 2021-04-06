@@ -44,7 +44,7 @@ namespace Xeora.Web.Service
             
             foreach (short key in this._Status.Keys)
             {
-                if (key > max && key < min) continue;
+                if (key > max || key < min) continue;
                 status += this.Get(key);
             }
 
