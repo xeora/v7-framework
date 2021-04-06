@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net.Sockets;
 
 namespace Xeora.Web.Service.Dss
@@ -24,7 +25,8 @@ namespace Xeora.Web.Service.Dss
             this._Handler = 
                 new Handler(ref remoteStream, this._Manager);
             
-            this.ReadSocket(ref remoteStream);
+            if (this.Validate(ref remoteStream))
+                this.ReadSocket(ref remoteStream);
             
             remoteStream.Close();
             remoteStream.Dispose();
@@ -35,8 +37,49 @@ namespace Xeora.Web.Service.Dss
             Basics.Console.Flush();
         }
 
+        private bool Validate(ref Stream remoteStream)
+        {
+            this._RemoteClient.ReceiveTimeout = 30000; // 30 seconds
+            
+            byte[] code = 
+                Guid.NewGuid().ToByteArray();
+            byte[] response = new byte[code.Length];
+            int total = 0;
+            
+            try
+            {
+                remoteStream.WriteByte((byte)code.Length);
+                remoteStream.Write(code, 0, code.Length);
+
+                do
+                {
+                    int bR = remoteStream.Read(response, total, response.Length - total);
+                    if (bR == 0) return false;
+                    
+                    total += bR;
+                } while (total < response.Length);
+
+                bool correct =
+                    code.SequenceEqual(response);
+                
+                remoteStream.WriteByte(correct ? (byte)1 : (byte)0);
+
+                return correct;
+            }
+            catch (Exception ex)
+            {
+                // Skip SocketExceptions
+                if (ex is not IOException || ex.InnerException is not SocketException)
+                    Basics.Console.Push("SYSTEM ERROR", ex.Message, ex.ToString(), false, true, type: Basics.Console.Type.Error);
+
+                return false;
+            }
+        }
+        
         private void ReadSocket(ref Stream remoteStream)
         {
+            this._RemoteClient.ReceiveTimeout = 0; // Infinite
+            
             byte[] head = new byte[8];
             byte[] buffer = new byte[1024];
             int bR = 0;

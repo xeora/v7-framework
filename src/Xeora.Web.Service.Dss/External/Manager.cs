@@ -8,6 +8,8 @@ namespace Xeora.Web.Service.Dss.External
 {
     public class Manager : IManager
     {
+        private const int WAIT_LIMIT = 100;
+        
         private readonly object _ConnectionLock;
         private TcpClient _DssServiceClient;
 
@@ -49,8 +51,21 @@ namespace Xeora.Web.Service.Dss.External
 
                 if (!this._DssServiceClient.Connected)
                     throw new Exceptions.ExternalCommunicationException();
+
+                if (!this.Validate(ref this._DssServiceClient))
+                {
+                    this._DssServiceClient.Dispose();
+                    this._DssServiceClient = null;
+                    
+                    throw new Exceptions.ExternalCommunicationValidationException();
+                }
             }
             catch (Exceptions.ExternalCommunicationException)
+            {
+                this.Reset();
+                throw;
+            }
+            catch (Exceptions.ExternalCommunicationValidationException)
             {
                 this.Reset();
                 throw;
@@ -65,6 +80,48 @@ namespace Xeora.Web.Service.Dss.External
             this._ResponseHandler.StartHandler();
             
             ThreadPool.QueueUserWorkItem(this.EchoLoop);
+        }
+        
+        private bool Validate(ref TcpClient dssServiceClient)
+        {
+            SpinWait spinWait = new SpinWait();
+            
+            Stream remoteStream =
+                dssServiceClient.GetStream();
+            
+            int length =
+                remoteStream.ReadByte();
+            byte[] code = new byte[length];
+            int total = 0;
+            
+            do
+            {
+                if (spinWait.Count >= WAIT_LIMIT) return false;
+                
+                int bR = remoteStream.Read(code, total, code.Length - total);
+                if (bR == 0)
+                {
+                    spinWait.SpinOnce();
+                    continue;
+                }
+
+                total += bR;
+                spinWait.Reset();
+            } while (length != total);
+
+            remoteStream.Write(code, 0, code.Length);
+            spinWait.Reset();
+            
+            byte[] approved = new byte[1];
+            do
+            {
+                if (spinWait.Count >= WAIT_LIMIT) return false;
+                
+                int bR = remoteStream.Read(approved, 0, approved.Length);
+                if (bR == 1) return approved[0] == 1;
+
+                spinWait.SpinOnce();
+            } while (true);
         }
         
         private void EchoLoop(object state)
