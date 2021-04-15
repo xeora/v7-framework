@@ -750,7 +750,7 @@ namespace Xeora.Web.Handler
                     : "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">"
             );
 
-            writer.WriteLine("<html>");
+            writer.WriteLine($"<html lang=\"{this._DomainControl.Domain.Languages.Current.Info.Id}\">");
 
             this.AppendHeadTag(ref writer);
             this.AppendBodyTag(ref writer, bodyContent);
