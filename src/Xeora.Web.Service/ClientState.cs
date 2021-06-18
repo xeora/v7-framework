@@ -55,7 +55,7 @@ namespace Xeora.Web.Service
 
                     xeoraHandler =
                         Handler.Manager.Current.Create(ref context);
-                    ((Handler.XeoraHandler) xeoraHandler).Handle();
+                    ((Handler.Xeora) xeoraHandler).Handle();
 
                     if (Configurations.Xeora.Application.Main.PrintAnalysis)
                     {

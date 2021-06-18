@@ -48,7 +48,7 @@ namespace Xeora.Web.Handler
             try 
             {
                 Basics.IHandler handler = 
-                    new XeoraHandler(ref context, this._Refresh);
+                    new Xeora(ref context, this._Refresh);
                 this._Refresh = false;
 
                 this._Handlers.TryAdd(handler.HandlerId, new Container(ref handler));

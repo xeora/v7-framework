@@ -16,7 +16,7 @@ using Xeora.Web.Basics.Context.Request;
 
 namespace Xeora.Web.Handler
 {
-    public class XeoraHandler : IHandler
+    public class Xeora : IHandler
     {
         private readonly bool _ForceRefresh;
 
@@ -25,7 +25,7 @@ namespace Xeora.Web.Handler
 
         private DomainControl _DomainControl;
 
-        internal XeoraHandler(ref IHttpContext context, bool forceRefresh)
+        internal Xeora(ref IHttpContext context, bool forceRefresh)
         {
             this._ForceRefresh = forceRefresh;
 
@@ -194,7 +194,7 @@ namespace Xeora.Web.Handler
                 if (slashIndex > -1)
                     requestedDomainWebPath = requestedDomainWebPath.Substring(0, slashIndex);
 
-                if (XeoraHandler.DomainRequestPath.Match(requestedDomainWebPath).Success)
+                if (Xeora.DomainRequestPath.Match(requestedDomainWebPath).Success)
                 {
                     string[] requestedDomainWebPathParts = 
                         requestedDomainWebPath.Split('_');
@@ -484,18 +484,19 @@ namespace Xeora.Web.Handler
                 );
             requestFilePath = Path.GetFullPath(requestFilePath);
 
+            string contentType =
+                MimeType.GetMime(Path.GetExtension(requestFilePath));
+            
             if (!File.Exists(requestFilePath) ||
-                File.Exists(requestFilePath) && XeoraHandler.IsRequestedStaticFileBanned(requestFilePath))
+                File.Exists(requestFilePath) && Xeora.IsRequestedStaticFileBanned(requestFilePath))
             {
+                this.Context.Response.Header.AddOrUpdate("Content-Type", contentType);
                 this.Context.Response.Header.Status.Code = 404;
                 this.Context.AddOrUpdate("RedirectLocation", null);
 
                 return;
             }
-
-            string contentType =
-                MimeType.GetMime(Path.GetExtension(requestFilePath));
-
+            
             string range = this.Context.Request.Header["Range"];
             bool isPartialRequest = !string.IsNullOrEmpty(range);
 
@@ -594,23 +595,20 @@ namespace Xeora.Web.Handler
 
         private void PostDomainContentFileToClient(string requestedFilePathInDomainContents)
         {
+            string contentType = 
+                MimeType.GetMime(Path.GetExtension(requestedFilePathInDomainContents));
+            
             Stream requestFileStream = null;
             try
             {
                 this._DomainControl.Domain.ProvideFileStream(requestedFilePathInDomainContents, out requestFileStream);
 
-                this.WriteOutput(
-                    MimeType.GetMime(
-                        Path.GetExtension(requestedFilePathInDomainContents)
-                    ),
-                    ref requestFileStream,
-                    this._SupportCompression
-                );
+                this.WriteOutput(contentType, ref requestFileStream, this._SupportCompression);
             }
             catch (FileNotFoundException)
             {
+                this.Context.Response.Header.AddOrUpdate("Content-Type", contentType);
                 this.Context.Response.Header.Status.Code = 404;
-                return;
             }
             finally
             {
@@ -622,7 +620,7 @@ namespace Xeora.Web.Handler
 
         private void PostBuildInJavaScriptToClient()
         {
-            Xeora.Web.Application.DomainControl.ProvideXeoraJsStream(out Stream requestFileStream);
+            global::Xeora.Web.Application.DomainControl.ProvideXeoraJsStream(out Stream requestFileStream);
 
             try
             {
@@ -957,7 +955,7 @@ namespace Xeora.Web.Handler
                 Stream gzippedStream = null;
                 try
                 {
-                    XeoraHandler.CompressUnsafe(ref outputStream, out gzippedStream);
+                    Xeora.CompressUnsafe(ref outputStream, out gzippedStream);
 
                     if (gzippedStream != null && gzippedStream.Length < outputStream.Length)
                     {
