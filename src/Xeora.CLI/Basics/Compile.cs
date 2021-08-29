@@ -334,7 +334,7 @@ namespace Xeora.CLI.Basics
             foreach (DirectoryInfo contentLanguageDI in domainContentDI.GetDirectories())
             {
                 DirectoryInfo outputEDCRootDI = 
-                    new DirectoryInfo(Path.Combine(outputLocation, "_sys_EDC", $"{contentLanguageDI.Parent!.Name}_{contentLanguageDI.Name}"));
+                    new DirectoryInfo(Path.Combine(outputLocation, "_sys_EDC", $"{domainPath[^1]}_{contentLanguageDI.Name}"));
                 if (!outputEDCRootDI.Exists) outputEDCRootDI.Create();
 
                 await Common.Copy(contentLanguageDI, outputEDCRootDI);
