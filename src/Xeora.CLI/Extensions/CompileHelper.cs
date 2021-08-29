@@ -10,7 +10,7 @@ namespace Xeora.CLI.Extensions
     {
         private int _LastPercent;
 
-        public async Task Compile(string projectRoot, string[] domainPath, string password, string output, bool recursive)
+        public async Task Compile(string projectRoot, string[] domainPath, string password, string output, bool recursive, bool externalContent)
         {
             domainPath ??= Array.Empty<string>();
             
@@ -19,7 +19,7 @@ namespace Xeora.CLI.Extensions
                 DomainCompilerInfo domainCompilerInfo =
                     new DomainCompilerInfo(projectRoot, domainPath, password, output);
 
-                await this.Compile(domainCompilerInfo);
+                await this.Compile(domainCompilerInfo, externalContent);
 
                 if (!recursive) return;
             }
@@ -33,11 +33,11 @@ namespace Xeora.CLI.Extensions
                 Array.Copy(domainPath, 0, newDomainPath, 0, domainPath.Length);
                 newDomainPath[^1] = domain;
 
-                await this.Compile(projectRoot, newDomainPath, password, output, recursive);
+                await this.Compile(projectRoot, newDomainPath, password, output, recursive, externalContent);
             }
         }
 
-        private async Task Compile(DomainCompilerInfo domainCompilerInfo)
+        private async Task Compile(DomainCompilerInfo domainCompilerInfo, bool externalContent)
         {
             this._LastPercent = -1;
 
@@ -48,7 +48,7 @@ namespace Xeora.CLI.Extensions
             xeoraCompiler.Progress += this.UpdateProgress;
 
             domainCompilerInfo.RemoveTarget();
-            this.AddFiles(domainCompilerInfo.DomainLocation, ref xeoraCompiler);
+            this.AddFiles(domainCompilerInfo.DomainLocation, externalContent, ref xeoraCompiler);
 
             Stream contentFS = null;
             try
@@ -84,15 +84,18 @@ namespace Xeora.CLI.Extensions
             Console.WriteLine();
         }
 
-        private void AddFiles(string workingPath, ref Compiler xeoraCompilerObj)
+        private void AddFiles(string workingPath, bool externalContent, ref Compiler xeoraCompilerObj)
         {
             foreach (string path in Directory.GetDirectories(workingPath))
             {
                 DirectoryInfo dI = new DirectoryInfo(path);
 
-                if (string.Compare(dI.Name, "addons", StringComparison.OrdinalIgnoreCase) != 0 &&
-                    string.Compare(dI.Name, "executables", StringComparison.OrdinalIgnoreCase) != 0)
-                    this.AddFiles(path, ref xeoraCompilerObj);
+                if (string.Compare(dI.Name, "addons", StringComparison.OrdinalIgnoreCase) == 0 ||
+                    string.Compare(dI.Name, "executables", StringComparison.OrdinalIgnoreCase) == 0 ||
+                    string.Compare(dI.Name, "contents", StringComparison.OrdinalIgnoreCase) == 0 && externalContent)
+                    continue;
+                
+                this.AddFiles(path, externalContent, ref xeoraCompilerObj);
             }
 
             foreach (string file in Directory.GetFiles(workingPath))
@@ -158,8 +161,8 @@ namespace Xeora.CLI.Extensions
                 if (!string.IsNullOrEmpty(outputPath))
                     this.OutputPath = MakePath(outputPath, domainPath, true);
 
-                this.OutputFile = Path.Combine(this.OutputPath, "Content.xeora");
-                this.KeyFile = Path.Combine(this.OutputPath, "Content.secure");
+                this.OutputFile = Path.Combine(this.OutputPath, "app.xeora");
+                this.KeyFile = Path.Combine(this.OutputPath, "app.secure");
             }
 
             public string ProjectRoot { get; }

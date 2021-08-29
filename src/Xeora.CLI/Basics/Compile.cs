@@ -27,6 +27,7 @@ namespace Xeora.CLI.Basics
         private bool _Recursive;
         private bool _AutoApprove;
         private string _GenericPassword;
+        private bool _ExternalContent;
         private bool _Publish;
 
         public Compile()
@@ -46,6 +47,7 @@ namespace Xeora.CLI.Basics
             Console.WriteLine("   -p, --password PASSWORD     assign a password to encrypt the xeora project domain");
             Console.WriteLine("   -o, --output PATH           output path of compiled xeora project domain (required when used publish argument)");
             Console.WriteLine("   -r, --recursive             compile sub domains of domain recursively");
+            Console.WriteLine("   -x, --external              won't compile the domain static contents");
             Console.WriteLine("   -u, --publish               publish the result to the output path");
             Console.WriteLine("   -y                          auto approve questions");
             Console.WriteLine();
@@ -120,6 +122,11 @@ namespace Xeora.CLI.Basics
                         this._Recursive = true;
 
                         break;
+                    case "-x":
+                    case "--external":
+                        this._ExternalContent = true;
+
+                        break;
                     case "-u":
                     case "--publish":
                         this._Publish = true;
@@ -154,6 +161,14 @@ namespace Xeora.CLI.Basics
             {
                 this.PrintUsage();
                 Console.WriteLine("output location is required when publish argument is used");
+                Console.WriteLine();
+                return 2;
+            }
+            
+            if (this._ExternalContent && string.IsNullOrEmpty(this._OutputLocation))
+            {
+                this.PrintUsage();
+                Console.WriteLine("output location is required when external content argument is used");
                 Console.WriteLine();
                 return 2;
             }
@@ -244,8 +259,14 @@ namespace Xeora.CLI.Basics
                         dI.DomainPath,
                         dI.Password,
                         !this._Publish ? this._OutputLocation : string.Empty,
-                        this._Recursive
+                        this._Recursive,
+                        this._ExternalContent
                     );
+
+                    if (this._Publish || !this._ExternalContent) continue;
+
+                    if (await this.CompileDomainContentForExternal(dI.DomainPath))
+                        return 1;
                 }
 
                 if (!this._Publish) return 0;
@@ -253,6 +274,9 @@ namespace Xeora.CLI.Basics
                 List<string> publishArgs = 
                     new List<string>();
                 publishArgs.AddRange(new[] {"-o", this._OutputLocation, "-c"});
+                
+                if (this._ExternalContent)
+                    publishArgs.Add("-x");
                 
                 if (this._AutoApprove)
                     publishArgs.Add("-y");
@@ -275,6 +299,50 @@ namespace Xeora.CLI.Basics
             }
         }
 
+        private async Task<bool> CompileDomainContentForExternal(IReadOnlyList<string> domainPath)
+        {
+            DirectoryInfo domainContentDI =
+                new DirectoryInfo(Path.Combine(this._XeoraProjectPath, "Domains"));
+
+            for (int i = 0; i < domainPath.Count; i++)
+            {
+                if (i > 0)
+                    domainContentDI =
+                        new DirectoryInfo(Path.Combine(domainContentDI.ToString(), "Addons"));
+                
+                domainContentDI =
+                    new DirectoryInfo(Path.Combine(domainContentDI.ToString(), domainPath[i]));
+                
+                if (!domainContentDI.Exists) return false;
+            }
+            
+            if (string.CompareOrdinal(domainContentDI.Name, "Domains") == 0 ||
+                string.CompareOrdinal(domainContentDI.Name, "Addons") == 0) return false;
+            
+            domainContentDI =
+                new DirectoryInfo(Path.Combine(domainContentDI.ToString(), "Contents"));
+            if (!domainContentDI.Exists) return false;
+            
+            string outputLocation = this._OutputLocation;
+            if (domainPath.Count > 1)
+                outputLocation = Path.Combine(outputLocation, "Domains");
+            outputLocation = Path.Combine(outputLocation, domainPath[0]);
+
+            for (int pC = 1; pC < domainPath.Count; pC++)
+                outputLocation = Path.Combine(outputLocation, "Addons", domainPath[pC]);
+            
+            foreach (DirectoryInfo contentLanguageDI in domainContentDI.GetDirectories())
+            {
+                DirectoryInfo outputEDCRootDI = 
+                    new DirectoryInfo(Path.Combine(outputLocation, "_sys_EDC", $"{contentLanguageDI.Parent!.Name}_{contentLanguageDI.Name}"));
+                if (!outputEDCRootDI.Exists) outputEDCRootDI.Create();
+
+                await Common.Copy(contentLanguageDI, outputEDCRootDI);
+            }
+
+            return true;
+        }
+        
         private IEnumerable<DomainInfo> FetchDomains()
         {
             DirectoryInfo domainsPath =

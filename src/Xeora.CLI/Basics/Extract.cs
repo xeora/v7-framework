@@ -109,7 +109,7 @@ namespace Xeora.CLI.Basics
                 return 2;
             }
 
-            if (!File.Exists(Path.Combine(this._XeoraDomainPath, "Content.xeora")))
+            if (!File.Exists(Path.Combine(this._XeoraDomainPath, "app.xeora")))
             {
                 this.PrintUsage();
                 Console.WriteLine("xeora content file is not exists in the given path");
@@ -141,7 +141,7 @@ namespace Xeora.CLI.Basics
                     new ExtractHelper();
                 await Task.Factory.StartNew(
                     () => extractHelper.Extract(
-                        Path.Combine(this._XeoraDomainPath, "Content.xeora"),
+                        Path.Combine(this._XeoraDomainPath, "app.xeora"),
                         passwordHash,
                         this._ListContent,
                         this._OutputLocation

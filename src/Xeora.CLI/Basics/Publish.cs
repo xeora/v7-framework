@@ -7,13 +7,14 @@ namespace Xeora.CLI.Basics
 {
     public class Publish : ICommand
     {
-        private readonly string[] XEORA_RELEASE_FOLDERS = { "Addons", "Executables" };
+        private readonly string[] XEORA_RELEASE_FOLDERS = { "Addons", "Executables", "Contents" };
         private readonly string[] XEORA_FOLDERS = { "Addons", "Contents", "Executables", "Languages", "Templates" };
 
         private string _XeoraProjectPath;
         private string _OutputLocation;
         private string[] _Excludes;
         private bool _IncludeContent;
+        private bool _ExternalContent;
         private bool _AutoApprove;
 
         public void PrintUsage()
@@ -26,6 +27,7 @@ namespace Xeora.CLI.Basics
             Console.WriteLine("   -o, --output PATH           output path of publishing xeora project (required)");
             Console.WriteLine("   -c, --content               includes external content located in to xeora project otherwise only domains");
             Console.WriteLine("   -e, --exclude DIRNAME       excludes comma separated folders from publishing");
+            Console.WriteLine("   -x, --external              publish domain static contents separately");
             Console.WriteLine("   -y                          auto approve questions");
             Console.WriteLine();
         }
@@ -71,6 +73,11 @@ namespace Xeora.CLI.Basics
                         aC++;
 
                         break;     
+                    case "-x":
+                    case "--external":
+                        this._ExternalContent = true;
+
+                        break;
                     case "-y":
                         this._AutoApprove = true;
 
@@ -198,29 +205,46 @@ namespace Xeora.CLI.Basics
 
                 // Check for Release Version
                 string outputFile = 
-                    Path.Combine(domainDI.FullName, "Content.xeora");
+                    Path.Combine(domainDI.FullName, "app.xeora");
                 string keyFile = 
-                    Path.Combine(domainDI.FullName, "Content.secure");
-
-                string[] xeoraFolders = this.XEORA_FOLDERS; // Consider that it is not a compiled xeora project
-                if (File.Exists(outputFile))
+                    Path.Combine(domainDI.FullName, "app.secure");
+                bool releasedVersion = File.Exists(outputFile);
+                
+                string[] xeoraFolders = releasedVersion ? this.XEORA_RELEASE_FOLDERS : this.XEORA_FOLDERS;
+                
+                if (releasedVersion)
                 {
-                    WriteUpdateToConsole("moving", outputFile, outputContentDI.FullName);
-                    File.Move(outputFile, Path.Combine(outputContentDI.FullName, "Content.xeora"));
-                    WriteUpdateToConsole("done!", string.Empty, string.Empty);
+                    Common.WriteUpdateToConsole("moving", outputFile, outputContentDI.FullName);
+                    File.Move(outputFile, Path.Combine(outputContentDI.FullName, "app.xeora"));
+                    Common.WriteUpdateToConsole("done!", string.Empty, string.Empty);
                     if (File.Exists(keyFile))
                     {
-                        WriteUpdateToConsole("moving", keyFile, outputContentDI.FullName);
-                        File.Move(keyFile, Path.Combine(outputContentDI.FullName, "Content.secure"));
-                        WriteUpdateToConsole("done!", string.Empty, string.Empty);
+                        Common.WriteUpdateToConsole("moving", keyFile, outputContentDI.FullName);
+                        File.Move(keyFile, Path.Combine(outputContentDI.FullName, "app.secure"));
+                        Common.WriteUpdateToConsole("done!", string.Empty, string.Empty);
                     }
-                    
-                    xeoraFolders = this.XEORA_RELEASE_FOLDERS; // We know that it is a compiled xeora project
                 }
 
                 foreach (DirectoryInfo domainContentDI in domainDI.GetDirectories())
                 {
                     if (Array.IndexOf(xeoraFolders, domainContentDI.Name) == -1) continue;
+
+                    if (this._ExternalContent && string.CompareOrdinal("Contents", domainContentDI.Name) == 0)
+                    {
+                        string domainId =
+                            domainContentDI.Parent!.Name;
+
+                        foreach (DirectoryInfo contentLanguageDI in domainContentDI.GetDirectories())
+                        {
+                            DirectoryInfo outputEDCRootDI = 
+                                new DirectoryInfo(Path.Combine(outputContentDI.ToString(), "_sys_EDC", $"{domainId}_{contentLanguageDI.Name}"));
+                            if (!outputEDCRootDI.Exists) outputEDCRootDI.Create();
+
+                            await Common.Copy(domainContentDI, outputEDCRootDI);
+                        }
+                        
+                        if (releasedVersion) continue;
+                    }
                     
                     DirectoryInfo targetContentDI =
                         new DirectoryInfo(Path.Combine(outputContentDI.FullName, domainContentDI.Name));
@@ -228,7 +252,7 @@ namespace Xeora.CLI.Basics
 
                     if (string.Compare(domainContentDI.Name, "Addons", StringComparison.OrdinalIgnoreCase) != 0)
                     {
-                        await this.Copy(domainContentDI, targetContentDI);
+                        await Common.Copy(domainContentDI, targetContentDI);
                         continue;
                     }
 
@@ -255,7 +279,7 @@ namespace Xeora.CLI.Basics
                     new DirectoryInfo(Path.Combine(this._OutputLocation, item.Name));
                 if (!targetItem.Exists) targetItem.Create();
                 
-                await this.Copy(item, targetItem);
+                await Common.Copy(item, targetItem);
                 totalCopied++;
             }
             
@@ -267,61 +291,14 @@ namespace Xeora.CLI.Basics
                 string targetItemFullName =
                     Path.Combine(this._OutputLocation, item.Name);
                 
-                WriteUpdateToConsole("copying", item.FullName, targetItemFullName);
+                Common.WriteUpdateToConsole("copying", item.FullName, targetItemFullName);
                 item.CopyTo(targetItemFullName);
-                WriteUpdateToConsole("done!", string.Empty, string.Empty);
+                Common.WriteUpdateToConsole("done!", string.Empty, string.Empty);
                 
                 totalCopied++;
             }
 
             return totalCopied;
-        }
-
-        private async Task Copy(DirectoryInfo source, DirectoryInfo target)
-        {
-            foreach(DirectoryInfo item in source.GetDirectories())
-            {
-                DirectoryInfo targetItem = 
-                    new DirectoryInfo(Path.Combine(target.FullName, item.Name));
-                if (!targetItem.Exists) targetItem.Create();
-
-                await this.Copy(item, targetItem);
-            }
-
-            foreach(FileInfo item in source.GetFiles())
-            {
-                FileInfo targetItem =
-                    new FileInfo(Path.Combine(target.FullName, item.Name));
-                if (targetItem.Exists) targetItem.Delete();
-
-                WriteUpdateToConsole("copying", item.FullName, targetItem.FullName);
-                item.CopyTo(targetItem.FullName);
-                WriteUpdateToConsole("done!", string.Empty, string.Empty);
-            }
-        }
-
-        private static void WriteUpdateToConsole(string action, string sourcePath, string targetPath)
-        {
-            if (!string.IsNullOrEmpty(sourcePath) &&
-                !string.IsNullOrEmpty(targetPath))
-            {
-                Console.Write("   ");
-                Console.Write(action);
-                Console.Write(" ");
-                if (sourcePath.Length > 50)
-                    sourcePath = sourcePath.Substring(sourcePath.Length - 50);
-                Console.Write(sourcePath.PadLeft(50));
-                Console.Write(" -> ");
-                if (targetPath.Length > 50)
-                    targetPath = targetPath.Substring(targetPath.Length - 50);
-                Console.Write(targetPath.PadRight(50));
-
-                return;
-            } 
-                
-            Console.Write(" ");
-            Console.Write(action);
-            Console.WriteLine();
         }
     }
 }

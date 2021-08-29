@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace Xeora.CLI.Basics
 {
@@ -41,6 +43,53 @@ namespace Xeora.CLI.Basics
                 argument[index + 1];
             
             return value.IndexOf("-", StringComparison.Ordinal) != 0;
+        }
+        
+        public static async Task Copy(DirectoryInfo source, DirectoryInfo target)
+        {
+            foreach(DirectoryInfo item in source.GetDirectories())
+            {
+                DirectoryInfo targetItem = 
+                    new DirectoryInfo(Path.Combine(target.FullName, item.Name));
+                if (!targetItem.Exists) targetItem.Create();
+
+                await Copy(item, targetItem);
+            }
+
+            foreach(FileInfo item in source.GetFiles())
+            {
+                FileInfo targetItem =
+                    new FileInfo(Path.Combine(target.FullName, item.Name));
+                if (targetItem.Exists) targetItem.Delete();
+
+                WriteUpdateToConsole("copying", item.FullName, targetItem.FullName);
+                item.CopyTo(targetItem.FullName);
+                WriteUpdateToConsole("done!", string.Empty, string.Empty);
+            }
+        }
+        
+        public static void WriteUpdateToConsole(string action, string sourcePath, string targetPath)
+        {
+            if (!string.IsNullOrEmpty(sourcePath) &&
+                !string.IsNullOrEmpty(targetPath))
+            {
+                Console.Write("   ");
+                Console.Write(action);
+                Console.Write(" ");
+                if (sourcePath.Length > 50)
+                    sourcePath = sourcePath.Substring(sourcePath.Length - 50);
+                Console.Write(sourcePath.PadLeft(50));
+                Console.Write(" -> ");
+                if (targetPath.Length > 50)
+                    targetPath = targetPath.Substring(targetPath.Length - 50);
+                Console.Write(targetPath.PadRight(50));
+
+                return;
+            } 
+                
+            Console.Write(" ");
+            Console.Write(action);
+            Console.WriteLine();
         }
     }
 }
