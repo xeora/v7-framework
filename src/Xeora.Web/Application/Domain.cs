@@ -10,6 +10,7 @@ namespace Xeora.Web.Application
 {
     public class Domain : Basics.Domain.IDomain
     {
+        private string[] _ExternalContentsUrls;
         private LanguagesHolder _LanguagesHolder;
 
         public Domain(string[] domainIdAccessTree, string languageId = null) =>
@@ -54,6 +55,8 @@ namespace Xeora.Web.Application
             {
                 this._LanguagesHolder.Use(this.Deployment.Settings.Configurations.DefaultLanguage);
             }
+
+            this._ExternalContentsUrls = Basics.Configurations.Xeora.Application.Main.ExternalContentsUrls;
         }
 
         public void SetLanguageChangedListener(Action<Basics.Domain.ILanguage> languageChangedListener) =>
@@ -66,13 +69,29 @@ namespace Xeora.Web.Application
         public Basics.Domain.IDomain Parent { get; private set; }
         public Basics.Domain.Info.DomainCollection Children => this.Deployment.Children;
 
-        public string ContentsVirtualPath =>
-            string.Format(
-                "{0}{1}_{2}",
-                Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation,
-                string.Join<string>("-", this.Deployment.DomainIdAccessTree),
-                this._LanguagesHolder.Current.Info.Id
-            );
+        private long _requestCycle = 0; 
+        public string ContentsVirtualPath
+        {
+            get
+            {
+                string contentsRoot =
+                    Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation;
+
+                if (this._ExternalContentsUrls is { Length: > 0 })
+                {
+                    this._requestCycle++;
+                    contentsRoot = 
+                        this._ExternalContentsUrls[this._requestCycle % this._ExternalContentsUrls.Length];
+                }
+                
+                return string.Format(
+                    "{0}{1}_{2}",
+                    contentsRoot,
+                    string.Join<string>("-", this.Deployment.DomainIdAccessTree),
+                    this._LanguagesHolder.Current.Info.Id
+                );        
+            }
+        }
 
         public Basics.Domain.ISettings Settings => this.Deployment.Settings;
         public Basics.Domain.ILanguages Languages => this._LanguagesHolder;

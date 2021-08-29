@@ -33,7 +33,7 @@ namespace Xeora.Web.Deployment
                 );
 
             string releaseTestPath =
-                Path.Combine(domainRootPath, "Content.xeora");
+                Path.Combine(domainRootPath, "app.xeora");
 
             if (File.Exists(releaseTestPath))
             {

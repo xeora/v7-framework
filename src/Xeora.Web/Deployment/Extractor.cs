@@ -24,9 +24,9 @@ namespace Xeora.Web.Deployment
             this._CacheDate = DateTime.MinValue;
             
             this._DomainFileLocation =
-                Path.Combine(domainRoot, "Content.xeora");
+                Path.Combine(domainRoot, "app.xeora");
             string domainPasswordFileLocation =
-                Path.Combine(domainRoot, "Content.secure");
+                Path.Combine(domainRoot, "app.secure");
 
             this._PasswordHash = 
                 this.CreatePasswordHash(domainPasswordFileLocation);

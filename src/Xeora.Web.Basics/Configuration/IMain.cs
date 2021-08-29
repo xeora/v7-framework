@@ -8,6 +8,7 @@
         IApplicationRootFormat ApplicationRoot { get; }
         IWorkingPathFormat WorkingPath { get; }
         string TemporaryRoot { get; }
+        string[] ExternalContentsUrls { get; }
         bool Debugging { get; }
         bool Compression { get; }
         bool PrintAnalysis { get; }

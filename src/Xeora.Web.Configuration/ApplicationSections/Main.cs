@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.IO;
@@ -132,7 +133,47 @@ namespace Xeora.Web.Configuration.ApplicationSections
                 return this._TemporaryRoot;
             }
         }
+        
+        [JsonProperty(PropertyName = "externalContentsUrls")]
+        private string[] _ExternalContentsUrls { get; set;  }
+        
+        private bool _IsExternalContentsUrlsFixed;
+        public string[] ExternalContentsUrls
+        {
+            get
+            {
+                if (this._IsExternalContentsUrlsFixed) return this._ExternalContentsUrls;
+                if (this._ExternalContentsUrls == null || this._ExternalContentsUrls.Length == 0)
+                {
+                    this._IsExternalContentsUrlsFixed = true;
+                    return this._ExternalContentsUrls;
+                }
 
+                List<string> externalContentsUrls = 
+                    new List<string>(this._ExternalContentsUrls);
+                for (int i = 0; i < externalContentsUrls.Count; i++)
+                {
+                    try
+                    {
+                        Uri uri = new Uri(externalContentsUrls[i]);
+                        externalContentsUrls[i] = uri.ToString();
+                        if (externalContentsUrls[i][^1] != '/')
+                            externalContentsUrls[i] = $"{externalContentsUrls[i]}/";
+                    }
+                    catch
+                    {
+                        externalContentsUrls.RemoveAt(i);
+                        i--;
+                    }
+                }
+
+                this._ExternalContentsUrls = externalContentsUrls.ToArray();
+                this._IsExternalContentsUrlsFixed = true;
+
+                return this._ExternalContentsUrls;
+            }
+        }
+        
         [DefaultValue(false)]
         [JsonProperty(PropertyName = "debugging", DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool Debugging { get; private set; }

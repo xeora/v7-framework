@@ -27,14 +27,14 @@ namespace Xeora.Web.Configuration
         [JsonProperty(PropertyName = "bannedFiles")]
         private string[] _BannedFiles { get; set; }
 
-        private bool _isBannedFilesFixed;
+        private bool _IsBannedFilesFixed;
         public string[] BannedFiles
         {
             get
             {
-                if (this._isBannedFilesFixed) return this._BannedFiles;
+                if (this._IsBannedFilesFixed) return this._BannedFiles;
                 
-                this._isBannedFilesFixed = true;
+                this._IsBannedFilesFixed = true;
 
                 // \\ < regex definition
                 string forbiddenDomain = $"\\{Path.DirectorySeparatorChar}Domains";
