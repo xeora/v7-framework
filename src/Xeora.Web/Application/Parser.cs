@@ -1,16 +1,23 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using Xeora.Web.Directives;
 using Xeora.Web.Directives.Elements;
+using Xeora.Web.Exceptions;
 using Xeora.Web.Global;
+using Property = Xeora.Web.Directives.Elements.Property;
 
 namespace Xeora.Web.Application
 {
     internal class Parser : IDisposable
     {
-        public static void Parse(Action<Directives.IDirective> resultHandler, string rawValue, ArgumentCollection arguments)
+        private static readonly ConcurrentDictionary<string, IList<DirectiveFactory>> ParserCache = new ();
+        
+        public static void Parse(Action<IDirective> resultHandler, string rawValue, ArgumentCollection arguments)
         {
             Parser parser = new Parser(resultHandler, rawValue, arguments);
             try
@@ -23,14 +30,17 @@ namespace Xeora.Web.Application
             }
         }
 
-        private readonly Action<Directives.IDirective> _ResultHandler;
+        private readonly Action<IDirective> _ResultHandler;
         private readonly StringReader _Reader;
         private readonly ArgumentCollection _Arguments;
         private readonly StringBuilder _SingleCache;
         private readonly StringBuilder _ContentCache;
         private string _Crumb;
 
-        private Parser(Action<Directives.IDirective> resultHandler, string rawValue, ArgumentCollection arguments)
+        private string Id { get; }
+        private IList<DirectiveFactory> Directives { get; }
+        
+        private Parser(Action<IDirective> resultHandler, string rawValue, ArgumentCollection arguments)
         {
             this._ResultHandler = resultHandler;
             this._Reader = new StringReader(rawValue);
@@ -39,19 +49,96 @@ namespace Xeora.Web.Application
             this._SingleCache = new StringBuilder();
             this._ContentCache = new StringBuilder();
             this._Crumb = string.Empty;
+
+            this.Id = CalculateId(rawValue);
+            this.Directives = new List<DirectiveFactory>();
         }
 
+        private static string CalculateId(string rawValue)
+        {
+            System.Security.Cryptography.SHA512 sha512Cypher = 
+                System.Security.Cryptography.SHA512.Create();
+            
+            byte[] hashedValue = 
+                sha512Cypher.ComputeHash(Encoding.UTF8.GetBytes(rawValue));
+
+            return Convert.ToHexString(hashedValue);
+        }
+        
         public void Dispose() =>
             this._Reader.Close();
-
+        
         private class Content
         {
             public string DirectiveId { get; set; }
             public string DirectiveType { get; set; }
         }
 
+        private class DirectiveFactory
+        {
+            public DirectiveFactory(DirectiveTypes type, string rawValue)
+            {
+                this.DirectiveType = type;
+                this.RawValue = rawValue;
+            }
+            
+            private DirectiveTypes DirectiveType { get; }
+            private string RawValue { get; }
+
+            public IDirective Make(ArgumentCollection arguments)
+            {
+                switch (DirectiveType)
+                {
+                    case DirectiveTypes.AsyncGroup:
+                        return new AsyncGroup(this.RawValue, null);
+                    case DirectiveTypes.Control:
+                        return new Control(this.RawValue, null);
+                    case DirectiveTypes.ControlAsync:
+                        return new ControlAsync(this.RawValue, null);
+                    case DirectiveTypes.EncodedExecution:
+                        return new EncodedExecution(this.RawValue, null);
+                    case DirectiveTypes.Execution:
+                        return new Execution(this.RawValue, null);
+                    case DirectiveTypes.HashCodePointedTemplate:
+                        return new HashCodePointedTemplate(this.RawValue, null);
+                    case DirectiveTypes.InLineStatement:
+                        return new InLineStatement(this.RawValue, null);
+                    case DirectiveTypes.MessageBlock:
+                        return new MessageBlock(this.RawValue, null);
+                    case DirectiveTypes.PartialCache:
+                        return new PartialCache(this.RawValue, null);
+                    case DirectiveTypes.PermissionBlock:
+                        return new PermissionBlock(this.RawValue, null);
+                    case DirectiveTypes.Template:
+                        return new Template(this.RawValue, null);
+                    case DirectiveTypes.Translation:
+                        return new Translation(this.RawValue, null);
+                    case DirectiveTypes.ReplaceableTranslation:
+                        return new ReplaceableTranslation(this.RawValue, null);
+                    case DirectiveTypes.UpdateBlock:
+                        return new UpdateBlock(this.RawValue, null);
+                    case DirectiveTypes.Property:
+                        return new Property(this.RawValue, arguments);
+                    case DirectiveTypes.Static:
+                        return new Static(this.RawValue);
+                    default:
+                        // DirectiveTypes.Single:     This is the most top directive which is not allowed to be used internally.
+                        // DirectiveTypes.Undefined:  Takes no action for parsing
+                        throw new GrammarException();
+                }
+            }
+        }
+
         private void Parse()
         {
+            // Check cache first and skip parsing if it is exists...
+            if (Parser.ParserCache.TryGetValue(this.Id, out IList<DirectiveFactory> factories))
+            {
+                foreach (DirectiveFactory factory in factories)
+                    this._ResultHandler.Invoke(factory.Make(this._Arguments));
+                return;
+            }
+            
             int cursorIndex = 0;
 
             while (this._Reader.Peek() > -1)
@@ -87,6 +174,9 @@ namespace Xeora.Web.Application
 
             if (this._SingleCache.Length > 0)
                 this.HandleSingles();
+
+            // Cache parse for future use...
+            Parser.ParserCache.TryAdd(this.Id, this.Directives);
         }
 
         private Content FindContent(int index, string line)
@@ -231,6 +321,8 @@ namespace Xeora.Web.Application
 
         private void HandleSingles()
         {
+            DirectiveFactory directiveFactory;
+            
             string rawValue = this._SingleCache.ToString();
             int lastNewLineIndex = 
                 rawValue.LastIndexOf(Environment.NewLine, StringComparison.InvariantCulture);
@@ -242,8 +334,10 @@ namespace Xeora.Web.Application
 
             if (singlesMatches.Count == 0)
             {
-                this._ResultHandler.Invoke(
-                    new Static(rawValue));
+                directiveFactory =
+                    new DirectiveFactory(DirectiveTypes.Static, rawValue);
+                this.Directives.Add(directiveFactory);
+                this._ResultHandler.Invoke(directiveFactory.Make(this._Arguments));
                 return;
             }
 
@@ -256,51 +350,50 @@ namespace Xeora.Web.Application
                 Match singleMatch = (Match)smEnum.Current;
 
                 if (singleMatch.Index - lastIndex > 0)
-                    this._ResultHandler.Invoke(
-                        new Static(rawValue.Substring(lastIndex, singleMatch.Index - lastIndex)));
-
-                string singleValue = Parser.ClearTags(singleMatch.Value);
-
-                switch (Directives.DirectiveHelper.CaptureDirectiveType(singleMatch.Value))
                 {
-                    case Directives.DirectiveTypes.Property:
-                        this._ResultHandler.Invoke(
-                            new Property(singleValue, this._Arguments));
+                    directiveFactory = 
+                        new DirectiveFactory(
+                            DirectiveTypes.Static, 
+                            rawValue.Substring(lastIndex, singleMatch.Index - lastIndex)
+                        );
+                    this.Directives.Add(directiveFactory);
+                    this._ResultHandler.Invoke(directiveFactory.Make(this._Arguments));
+                }
 
-                        break;
-                    case Directives.DirectiveTypes.Control:
-                        this._ResultHandler.Invoke(
-                            new Control(singleValue, null));
+                directiveFactory = null;
+                
+                string singleValue = Parser.ClearTags(singleMatch.Value);
+                DirectiveTypes directiveType =
+                    DirectiveHelper.CaptureDirectiveType(singleMatch.Value);
 
+                switch (directiveType)
+                {
+                    case DirectiveTypes.Property:
+                    case DirectiveTypes.Control:
+                    case DirectiveTypes.Template:
+                    case DirectiveTypes.Translation:
+                    case DirectiveTypes.HashCodePointedTemplate:
+                    case DirectiveTypes.Execution:
+                        directiveFactory =
+                            new DirectiveFactory(directiveType, singleValue);
                         break;
-                    case Directives.DirectiveTypes.Template:
-                        this._ResultHandler.Invoke(
-                            new Template(singleValue, null));
+                }
 
-                        break;
-                    case Directives.DirectiveTypes.Translation:
-                        this._ResultHandler.Invoke(
-                            new Translation(singleValue, null));
-
-                        break;
-                    case Directives.DirectiveTypes.HashCodePointedTemplate:
-                        this._ResultHandler.Invoke(
-                            new HashCodePointedTemplate(singleValue, null));
-
-                        break;
-                    case Directives.DirectiveTypes.Execution:
-                        this._ResultHandler.Invoke(
-                            new Execution(singleValue, null));
-
-                        break;
+                if (directiveFactory != null)
+                {
+                    this.Directives.Add(directiveFactory);
+                    this._ResultHandler.Invoke(directiveFactory.Make(this._Arguments));
                 }
 
                 lastIndex = singleMatch.Index + singleMatch.Length;
             }
 
-            if (rawValue.Length - lastIndex > 1)
-                this._ResultHandler.Invoke(
-                    new Static(rawValue.Substring(lastIndex)));
+            if (rawValue.Length - lastIndex <= 1) return;
+            
+            directiveFactory =
+                new DirectiveFactory(DirectiveTypes.Static, rawValue[lastIndex..]);
+            this.Directives.Add(directiveFactory);
+            this._ResultHandler.Invoke(directiveFactory.Make(this._Arguments));
         }
 
         private void HandleContent(Content content)
@@ -309,60 +402,33 @@ namespace Xeora.Web.Application
                 this._ContentCache.ToString();
             rawValue = Parser.ClearTags(rawValue);
 
+            DirectiveFactory directiveFactory = null;
             string directiveRawValue =
                 $"${(string.IsNullOrEmpty(content.DirectiveType) ? content.DirectiveId : content.DirectiveType)}:";
-            switch (Directives.DirectiveHelper.CaptureDirectiveType(directiveRawValue))
+            DirectiveTypes directiveType =
+                DirectiveHelper.CaptureDirectiveType(directiveRawValue);
+            
+            switch (directiveType)
             {
-                case Directives.DirectiveTypes.Control:
-                    this._ResultHandler.Invoke(
-                        new Control(rawValue, null)); 
-
-                    break;
-                case Directives.DirectiveTypes.ControlAsync:
-                    this._ResultHandler.Invoke(
-                        new ControlAsync(rawValue, null));
-                    break;
-                case Directives.DirectiveTypes.InLineStatement:
-                    this._ResultHandler.Invoke(
-                        new InLineStatement(rawValue, null));
-
-                    break;
-                case Directives.DirectiveTypes.UpdateBlock:
-                    this._ResultHandler.Invoke(
-                        new UpdateBlock(rawValue, null));
-
-                    break;
-                case Directives.DirectiveTypes.EncodedExecution:
-                    this._ResultHandler.Invoke(
-                        new EncodedExecution(rawValue, null));
-
-                    break;
-                case Directives.DirectiveTypes.MessageBlock:
-                    this._ResultHandler.Invoke(
-                        new MessageBlock(rawValue, null));
-
-                    break;
-                case Directives.DirectiveTypes.PermissionBlock:
-                    this._ResultHandler.Invoke(
-                        new PermissionBlock(rawValue, null));
-
-                    break;
-                case Directives.DirectiveTypes.PartialCache:
-                    this._ResultHandler.Invoke(
-                        new PartialCache(rawValue, null));
-
-                    break;
-                case Directives.DirectiveTypes.ReplaceableTranslation:
-                    this._ResultHandler.Invoke(
-                        new ReplaceableTranslation(rawValue, null));
-
-                    break;
-                case Directives.DirectiveTypes.AsyncGroup:
-                    this._ResultHandler.Invoke(
-                        new AsyncGroup(rawValue, null));
-
+                case DirectiveTypes.Control:
+                case DirectiveTypes.ControlAsync:
+                case DirectiveTypes.InLineStatement:    
+                case DirectiveTypes.UpdateBlock:
+                case DirectiveTypes.EncodedExecution:
+                case DirectiveTypes.MessageBlock:
+                case DirectiveTypes.PermissionBlock:
+                case DirectiveTypes.PartialCache:
+                case DirectiveTypes.ReplaceableTranslation:
+                case DirectiveTypes.AsyncGroup:
+                    directiveFactory = 
+                        new DirectiveFactory(directiveType, rawValue);
                     break;
             }
+
+            if (directiveFactory == null) return;
+            
+            this.Directives.Add(directiveFactory);
+            this._ResultHandler.Invoke(directiveFactory.Make(this._Arguments));
         }
 
         private static string ClearTags(string rawValue)
