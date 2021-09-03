@@ -19,6 +19,8 @@ namespace Xeora.Web.Manager
             if (!bind.Ready)
                 throw new Exception("Bind Parameters should be parsed first!");
 
+            DateTime executionBegins = DateTime.Now;
+            
             Basics.Execution.InvokeResult<T> rInvokeResult =
                 new Basics.Execution.InvokeResult<T>(bind);
 
@@ -36,6 +38,16 @@ namespace Xeora.Web.Manager
                 rInvokeResult.Exception = exception;
             else
                 rInvokeResult.Result = (T)invokedObject;
+            
+            if (!Basics.Configurations.Xeora.Application.Main.PrintAnalysis) return rInvokeResult;
+            
+            double totalMs =
+                DateTime.Now.Subtract(executionBegins).TotalMilliseconds;
+            Basics.Console.Push(
+                "analysed - execution duration",
+                $"{totalMs}ms - {bind}",
+                string.Empty, false, groupId: Basics.Helpers.Context.UniqueId,
+                type: totalMs > Basics.Configurations.Xeora.Application.Main.AnalysisThreshold ? Basics.Console.Type.Warn: Basics.Console.Type.Info);
 
             return rInvokeResult;
         }
