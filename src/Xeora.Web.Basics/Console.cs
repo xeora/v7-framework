@@ -97,7 +97,7 @@ namespace Xeora.Web.Basics
                 string separator =
                     "".PadRight(30, '-');
                 Message separatorMessage =
-                    Message.Create(Type.Info, $"{DateTime.Now:MM/dd/yyyy HH:mm:ss.fff} {separator} {separator}");
+                    Message.Create(Type.Info, $"{DateTime.Now:MM/dd/yyyy HH:mm:ss.fff} ----- {separator} {separator}");
                 Console.WriteLine(separatorMessage);
             }
             finally
@@ -231,6 +231,22 @@ namespace Xeora.Web.Basics
             if (applyRules && !Configurations.Xeora.Service.Print)
                 return;
 
+            string typePointer = 
+                string.Empty.PadRight(5, ' ');
+            
+            switch (type)
+            {
+                case Type.Info:
+                    typePointer = "INFO ";
+                    break;
+                case Type.Warn:
+                    typePointer = "WARN ";
+                    break;
+                case Type.Error:
+                    typePointer = "ERROR";
+                    break;
+            }
+            
             if (string.IsNullOrEmpty(header))
                 header = string.Empty;
 
@@ -240,7 +256,7 @@ namespace Xeora.Web.Basics
             header = header.PadRight(30, ' ');
 
             string consoleMessage = 
-                $"{DateTime.Now:MM/dd/yyyy HH:mm:ss.fff} {header} {summary}";
+                $"{DateTime.Now:MM/dd/yyyy HH:mm:ss.fff} {typePointer} {header} {summary}";
             if (!string.IsNullOrEmpty(details))
             {
                 const string detailsHeader = "--------------- Details ---------------";
