@@ -100,7 +100,7 @@ namespace Xeora.Web.Basics.Execution
             return
                 string.Format("{0}?{1}{2}{3}{4}",
                     this.Executable,
-                    string.Join(".", this.Classes),
+                    string.Join(".", this.Classes ?? Array.Empty<string>()),
                     this.Classes == null ? string.Empty : ".",
                     this.Procedure,
                     this.Parameters
