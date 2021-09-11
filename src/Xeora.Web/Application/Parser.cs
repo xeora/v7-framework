@@ -109,7 +109,15 @@ namespace Xeora.Web.Application
                     case DirectiveTypes.MessageBlock:
                         return new MessageBlock(this.RawValue, null);
                     case DirectiveTypes.PartialCache:
-                        return new PartialCache(this.RawValue, null);
+                        int positionId = -1;
+                        
+                        Match match =
+                            RegularExpression.Current.PartialContentPositionRegEx.Match(this.RawValue);
+
+                        if (match.Success)
+                            int.TryParse(match.Result("${PositionId}"), out positionId);
+
+                        return new PartialCache(this.RawValue, positionId, null);
                     case DirectiveTypes.PermissionBlock:
                         return new PermissionBlock(this.RawValue, null);
                     case DirectiveTypes.Template:

@@ -11,7 +11,7 @@ namespace Xeora.Web.Directives
             this.Content = content;
         }
 
-        public static string CreateUniqueCacheId(int positionId, PartialCache partialCache, ref Basics.Domain.IDomain instance)
+        public static string CreateUniqueCacheId(int positionId, string cacheIdExtension, PartialCache partialCache, ref Basics.Domain.IDomain instance)
         {
             if (partialCache == null)
                 throw new ArgumentNullException(nameof(partialCache));
@@ -20,7 +20,7 @@ namespace Xeora.Web.Directives
                 string.IsNullOrEmpty(partialCache.TemplateTree) || positionId == -1)
                 throw new Exceptions.ParseException();
 
-            return $"{instance.Languages.Current.Info.Id}_{partialCache.TemplateTree}_{positionId}";
+            return $"{instance.Languages.Current.Info.Id}_{partialCache.TemplateTree}_{positionId}_{cacheIdExtension}";
         }
 
         public string CacheId { get; }

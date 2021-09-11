@@ -62,9 +62,9 @@ namespace Xeora.Web.Directives.Elements
 
                 foreach (IDirective directive in directives)
                 {
-                    if (!(directive is INameable)) return false;
+                    if (directive is not INameable nameable) return false;
 
-                    string directiveId = ((INameable)directive).DirectiveId;
+                    string directiveId = nameable.DirectiveId;
                     if (string.CompareOrdinal(directiveId, this.BoundDirectiveId) != 0) return false;
 
                     if (directive.Status == RenderStatus.Rendered) continue;

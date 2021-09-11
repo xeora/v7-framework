@@ -6,6 +6,7 @@ namespace Xeora.Web.Application
     public class RegularExpression
     {
         private readonly string _SpecificContentOpeningRegEx;
+        private readonly string _PartialContentPositionRegEx;
 
         private RegularExpression()
         {
@@ -22,7 +23,7 @@ namespace Xeora.Web.Application
             const string parentingRegEx = "\\[" + directiveIdRegEx + "\\]";
             const string parametersRegEx = "\\(((\\|)?(" + variableRegEx + ")?)+\\)";
             const string procedureRegEx = directiveIdRegEx + "\\?" + directiveIdRegEx + "(\\,((\\|)?(" + variableRegEx + ")?)*)?";
-
+            
             const string singleRegEx =
                 "\\$" +
                 "(" +
@@ -35,11 +36,12 @@ namespace Xeora.Web.Application
                         procedureRegEx + "\\$" + // Capture Procedure
                     ")" + 
                 ")";
-            const string contentOpeningRegEx = "\\$((?<DirectiveId>" + directiveIdRegEx + ")|(?<DirectiveType>" + directivePointerRegEx + ")(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:(?<DirectiveId>" + directiveIdRegEx + ")(" + parametersRegEx + ")?)\\:\\{";
+            const string contentOpeningRegEx = "\\$((?<DirectiveId>" + directiveIdRegEx + ")(" + parametersRegEx + ")?|(?<DirectiveType>" + directivePointerRegEx + ")(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:(?<DirectiveId>" + directiveIdRegEx + ")(" + parametersRegEx + ")?)\\:\\{";
             const string contentSeparatorRegEx = "\\}:(?<DirectiveId>" + directiveIdRegEx + ")\\:\\{";
             const string contentClosingRegEx = "\\}:(?<DirectiveId>" + directiveIdRegEx + ")\\$";
 
             this._SpecificContentOpeningRegEx = "\\$(({0})|({1})(" + levelingRegEx + ")?(" + parentingRegEx + ")?\\:({0}))(\\(|\\:)";
+            this._PartialContentPositionRegEx = "^PC(" + parametersRegEx + ")?\\~(?<PositionId>\\d+)\\:\\{";
             // !---
 
             this.SingleCapturePattern =
@@ -90,5 +92,8 @@ namespace Xeora.Web.Application
 
         public Regex SpecificContentOpeningPattern(string directiveId, string directiveType) =>
             new Regex(string.Format(this._SpecificContentOpeningRegEx, RegularExpression.CorrectDirectiveIdForRegex(directiveId), RegularExpression.CorrectDirectiveTypeForRegex(directiveType)),RegexOptions.Singleline);
+        
+        public Regex PartialContentPositionRegEx =>
+            new Regex(this._PartialContentPositionRegEx, RegexOptions.Compiled);
     }
 }

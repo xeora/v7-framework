@@ -39,7 +39,7 @@ namespace Xeora.Web.Directives.Elements
                         new ConditionalStatement(
                             this,
                             new ContentDescription(this._RawValue),
-                            DirectiveHelper.CaptureControlParameters(this._RawValue),
+                            DirectiveHelper.CaptureDirectiveParameters(this._RawValue, false),
                             (Application.Controls.ConditionalStatement)control
                         );
 
@@ -49,7 +49,7 @@ namespace Xeora.Web.Directives.Elements
                         new DataList(
                             this,
                             new ContentDescription(this._RawValue),
-                            DirectiveHelper.CaptureControlParameters(this._RawValue),
+                            DirectiveHelper.CaptureDirectiveParameters(this._RawValue, false),
                             (Application.Controls.DataList)control,
                             this.CacheHandler
                         );
@@ -60,7 +60,7 @@ namespace Xeora.Web.Directives.Elements
                         new VariableBlock(
                             this,
                             new ContentDescription(this._RawValue),
-                            DirectiveHelper.CaptureControlParameters(this._RawValue),
+                            DirectiveHelper.CaptureDirectiveParameters(this._RawValue, false),
                             (Application.Controls.VariableBlock)control
                         );
 

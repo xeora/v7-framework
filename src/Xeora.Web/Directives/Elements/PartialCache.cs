@@ -1,27 +1,22 @@
-﻿using System.Text.RegularExpressions;
-using Xeora.Web.Global;
+﻿using Xeora.Web.Global;
 
 namespace Xeora.Web.Directives.Elements
 {
     public class PartialCache : Directive
     {
-        private static readonly Regex PositionRegEx =
-            new Regex("PC~(?<PositionId>\\d+)\\:\\{", RegexOptions.Compiled);
-
         private readonly int _PositionId;
+        private readonly string[] _Parameters;
+        private readonly string[] _CacheIdExtensions;
         private readonly ContentDescription _Contents;
         private bool _Parsed;
 
-        public PartialCache(string rawValue, ArgumentCollection arguments) :
+        public PartialCache(string rawValue, int positionId, ArgumentCollection arguments) :
             base(DirectiveTypes.PartialCache, arguments)
         {
-            this._PositionId = -1;
-            Match match =
-                PartialCache.PositionRegEx.Match(rawValue);
-
-            if (match.Success)
-                int.TryParse(match.Result("${PositionId}"), out this._PositionId);
-            
+            this._PositionId = positionId;
+            this._Parameters =
+                DirectiveHelper.CaptureDirectiveParameters(rawValue, true);
+            this._CacheIdExtensions = new string[this._Parameters.Length];
             this._Contents = new ContentDescription(rawValue);
         }
 
@@ -38,6 +33,10 @@ namespace Xeora.Web.Directives.Elements
             // PartialCache needs to link ContentArguments of its parent.
             if (this.Parent != null)
                 this.Arguments.Replace(this.Parent.Arguments);
+
+            for (int i = 0; i < this._Parameters.Length; i++)
+                this._CacheIdExtensions[i] =
+                    Xeora.Web.Directives.Property.Render(this.Parent, this._Parameters[i]).Item2?.ToString();
 
             this.Children = new DirectiveCollection(this.Mother, this);
             this.Mother.RequestParsing(this._Contents.Parts[0], this.Children, this.Arguments);
@@ -56,7 +55,7 @@ namespace Xeora.Web.Directives.Elements
             this.Mother.RequestInstance(out Basics.Domain.IDomain instance);
             this._InstanceIdAccessTree = instance.IdAccessTree;
             this._CacheId =
-                PartialCacheObject.CreateUniqueCacheId(this._PositionId, this, ref instance);
+                PartialCacheObject.CreateUniqueCacheId(this._PositionId, string.Join('_', this._CacheIdExtensions), this, ref instance);
             PartialCachePool.Current.Get(this._InstanceIdAccessTree, this._CacheId, out PartialCacheObject cacheObject);
 
             if (cacheObject == null) return true;

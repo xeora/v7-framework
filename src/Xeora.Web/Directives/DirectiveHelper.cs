@@ -28,14 +28,14 @@ namespace Xeora.Web.Directives
             return cpIdMatch.Success ? cpIdMatch.Value : string.Empty;
         }
 
-        private static readonly Regex ControlParametersRegEx =
+        private static readonly Regex DirectiveParametersRegEx =
             new Regex("\\(((\\|)?(([#]+|[\\^\\-\\+\\*\\~\\&])?([0-9_a-zA-Z]+)|\\=[\\S]*|@([#]+|[\\-\\&\\.])?([0-9_a-zA-Z]+\\.)[\\.0-9_a-zA-Z]+)?)+\\)", RegexOptions.Compiled);
-        public static string[] CaptureControlParameters(string value)
+        public static string[] CaptureDirectiveParameters(string value, bool specialDirective)
         {
             string[] controlValueParts = value.Split(':');
 
             Match cpIdMatch =
-                DirectiveHelper.ControlParametersRegEx.Match(controlValueParts[1]);
+                DirectiveHelper.DirectiveParametersRegEx.Match(controlValueParts[specialDirective ? 0 : 1]);
 
             if (!cpIdMatch.Success) return new string[] { };
             
