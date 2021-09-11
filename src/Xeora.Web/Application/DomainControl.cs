@@ -585,6 +585,9 @@ namespace Xeora.Web.Application
 
             // Clear Partial Block Cache
             PartialCachePool.Current.Reset();
+            
+            // Clear Parser Directive Cache
+            Parser.Reset();
         }
     }
 }
