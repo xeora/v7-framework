@@ -93,7 +93,7 @@ namespace Xeora.Web.Directives
                         d =>
                         {
                             Helpers.AssignHandlerId(handlerId);
-                            this.Render(directive);
+                            this.Render((IDirective)d);
                         }, directive
                     );
                 
