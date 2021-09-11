@@ -15,7 +15,10 @@ namespace Xeora.Web.Application
 {
     internal class Parser : IDisposable
     {
-        private static readonly ConcurrentDictionary<string, IList<DirectiveFactory>> ParserCache = new ();
+        private static readonly ConcurrentDictionary<string, IList<DirectiveFactory>> _ParserCache = new ();
+        
+        public static void Reset() =>
+            Parser._ParserCache.Clear();
         
         public static void Parse(Action<IDirective> resultHandler, string rawValue, ArgumentCollection arguments)
         {
@@ -132,7 +135,7 @@ namespace Xeora.Web.Application
         private void Parse()
         {
             // Check cache first and skip parsing if it is exists...
-            if (Parser.ParserCache.TryGetValue(this.Id, out IList<DirectiveFactory> factories))
+            if (Parser._ParserCache.TryGetValue(this.Id, out IList<DirectiveFactory> factories))
             {
                 foreach (DirectiveFactory factory in factories)
                     this._ResultHandler.Invoke(factory.Make(this._Arguments));
@@ -176,7 +179,7 @@ namespace Xeora.Web.Application
                 this.HandleSingles();
 
             // Cache parse for future use...
-            Parser.ParserCache.TryAdd(this.Id, this.Directives);
+            Parser._ParserCache.TryAdd(this.Id, this.Directives);
         }
 
         private Content FindContent(int index, string line)
