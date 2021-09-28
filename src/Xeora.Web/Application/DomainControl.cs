@@ -97,7 +97,7 @@ namespace Xeora.Web.Application
         public bool IsAuthenticationRequired { get; private set; }
         public bool IsWorkingAsStandAlone { get; private set; }
 
-        public static string XeoraJsVersion => "1.0.018";
+        public static string XeoraJsVersion => "1.0.019";
 
         private void SelectDomain(string languageId)
         {

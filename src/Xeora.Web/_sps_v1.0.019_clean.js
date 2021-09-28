@@ -129,7 +129,7 @@ XeoraJS.prototype.processstate = function (updateLocationPathParts, nextDivIds, 
         eval(evalScript);
 
         if (indicatorCallback != null) {
-            indicatorCallback(1);
+            indicatorCallback(this.httprequests[httprequestindex].status === 200 ? 1 : 2);
         }
     } else {
         if (indicatorCallback != null) {
