@@ -332,14 +332,22 @@ namespace Xeora.Web.Directives
                     }
                     else
                     {
+                        // Check if any member exists.
                         MemberInfo[] memberInfos =
-                            objectType.GetMember("Item");
+                            objectType.GetMember(invokeMember);
 
-                        if (memberInfos.Length > 0)
+                        // If not check for item search
+                        if (memberInfos.Length == 0)
                         {
-                            invokeMember = "Item";
-                            invokeAttribute = BindingFlags.GetProperty;
-                            invokeParameters = new object[] {objectPaths[i]};
+                            memberInfos =
+                                objectType.GetMember("Item");
+                            
+                            if (memberInfos.Length > 0)
+                            {
+                                invokeMember = "Item";
+                                invokeAttribute = BindingFlags.GetProperty;
+                                invokeParameters = new object[] { objectPaths[i] };
+                            }
                         }
                     }
                     
