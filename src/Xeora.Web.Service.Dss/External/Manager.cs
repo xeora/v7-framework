@@ -59,6 +59,10 @@ namespace Xeora.Web.Service.Dss.External
                     
                     throw new Exceptions.ExternalCommunicationValidationException();
                 }
+                
+                this._RequestHandler = new RequestHandler(ref this._DssServiceClient);
+                this._ResponseHandler = new ResponseHandler(ref this._DssServiceClient);
+                this._ResponseHandler.StartHandler();
             }
             catch (Exceptions.ExternalCommunicationException)
             {
@@ -75,10 +79,6 @@ namespace Xeora.Web.Service.Dss.External
                 Monitor.Exit(this._ConnectionLock);
             }
 
-            this._RequestHandler = new RequestHandler(ref this._DssServiceClient);
-            this._ResponseHandler = new ResponseHandler(ref this._DssServiceClient);
-            this._ResponseHandler.StartHandler();
-            
             ThreadPool.QueueUserWorkItem(this.EchoLoop);
         }
         
