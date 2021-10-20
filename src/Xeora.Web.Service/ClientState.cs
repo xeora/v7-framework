@@ -114,7 +114,7 @@ namespace Xeora.Web.Service
                 finally
                 {
                     if (xeoraHandler != null)
-                        Handler.Manager.Current.UnMark(xeoraHandler.HandlerId);
+                        Handler.Manager.Current.Drop(xeoraHandler.HandlerId);
 
                     context?.Dispose();
 

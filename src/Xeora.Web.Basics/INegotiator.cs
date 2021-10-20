@@ -5,6 +5,8 @@ namespace Xeora.Web.Basics
     public interface INegotiator
     {
         IHandler GetHandler(string handlerId);
+        void KeepHandler(string handlerId);
+        void DropHandler(string handlerId);
         IVariablePool GetVariablePool(string sessionId, string keyId);
         //void TransferVariablePool(string keyId, string fromSessionId, string toSessionId);
         Domain.IDomain CreateNewDomainInstance(string[] domainIdAccessTree, string domainLanguageId);

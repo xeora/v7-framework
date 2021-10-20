@@ -20,6 +20,12 @@ namespace Xeora.Web.Service
         public IHandler GetHandler(string handlerId) =>
             Handler.Manager.Current.Get(handlerId);
         
+        public void KeepHandler(string handlerId) =>
+            Handler.Manager.Current.Keep(handlerId);
+        
+        public void DropHandler(string handlerId) =>
+            Handler.Manager.Current.Drop(handlerId, true);
+        
         public IVariablePool GetVariablePool(string sessionId, string keyId)
         {
             PoolManager.Get(sessionId, keyId, out IVariablePool variablePool);

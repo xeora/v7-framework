@@ -175,6 +175,18 @@ namespace Xeora.Web.Basics
         /// <param name="handlerId">Handler identifier</param>
         public static void AssignHandlerId(string handlerId) =>
             AppDomain.CurrentDomain.SetData($"HandlerId_{Thread.CurrentThread.ManagedThreadId}", handlerId);
+
+        /// <summary>
+        /// Keeps the current handler and prevent removal at the end of the request
+        /// </summary>
+        public static void KeepCurrentHandler() =>
+            Helpers.Negotiator.KeepHandler(Helpers.CurrentHandlerId);
+            
+        /// <summary>
+        /// Drops the current handler and immediately remove from the memory without waiting the compilation for the request
+        /// </summary>
+        public static void DropCurrentHandler() =>
+            Helpers.Negotiator.DropHandler(Helpers.CurrentHandlerId);
         
         internal static IHandler HandlerInstance =>
             Helpers.Negotiator.GetHandler(Helpers.CurrentHandlerId);
