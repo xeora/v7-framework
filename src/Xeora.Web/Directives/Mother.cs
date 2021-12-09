@@ -80,7 +80,10 @@ namespace Xeora.Web.Directives
                     this._SingleDirective.Children.Find(this.RequestedUpdateBlockIds.Last());
 
                 if (result == null)
+                {
+                    this.Bucket.Completed();
                     return;
+                }
 
                 this._SingleDirective.Children.Clear();
                 this._SingleDirective.Children.Add(result);
