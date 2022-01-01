@@ -151,6 +151,7 @@ namespace Xeora.Web.Service.Workers
                         
                         if (!this._Buckets.IsAddingCompleted)
                             this._Buckets.Add(worker);
+                        else worker.Kill(); // If bucket is killed, kill the active worker
                     },
                     () => worker.PrintReport()
                 );
