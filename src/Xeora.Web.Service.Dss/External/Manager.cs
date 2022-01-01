@@ -59,17 +59,23 @@ namespace Xeora.Web.Service.Dss.External
                     
                     throw new Exceptions.ExternalCommunicationValidationException();
                 }
+
+                this._DssServiceClient.ReceiveTimeout = 0; // No timeout
                 
                 this._RequestHandler = new RequestHandler(ref this._DssServiceClient);
-                this._ResponseHandler = new ResponseHandler(ref this._DssServiceClient);
+                this._ResponseHandler = 
+                    new ResponseHandler(ref this._DssServiceClient, ex =>
+                    {
+                        if (ex is SocketException)
+                            this.Reset();
+                        else
+                            Basics.Console.Push("SYSTEM ERROR", ex.Message, ex.ToString(), false, true, type: Basics.Console.Type.Error);
+                    });
                 this._ResponseHandler.StartHandler();
             }
-            catch (Exceptions.ExternalCommunicationException)
-            {
-                this.Reset();
-                throw;
-            }
-            catch (Exceptions.ExternalCommunicationValidationException)
+            // Exceptions.ExternalCommunicationException
+            // Exceptions.ExternalCommunicationValidationException
+            catch
             {
                 this.Reset();
                 throw;
@@ -85,6 +91,8 @@ namespace Xeora.Web.Service.Dss.External
         private bool Validate(ref TcpClient dssServiceClient)
         {
             SpinWait spinWait = new SpinWait();
+
+            dssServiceClient.ReceiveTimeout = 5000; // 5 seconds
             
             Stream remoteStream =
                 dssServiceClient.GetStream();
@@ -158,12 +166,12 @@ namespace Xeora.Web.Service.Dss.External
 
                     this.ApproveEcho(echoContent, responseBytes);
                     
-                    Thread.Sleep(TimeSpan.FromMinutes(1));
+                    Thread.Sleep(TimeSpan.FromSeconds(30));
                 }
                 catch (Exceptions.ExternalCommunicationException)
                 {
                     this.Reset();
-                    throw;
+                    return;
                 }
                 finally
                 {

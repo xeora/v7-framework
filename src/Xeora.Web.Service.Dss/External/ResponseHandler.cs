@@ -11,14 +11,19 @@ namespace Xeora.Web.Service.Dss.External
         private const int REQUEST_HEADER_LENGTH = 8; // 8 bytes first 5 bytes are requestId, remain 3 bytes are request length.
         private readonly TcpClient _DssServiceClient;
         
-        private readonly BlockingCollection<bool> _NotificationChannel = 
-            new BlockingCollection<bool>();
+        private const int MESSAGE_WAIT_DURATION = 30; // 30 seconds
+        
+        private readonly BlockingCollection<DateTime> _NotificationChannel = new();
         private readonly ConcurrentDictionary<long, byte[]> _ResponseResults;
+        private readonly Action<Exception> _ErrorHandler;
 
-        public ResponseHandler(ref TcpClient dssServiceClient)
+        private bool _Running;
+
+        public ResponseHandler(ref TcpClient dssServiceClient, Action<Exception> errorHandler)
         {
             this._DssServiceClient = dssServiceClient;
             this._ResponseResults = new ConcurrentDictionary<long, byte[]>();
+            this._ErrorHandler = errorHandler;
         }
 
         // Push handler to work in a different core using thread, It was async before.
@@ -27,17 +32,24 @@ namespace Xeora.Web.Service.Dss.External
 
         public byte[] WaitForMessage(long requestId)
         {
-            do
+            while (this._Running)
             {
-                this._NotificationChannel.Take();
+                DateTime requestTime =
+                    this._NotificationChannel.Take();
                 if (this._ResponseResults.TryRemove(requestId, out byte[] message))
                     return message;
-                this._NotificationChannel.Add(true);
-            } while (true);
+
+                if (DateTime.Compare(requestTime, DateTime.UtcNow) < 0)
+                    return null;
+                this._NotificationChannel.Add(requestTime);
+            }
+            return null;
         }
 
         private void Handle(object state)
         {
+            this._Running = true;
+            
             byte[] head = new byte[8];
             int bR = 0;
 
@@ -58,9 +70,10 @@ namespace Xeora.Web.Service.Dss.External
                     bR = 0;
                 } while (true);
             }
-            catch (SocketException)
+            catch (Exception ex)
             {
-                // Just Keep Silent
+                this._Running = false;
+                this._ErrorHandler.Invoke(ex);
             }
         }
 
@@ -99,12 +112,15 @@ namespace Xeora.Web.Service.Dss.External
             catch
             {
                 this._ResponseResults.TryAdd(requestId, null);
+                throw;
             }
             finally
             {
                 contentStream?.Close();
                 
-                this._NotificationChannel.Add(true);
+                this._NotificationChannel.Add(
+                    DateTime.UtcNow.AddSeconds(ResponseHandler.MESSAGE_WAIT_DURATION)
+                );
             }
         }
     }
