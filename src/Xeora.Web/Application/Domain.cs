@@ -5,6 +5,7 @@ using System.IO;
 using Xeora.Web.Basics.Domain.Control.Definitions;
 using Xeora.Web.Directives;
 using Xeora.Web.Global;
+using Xeora.Web.Service.Workers;
 
 namespace Xeora.Web.Application
 {
@@ -122,15 +123,28 @@ namespace Xeora.Web.Application
 
         public Basics.RenderResult Render(string xeoraContent, Basics.ControlResult.Message messageResult, string[] updateBlockControlIdStack = null)
         {
-            Mother mother =
-                new Mother(new Directives.Elements.Single(xeoraContent, null), messageResult, updateBlockControlIdStack);
-            mother.ParseRequested += Domain.OnParseRequest;
-            mother.InstanceRequested += this.OnInstanceRequest;
-            mother.DeploymentAccessRequested += Domain.OnDeploymentAccessRequest;
-            mother.ControlResolveRequested += Domain.OnControlResolveRequest;
-            mother.Process();
-
-            return new Basics.RenderResult(mother.Result, mother.HasInlineError);
+            Bucket bucket = Factory.Bucket(Guid.NewGuid().ToString());
+            try
+            {
+                Mother mother =
+                    new Mother(
+                        new Directives.Elements.Single(xeoraContent, null), 
+                        messageResult,
+                        updateBlockControlIdStack,
+                        bucket
+                    );
+                mother.ParseRequested += Domain.OnParseRequest;
+                mother.InstanceRequested += this.OnInstanceRequest;
+                mother.DeploymentAccessRequested += Domain.OnDeploymentAccessRequest;
+                mother.ControlResolveRequested += Domain.OnControlResolveRequest;
+                mother.Process();
+                
+                return new Basics.RenderResult(mother.Result, mother.HasInlineError);
+            }
+            finally
+            {
+                bucket.Completed();
+            }
         }
 
         private static void OnParseRequest(string rawValue, DirectiveCollection childrenContainer, ArgumentCollection arguments)

@@ -21,10 +21,15 @@ namespace Xeora.Web.Directives
         public event DeploymentAccessHandler DeploymentAccessRequested;
         public event ControlResolveHandler ControlResolveRequested;
 
-        public Mother(Single singleDirective, Basics.ControlResult.Message messageResult, IReadOnlyCollection<string> updateBlockIdList)
+        public Mother(
+            Single singleDirective, 
+            Basics.ControlResult.Message messageResult, 
+            IReadOnlyCollection<string> updateBlockIdList,
+            Bucket bucket
+        )
         {
             this.PropertyLock = new object();
-            this.Bucket = Factory.Bucket(Guid.NewGuid().ToString());
+            this.Bucket = bucket;
             
             this.Pool = new DirectivePool();
             
@@ -80,17 +85,13 @@ namespace Xeora.Web.Directives
                     this._SingleDirective.Children.Find(this.RequestedUpdateBlockIds.Last());
 
                 if (result == null)
-                {
-                    this.Bucket.Completed();
                     return;
-                }
 
                 this._SingleDirective.Children.Clear();
                 this._SingleDirective.Children.Add(result);
             }
 
             this._SingleDirective.Render();
-            this.Bucket.Completed();
 
             this.CreateAnalysisBulkReport();
         }
