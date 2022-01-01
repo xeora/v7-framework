@@ -42,9 +42,19 @@ namespace Xeora.Web.Service.Workers
 
         public void PrintReport()
         {
+            string specificInfo = 
+                this._Silent ? "Bucket " : string.Empty;
+            
+            if (this._Queue.IsAddingCompleted)
+            {
+                Basics.Console.Push($"{specificInfo}Worker Report",
+                    $"{specificInfo}Worker {this._Id} has been already requested to be killed",
+                    string.Empty, false, true);
+                return;
+            }
+
             long totalHasJob =
                 this.CountBusy();
-            string specificInfo = this._Silent ? "Bucket " : string.Empty;
         
             Basics.Console.Push($"{specificInfo}Worker Report",
                 $"{specificInfo}Worker {this._Id} has {this._Threads.Count} thread(s), running jobs: {totalHasJob}, waiting queue: {this._Queue.Count}",
