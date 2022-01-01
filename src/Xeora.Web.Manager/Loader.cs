@@ -87,7 +87,7 @@ namespace Xeora.Web.Manager
             }
 
             // Do not block Application load
-            ThreadPool.QueueUserWorkItem(state => this.Cleanup());
+            ThreadPool.QueueUserWorkItem(_ => this.Cleanup());
         }
 
         private void LoadExecutables(DirectoryInfo domains)

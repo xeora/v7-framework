@@ -44,7 +44,7 @@ namespace Xeora.Web.Basics
             this._KeyListeners = new ConcurrentDictionary<string, Action<ConsoleKeyInfo>>();
             this._Flushing = new ConcurrentDictionary<string, bool>();
 
-            ThreadPool.QueueUserWorkItem(state => this.StartKeyListener());
+            ThreadPool.QueueUserWorkItem(_ => this.StartKeyListener());
         }
 
         private void Queue(Message message, string groupId)
