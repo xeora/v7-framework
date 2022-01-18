@@ -159,7 +159,7 @@ namespace Xeora.Web.Service.Dss.External
 
                     long requestId =
                         this._RequestHandler?.MakeRequest(((MemoryStream) requestStream).ToArray()) ?? -1;
-                    if (requestId == -1) return;
+                    if (requestId == -1) throw new Exceptions.ExternalCommunicationException();
                     
                     byte[] responseBytes =
                         this._ResponseHandler.WaitForMessage(requestId);
@@ -251,11 +251,7 @@ namespace Xeora.Web.Service.Dss.External
 
                 long requestId =
                     this._RequestHandler?.MakeRequest(((MemoryStream) requestStream).ToArray()) ?? -1;
-                if (requestId == -1)
-                {
-                    reservationObject = null;
-                    return false;
-                }
+                if (requestId == -1) throw new Exceptions.ExternalCommunicationException();
 
                 byte[] responseBytes =
                     this._ResponseHandler.WaitForMessage(requestId);

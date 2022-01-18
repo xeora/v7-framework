@@ -500,7 +500,7 @@ namespace Xeora.Web.Service.Dss.External
                 if (this._RequestHandler == null)
                     throw new ExternalCommunicationException();
                 
-                this._RequestHandler.MakeRequest(((MemoryStream)requestStream).ToArray());
+                this._RequestHandler?.MakeRequest(((MemoryStream)requestStream).ToArray());
             }
             finally
             {
