@@ -41,7 +41,7 @@ namespace Xeora.Web.Service.Dss.External
             Monitor.Enter(this._ConnectionLock);
             try
             {
-                if (this._DssServiceClient != null && this._DssServiceClient.Connected)
+                if (this._DssServiceClient is { Connected: true })
                     return;
 
                 this._DssServiceClient?.Dispose();
@@ -263,7 +263,9 @@ namespace Xeora.Web.Service.Dss.External
             catch (Exceptions.ExternalCommunicationException)
             {
                 this.Reset();
-                throw;
+
+                reservationObject = null;
+                return false;
             }
             finally
             {
