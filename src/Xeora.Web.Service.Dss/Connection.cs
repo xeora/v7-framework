@@ -78,23 +78,25 @@ namespace Xeora.Web.Service.Dss
         
         private void ReadSocket(ref Stream remoteStream)
         {
-            this._RemoteClient.ReceiveTimeout = 0; // Infinite
-            
             byte[] head = new byte[8];
-            byte[] buffer = new byte[1024];
             int bR = 0;
 
             try
             {
+                this._RemoteClient.ReceiveTimeout = 0; // Infinite
                 do
                 {
                     // Read Head
                     bR += remoteStream.Read(head, bR, head.Length - bR);
-                    if (bR == 0 || bR == 1 && buffer[0] == 0) return;
-                    if (bR < 8) continue;
+                    if (bR < 8)
+                    {
+                        this._RemoteClient.ReceiveTimeout = 5000; // 5 seconds
+                        continue;
+                    }
 
                     this.Consume(head, ref remoteStream);
-
+                    
+                    this._RemoteClient.ReceiveTimeout = 0; // Infinite
                     bR = 0;
                 } while (true);
             }
@@ -113,7 +115,6 @@ namespace Xeora.Web.Service.Dss
             // 8 bytes first 5 bytes are requestId, remain 3 bytes are request length. Request length can be max 15Mb
             long head = 
                 BitConverter.ToInt64(contentHead, 0);
-
             long requestId = head >> 24;
             int contentSize = 
                 (int)(head & 0xFFFFFF);
@@ -130,9 +131,7 @@ namespace Xeora.Web.Service.Dss
                     if (contentSize < readLength)
                         readLength = contentSize;
             
-                    int bR = 
-                        remoteStream.Read(buffer, 0, readLength);
-
+                    int bR = remoteStream.Read(buffer, 0, readLength);
                     contentStream.Write(buffer, 0, bR);
 
                     contentSize -= bR;
