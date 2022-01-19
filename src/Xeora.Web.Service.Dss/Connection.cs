@@ -78,25 +78,24 @@ namespace Xeora.Web.Service.Dss
         
         private void ReadSocket(ref Stream remoteStream)
         {
+            // 60 seconds, client should echo to this service every 30 seconds.
+            // It will have only once chance to miss, otherwise, connection will be dropped.
+            this._RemoteClient.ReceiveTimeout = 60000; 
+            
             byte[] head = new byte[8];
             int bR = 0;
 
             try
             {
-                this._RemoteClient.ReceiveTimeout = 0; // Infinite
                 do
                 {
                     // Read Head
                     bR += remoteStream.Read(head, bR, head.Length - bR);
-                    if (bR < 8)
-                    {
-                        this._RemoteClient.ReceiveTimeout = 5000; // 5 seconds
-                        continue;
-                    }
+                    if (bR == 0) return; // if it is 0 that means, connection is zombie. Just close it.
+                    if (bR != head.Length) continue;
 
                     this.Consume(head, ref remoteStream);
                     
-                    this._RemoteClient.ReceiveTimeout = 0; // Infinite
                     bR = 0;
                 } while (true);
             }
