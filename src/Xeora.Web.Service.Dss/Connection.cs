@@ -19,17 +19,17 @@ namespace Xeora.Web.Service.Dss
 
         public void Process()
         {
-            Stream remoteStream = 
-                this._RemoteClient.GetStream();
-            
-            this._Handler = 
-                new Handler(ref remoteStream, this._Manager);
-            
-            if (this.Validate(ref remoteStream))
-                this.ReadSocket(ref remoteStream);
-            
-            remoteStream.Close();
-            remoteStream.Dispose();
+            SyncStreamHandler syncStreamHandler = 
+                new SyncStreamHandler(this._RemoteClient.GetStream());
+
+            if (this.Validate(syncStreamHandler))
+            {
+                this._Handler = 
+                    new Handler(syncStreamHandler, this._Manager);
+                this.ReadSocket(syncStreamHandler);
+            }
+
+            syncStreamHandler.Dispose();
             
             this._RemoteClient.Close();
             this._RemoteClient.Dispose();
@@ -37,7 +37,7 @@ namespace Xeora.Web.Service.Dss
             Basics.Console.Flush();
         }
 
-        private bool Validate(ref Stream remoteStream)
+        private bool Validate(SyncStreamHandler syncStreamHandler)
         {
             this._RemoteClient.ReceiveTimeout = 30000; // 30 seconds
             
@@ -48,23 +48,26 @@ namespace Xeora.Web.Service.Dss
             
             try
             {
-                remoteStream.WriteByte((byte)code.Length);
-                remoteStream.Write(code, 0, code.Length);
-
-                do
+                return syncStreamHandler.Lock(syncStream =>
                 {
-                    int bR = remoteStream.Read(response, total, response.Length - total);
-                    if (bR == 0) return false;
+                    syncStream.WriteByte((byte)code.Length);
+                    syncStream.Write(code, 0, code.Length);
+
+                    do
+                    {
+                        int bR = syncStream.Read(response, total, response.Length - total);
+                        if (bR == 0) return false;
                     
-                    total += bR;
-                } while (total < response.Length);
+                        total += bR;
+                    } while (total < response.Length);
 
-                bool correct =
-                    code.SequenceEqual(response);
+                    bool correct =
+                        code.SequenceEqual(response);
                 
-                remoteStream.WriteByte(correct ? (byte)1 : (byte)0);
+                    syncStream.WriteByte(correct ? (byte)1 : (byte)0);
 
-                return correct;
+                    return correct;
+                });
             }
             catch (Exception ex)
             {
@@ -76,7 +79,7 @@ namespace Xeora.Web.Service.Dss
             }
         }
         
-        private void ReadSocket(ref Stream remoteStream)
+        private void ReadSocket(SyncStreamHandler syncStreamHandler)
         {
             // 60 seconds, client should echo to this service every 30 seconds.
             // It will have only once chance to miss, otherwise, connection will be dropped.
@@ -90,11 +93,11 @@ namespace Xeora.Web.Service.Dss
                 do
                 {
                     // Read Head
-                    bR += remoteStream.Read(head, bR, head.Length - bR);
+                    bR += syncStreamHandler.ReadUnsafe(head, bR, head.Length - bR);
                     if (bR == 0) return; // if it is 0 that means, connection is zombie. Just close it.
                     if (bR != head.Length) continue;
 
-                    this.Consume(head, ref remoteStream);
+                    this.Consume(head, syncStreamHandler);
                     
                     bR = 0;
                 } while (true);
@@ -109,7 +112,7 @@ namespace Xeora.Web.Service.Dss
             }
         }
 
-        private void Consume(byte[] contentHead, ref Stream remoteStream)
+        private void Consume(byte[] contentHead, SyncStreamHandler syncStreamHandler)
         {
             // 8 bytes first 5 bytes are requestId, remain 3 bytes are request length. Request length can be max 15Mb
             long head = 
@@ -130,7 +133,7 @@ namespace Xeora.Web.Service.Dss
                     if (contentSize < readLength)
                         readLength = contentSize;
             
-                    int bR = remoteStream.Read(buffer, 0, readLength);
+                    int bR = syncStreamHandler.ReadUnsafe(buffer, 0, readLength);
                     contentStream.Write(buffer, 0, bR);
 
                     contentSize -= bR;

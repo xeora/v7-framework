@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Net.Sockets;
-using System.Threading;
 using System.Threading.Tasks;
 using Xeora.Web.Exceptions;
 
@@ -9,12 +8,12 @@ namespace Xeora.Web.Service.Dss
 {
     public class Handler
     {
-        private readonly Stream _ResponseStream;
+        private readonly SyncStreamHandler _SyncStreamHandler;
         private readonly IManager _Manager;
 
-        public Handler(ref Stream responseStream, IManager manager)
+        public Handler(SyncStreamHandler syncStreamHandler, IManager manager)
         {
-            this._ResponseStream = responseStream;
+            this._SyncStreamHandler = syncStreamHandler;
             this._Manager = manager;
         }
 
@@ -75,16 +74,13 @@ namespace Xeora.Web.Service.Dss
                         break;
                 }
 
-                Monitor.Enter(this._ResponseStream);
-                try
+                this._SyncStreamHandler.Lock(syncStream =>
                 {
                     responseStream.Seek(0, SeekOrigin.Begin);
-                    responseStream.CopyTo(this._ResponseStream);
-                }
-                finally
-                {
-                    Monitor.Exit(this._ResponseStream);
-                }
+                    responseStream.CopyTo(syncStream);
+
+                    return true;
+                });
             }
             catch (Exception ex)
             {
