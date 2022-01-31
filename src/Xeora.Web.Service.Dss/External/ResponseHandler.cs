@@ -21,8 +21,6 @@ namespace Xeora.Web.Service.Dss.External
                 this.RequestId = requestId;
                 this.MessageBlock = null;
                 this._ContentStream = new MemoryStream();
-                
-                Monitor.Enter(this._Lock);
             }
 
             public long RequestId { get; }
@@ -34,7 +32,16 @@ namespace Xeora.Web.Service.Dss.External
             public void Wait()
             {
                 if (this._Concluded) return;
-                Monitor.Wait(this._Lock, ResponseContainer.MESSAGE_WAIT_DURATION);
+                
+                Monitor.Enter(this._Lock);
+                try
+                {
+                    Monitor.Wait(this._Lock, ResponseContainer.MESSAGE_WAIT_DURATION);
+                }
+                finally
+                {
+                    Monitor.Exit(this._Lock);
+                }
             }
 
             public void Completed()
