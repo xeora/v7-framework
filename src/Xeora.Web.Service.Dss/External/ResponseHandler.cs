@@ -14,13 +14,16 @@ namespace Xeora.Web.Service.Dss.External
 
             private readonly object _Lock = new();
             private readonly MemoryStream _ContentStream;
+            private DateTime _CreatedAt;
             private bool _Concluded;
             
             public ResponseContainer(long requestId)
             {
                 this.RequestId = requestId;
                 this.MessageBlock = null;
+                
                 this._ContentStream = new MemoryStream();
+                this._CreatedAt = DateTime.UtcNow;
             }
 
             public long RequestId { get; }
@@ -55,6 +58,9 @@ namespace Xeora.Web.Service.Dss.External
 
             public void Failed() => this.Dispose();
 
+            public bool Expired() =>
+                DateTime.Compare(this._CreatedAt.AddMilliseconds(ResponseContainer.MESSAGE_WAIT_DURATION), DateTime.UtcNow) <= 0;
+
             public void Dispose()
             {
                 this._ContentStream.Close();
@@ -79,12 +85,33 @@ namespace Xeora.Web.Service.Dss.External
         private readonly object _AddRemoveLock = new();
         private readonly Dictionary<long, ResponseContainer> _ResponseResults;
         private readonly Action<Exception> _ErrorHandler;
+        
+        private readonly Thread _ResultCleanupThread;
 
         public ResponseHandler(ref TcpClient dssServiceClient, Action<Exception> errorHandler)
         {
             this._DssServiceClient = dssServiceClient;
             this._ResponseResults = new Dictionary<long, ResponseContainer>();
             this._ErrorHandler = errorHandler;
+            
+            this._ResultCleanupThread = new Thread(() =>
+            {
+                try
+                {
+                    while (true)
+                    {
+                        Thread.Sleep(TimeSpan.FromHours(1));
+                        this.CleanupResponseContainer();
+                    }
+                }
+                catch 
+                { /* Just Handle Exceptions */ }
+            })
+            {
+                IsBackground = true, 
+                Priority = ThreadPriority.Lowest
+            };
+            this._ResultCleanupThread.Start();
         }
 
         // Push handler to work in a different core using thread, It was async before.
@@ -111,14 +138,49 @@ namespace Xeora.Web.Service.Dss.External
             }
         }
         
+        private void DropResponseContainer(long requestId)
+        {
+            Monitor.Enter(this._AddRemoveLock);
+            try
+            {
+                if (!this._ResponseResults.ContainsKey(requestId)) return;
+                this._ResponseResults.Remove(requestId);
+            }
+            finally
+            {
+                Monitor.Exit(this._AddRemoveLock);
+            }
+        }
+        
+        private void CleanupResponseContainer()
+        {
+            Monitor.Enter(this._AddRemoveLock);
+            try
+            {
+                foreach (var (requestId, container) in this._ResponseResults)
+                {
+                    if (!container.Expired()) continue;
+                    this._ResponseResults.Remove(requestId);
+                }
+            }
+            finally
+            {
+                Monitor.Exit(this._AddRemoveLock);
+            }
+        }
+        
         public byte[] WaitForMessage(long requestId)
         {
             ResponseContainer container =
                 this.ProvideResponseContainer(requestId);
+            
             container.Wait();
+
+            this.DropResponseContainer(requestId);
+            
             return container.MessageBlock;
         }
-
+        
         private void Handle(object state)
         {
             byte[] head = new byte[8];
@@ -144,6 +206,10 @@ namespace Xeora.Web.Service.Dss.External
             catch (Exception ex)
             {
                 this._ErrorHandler.Invoke(ex);
+            }
+            finally
+            {
+                this._ResultCleanupThread?.Interrupt();
             }
         }
 
