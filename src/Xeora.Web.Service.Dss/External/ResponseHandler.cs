@@ -31,11 +31,11 @@ namespace Xeora.Web.Service.Dss.External
 
             public void Wait()
             {
-                if (this._Concluded) return;
-                
                 Monitor.Enter(this._Lock);
                 try
                 {
+                    if (this._Concluded) return;
+                    
                     Monitor.Wait(this._Lock, ResponseContainer.MESSAGE_WAIT_DURATION);
                 }
                 finally
@@ -58,11 +58,12 @@ namespace Xeora.Web.Service.Dss.External
             public void Dispose()
             {
                 this._ContentStream.Close();
-                this._Concluded = true;
                 
                 Monitor.Enter(this._Lock);
                 try
                 {
+                    this._Concluded = true;
+
                     Monitor.Pulse(this._Lock);
                 }
                 finally
