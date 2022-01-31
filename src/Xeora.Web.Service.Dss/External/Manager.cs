@@ -66,7 +66,7 @@ namespace Xeora.Web.Service.Dss.External
                 this._ResponseHandler = 
                     new ResponseHandler(ref this._DssServiceClient, ex =>
                     {
-                        if (ex is SocketException)
+                        if (ex is IOException)
                             this.Reset();
                         else
                             Basics.Console.Push("SYSTEM ERROR", ex.Message, ex.ToString(), false, true, type: Basics.Console.Type.Error);

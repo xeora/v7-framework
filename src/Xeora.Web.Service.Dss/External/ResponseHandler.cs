@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
@@ -8,21 +8,74 @@ namespace Xeora.Web.Service.Dss.External
 {
     public class ResponseHandler
     {
+        private class ResponseContainer : IDisposable
+        {
+            private const int MESSAGE_WAIT_DURATION = 30000; // 30 seconds
+
+            private readonly object _Lock = new();
+            private readonly MemoryStream _ContentStream;
+            private bool _Concluded;
+            
+            public ResponseContainer(long requestId)
+            {
+                this.RequestId = requestId;
+                this.MessageBlock = null;
+                this._ContentStream = new MemoryStream();
+                
+                Monitor.Enter(this._Lock);
+            }
+
+            public long RequestId { get; }
+            public byte[] MessageBlock { get; private set; }
+            
+            public void Write(byte[] buffer, int offset, int count) =>
+                this._ContentStream.Write(buffer, offset, count);
+
+            public void Wait()
+            {
+                if (this._Concluded) return;
+                Monitor.Wait(this._Lock, ResponseContainer.MESSAGE_WAIT_DURATION);
+            }
+
+            public void Completed()
+            {
+                this._ContentStream.Seek(0, SeekOrigin.Begin);
+                this.MessageBlock = 
+                    this._ContentStream.ToArray();
+                
+                this.Dispose();
+            }
+
+            public void Failed() => this.Dispose();
+
+            public void Dispose()
+            {
+                this._ContentStream.Close();
+                this._Concluded = true;
+                
+                Monitor.Enter(this._Lock);
+                try
+                {
+                    Monitor.Pulse(this._Lock);
+                }
+                finally
+                {
+                    Monitor.Exit(this._Lock);
+                }
+            }
+        }
+        
         private const int REQUEST_HEADER_LENGTH = 8; // 8 bytes first 5 bytes are requestId, remain 3 bytes are request length.
         private readonly TcpClient _DssServiceClient;
-        
-        private const int MESSAGE_WAIT_DURATION = 30; // 30 seconds
-        
-        private readonly BlockingCollection<DateTime> _NotificationChannel = new();
-        private readonly ConcurrentDictionary<long, byte[]> _ResponseResults;
-        private readonly Action<Exception> _ErrorHandler;
 
-        private bool _Running;
+        private readonly object _AddRemoveLock = new();
+        private readonly Dictionary<long, ResponseContainer> _ResponseResults;
+        private readonly Action<Exception> _ErrorHandler;
 
         public ResponseHandler(ref TcpClient dssServiceClient, Action<Exception> errorHandler)
         {
             this._DssServiceClient = dssServiceClient;
-            this._ResponseResults = new ConcurrentDictionary<long, byte[]>();
+            this._ResponseResults = new Dictionary<long, ResponseContainer>();
             this._ErrorHandler = errorHandler;
         }
 
@@ -30,26 +83,36 @@ namespace Xeora.Web.Service.Dss.External
         public void StartHandler() =>
             ThreadPool.QueueUserWorkItem(this.Handle);
 
+        private ResponseContainer ProvideResponseContainer(long requestId)
+        {
+            ResponseContainer container =
+                new ResponseContainer(requestId);
+            Monitor.Enter(this._AddRemoveLock);
+            try
+            {
+                if (this._ResponseResults.ContainsKey(requestId))
+                    container = this._ResponseResults[requestId];
+                else
+                    this._ResponseResults[requestId] = container;
+                
+                return container;
+            }
+            finally
+            {
+                Monitor.Exit(this._AddRemoveLock);
+            }
+        }
+        
         public byte[] WaitForMessage(long requestId)
         {
-            while (this._Running)
-            {
-                DateTime requestTime =
-                    this._NotificationChannel.Take();
-                if (this._ResponseResults.TryRemove(requestId, out byte[] message))
-                    return message;
-
-                if (DateTime.Compare(requestTime, DateTime.UtcNow) < 0)
-                    return null;
-                this._NotificationChannel.Add(requestTime);
-            }
-            return null;
+            ResponseContainer container =
+                this.ProvideResponseContainer(requestId);
+            container.Wait();
+            return container.MessageBlock;
         }
 
         private void Handle(object state)
         {
-            this._Running = true;
-            
             byte[] head = new byte[8];
             int bR = 0;
 
@@ -72,7 +135,6 @@ namespace Xeora.Web.Service.Dss.External
             }
             catch (Exception ex)
             {
-                this._Running = false;
                 this._ErrorHandler.Invoke(ex);
             }
         }
@@ -87,11 +149,10 @@ namespace Xeora.Web.Service.Dss.External
 
             byte[] buffer = new byte[8192];
 
-            Stream contentStream = null;
+            ResponseContainer container =
+                this.ProvideResponseContainer(requestId);
             try
             {
-                contentStream = new MemoryStream();
-
                 while (contentSize > 0)
                 {
                     int readLength = buffer.Length;
@@ -101,26 +162,16 @@ namespace Xeora.Web.Service.Dss.External
                     int bR = 
                         responseStream.Read(buffer, 0, readLength);
 
-                    contentStream.Write(buffer, 0, bR);
+                    container.Write(buffer, 0, bR);
 
                     contentSize -= bR;
                 }
-
-                byte[] messageBlock = ((MemoryStream)contentStream).ToArray();
-                this._ResponseResults.TryAdd(requestId, messageBlock);
+                container.Completed();
             }
             catch
             {
-                this._ResponseResults.TryAdd(requestId, null);
+                container.Failed();
                 throw;
-            }
-            finally
-            {
-                contentStream?.Close();
-                
-                this._NotificationChannel.Add(
-                    DateTime.UtcNow.AddSeconds(ResponseHandler.MESSAGE_WAIT_DURATION)
-                );
             }
         }
     }
