@@ -107,10 +107,10 @@ namespace Xeora.Web
                 CryptoStream decryptStream = null;
                 try
                 {
-                    StringBuilder decrypted = 
+                    StringBuilder decrypted =
                         new StringBuilder();
-                    
-                    decryptStream = 
+
+                    decryptStream =
                         new CryptoStream(decryptCache, decryptor, CryptoStreamMode.Read);
 
                     byte[] buffer = new byte[2048];
@@ -118,12 +118,16 @@ namespace Xeora.Web
                     do
                     {
                         rC = decryptStream.Read(buffer, 0, buffer.Length);
-                        
+
                         if (rC > 0)
                             decrypted.Append(Encoding.UTF8.GetString(buffer, 0, rC));
                     } while (rC > 0);
-                    
+
                     return decrypted.ToString();
+                }
+                catch
+                {
+                    return string.Empty;
                 }
                 finally
                 {

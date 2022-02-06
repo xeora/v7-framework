@@ -267,16 +267,29 @@ namespace Xeora.Web.Handler
         {
             Message messageResult = null;
             string methodResult = string.Empty;
-            string bindInformation =
+            string encryptedBindInformation =
                 this.Context.Request.Body.Form[$"_sys_bind_{this.Context.HashCode}"];
 
             if (this.Context.Request.Header.Method == HttpMethod.POST &&
-                !string.IsNullOrEmpty(bindInformation))
+                !string.IsNullOrEmpty(encryptedBindInformation))
             {
                 // Decode Encoded Call Function to Readable
+                string bindInformation = 
+                    this._DomainControl.Cryptography.Decrypt(encryptedBindInformation);
+                if (string.IsNullOrEmpty(bindInformation))
+                {
+                    this.Context.AddOrUpdate(
+                        "RedirectLocation", 
+                        Helpers.CreateUrl(
+                            false, 
+                            this._DomainControl.Domain.Settings.Configurations.DefaultTemplate
+                        )
+                    );
+                    return;
+                }
+                
                 Basics.Execution.Bind bind =
-                    Basics.Execution.Bind.Make(
-                        this._DomainControl.Cryptography.Decrypt(bindInformation));
+                    Basics.Execution.Bind.Make(bindInformation);
 
                 bind.Parameters.Prepare(
                     parameter => Property.Render(null, parameter.Query).Item2
