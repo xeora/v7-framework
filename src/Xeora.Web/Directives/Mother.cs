@@ -7,7 +7,6 @@ using Xeora.Web.Basics;
 using Xeora.Web.Basics.Domain;
 using Xeora.Web.Basics.Domain.Control.Definitions;
 using Xeora.Web.Global;
-using Xeora.Web.Service.Workers;
 using Single = Xeora.Web.Directives.Elements.Single;
 
 namespace Xeora.Web.Directives
@@ -24,12 +23,10 @@ namespace Xeora.Web.Directives
         public Mother(
             Single singleDirective, 
             Basics.ControlResult.Message messageResult, 
-            IReadOnlyCollection<string> updateBlockIdList,
-            Bucket bucket
+            IReadOnlyCollection<string> updateBlockIdList
         )
         {
             this.PropertyLock = new object();
-            this.Bucket = bucket;
             
             this.Pool = new DirectivePool();
             
@@ -46,7 +43,6 @@ namespace Xeora.Web.Directives
         }
 
         public object PropertyLock { get; }
-        public Bucket Bucket { get; }
 
         public ConcurrentDictionary<DirectiveTypes, Tuple<int, double>> AnalysisBulk { get; }
         public DirectivePool Pool { get; }

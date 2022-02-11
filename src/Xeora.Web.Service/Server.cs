@@ -7,7 +7,6 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Xeora.Web.Service.VariablePool;
-using Xeora.Web.Service.Workers;
 using Console = System.Console;
 using Task = System.Threading.Tasks.Task;
 
@@ -112,7 +111,6 @@ namespace Xeora.Web.Service
                         Manager.Statement.Factory.Dispose();
                     });
                 Manager.Execution.ApplicationFactory.Initialize(negotiator, Manager.Loader.Current.Path);
-                Factory.Init(Basics.Configurations.Xeora.Service.Parallelism);
             }
             catch (Exception ex)
             {
@@ -133,15 +131,33 @@ namespace Xeora.Web.Service
 
         private async Task ListenAsync()
         {
+            short maxConnection = 
+                Basics.Configurations.Xeora.Service.Parallelism.MaxConnection;
+            SemaphoreSlim semaphoreSlim = null;
+
+            if (maxConnection > 0)
+            {
+                semaphoreSlim = new SemaphoreSlim(maxConnection);
+                
+                Basics.Console.Push(
+                    string.Empty, $"Maximum simultaneous connection is limited to {maxConnection}", string.Empty, false, true);
+            }
+
             while (true)
             {
                 try
                 {
                     TcpClient remoteClient =
                         await this._TcpListener.AcceptTcpClientAsync();
-                    
-                    Factory.Queue(
-                        c => ((Connection) c).Process(),  
+
+                    if (semaphoreSlim != null) await semaphoreSlim.WaitAsync();
+
+                    ThreadPool.QueueUserWorkItem(
+                        c =>
+                        {
+                            ((Connection)c).Process();
+                            semaphoreSlim?.Release();
+                        },
                         new Connection(ref remoteClient, this._Certificate)
                     );
                 }
@@ -217,9 +233,6 @@ namespace Xeora.Web.Service
 
                 // Terminate Loaded Domains
                 Manager.Execution.ApplicationFactory.Terminate();
-                
-                // Terminate Workers
-                Factory.Kill();
                 
                 Basics.Console.Flush().Wait();
             }

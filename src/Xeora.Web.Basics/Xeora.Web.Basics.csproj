@@ -4,10 +4,10 @@
     <TargetFrameworks>net5.0;netstandard2.1</TargetFrameworks>
     <Platforms>AnyCPU</Platforms>
     <PackageId>Xeora.Web.Basics</PackageId>
-    <Version>7.4.7963</Version>
+    <Version>7.4.8077</Version>
     <Description>Xeora - Web Development Framework Basics</Description>
     <Product>Xeora - Web Development Framework Basics</Product>
-    <Copyright>Copyright © Tuna Celik 2003 - 2021</Copyright>
+    <Copyright>Copyright © Tuna Celik 2003 - 2022</Copyright>
     <Authors>Tuna Celik</Authors>
     <Company>JakPark Solutions</Company>
     <RepositoryUrl>https://github.com/xeora/v7</RepositoryUrl>

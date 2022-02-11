@@ -11,7 +11,7 @@
     <FileVersion>7.4</FileVersion>
     <Deterministic>False</Deterministic>
     <Description>Xeora - Web Development Framework Managers</Description>
-    <Copyright>Copyright © Tuna Celik 2003 - 2021</Copyright>
+    <Copyright>Copyright © Tuna Celik 2003 - 2022</Copyright>
     <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
     <RepositoryUrl>https://github.com/xeora/v7</RepositoryUrl>
     <LangVersion>9</LangVersion>
@@ -53,7 +53,6 @@
     <ProjectReference Include="..\Xeora.Web.Exceptions\Xeora.Web.Exceptions.csproj" />
     <ProjectReference Include="..\Xeora.Web.Manager\Xeora.Web.Manager.csproj" />
     <ProjectReference Include="..\Xeora.Web.Service.Dss\Xeora.Web.Service.Dss.csproj" />
-    <ProjectReference Include="..\Xeora.Web.Service.Workers\Xeora.Web.Service.Workers.csproj" />
     <ProjectReference Include="..\Xeora.Web.Tools\Xeora.Web.Tools.csproj" />
   </ItemGroup>
 </Project>

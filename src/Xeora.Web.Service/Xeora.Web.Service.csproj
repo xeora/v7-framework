@@ -9,7 +9,7 @@
     <Company>JakPark Solutions</Company>
     <Product>Xeora - Web Development Framework Service</Product>
     <Description>Xeora - Web Development Framework Service</Description>
-    <Copyright>Copyright © Tuna Celik 2003 - 2021</Copyright>
+    <Copyright>Copyright © Tuna Celik 2003 - 2022</Copyright>
     <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
     <RepositoryUrl>https://github.com/xeora/v7</RepositoryUrl>
     <AssemblyVersion>7.4.*</AssemblyVersion>
@@ -56,7 +56,6 @@
     <ProjectReference Include="..\Xeora.Web.Service.Session\Xeora.Web.Service.Session.csproj" />
     <ProjectReference Include="..\Xeora.Web.Service.TaskScheduler\Xeora.Web.Service.TaskScheduler.csproj" />
     <ProjectReference Include="..\Xeora.Web.Service.VariablePool\Xeora.Web.Service.VariablePool.csproj" />
-    <ProjectReference Include="..\Xeora.Web.Service.Workers\Xeora.Web.Service.Workers.csproj" />
   </ItemGroup>
 
 </Project>

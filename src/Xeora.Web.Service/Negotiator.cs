@@ -24,7 +24,7 @@ namespace Xeora.Web.Service
             Handler.Manager.Current.Keep(handlerId);
         
         public void DropHandler(string handlerId) =>
-            Handler.Manager.Current.Drop(handlerId, true);
+            Handler.Manager.Current.Drop(handlerId);
         
         public IVariablePool GetVariablePool(string sessionId, string keyId)
         {

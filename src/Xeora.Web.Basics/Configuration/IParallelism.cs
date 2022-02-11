@@ -2,8 +2,6 @@
 {
     public interface IParallelism
     {
-        short Worker { get; }
-        short WorkerThread { get; }
-        short BucketThread { get; }
+        short MaxConnection { get; }
     }
 }

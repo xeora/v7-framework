@@ -14,7 +14,7 @@ namespace Xeora.Web.Service
 {
     public static class ClientState
     {
-        public static void Handle(IPAddress remoteAddr, NetworkStream streamEnclosure)
+        public static void Handle(IPAddress remoteAddress, NetworkStream streamEnclosure)
         {
             do
             {
@@ -26,7 +26,7 @@ namespace Xeora.Web.Service
                 {
                     DateTime wholeProcessBegins = DateTime.Now;
                     
-                    Basics.Context.IHttpRequest request = new HttpRequest(remoteAddr);
+                    Basics.Context.IHttpRequest request = new HttpRequest(remoteAddress);
                     if (!((HttpRequest) request).Build(stateId, streamEnclosure))
                         return;
                     
@@ -115,8 +115,8 @@ namespace Xeora.Web.Service
                 {
                     if (xeoraHandler != null)
                         Handler.Manager.Current.Drop(xeoraHandler.HandlerId);
-
-                    context?.Dispose();
+                    else
+                        context?.Dispose();
 
                     Basics.Console.Flush(stateId);
                 }

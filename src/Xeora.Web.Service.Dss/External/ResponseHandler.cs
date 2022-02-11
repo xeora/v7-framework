@@ -14,7 +14,7 @@ namespace Xeora.Web.Service.Dss.External
 
             private readonly object _Lock = new();
             private readonly MemoryStream _ContentStream;
-            private DateTime _CreatedAt;
+            private readonly DateTime _CreatedAt;
             private bool _Concluded;
             
             public ResponseContainer(long requestId)

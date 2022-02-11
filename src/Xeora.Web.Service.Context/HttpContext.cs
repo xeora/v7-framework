@@ -5,7 +5,7 @@ namespace Xeora.Web.Service.Context
     public class HttpContext : KeyValueCollection<string, object>, Basics.Context.IHttpContext
     {
         public HttpContext(
-            string contextId, 
+            string contextId,
             bool secure,
             Basics.Context.IHttpRequest request, 
             Basics.Context.IHttpResponse response,

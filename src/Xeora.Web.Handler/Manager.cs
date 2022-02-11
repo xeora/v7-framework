@@ -66,9 +66,9 @@ namespace Xeora.Web.Handler
             if (string.IsNullOrEmpty(handlerId))
                 return null;
 
-            return !this._Handlers.TryGetValue(handlerId, out Container handlerContainer) 
-                    ? null 
-                    : handlerContainer.Handler;
+            return this._Handlers.TryGetValue(handlerId, out Container handlerContainer)
+                    ? handlerContainer.Handler
+                    : null;
         }
 
         public void Keep(string handlerId)
@@ -79,15 +79,18 @@ namespace Xeora.Web.Handler
             handlerContainer.Removable = false;
         }
 
-        public void Drop(string handlerId, bool force = false)
+        public void Drop(string handlerId)
         {
             if (!this._Handlers.TryGetValue(handlerId, out Container handlerContainer))
                 return;
 
-            if (handlerContainer.Removable || !handlerContainer.Removable && force)
+            if (handlerContainer.Removable)
+            {
                 this._Handlers.TryRemove(handlerId, out handlerContainer);
-            else
-                handlerContainer.Removable = true;
+                handlerContainer?.Handler.Context.Dispose();
+                return;
+            }
+            handlerContainer.Removable = true;
         }
 
         public void Refresh()

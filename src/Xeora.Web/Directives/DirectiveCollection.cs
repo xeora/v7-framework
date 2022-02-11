@@ -2,9 +2,9 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using Xeora.Web.Basics;
 using Xeora.Web.Directives.Elements;
-using Xeora.Web.Service.Workers;
 
 namespace Xeora.Web.Directives
 {
@@ -75,8 +75,7 @@ namespace Xeora.Web.Directives
         {
             string handlerId =
                 Helpers.CurrentHandlerId;
-            Bulk bulk = 
-                this._Mother.Bucket.New();
+            List<Task> tasks = new List<Task>();
 
             while (this._Queued.TryDequeue(out int index))
             {
@@ -88,20 +87,18 @@ namespace Xeora.Web.Directives
                     continue;
                 }
                 
-                Task task = 
-                    bulk.Add(
+                tasks.Add(
+                    Task.Factory.StartNew(
                         d =>
                         {
                             Helpers.AssignHandlerId(handlerId);
                             this.Render((IDirective)d);
                         }, directive
-                    );
-                
-                if (task == null)
-                    this.Render(directive);
+                    )
+                );
             }
 
-            bulk.Wait();
+            if (tasks.Count > 0) Task.WaitAll(tasks.ToArray());
 
             this.Deliver();
         }
