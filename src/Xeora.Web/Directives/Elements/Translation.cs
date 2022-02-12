@@ -29,9 +29,12 @@ namespace Xeora.Web.Directives.Elements
             this.Parse();
             
             this.Mother.RequestInstance(out IDomain instance);
+
+            string translation =
+                instance.Languages.Current.Get(this._TranslationId);
             
-            this.Children.Add(
-                new Static(instance.Languages.Current.Get(this._TranslationId)));
+            if (!string.IsNullOrEmpty(translation))
+                this.Children.Add(new Static(translation));
 
             return true;
         }

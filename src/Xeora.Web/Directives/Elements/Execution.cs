@@ -105,13 +105,17 @@ namespace Xeora.Web.Directives.Elements
             {
                 Helpers.Context.AddOrUpdate("RedirectLocation", redirectOrder.Location);
 
-                this.Children.Add(
-                    new Static(string.Empty));
+                // this.Children.Add(
+                //    new Static(string.Empty));
                 return true;
             }
 
-            this.Children.Add(
-                new Static(Manager.Executer.GetPrimitiveValue(invokeResult.Result)));
+            string result =
+                Manager.Executer.GetPrimitiveValue(invokeResult.Result);
+            
+            if (!string.IsNullOrEmpty(result)) 
+                this.Children.Add(new Static(result));
+            
             return true;
         }
     }

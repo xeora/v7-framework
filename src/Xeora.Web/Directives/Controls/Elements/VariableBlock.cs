@@ -58,8 +58,8 @@ namespace Xeora.Web.Directives.Controls.Elements
                 if (!this._Contents.HasMessageTemplate)
                 {
                     this._Parent.Children.Clear();
-                    this._Parent.Children.Add(
-                        new Static(invokeResult.Result.Message.Content));
+                    if (!string.IsNullOrEmpty(invokeResult.Result.Message.Content))
+                        this._Parent.Children.Add(new Static(invokeResult.Result.Message.Content));
                 }
                 else
                 {

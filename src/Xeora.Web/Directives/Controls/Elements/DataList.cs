@@ -95,7 +95,8 @@ namespace Xeora.Web.Directives.Controls.Elements
         {
             if (!this._Contents.HasMessageTemplate)
             {
-                this._Parent.Children.Add(new Static(errorContent));
+                if (!string.IsNullOrEmpty(errorContent))
+                    this._Parent.Children.Add(new Static(errorContent));
                 return;
             }
 

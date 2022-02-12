@@ -185,7 +185,7 @@ namespace Xeora.Web.Service.Dss
                 this._TcpListener?.Stop();
                 
                 this._ClientCleanupThread.Interrupt();
-                    
+
                 // Kill all connections (if any applicable)
                 Basics.Console.Push(string.Empty, "Killing connected clients...", string.Empty, false, true);
                 foreach (Guid key in this._Clients.Keys)

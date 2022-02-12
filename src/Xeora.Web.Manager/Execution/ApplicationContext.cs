@@ -17,8 +17,7 @@ namespace Xeora.Web.Manager.Execution
         
         private readonly AssemblyDependencyResolver _DependencyResolver;
         private Assembly _AssemblyDll;
-
-        private readonly object _InstanceCreationLock;
+        
         private readonly ConcurrentDictionary<Type, DomainExecutable> _ExecutableInstances;
         
         private readonly object _AssemblyMethodLock;
@@ -39,8 +38,7 @@ namespace Xeora.Web.Manager.Execution
             this._ExecutablePath =
                 Path.Combine(executablesPath, $"{this._ExecutableName}.dll");
             this._DependencyResolver = new AssemblyDependencyResolver(this._ExecutablePath);
-                
-            this._InstanceCreationLock = new object();
+            
             this._ExecutableInstances = 
                 new ConcurrentDictionary<Type, DomainExecutable>();
             
@@ -136,7 +134,7 @@ namespace Xeora.Web.Manager.Execution
         {
             exception = null;
             
-            Monitor.Enter(this._InstanceCreationLock);
+            Monitor.Enter(ApplicationFactory.InstanceCreationLock);
             try
             {
                 if (this._ExecutableInstances.TryGetValue(executingDomain, out DomainExecutable domainInstance))
@@ -179,7 +177,7 @@ namespace Xeora.Web.Manager.Execution
             }
             finally
             {
-                Monitor.Exit(this._InstanceCreationLock);
+                Monitor.Exit(ApplicationFactory.InstanceCreationLock);
             }
         }
 
@@ -487,7 +485,7 @@ namespace Xeora.Web.Manager.Execution
             Type executingDomain =
                 this._AssemblyDll.GetType($"Xeora.Domain.{this._ExecutableName}", false, true);
 
-            if (!Monitor.TryEnter(this._InstanceCreationLock))
+            if (!Monitor.TryEnter(ApplicationFactory.InstanceCreationLock))
                 return;
             
             try
@@ -518,7 +516,7 @@ namespace Xeora.Web.Manager.Execution
             }
             finally
             {
-                Monitor.Exit(this._InstanceCreationLock);
+                Monitor.Exit(ApplicationFactory.InstanceCreationLock);
             }
         }
     }

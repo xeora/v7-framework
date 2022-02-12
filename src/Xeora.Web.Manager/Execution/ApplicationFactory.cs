@@ -7,16 +7,17 @@ namespace Xeora.Web.Manager.Execution
 {
     public class ApplicationFactory
     {
+        public static readonly object InstanceCreationLock = new();
+        private static readonly object GetOrCreateLock = new();
+        
         private readonly INegotiator _Negotiator;
         private readonly string _ExecutablesPath;
-        private readonly object _GetOrCreateLock;
         private readonly Dictionary<string, Application> _Cache;
 
         private ApplicationFactory(INegotiator negotiator, string executablesPath)
         {
             this._Negotiator = negotiator;
             this._ExecutablesPath = executablesPath;
-            this._GetOrCreateLock = new object();
             this._Cache = new Dictionary<string, Application>();
         }
 
@@ -47,7 +48,7 @@ namespace Xeora.Web.Manager.Execution
 
         private Application GetOrCreate(string executableName)
         {
-            Monitor.Enter(this._GetOrCreateLock);
+            Monitor.Enter(ApplicationFactory.GetOrCreateLock);
             try
             {
                 string applicationKey =
@@ -68,7 +69,7 @@ namespace Xeora.Web.Manager.Execution
             }
             finally
             {
-                Monitor.Exit(this._GetOrCreateLock);
+                Monitor.Exit(ApplicationFactory.GetOrCreateLock);
             }
         }
 

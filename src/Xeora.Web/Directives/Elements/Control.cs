@@ -141,7 +141,8 @@ namespace Xeora.Web.Directives.Elements
 
             if (cacheObject == null) return false;
             
-            this.Children.Add(new Static(cacheObject.Content));
+            if (!string.IsNullOrEmpty(cacheObject.Content))
+                this.Children.Add(new Static(cacheObject.Content));
 
             return true;
         }

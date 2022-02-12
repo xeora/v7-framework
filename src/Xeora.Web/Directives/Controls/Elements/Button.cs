@@ -96,8 +96,8 @@ namespace Xeora.Web.Directives.Controls.Elements
             if (this._Settings.Security.Disabled.Set &&
                 this._Settings.Security.Disabled.Type == SecurityDefinition.DisabledDefinition.Types.Dynamic)
             {
-                this._Parent.Children.Add(
-                    new Static(this._Settings.Security.Disabled.Value));
+                if (!string.IsNullOrEmpty(this._Settings.Security.Disabled.Value))
+                    this._Parent.Children.Add(new Static(this._Settings.Security.Disabled.Value));
                 return;
             }
 

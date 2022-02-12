@@ -7,10 +7,10 @@ namespace Xeora.Web.Configuration
     {
         public Parallelism()
         {
-            this.MaxConnection = 0;
+            this.MaxConnection = 128;
         }
         
-        [DefaultValue(0)]
+        [DefaultValue(128)]
         [JsonProperty(PropertyName = "maxConnection", DefaultValueHandling = DefaultValueHandling.Populate)]
         public short MaxConnection { get; private set; }
     }

@@ -82,8 +82,8 @@ namespace Xeora.Web.Directives.Elements
 
             if (!result.Item1) return false;
             
-            this.Children.Add(
-                new Static(result.Item2 == null ? string.Empty : result.Item2.ToString()));
+            if (result.Item2 != null)
+                this.Children.Add(new Static(result.Item2.ToString()));
 
             return true;
         }
