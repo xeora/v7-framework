@@ -21,6 +21,7 @@ namespace Xeora.Web.Service
 
         private TcpListener _TcpListener;
         private X509Certificate2 _Certificate;
+        private SemaphoreSlim _SemaphoreSlim;
 
         public Server(string configurationFilePath, string name)
         {
@@ -111,6 +112,32 @@ namespace Xeora.Web.Service
                         Manager.Statement.Factory.Dispose();
                     });
                 Manager.Execution.ApplicationFactory.Initialize(negotiator, Manager.Loader.Current.Path);
+                
+                short maxConnection = 
+                    Basics.Configurations.Xeora.Service.Parallelism.MaxConnection;
+                int workerThreads = maxConnection * 4;
+
+                if (maxConnection > 0)
+                {
+                    Workers.Factory.Init(workerThreads);
+
+                    this._SemaphoreSlim = new SemaphoreSlim(maxConnection);
+
+                    Basics.Console.Push(
+                        string.Empty,
+                        $"Maximum simultaneous connection is limited to {maxConnection} with {workerThreads} WorkerThread(s)",
+                        string.Empty, false, true);
+                }
+                else
+                {
+                    ThreadPool.GetMaxThreads(out workerThreads, out _);
+                    Workers.Factory.Init(workerThreads);
+
+                    Basics.Console.Push(
+                        string.Empty,
+                        $"System currently working without any simultaneous connection limit with {workerThreads} WorkerThread(s)",
+                        string.Empty, false, true);
+                }
             }
             catch (Exception ex)
             {
@@ -131,18 +158,6 @@ namespace Xeora.Web.Service
 
         private async Task ListenAsync()
         {
-            short maxConnection = 
-                Basics.Configurations.Xeora.Service.Parallelism.MaxConnection;
-            SemaphoreSlim semaphoreSlim = null;
-
-            if (maxConnection > 0)
-            {
-                semaphoreSlim = new SemaphoreSlim(maxConnection);
-                
-                Basics.Console.Push(
-                    string.Empty, $"Maximum simultaneous connection is limited to {maxConnection}", string.Empty, false, true);
-            }
-
             while (true)
             {
                 try
@@ -150,13 +165,13 @@ namespace Xeora.Web.Service
                     TcpClient remoteClient =
                         await this._TcpListener.AcceptTcpClientAsync();
 
-                    if (semaphoreSlim != null) await semaphoreSlim.WaitAsync();
+                    if (this._SemaphoreSlim != null) await this._SemaphoreSlim.WaitAsync();
 
-                    ThreadPool.QueueUserWorkItem(
+                    Workers.Factory.Queue(
                         c =>
                         {
                             ((Connection)c).Process();
-                            semaphoreSlim?.Release();
+                            this._SemaphoreSlim?.Release();
                         },
                         new Connection(ref remoteClient, this._Certificate)
                     );
@@ -231,6 +246,8 @@ namespace Xeora.Web.Service
                 
                 this._TcpListener?.Stop();
 
+                Workers.Factory.Kill();
+                
                 // Terminate Loaded Domains
                 Manager.Execution.ApplicationFactory.Terminate();
                 

@@ -56,6 +56,7 @@
     <ProjectReference Include="..\Xeora.Web.Service.Session\Xeora.Web.Service.Session.csproj" />
     <ProjectReference Include="..\Xeora.Web.Service.TaskScheduler\Xeora.Web.Service.TaskScheduler.csproj" />
     <ProjectReference Include="..\Xeora.Web.Service.VariablePool\Xeora.Web.Service.VariablePool.csproj" />
+    <ProjectReference Include="..\Xeora.Web.Service.Workers\Xeora.Web.Service.Workers.csproj" />
   </ItemGroup>
 
 </Project>

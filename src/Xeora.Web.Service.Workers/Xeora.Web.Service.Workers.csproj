@@ -1,19 +1,20 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <PackageId>Xeora.Web</PackageId>
-    <Product>Xeora - Web Development Framework Managers</Product>
-    <Company>JakPark Solutions</Company>
-    <Authors>Tuna Celik</Authors>
+    <Platforms>x64;arm64</Platforms>
+    <PackageId>Xeora.Web.Service.Workers</PackageId>
     <Version>7.4.0</Version>
+    <Authors>Tuna Celik</Authors>
+    <Company>JakPark Solutions</Company>
+    <Product>Xeora - Web Development Framework Workers</Product>
+    <Description>Xeora - Web Development Framework Workers</Description>
+    <Copyright>Copyright © Tuna Celik 2003 - 2021</Copyright>
+    <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/xeora/v7</RepositoryUrl>
     <AssemblyVersion>7.4.*</AssemblyVersion>
     <FileVersion>7.4</FileVersion>
     <Deterministic>False</Deterministic>
-    <Description>Xeora - Web Development Framework Managers</Description>
-    <Copyright>Copyright © Tuna Celik 2003 - 2022</Copyright>
-    <PackageProjectUrl>http://www.xeora.org</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/xeora/v7</RepositoryUrl>
     <LangVersion>9</LangVersion>
     <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
@@ -43,17 +44,9 @@
     <PlatformTarget>x64</PlatformTarget>
     <AppendTargetFrameworkToOutputFolder>false</AppendTargetFrameworkToOutputFolder>
   </PropertyGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="_sps_v1.0.019.js" />
-  </ItemGroup>
-
+  
   <ItemGroup>
     <ProjectReference Include="..\Xeora.Web.Basics\Xeora.Web.Basics.csproj" />
-    <ProjectReference Include="..\Xeora.Web.Exceptions\Xeora.Web.Exceptions.csproj" />
-    <ProjectReference Include="..\Xeora.Web.Manager\Xeora.Web.Manager.csproj" />
-    <ProjectReference Include="..\Xeora.Web.Service.Dss\Xeora.Web.Service.Dss.csproj" />
-    <ProjectReference Include="..\Xeora.Web.Service.Workers\Xeora.Web.Service.Workers.csproj" />
-    <ProjectReference Include="..\Xeora.Web.Tools\Xeora.Web.Tools.csproj" />
   </ItemGroup>
+
 </Project>

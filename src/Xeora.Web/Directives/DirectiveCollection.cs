@@ -2,9 +2,9 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
 using Xeora.Web.Basics;
 using Xeora.Web.Directives.Elements;
+using Xeora.Web.Service.Workers;
 
 namespace Xeora.Web.Directives
 {
@@ -75,40 +75,42 @@ namespace Xeora.Web.Directives
         {
             string handlerId =
                 Helpers.CurrentHandlerId;
-            List<Task> tasks = new List<Task>();
+            Bulk bulk = Factory.CreateBulk();
+
+            int queueLength = 
+                this._Queued.Count;
 
             while (this._Queued.TryDequeue(out int index))
             {
                 IDirective directive = this[index];
-
-                if (!directive.CanAsync)
+                
+                if (!directive.CanAsync || queueLength == 1)
                 {
                     this.Render(directive);
                     continue;
                 }
 
-                TaskCreationOptions option = 
-                    TaskCreationOptions.None;
+                ActionType actionType = directive switch
+                {
+                    Translation or Static or ReplaceableTranslation or Elements.Property => ActionType.Attached,
+                    AsyncGroup or ControlAsync or MessageBlock or SingleAsync => ActionType.External,
+                    _ => ActionType.None
+                };
 
-                if (directive is Translation or Static or ReplaceableTranslation or Elements.Property)
-                    option = TaskCreationOptions.AttachedToParent;
-                else if (directive is AsyncGroup or ControlAsync or MessageBlock or SingleAsync)
-                    option = TaskCreationOptions.LongRunning;
-                
-                tasks.Add(
-                    Task.Factory.StartNew(
-                        d =>
-                        {
-                            Helpers.AssignHandlerId(handlerId);
-                            this.Render((IDirective)d);
-                        }, 
-                        directive,
-                        option
-                    )
+                if (actionType == ActionType.None) continue;
+
+                bulk.Add(
+                    d =>
+                    {
+                        Helpers.AssignHandlerId(handlerId);
+                        this.Render((IDirective)d);
+                    },
+                    directive,
+                    actionType
                 );
             }
 
-            if (tasks.Count > 0) Task.WaitAll(tasks.ToArray());
+            bulk.Process();
 
             this.Deliver();
         }
