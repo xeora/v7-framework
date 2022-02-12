@@ -86,6 +86,14 @@ namespace Xeora.Web.Directives
                     this.Render(directive);
                     continue;
                 }
+
+                TaskCreationOptions option = 
+                    TaskCreationOptions.None;
+
+                if (directive is Translation or Static or ReplaceableTranslation or Elements.Property)
+                    option = TaskCreationOptions.AttachedToParent;
+                else if (directive is AsyncGroup or ControlAsync or MessageBlock or SingleAsync)
+                    option = TaskCreationOptions.LongRunning;
                 
                 tasks.Add(
                     Task.Factory.StartNew(
@@ -93,7 +101,9 @@ namespace Xeora.Web.Directives
                         {
                             Helpers.AssignHandlerId(handlerId);
                             this.Render((IDirective)d);
-                        }, directive
+                        }, 
+                        directive,
+                        option
                     )
                 );
             }
