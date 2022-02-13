@@ -49,11 +49,31 @@ namespace Xeora.Web.Service.Workers
             
             // Prioritized the actions
             foreach (ActionContainer actionContainer in this._ActionContainers.Values)
-                if (actionContainer.Type == ActionType.Attached) this._AddHandler.Invoke(actionContainer);
+            {
+                if (actionContainer.Type != ActionType.Attached) continue;
+
+                if (Factory.Available)
+                {
+                    this._AddHandler.Invoke(actionContainer);
+                    continue;
+                }
                 
+                actionContainer.Invoke();
+            }
+
             foreach (ActionContainer actionContainer in this._ActionContainers.Values)
-                if (actionContainer.Type == ActionType.External) this._AddHandler.Invoke(actionContainer);
-            
+            {
+                if (actionContainer.Type != ActionType.External) continue;
+
+                if (Factory.Available)
+                {
+                    this._AddHandler.Invoke(actionContainer);
+                    continue;
+                }
+                
+                actionContainer.Invoke();
+            }
+
             Monitor.Enter(this._Lock);
             try
             {

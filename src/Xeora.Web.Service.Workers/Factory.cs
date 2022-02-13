@@ -10,8 +10,12 @@ namespace Xeora.Web.Service.Workers
         private readonly BlockingCollection<ActionContainer> _ActionQueue;
         private readonly List<Worker> _Workers;
 
+        private readonly int _WorkerCount;
+        private long _ExternalLoad;
+
         private Factory(int workerCount)
         {
+            this._WorkerCount = workerCount;
             this._ActionQueue = 
                 new BlockingCollection<ActionContainer>();
 
@@ -20,7 +24,23 @@ namespace Xeora.Web.Service.Workers
             if (workerCount < 1) workerCount = Worker.THREAD_COUNT;
             
             for (short i = 0; i < workerCount; i++)
-                this._Workers.Add(new Worker(this._ActionQueue));
+                this._Workers.Add(new 
+                    Worker(
+                        this._ActionQueue,
+                        actionType =>
+                        {
+                            switch (actionType)
+                            {
+                                case ActionType.External:
+                                    Interlocked.Increment(ref this._ExternalLoad);
+                                    break;
+                                case ActionType.None:
+                                    Interlocked.Decrement(ref this._ExternalLoad);
+                                    break;
+                            }
+                        }
+                    )
+                );
 
             Basics.Console.Register(keyInfo => {
                 if ((keyInfo.Modifiers & ConsoleModifiers.Control) == 0 || keyInfo.Key != ConsoleKey.D)
@@ -48,22 +68,9 @@ namespace Xeora.Web.Service.Workers
             });
         }
 
-        private static readonly object Lock = new object();
-        private static Factory _current;
-
-        public static void Init(int workerCount)
-        {
-            Monitor.Enter(Factory.Lock);
-            try
-            {
-                Factory._current ??= new Factory(workerCount);
-            }
-            finally
-            {
-                Monitor.Exit(Factory.Lock);
-            }
-        }
-
+        private bool Full => 
+            Interlocked.Read(ref this._ExternalLoad) >= this._WorkerCount;
+        
         private void _Kill()
         {
             if (Factory._current == null) return;
@@ -81,6 +88,22 @@ namespace Xeora.Web.Service.Workers
             Basics.Console.Push(string.Empty, "Worker Factory is killed!", string.Empty, false, true);
         }
 
+        private static readonly object Lock = new object();
+        private static Factory _current;
+
+        public static void Init(int workerCount)
+        {
+            Monitor.Enter(Factory.Lock);
+            try
+            {
+                Factory._current ??= new Factory(workerCount);
+            }
+            finally
+            {
+                Monitor.Exit(Factory.Lock);
+            }
+        }
+        
         public static Bulk CreateBulk() =>
             !Factory._current._ActionQueue.IsAddingCompleted
                 ? new Bulk(a => Factory._current._ActionQueue.Add(a))
@@ -88,6 +111,8 @@ namespace Xeora.Web.Service.Workers
 
         public static void Queue(Action<object> action, object state) =>
             Factory._current._ActionQueue.Add(new ActionContainer(action, state, ActionType.External));
+
+        public static bool Available => !Factory._current.Full;
         
         public static void Kill() =>
             Factory._current?._Kill();

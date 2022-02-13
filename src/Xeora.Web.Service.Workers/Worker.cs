@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Threading;
 
 namespace Xeora.Web.Service.Workers
@@ -9,14 +10,18 @@ namespace Xeora.Web.Service.Workers
         private const int JOIN_WAIT_TIMEOUT = 5000;
         
         private readonly BlockingCollection<ActionContainer> _Queue;
-        private readonly ConcurrentStack<ActionContainer> _ActionStack;
+        private readonly Action<ActionType> _ActionNotifyHandler;
+        
+        private readonly ConcurrentStack<ActionContainer> _ExternalActionStack;
         private readonly Thread _Thread;
         private ActionContainer _CurrentContainer;
 
-        public Worker(BlockingCollection<ActionContainer> queue)
+        public Worker(BlockingCollection<ActionContainer> queue, Action<ActionType> actionNotifyHandler)
         {
             this._Queue = queue;
-            this._ActionStack = new ConcurrentStack<ActionContainer>();
+            this._ActionNotifyHandler = actionNotifyHandler;
+            
+            this._ExternalActionStack = new ConcurrentStack<ActionContainer>();
             this._Thread =
                 new Thread(this.Listen) {Priority = ThreadPriority.BelowNormal, IsBackground = true};
             this._Thread.Start();
@@ -30,7 +35,7 @@ namespace Xeora.Web.Service.Workers
                 {
                     if (!this._Queue.TryTake(out ActionContainer actionContainer))
                     {
-                        if (this._ActionStack.TryPop(out actionContainer))
+                        if (this._ExternalActionStack.TryPop(out actionContainer))
                         {
                             this.Process(actionContainer);
                             continue;
@@ -40,7 +45,9 @@ namespace Xeora.Web.Service.Workers
 
                     if (actionContainer.Type == ActionType.External)
                     {
-                        this._ActionStack.Push(actionContainer);
+                        // We have an External to handle
+                        this._ActionNotifyHandler.Invoke(ActionType.External);
+                        this._ExternalActionStack.Push(actionContainer);
                         continue;
                     }
                     
@@ -66,6 +73,10 @@ namespace Xeora.Web.Service.Workers
             {
                 this._CurrentContainer = null;
                 this.Processing = false;
+                
+                // External is handled
+                if (actionContainer.Type == ActionType.External)
+                    this._ActionNotifyHandler.Invoke(ActionType.None);
             }
         }
 
