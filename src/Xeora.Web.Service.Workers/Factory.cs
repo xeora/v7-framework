@@ -3,6 +3,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 
+// The worker control is developed to skip the bottleneck of .NET async Task operation.
+// Async task operations are based on scheduling but they are too slow for web requests
+// and it ends with slow response time and latency on service. That's why, "Workers"
+// implementation is providing agile and more responsive web service for Xeora.
 namespace Xeora.Web.Service.Workers
 {
     public class Factory
