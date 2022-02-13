@@ -10,9 +10,8 @@ namespace Xeora.Web.Service.Workers
         private readonly ConcurrentDictionary<string, ActionContainer> _ActionContainers;
         private readonly Action<ActionContainer> _AddHandler;
         
-        private readonly object _Lock = new(); 
-        private bool _Concluded;
-        
+        private readonly object _Lock = new();
+
         internal Bulk(Action<ActionContainer> addHandler)
         {
             this._ActionContainers = new ConcurrentDictionary<string, ActionContainer>();
@@ -27,8 +26,6 @@ namespace Xeora.Web.Service.Workers
             Monitor.Enter(this._Lock);
             try
             {
-                this._Concluded = true;
-
                 Monitor.Pulse(this._Lock);
             }
             finally
@@ -44,52 +41,48 @@ namespace Xeora.Web.Service.Workers
             this._ActionContainers.TryAdd(actionContainer.Id, actionContainer);
         }
 
+        private void ScheduleOrRun(ActionType actionType, ref List<string> cleanupIdList)
+        {
+            // Prioritized the actions
+            foreach (var (id, actionContainer) in this._ActionContainers)
+            {
+                if (actionContainer.Type != actionType) continue;
+
+                if (Factory.Available)
+                {
+                    this._AddHandler.Invoke(actionContainer);
+                    continue;
+                }
+                
+                actionContainer.Invoke();
+                cleanupIdList.Add(id);
+            }
+        }
+        
         public void Process()
         {
+            // Check if bulk is empty
             if (this._ActionContainers.IsEmpty) return;
 
             List<string> cleanupIdList = new List<string>();
             
             // Prioritized the actions
-            foreach (var (id, actionContainer) in this._ActionContainers)
-            {
-                if (actionContainer.Type != ActionType.Attached) continue;
-
-                if (Factory.Available)
-                {
-                    this._AddHandler.Invoke(actionContainer);
-                    continue;
-                }
-                
-                actionContainer.Invoke();
-                cleanupIdList.Add(id);
-            }
-
-            foreach (var (id, actionContainer) in this._ActionContainers)
-            {
-                if (actionContainer.Type != ActionType.External) continue;
-
-                if (Factory.Available)
-                {
-                    this._AddHandler.Invoke(actionContainer);
-                    continue;
-                }
-                
-                actionContainer.Invoke();
-                cleanupIdList.Add(id);
-            }
+            this.ScheduleOrRun(ActionType.Attached, ref cleanupIdList);
+            this.ScheduleOrRun(ActionType.External, ref cleanupIdList);
 
             while (cleanupIdList.Count > 0)
             {
                 this._ActionContainers.TryRemove(cleanupIdList[0], out _);
                 cleanupIdList.RemoveAt(0);
             }
+            // Check bulk actions handled as sync and no more bulk to wait 
             if (this._ActionContainers.IsEmpty) return;
             
             Monitor.Enter(this._Lock);
             try
             {
-                if (this._Concluded) return;
+                // Check until it reaches here, all bulk actions are concluded
+                if (this._ActionContainers.IsEmpty) return;
                     
                 Monitor.Wait(this._Lock);
             }
