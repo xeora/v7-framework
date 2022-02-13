@@ -134,10 +134,13 @@ namespace Xeora.Web.Manager.Execution
         {
             exception = null;
             
+            if (this._ExecutableInstances.TryGetValue(executingDomain, out DomainExecutable domainInstance))
+                return domainInstance;
+            
             Monitor.Enter(ApplicationFactory.InstanceCreationLock);
             try
             {
-                if (this._ExecutableInstances.TryGetValue(executingDomain, out DomainExecutable domainInstance))
+                if (this._ExecutableInstances.TryGetValue(executingDomain, out domainInstance))
                     return domainInstance;
                 
                 if (executingDomain.BaseType == null || executingDomain.BaseType != typeof(DomainExecutable))
