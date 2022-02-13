@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Concurrent;
+using System.IO;
 using System.Threading;
 using System.Xml.XPath;
 using Xeora.Web.Basics.Domain;
@@ -11,6 +12,8 @@ namespace Xeora.Web.Application.Configurations
         
         private readonly StringReader _XPathStream;
         private readonly XPathNavigator _XPathNavigator;
+
+        private readonly ConcurrentDictionary<string, string> _Translations;
 
         internal Language(string xmlContent, bool @default)
         {
@@ -38,6 +41,9 @@ namespace Xeora.Web.Application.Configurations
                         xPathIter.Current?.GetAttribute("code", xPathIter.Current.NamespaceURI),
                         xPathIter.Current?.GetAttribute("name", xPathIter.Current.NamespaceURI)
                     );
+
+                this._Translations = new ConcurrentDictionary<string, string>();
+                this.Prepare();
             }
             catch (System.Exception)
             {
@@ -50,18 +56,39 @@ namespace Xeora.Web.Application.Configurations
         public bool Default { get; }
         public Basics.Domain.Info.Language Info { get; }
 
+        private void Prepare()
+        {
+            XPathNodeIterator xPathIter =
+                this._XPathNavigator.Select("//translation");
+
+            while (xPathIter.MoveNext())
+            {
+                string id = 
+                    xPathIter.Current?.GetAttribute("id", xPathIter.Current?.NamespaceURI);
+                if (string.IsNullOrEmpty(id)) continue;
+                
+                this._Translations.TryAdd(id, xPathIter.Current?.Value);
+            }
+        }
+        
         public string Get(string translationId)
         {
+            if (this._Translations.TryGetValue(translationId, out string translation))
+                return translation;
+            
             Monitor.Enter(this._Lock);
             try
             {
                 XPathNodeIterator xPathIter =
                     this._XPathNavigator.Select($"//translation[@id='{translationId}']");
 
-                if (xPathIter.MoveNext())
-                    return xPathIter.Current?.Value;
-
-                throw new Exceptions.TranslationNotFoundException();
+                if (!xPathIter.MoveNext()) throw new Exceptions.TranslationNotFoundException();
+                
+                translation = 
+                    xPathIter.Current?.Value;
+                this._Translations.TryAdd(translationId, translation);
+                
+                return translation;
             }
             catch (Exceptions.TranslationNotFoundException)
             {
