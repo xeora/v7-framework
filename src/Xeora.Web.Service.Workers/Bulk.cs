@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace Xeora.Web.Service.Workers
@@ -46,9 +47,11 @@ namespace Xeora.Web.Service.Workers
         public void Process()
         {
             if (this._ActionContainers.IsEmpty) return;
+
+            List<string> cleanupIdList = new List<string>();
             
             // Prioritized the actions
-            foreach (ActionContainer actionContainer in this._ActionContainers.Values)
+            foreach (var (id, actionContainer) in this._ActionContainers)
             {
                 if (actionContainer.Type != ActionType.Attached) continue;
 
@@ -59,9 +62,10 @@ namespace Xeora.Web.Service.Workers
                 }
                 
                 actionContainer.Invoke();
+                cleanupIdList.Add(id);
             }
 
-            foreach (ActionContainer actionContainer in this._ActionContainers.Values)
+            foreach (var (id, actionContainer) in this._ActionContainers)
             {
                 if (actionContainer.Type != ActionType.External) continue;
 
@@ -72,8 +76,16 @@ namespace Xeora.Web.Service.Workers
                 }
                 
                 actionContainer.Invoke();
+                cleanupIdList.Add(id);
             }
 
+            while (cleanupIdList.Count > 0)
+            {
+                this._ActionContainers.TryRemove(cleanupIdList[0], out _);
+                cleanupIdList.RemoveAt(0);
+            }
+            if (this._ActionContainers.IsEmpty) return;
+            
             Monitor.Enter(this._Lock);
             try
             {
