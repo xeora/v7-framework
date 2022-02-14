@@ -90,10 +90,12 @@ namespace Xeora.Web.Directives
                     continue;
                 }
 
+                // Directives without content are Attached actions
+                // Directives with content may need special care and should be external
                 ActionType actionType = directive switch
                 {
-                    Translation or Static or ReplaceableTranslation or Elements.Property => ActionType.Attached,
-                    AsyncGroup or ControlAsync or MessageBlock or SingleAsync => ActionType.External,
+                    Translation or Static or Elements.Property => ActionType.Attached,
+                    AsyncGroup or ControlAsync or ReplaceableTranslation or MessageBlock or SingleAsync => ActionType.External,
                     _ => ActionType.None
                 };
 

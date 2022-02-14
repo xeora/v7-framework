@@ -1,31 +1,32 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading;
 
 namespace Xeora.Web.Service.Workers
 {
     public class Bulk
     {
-        private readonly ConcurrentDictionary<string, ActionContainer> _ActionContainers;
+        private readonly ConcurrentDictionary<string, ActionContainer> _ActionQueueContainers;
+        private readonly ConcurrentDictionary<string, ActionContainer> _ActionTrackerContainers;
         private readonly Action<ActionContainer> _AddHandler;
         
         private readonly object _Lock = new();
 
         internal Bulk(Action<ActionContainer> addHandler)
         {
-            this._ActionContainers = new ConcurrentDictionary<string, ActionContainer>();
+            this._ActionQueueContainers = new ConcurrentDictionary<string, ActionContainer>();
+            this._ActionTrackerContainers = new ConcurrentDictionary<string, ActionContainer>();
             this._AddHandler = addHandler;
         }
 
         private void Completed(string id)
         {
-            this._ActionContainers.TryRemove(id, out _);
-            if (!this._ActionContainers.IsEmpty) return;
-            
             Monitor.Enter(this._Lock);
             try
             {
+                this._ActionQueueContainers.TryRemove(id, out _);
+                if (!this._ActionQueueContainers.IsEmpty) return;
+                
                 Monitor.Pulse(this._Lock);
             }
             finally
@@ -38,13 +39,15 @@ namespace Xeora.Web.Service.Workers
         {
             ActionContainer actionContainer =
                 new ActionContainer(startHandler, state, actionType, this.Completed);
-            this._ActionContainers.TryAdd(actionContainer.Id, actionContainer);
+            
+            this._ActionQueueContainers.TryAdd(actionContainer.Id, actionContainer);
+            this._ActionTrackerContainers.TryAdd(actionContainer.Id, actionContainer);
         }
 
-        private void ScheduleOrRun(ActionType actionType, ref List<string> cleanupIdList)
+        private void ScheduleOrRun(ActionType actionType)
         {
             // Prioritized the actions
-            foreach (var (id, actionContainer) in this._ActionContainers)
+            foreach (var (_, actionContainer) in this._ActionTrackerContainers)
             {
                 if (actionContainer.Type != actionType) continue;
 
@@ -55,35 +58,27 @@ namespace Xeora.Web.Service.Workers
                 }
                 
                 actionContainer.Invoke();
-                cleanupIdList.Add(id);
             }
         }
         
         public void Process()
         {
             // Check if bulk is empty
-            if (this._ActionContainers.IsEmpty) return;
+            if (this._ActionQueueContainers.IsEmpty) return;
 
-            List<string> cleanupIdList = new List<string>();
-            
             // Prioritized the actions
-            this.ScheduleOrRun(ActionType.Attached, ref cleanupIdList);
-            this.ScheduleOrRun(ActionType.External, ref cleanupIdList);
+            this.ScheduleOrRun(ActionType.Attached);
+            this.ScheduleOrRun(ActionType.External);
 
-            while (cleanupIdList.Count > 0)
-            {
-                this._ActionContainers.TryRemove(cleanupIdList[0], out _);
-                cleanupIdList.RemoveAt(0);
-            }
             // Check bulk actions handled as sync and no more bulk to wait 
-            if (this._ActionContainers.IsEmpty) return;
+            if (this._ActionQueueContainers.IsEmpty) return;
             
             Monitor.Enter(this._Lock);
             try
             {
                 // Check until it reaches here, all bulk actions are concluded
-                if (this._ActionContainers.IsEmpty) return;
-                    
+                if (this._ActionQueueContainers.IsEmpty) return;
+                
                 Monitor.Wait(this._Lock);
             }
             finally

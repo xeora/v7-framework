@@ -113,10 +113,11 @@ namespace Xeora.Web.Service
                     });
                 Manager.Execution.ApplicationFactory.Initialize(negotiator, Manager.Loader.Current.Path);
                 
-                short maxConnection = 
+                ushort maxConnection = 
                     Basics.Configurations.Xeora.Service.Parallelism.MaxConnection;
-                int workerThreads = maxConnection * 4;
-
+                int workerThreads = 
+                    Basics.Configurations.Xeora.Service.Parallelism.WorkerThreads;
+                
                 if (maxConnection > 0)
                 {
                     Workers.Factory.Init(workerThreads);
@@ -130,7 +131,6 @@ namespace Xeora.Web.Service
                 }
                 else
                 {
-                    ThreadPool.GetMaxThreads(out workerThreads, out _);
                     Workers.Factory.Init(workerThreads);
 
                     Basics.Console.Push(
