@@ -24,22 +24,23 @@ namespace Xeora.Web.Application.Configurations
 
             try
             {
-                XPathNodeIterator xPathIter = 
+                XPathNodeIterator xPathIter =
                     this._XPathNavigator.Select("//Mapping");
 
                 if (xPathIter.MoveNext())
                 {
-                    if (!bool.TryParse(xPathIter.Current?.GetAttribute("active", xPathIter.Current.BaseURI), out bool isActive))
+                    if (!bool.TryParse(xPathIter.Current?.GetAttribute("active", xPathIter.Current.BaseURI),
+                            out bool isActive))
                         this.Active = false;
                     this.Active = isActive;
 
-                    this.ResolverExecutable = 
+                    this.ResolverExecutable =
                         xPathIter.Current?.GetAttribute("resolverExecutable", xPathIter.Current.BaseURI);
                 }
 
                 // If mapping is active then read mapping items
                 if (!this.Active) return;
-                
+
                 // Read Mapping Options
                 xPathIter = this._XPathNavigator.Select("//Mapping/Map");
 
@@ -66,7 +67,9 @@ namespace Xeora.Web.Application.Configurations
                                     xPathIterSub.Current.MoveToFirstChild();
 
                                     request = xPathIterSub.Current.Value;
-                                    request = request.Replace("~/", Basics.Configurations.Xeora.Application.Main.ApplicationRoot.BrowserImplementation);
+                                    request = request.Replace("~/",
+                                        Basics.Configurations.Xeora.Application.Main.ApplicationRoot
+                                            .BrowserImplementation);
 
                                     xPathIterSub.Current.MoveToParent();
 
@@ -74,15 +77,17 @@ namespace Xeora.Web.Application.Configurations
                                 case "Reverse":
                                     reverseId = xPathIterSub.Current.GetAttribute("id", xPathIterSub.Current.BaseURI);
 
-                                    XPathNodeIterator xPathIterServiceTest = 
+                                    XPathNodeIterator xPathIterServiceTest =
                                         this._XPathNavigator.Select($"//Services/Item[@id='{reverseId}']");
 
                                     if (xPathIterServiceTest.MoveNext())
                                         bool.TryParse(
-                                            xPathIter.Current?.GetAttribute("overridable", xPathIter.Current.BaseURI), out overridable);
+                                            xPathIter.Current?.GetAttribute("overridable", xPathIter.Current.BaseURI),
+                                            out overridable);
 
                                     // TODO: mapped is not in use. The logic was creating the formatted Url from resolved request.
-                                    reverseMapped = xPathIterSub.Current.GetAttribute("mapped", xPathIterSub.Current.BaseURI);
+                                    reverseMapped =
+                                        xPathIterSub.Current.GetAttribute("mapped", xPathIterSub.Current.BaseURI);
                                     reverseMappedItems = new Basics.Mapping.ResolveItemCollection();
 
                                     if (xPathIterSub.Current.MoveToFirstChild())
@@ -93,11 +98,14 @@ namespace Xeora.Web.Application.Configurations
                                             {
                                                 case "MappedItem":
                                                     string mappedItemId =
-                                                        xPathIterSub.Current.GetAttribute("id", xPathIterSub.Current.BaseURI);
+                                                        xPathIterSub.Current.GetAttribute("id",
+                                                            xPathIterSub.Current.BaseURI);
                                                     string mappedItemQueryStringKey =
-                                                        xPathIterSub.Current.GetAttribute("key", xPathIterSub.Current.BaseURI);
+                                                        xPathIterSub.Current.GetAttribute("key",
+                                                            xPathIterSub.Current.BaseURI);
                                                     string mappedItemDefaultValue =
-                                                        xPathIterSub.Current.GetAttribute("defaultValue", xPathIterSub.Current.BaseURI);
+                                                        xPathIterSub.Current.GetAttribute("defaultValue",
+                                                            xPathIterSub.Current.BaseURI);
 
                                                     Basics.Mapping.ResolveItem resolveItem =
                                                         new Basics.Mapping.ResolveItem(mappedItemId)
@@ -143,6 +151,10 @@ namespace Xeora.Web.Application.Configurations
             catch (System.Exception)
             {
                 // Just Handle Exceptions
+            }
+            finally
+            {
+                this.Items.Sort();
             }
         }
     }

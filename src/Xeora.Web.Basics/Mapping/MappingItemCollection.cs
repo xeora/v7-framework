@@ -11,15 +11,13 @@ namespace Xeora.Web.Basics.Mapping
         {
             this._Items = new List<MappingItem>();
             this.AddRange(items);
+            this.Sort();
         }
 
         public MappingItem this[int index] => this._Items[index];
 
-        public void Add(MappingItem item)
-        {
+        public void Add(MappingItem item) =>
             this._Items.Add(item);
-            this.Sort();
-        }
 
         public void AddRange(MappingItem[] items)
         {
@@ -27,7 +25,6 @@ namespace Xeora.Web.Basics.Mapping
                 return;
             
             this._Items.AddRange(items);
-            this.Sort();
         }
 
         public void Sort() =>
