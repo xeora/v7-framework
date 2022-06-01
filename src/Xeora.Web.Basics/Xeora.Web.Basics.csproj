@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net5.0;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>net5.0;net6.0;netstandard2.1</TargetFrameworks>
     <Platforms>AnyCPU</Platforms>
     <PackageId>Xeora.Web.Basics</PackageId>
     <Version>7.4.8077</Version>
