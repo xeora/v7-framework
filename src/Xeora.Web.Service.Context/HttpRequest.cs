@@ -16,16 +16,18 @@ namespace Xeora.Web.Service.Context
         public Basics.Context.Request.IHttpRequestQueryString QueryString { get; private set; }
         public Basics.Context.Request.IHttpRequestBody Body { get; private set; }
 
-        public bool Build(string contextId, Net.NetworkStream streamEnclosure)
+        public ParserResultTypes Build(string contextId, Net.NetworkStream streamEnclosure)
         {
             this._Header = new HttpRequestHeader(streamEnclosure);
-            if (!this._Header.Parse())
-                return false;
+            
+            ParserResultTypes parserResult = 
+                this._Header.Parse();
+            if (parserResult != ParserResultTypes.Success) return parserResult;
 
             this.QueryString = new HttpRequestQueryString(this._Header.Url);
             this.Body = new HttpRequestBody(contextId, this._Header, streamEnclosure);
 
-            return true;
+            return ParserResultTypes.Success;
         }
 
         public void RewritePath(string rawUrl)

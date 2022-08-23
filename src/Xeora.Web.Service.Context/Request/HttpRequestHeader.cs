@@ -6,6 +6,7 @@ namespace Xeora.Web.Service.Context.Request
 {
     public class HttpRequestHeader : KeyValueCollection<string, string>, Basics.Context.Request.IHttpRequestHeader
     {
+        private static string[] _SupportedHttpProtocols = { "HTTP/1.0", "HTTP/1.1" };
         private readonly Net.NetworkStream _StreamEnclosure;
 
         private Basics.Context.Request.HttpMethod _Method;
@@ -19,7 +20,7 @@ namespace Xeora.Web.Service.Context.Request
             this.Cookie = new HttpCookie();
         }
 
-        public bool Parse()
+        public ParserResultTypes Parse()
         {
             string header = this.ExtractHeader();
 
@@ -31,7 +32,7 @@ namespace Xeora.Web.Service.Context.Request
                 string line = sR.ReadLine();
 
                 if (string.IsNullOrEmpty(line))
-                    return lineNumber != 1;
+                    return lineNumber != 1 ? ParserResultTypes.Success : ParserResultTypes.BadRequest;
 
                 switch (lineNumber)
                 {
@@ -39,17 +40,19 @@ namespace Xeora.Web.Service.Context.Request
                         string[] lineParts = line.Split(' ');
 
                         if (!Enum.TryParse(lineParts[0], out this._Method))
-                            this._Method = Basics.Context.Request.HttpMethod.GET;
+                            return ParserResultTypes.MethodNotAllowed;
 
                         this.Url = new Url(lineParts[1]);
                         this.Protocol = lineParts[2];
 
-                        break;
+                        if (Array.IndexOf(HttpRequestHeader._SupportedHttpProtocols, this.Protocol) == -1)
+                            return ParserResultTypes.HttpVersionNotSupported;
 
+                        break;
                     default:
                         int colonIndex = line.IndexOf(':');
                         if (colonIndex == -1)
-                            return false;
+                            return ParserResultTypes.BadRequest;
 
                         string key = line.Substring(0, colonIndex);
                         string value = line.Substring(colonIndex + 1);
@@ -125,7 +128,7 @@ namespace Xeora.Web.Service.Context.Request
                 lineNumber++;
             }
 
-            return false;
+            return ParserResultTypes.BadRequest;
         }
 
         private string ExtractHeader()

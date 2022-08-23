@@ -27,8 +27,19 @@ namespace Xeora.Web.Service
                     DateTime wholeProcessBegins = DateTime.Now;
                     
                     Basics.Context.IHttpRequest request = new HttpRequest(remoteAddress);
-                    if (!((HttpRequest) request).Build(stateId, streamEnclosure))
-                        return;
+
+                    switch (((HttpRequest) request).Build(stateId, streamEnclosure))
+                    {
+                        case ParserResultTypes.BadRequest:
+                            ClientState.PushError(400, "Bad Request", ref streamEnclosure);
+                            return;
+                        case ParserResultTypes.MethodNotAllowed:
+                            ClientState.PushError(405, "Method Not Allowed", ref streamEnclosure);
+                            return;
+                        case ParserResultTypes.HttpVersionNotSupported:
+                            ClientState.PushError(505, "HTTP Version Not Supported", ref streamEnclosure);
+                            return;
+                    }
                     
                     Basics.Context.IHttpResponse response = 
                         new HttpResponse(
@@ -107,7 +118,7 @@ namespace Xeora.Web.Service
                     Basics.Console.Push("Execution Exception...", ex.Message, ex.ToString(), false, true,
                         type: Basics.Console.Type.Error);
 
-                    ClientState.PushServerError(ref streamEnclosure);
+                    ClientState.PushError(500, "Internal Server Error", ref streamEnclosure);
 
                     StatusTracker.Current.Increase(500);
                 }
@@ -135,13 +146,13 @@ namespace Xeora.Web.Service
             SessionManager.Current.Acquire(sessionIdCookie?.Value, out session);
         }
         
-        private static void PushServerError(ref Net.NetworkStream streamEnclosure)
+        private static void PushError(int code, string message, ref NetworkStream streamEnclosure)
         {
             try
             {
                 StringBuilder sB = new StringBuilder();
 
-                sB.Append("HTTP/1.1 500 Internal Server Error");
+                sB.AppendFormat("HTTP/1.1 {0} {1}", code, message);
                 sB.Append(HttpResponse.Newline);
                 sB.Append("Connection: close");
                 sB.Append(HttpResponse.Newline);
