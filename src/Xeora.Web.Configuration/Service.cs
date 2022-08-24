@@ -10,6 +10,7 @@ namespace Xeora.Web.Configuration
         {
             this._Address = "127.0.0.1";
             this.Port = 3381;
+            this.Timeout = new Timeout();
             this.Ssl = false;
             this.CertificatePassword = string.Empty;
             this.Parallelism = new Parallelism();
@@ -25,6 +26,9 @@ namespace Xeora.Web.Configuration
         [DefaultValue(3381)]
         [JsonProperty(PropertyName = "port", DefaultValueHandling = DefaultValueHandling.Populate)]
         public short Port { get; private set; }
+        
+        [JsonProperty(PropertyName = "timeout")]
+        public Basics.Configuration.ITimeout Timeout { get; private set; }
 
         [DefaultValue(false)]
         [JsonProperty(PropertyName = "ssl", DefaultValueHandling = DefaultValueHandling.Populate)]

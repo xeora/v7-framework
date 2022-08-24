@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
+using Xeora.Web.Basics;
 
 namespace Xeora.Web.Service
 {
@@ -11,8 +12,6 @@ namespace Xeora.Web.Service
         private readonly TcpClient _RemoteClient;
         private readonly IPEndPoint _RemoteIpEndPoint;
         private readonly X509Certificate2 _Certificate;
-
-        private const short READ_TIMEOUT = 5000; // 5 seconds
 
         public Connection(ref TcpClient remoteClient, X509Certificate2 certificate)
         {
@@ -26,10 +25,8 @@ namespace Xeora.Web.Service
         {
             if (this.ProceedStream(out Stream remoteStream))
             {
-                // If reads create problems and put the loop to infinite. drop the connection.
-                // that's why, 5 seconds timeout should be set to remoteStream
-                // No need to put timeout to write operation because xeora will handle connection state
-                remoteStream.ReadTimeout = READ_TIMEOUT;
+                remoteStream.ReadTimeout = (int) Configurations.Xeora.Service.Timeout.Read;
+                remoteStream.WriteTimeout = (int) Configurations.Xeora.Service.Timeout.Write;
 
                 Net.NetworkStream streamEnclosure = 
                     new Net.NetworkStream(ref remoteStream);

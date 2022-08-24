@@ -6,6 +6,7 @@ namespace Xeora.Web.Basics.Configuration
     {
         IPAddress Address { get; }
         short Port { get; }
+        ITimeout Timeout { get; }
         bool Ssl { get; }
         string CertificatePassword { get; }
         IParallelism Parallelism { get; }
