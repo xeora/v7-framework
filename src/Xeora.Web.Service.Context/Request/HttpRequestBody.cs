@@ -39,12 +39,68 @@ namespace Xeora.Web.Service.Context.Request
         {
             contentStream ??= new MemoryStream();
 
-            if (this._Header.ContentLength > 0)
+            if (string.Compare(this._Header["Transfer-Encoding"], "chunked", StringComparison.OrdinalIgnoreCase) == 0)
+                this.ReadChunked(ref contentStream);
+            else if (this._Header.ContentLength > 0)
                 this.ReadWithLength(this._Header.ContentLength, ref contentStream);
             else
                 this.ReadBlind(ref contentStream);
         }
 
+        private void ReadChunked(ref Stream contentStream)
+        {
+            const string rn = "\r\n";
+            const int nl = 2;
+            
+            string content = string.Empty;
+
+            byte[] buffer = new byte[6];
+            int waitCount = 5;
+
+            do
+            {
+                int bR = this._StreamEnclosure.Read(buffer, 0, buffer.Length);
+
+                if (bR == 0)
+                {
+                    if (waitCount == 0)
+                        return;
+
+                    waitCount--;
+                    System.Threading.Thread.Sleep(1);
+
+                    continue;
+                }
+
+                waitCount = 5;
+                
+                content += Encoding.ASCII.GetString(buffer, 0, bR);
+                
+                int eofIndex = content.IndexOf(rn, StringComparison.Ordinal);
+                if (eofIndex == -1) continue;
+
+                // Check if there is any chunk-extension
+                // https://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.6.1
+                int spaceIndex = content.IndexOf(' ', 0);
+                if (spaceIndex == -1) spaceIndex = eofIndex;
+                
+                int contentLength = 
+                    Convert.ToInt32(content[..spaceIndex], 16);
+                if (contentLength == 0) break;
+                
+                eofIndex += nl;
+                
+                contentStream.Write(buffer, eofIndex, bR - eofIndex);
+                this.ReadWithLength(contentLength - (bR - eofIndex) + nl, ref contentStream);
+                // contentStream read extra for \r\n and trim it after read
+                contentStream.Position -= 2;
+
+                content = string.Empty;
+            } while (true);
+            
+            contentStream.SetLength(contentStream.Length - 2);
+        }
+        
         private void ReadWithLength(int length, ref Stream contentStream)
         {
             Stream contentStreamReference = contentStream;
