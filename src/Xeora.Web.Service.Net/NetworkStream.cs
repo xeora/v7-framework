@@ -113,13 +113,15 @@ namespace Xeora.Web.Service.Net
                     this.Read(buffer, 0, buffer.Length);
                 if (count == 0)
                 {
+                    if (this._Disposed) break;
+                    
                     spinWait.SpinOnce();
                     continue;
                 }
 
                 result = callback(buffer, count);
                 listenBegins = DateTime.Now;
-            } while (result && !this._Disposed);
+            } while (result);
 
             return !result;
         }
