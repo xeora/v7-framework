@@ -48,12 +48,12 @@ namespace Xeora.CLI.Extensions.Build
             if (outputStream == null)
                 throw new Exception("Output Stream must be defined!");
 
-            System.Security.Cryptography.MD5CryptoServiceProvider md5 = null;
+            System.Security.Cryptography.MD5 md5 = null;
             byte[] passwordHash = null;
 
             if (!string.IsNullOrEmpty(password))
             {
-                md5 = new System.Security.Cryptography.MD5CryptoServiceProvider();
+                md5 = System.Security.Cryptography.MD5.Create();
                 passwordHash = md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
             }
 

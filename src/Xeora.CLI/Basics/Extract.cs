@@ -132,8 +132,8 @@ namespace Xeora.CLI.Basics
 
                 if (!string.IsNullOrEmpty(this._Password))
                 {
-                    System.Security.Cryptography.MD5CryptoServiceProvider md5 = 
-                        new System.Security.Cryptography.MD5CryptoServiceProvider();
+                    System.Security.Cryptography.MD5 md5 = 
+                        System.Security.Cryptography.MD5.Create();
                     passwordHash = md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(this._Password));
                 }
 
