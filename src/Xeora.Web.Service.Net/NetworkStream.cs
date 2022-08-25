@@ -67,21 +67,7 @@ namespace Xeora.Web.Service.Net
         public bool Alive()
         {
             if (!this.KeepAlive) return false;
-            
-            SpinWait spinWait = new SpinWait();
-            DateTime aliveBegins = 
-                DateTime.Now;
-            
-            do
-            {
-                if (DateTime.Now.Subtract(aliveBegins).TotalMilliseconds > this._RemoteStream.ReadTimeout)
-                    return false;
-                if (!this._IncomeCache.IsEmpty) return true;
-                
-                spinWait.SpinOnce();
-            } while (!this._Disposed);
-
-            return false;
+            return !this._Disposed;
         }
         
         public override int Read(byte[] buffer, int offset, int count)
