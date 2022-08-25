@@ -46,7 +46,7 @@ namespace Xeora.Web.Service.Context.Request
             else
                 this.ReadBlind(ref contentStream);
         }
-
+        
         private void ReadChunked(ref Stream contentStream)
         {
             const string rn = "\r\n";
