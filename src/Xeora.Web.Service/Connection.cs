@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
-using Xeora.Web.Basics;
 
 namespace Xeora.Web.Service
 {
@@ -25,8 +24,8 @@ namespace Xeora.Web.Service
         {
             if (this.ProceedStream(out Stream remoteStream))
             {
-                remoteStream.ReadTimeout = (int) Configurations.Xeora.Service.Timeout.Read;
-                remoteStream.WriteTimeout = (int) Configurations.Xeora.Service.Timeout.Write;
+                remoteStream.ReadTimeout = (int) Basics.Configurations.Xeora.Service.Timeout.Read;
+                remoteStream.WriteTimeout = (int) Basics.Configurations.Xeora.Service.Timeout.Write;
 
                 Net.NetworkStream streamEnclosure = 
                     new Net.NetworkStream(ref remoteStream);
