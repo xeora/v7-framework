@@ -23,6 +23,7 @@ namespace Xeora.Web.Service.Context.Request
         public ParserResultTypes Parse()
         {
             string header = this.ExtractHeader();
+            if (string.IsNullOrEmpty(header)) return ParserResultTypes.Timeout;
 
             StringReader sR = new StringReader(header);
 

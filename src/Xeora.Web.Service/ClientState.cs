@@ -30,6 +30,8 @@ namespace Xeora.Web.Service
 
                     switch (((HttpRequest) request).Build(stateId, streamEnclosure))
                     {
+                        case ParserResultTypes.Timeout:
+                            return;
                         case ParserResultTypes.BadRequest:
                             ClientState.PushError(400, "Bad Request", ref streamEnclosure);
                             return;
