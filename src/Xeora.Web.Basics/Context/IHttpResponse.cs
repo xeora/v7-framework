@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Xeora.Web.Basics.Context.Response;
 
 namespace Xeora.Web.Basics.Context
 {
@@ -6,7 +7,7 @@ namespace Xeora.Web.Basics.Context
     {
         Response.IHttpResponseHeader Header { get; }
 
-        void ActivateStreaming();
+        IHttpResponseStream OpenStreaming();
         void Write(string value, Encoding encoding);
         void Write(byte[] buffer, int offset, int count);
 
