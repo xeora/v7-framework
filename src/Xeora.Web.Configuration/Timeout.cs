@@ -14,11 +14,11 @@ namespace Xeora.Web.Configuration
             this.Write = Timeout.DEFAULT_WRITE_TIMEOUT;
         }
         
-        [DefaultValue(30000)]
+        [DefaultValue(5000)]
         [JsonProperty(PropertyName = "read", DefaultValueHandling = DefaultValueHandling.Populate)]
         public uint Read { get; private set; }
         
-        [DefaultValue(30000)]
+        [DefaultValue(5000)]
         [JsonProperty(PropertyName = "write", DefaultValueHandling = DefaultValueHandling.Populate)]
         public uint Write { get; private set; }
     }
