@@ -34,7 +34,7 @@ namespace Xeora.Web.Tools.Serialization
             }
             finally
             {
-                forStream?.Close();
+                forStream?.Dispose();
             }
         }
 
@@ -66,7 +66,7 @@ namespace Xeora.Web.Tools.Serialization
             }
             finally
             {
-                forStream?.Close();
+                forStream?.Dispose();
             }
         }
     }

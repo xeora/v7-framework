@@ -72,7 +72,7 @@ namespace Xeora.CLI.Extensions
                 }
                 finally
                 {
-                    outputStream?.Close();
+                    outputStream?.Dispose();
                 }
             });
         }

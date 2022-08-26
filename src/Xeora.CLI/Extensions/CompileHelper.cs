@@ -61,7 +61,7 @@ namespace Xeora.CLI.Extensions
             }
             finally
             {
-                contentFS?.Close();
+                contentFS?.Dispose();
             }
 
             if (xeoraCompiler.PasswordHash != null)
@@ -77,7 +77,7 @@ namespace Xeora.CLI.Extensions
                 }
                 finally
                 {
-                    securedFS?.Close();
+                    securedFS?.Dispose();
                 }
             }
 

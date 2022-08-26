@@ -89,8 +89,8 @@ namespace Xeora.Web.Service.Dss.External
             }
             finally
             {
-                binaryWriter?.Close();
-                requestStream?.Close();
+                binaryWriter?.Dispose();
+                requestStream?.Dispose();
             }
 
             byte[] responseBytes = 
@@ -137,8 +137,8 @@ namespace Xeora.Web.Service.Dss.External
             }
             finally
             {
-                binaryReader?.Close();
-                responseStream?.Close();
+                binaryReader?.Dispose();
+                responseStream?.Dispose();
             }
         }
 
@@ -195,8 +195,8 @@ namespace Xeora.Web.Service.Dss.External
             }
             finally
             {
-                binaryWriter?.Close();
-                requestStream?.Close();
+                binaryWriter?.Dispose();
+                requestStream?.Dispose();
             }
         }
         
@@ -230,8 +230,8 @@ namespace Xeora.Web.Service.Dss.External
             }
             finally
             {
-                binaryWriter?.Close();
-                requestStream?.Close();
+                binaryWriter?.Dispose();
+                requestStream?.Dispose();
             }
 
             byte[] responseBytes = 
@@ -277,8 +277,8 @@ namespace Xeora.Web.Service.Dss.External
             }
             finally
             {
-                binaryReader?.Close();
-                responseStream?.Close();
+                binaryReader?.Dispose();
+                responseStream?.Dispose();
             }
         }
 
@@ -319,8 +319,8 @@ namespace Xeora.Web.Service.Dss.External
             }
             finally
             {
-                binaryWriter?.Close();
-                requestStream?.Close();
+                binaryWriter?.Dispose();
+                requestStream?.Dispose();
             }
         }
 
@@ -357,8 +357,8 @@ namespace Xeora.Web.Service.Dss.External
             }
             finally
             {
-                binaryWriter?.Close();
-                requestStream?.Close();
+                binaryWriter?.Dispose();
+                requestStream?.Dispose();
             }
 
             byte[] responseBytes = 
@@ -405,8 +405,8 @@ namespace Xeora.Web.Service.Dss.External
             }
             finally
             {
-                binaryReader?.Close();
-                responseStream?.Close();
+                binaryReader?.Dispose();
+                responseStream?.Dispose();
             }
         }
 
@@ -439,7 +439,7 @@ namespace Xeora.Web.Service.Dss.External
             }
             finally
             {
-                forStream?.Close();
+                forStream?.Dispose();
             }
         }
 
@@ -471,7 +471,7 @@ namespace Xeora.Web.Service.Dss.External
             }
             finally
             {
-                forStream?.Close();
+                forStream?.Dispose();
             }
         }
 
@@ -504,8 +504,8 @@ namespace Xeora.Web.Service.Dss.External
             }
             finally
             {
-                binaryWriter?.Close();
-                requestStream?.Close();
+                binaryWriter?.Dispose();
+                requestStream?.Dispose();
             }
         }
     }

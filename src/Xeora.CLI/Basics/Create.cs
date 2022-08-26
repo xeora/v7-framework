@@ -233,7 +233,7 @@ li {
             }
             finally
             {
-                stylesFileStream?.Close();
+                stylesFileStream?.Dispose();
             }
         }
 
@@ -262,7 +262,7 @@ li {
             }
             finally
             {
-                langFileStream?.Close();
+                langFileStream?.Dispose();
             }
         }
 
@@ -301,7 +301,7 @@ li {
             }
             finally
             {
-                confFileStream?.Close();
+                confFileStream?.Dispose();
             }
         }
 
@@ -327,7 +327,7 @@ li {
             }
             finally
             {
-                controlsFileStream?.Close();
+                controlsFileStream?.Dispose();
             }
         }
 
@@ -382,7 +382,7 @@ li {
             }
             finally
             {
-                defTempFileStream?.Close();
+                defTempFileStream?.Dispose();
             }
         }
 
@@ -423,7 +423,7 @@ li {
             }
             finally
             {
-                settingsFileStream?.Close();
+                settingsFileStream?.Dispose();
             }
         }
     }

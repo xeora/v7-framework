@@ -189,7 +189,7 @@ namespace Xeora.Web.Deployment
             }
             finally
             {
-                contentStream?.Close();
+                contentStream?.Dispose();
             }
         }
 

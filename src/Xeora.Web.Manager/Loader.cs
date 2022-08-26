@@ -148,7 +148,7 @@ namespace Xeora.Web.Manager
                 }
                 finally
                 {
-                    checkStream?.Close();
+                    checkStream?.Dispose();
                 }
             }
 

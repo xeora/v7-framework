@@ -53,7 +53,7 @@ namespace Xeora.Web.Deployment
             }
             finally
             {
-                passwordStream?.Close();
+                passwordStream?.Dispose();
             }
 
             byte[] fileHash;
@@ -73,7 +73,7 @@ namespace Xeora.Web.Deployment
             }
             finally
             {
-                contentStream?.Close();
+                contentStream?.Dispose();
             }
 
             byte[] passwordHash = new byte[16];
@@ -208,9 +208,9 @@ namespace Xeora.Web.Deployment
             }
             finally
             {
-                domainFileStream?.Close();
-                gzipCStream?.Close();
-                gzipHelperStream?.Close();
+                domainFileStream?.Dispose();
+                gzipCStream?.Dispose();
+                gzipHelperStream?.Dispose();
             }
         }
 
@@ -249,7 +249,7 @@ namespace Xeora.Web.Deployment
             }
             finally
             {
-                fileReader?.Close();
+                fileReader?.Dispose();
             }
         }
     }

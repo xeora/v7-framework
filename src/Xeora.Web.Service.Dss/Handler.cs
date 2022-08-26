@@ -92,8 +92,8 @@ namespace Xeora.Web.Service.Dss
             }
             finally
             {
-                requestStream?.Close();
-                responseStream?.Close();
+                requestStream?.Dispose();
+                responseStream?.Dispose();
             }
         }
 

@@ -40,7 +40,7 @@ namespace Xeora.Web.Configuration
             finally
             {
                 jsonReader?.Close();
-                sR?.Close();
+                sR?.Dispose();
             }
         }
 

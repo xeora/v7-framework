@@ -28,7 +28,6 @@ namespace Xeora.Web.Service.Dss.External
 
         private void Reset()
         {
-            this._DssServiceClient?.Close();
             this._DssServiceClient?.Dispose();
             this._DssServiceClient = null;
 
@@ -175,8 +174,8 @@ namespace Xeora.Web.Service.Dss.External
                 }
                 finally
                 {
-                    binaryWriter?.Close();
-                    requestStream?.Close();
+                    binaryWriter?.Dispose();
+                    requestStream?.Dispose();
                 }
             } while (true);
         }
@@ -220,8 +219,8 @@ namespace Xeora.Web.Service.Dss.External
             }
             finally
             {
-                binaryReader?.Close();
-                contentStream?.Close();
+                binaryReader?.Dispose();
+                contentStream?.Dispose();
             }
         }
 
@@ -269,8 +268,8 @@ namespace Xeora.Web.Service.Dss.External
             }
             finally
             {
-                binaryWriter?.Close();
-                requestStream?.Close();
+                binaryWriter?.Dispose();
+                requestStream?.Dispose();
             }
         }
 
@@ -311,8 +310,8 @@ namespace Xeora.Web.Service.Dss.External
             }
             finally
             {
-                binaryReader?.Close();
-                contentStream?.Close();
+                binaryReader?.Dispose();
+                contentStream?.Dispose();
             }
         }
     }

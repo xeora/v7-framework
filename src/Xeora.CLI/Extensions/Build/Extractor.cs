@@ -54,8 +54,8 @@ namespace Xeora.CLI.Extensions.Build
             }
             finally
             {
-                xeoraStreamBinaryReader?.Close();
-                xeoraFileStream?.Close();
+                xeoraStreamBinaryReader?.Dispose();
+                xeoraFileStream?.Dispose();
             }
         }
 
@@ -108,9 +108,9 @@ namespace Xeora.CLI.Extensions.Build
             }
             finally
             {
-                xeoraFileStream?.Close();
-                gzipStream?.Close();
-                gzipHelperStream?.Close();
+                xeoraFileStream?.Dispose();
+                gzipStream?.Dispose();
+                gzipHelperStream?.Dispose();
             }
 
             outputStream.Seek(0, SeekOrigin.Begin);

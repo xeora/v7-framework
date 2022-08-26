@@ -186,8 +186,8 @@ namespace Xeora.CLI.Basics
             }
             finally
             {
-                remoteFs?.Close();
-                targetFs?.Close();
+                remoteFs?.Dispose();
+                targetFs?.Dispose();
             }
 
             Console.Write("   Extracting...  ");

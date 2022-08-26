@@ -139,7 +139,7 @@ namespace Xeora.Web.Basics.X
             }
             finally
             {
-                requestStream?.Close();
+                requestStream?.Dispose();
             }
         }
 
@@ -231,7 +231,7 @@ namespace Xeora.Web.Basics.X
             }
             finally
             {
-                xPathTextReader?.Close();
+                xPathTextReader?.Dispose();
             }
         }
 
@@ -421,7 +421,7 @@ namespace Xeora.Web.Basics.X
                 }
                 finally
                 {
-                    serializationStream?.Close();
+                    serializationStream?.Dispose();
                 }
             }
 
@@ -460,7 +460,7 @@ namespace Xeora.Web.Basics.X
                 }
                 finally
                 {
-                    serializationStream?.Close();
+                    serializationStream?.Dispose();
                 }
             }
         }

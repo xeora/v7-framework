@@ -145,7 +145,7 @@ namespace Xeora.Web.Service.Dss
             }
             finally
             {
-                contentStream?.Close();
+                contentStream?.Dispose();
             }
         }
     }

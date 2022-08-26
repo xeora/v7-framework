@@ -53,7 +53,7 @@ namespace Xeora.Web.Basics.X
             }
             finally
             {
-                xPathTextReader?.Close();
+                xPathTextReader?.Dispose();
             }
         }
 
@@ -105,8 +105,8 @@ namespace Xeora.Web.Basics.X
             }
             finally
             {
-                xmlWriter?.Close();
-                xmlStream?.Close();
+                xmlWriter?.Dispose();
+                xmlStream?.Dispose();
             }
         }
     }

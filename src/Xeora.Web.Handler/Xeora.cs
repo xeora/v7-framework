@@ -529,7 +529,7 @@ namespace Xeora.Web.Handler
                 }
                 finally
                 {
-                    requestFileStream?.Close();
+                    requestFileStream?.Dispose();
                 }
 
                 this.Context.AddOrUpdate("RedirectLocation", null);
@@ -600,7 +600,7 @@ namespace Xeora.Web.Handler
             }
             finally
             {
-                requestFileStream?.Close();
+                requestFileStream?.Dispose();
             }
 
             this.Context.AddOrUpdate("RedirectLocation", null);
@@ -625,7 +625,7 @@ namespace Xeora.Web.Handler
             }
             finally
             {
-                requestFileStream?.Close();
+                requestFileStream?.Dispose();
             }
 
             this.Context.AddOrUpdate("RedirectLocation", null);
@@ -645,7 +645,7 @@ namespace Xeora.Web.Handler
             }
             finally
             {
-                requestFileStream?.Close();
+                requestFileStream?.Dispose();
             }
 
             this.Context.AddOrUpdate("RedirectLocation", null);
@@ -696,7 +696,7 @@ namespace Xeora.Web.Handler
             }
             finally
             {
-                writer?.Close();
+                writer?.Dispose();
             }
 
             this.WriteOutput(this._DomainControl.ServiceMimeType, writer.ToString(), this._SupportCompression);
@@ -746,7 +746,7 @@ namespace Xeora.Web.Handler
                 }
                 finally
                 {
-                    writer?.Close();
+                    writer?.Dispose();
                 }
             }
 
@@ -935,7 +935,7 @@ namespace Xeora.Web.Handler
             }
             finally
             {
-                gzipCompression?.Close();
+                gzipCompression?.Dispose();
             }
         }
 
@@ -955,7 +955,7 @@ namespace Xeora.Web.Handler
             }
             finally
             {
-                outputStream?.Close();
+                outputStream?.Dispose();
             }
         }
 
@@ -980,7 +980,7 @@ namespace Xeora.Web.Handler
                 }
                 finally
                 {
-                    gzippedStream?.Close();
+                    gzippedStream?.Dispose();
                 }
             }
 

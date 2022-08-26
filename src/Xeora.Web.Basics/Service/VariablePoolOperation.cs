@@ -102,7 +102,7 @@ namespace Xeora.Web.Basics.Service
             }
             finally
             {
-                forStream?.Close();
+                forStream?.Dispose();
             }
         }
 
@@ -135,7 +135,7 @@ namespace Xeora.Web.Basics.Service
             }
             finally
             {
-                forStream?.Close();
+                forStream?.Dispose();
             }
 
             this._VariablePool.Set(name, serializedValue);
@@ -193,7 +193,7 @@ namespace Xeora.Web.Basics.Service
                 }
                 finally
                 {
-                    forStream?.Close();
+                    forStream?.Dispose();
                 }
             }
 
@@ -213,7 +213,7 @@ namespace Xeora.Web.Basics.Service
             }
             finally
             {
-                forStream?.Close();
+                forStream?.Dispose();
             }
         }
 

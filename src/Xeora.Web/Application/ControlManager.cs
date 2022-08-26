@@ -256,6 +256,6 @@ namespace Xeora.Web.Application
             return target.Value;
         }
 
-        public void Dispose() => _XPathStream?.Close();
+        public void Dispose() => _XPathStream?.Dispose();
     }
 }

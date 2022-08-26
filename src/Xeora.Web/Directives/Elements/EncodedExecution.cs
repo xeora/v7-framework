@@ -130,7 +130,7 @@ namespace Xeora.Web.Directives.Elements
                 }
                 finally
                 {
-                    sR?.Close();
+                    sR?.Dispose();
                     
                     if (string.IsNullOrEmpty(directives)) directives = string.Empty;
                 }

@@ -65,7 +65,7 @@ namespace Xeora.Web
                 }
                 finally
                 {
-                    encryptStream?.Close();
+                    encryptStream?.Dispose();
                 }
 
                 byte[] encryptedBytes = 
@@ -81,7 +81,7 @@ namespace Xeora.Web
             }
             finally
             {
-                encrypted?.Close();
+                encrypted?.Dispose();
             }
         }
 
@@ -131,12 +131,12 @@ namespace Xeora.Web
                 }
                 finally
                 {
-                    decryptStream?.Close();
+                    decryptStream?.Dispose();
                 }
             }
             finally
             {
-                decryptCache?.Close();
+                decryptCache?.Dispose();
             }
         }
     }

@@ -191,7 +191,7 @@ namespace Xeora.Web.Service.Dss
                 foreach (Guid key in this._Clients.Keys)
                 {
                     this._Clients.TryRemove(key, out TcpClient client);
-                    client?.Close();
+                    client?.Dispose();
                 }
 
                 Basics.Console.Flush().Wait();

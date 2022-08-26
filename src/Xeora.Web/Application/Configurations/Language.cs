@@ -106,6 +106,6 @@ namespace Xeora.Web.Application.Configurations
             return string.Empty;
         }
 
-        public void Dispose() => _XPathStream?.Close();
+        public void Dispose() => _XPathStream?.Dispose();
     }
 }

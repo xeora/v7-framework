@@ -213,7 +213,7 @@ namespace Xeora.Web.Manager.Statement
             }
             finally
             {
-                assemblyStream?.Close();
+                assemblyStream?.Dispose();
             }
         }
 
