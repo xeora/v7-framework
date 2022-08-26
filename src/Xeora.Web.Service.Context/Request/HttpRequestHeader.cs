@@ -177,7 +177,7 @@ namespace Xeora.Web.Service.Context.Request
             }
             finally
             {
-                contentStream?.Close();
+                contentStream?.Dispose();
             }
         }
 
