@@ -9,6 +9,7 @@ namespace Xeora.Web.Service.Context
 {
     public delegate Basics.Context.IHttpCookieInfo SessionCookieRequestedHandler(bool skip);
     public delegate void StreamEnclosureRequestedHandler(out Net.NetworkStream streamEnclosure);
+    public delegate void ConcludeRequestRequestedHandler();
     public class HttpResponse : Basics.Context.IHttpResponse
     {
         public static readonly char[] Newline = { '\r', '\n' };
@@ -19,10 +20,12 @@ namespace Xeora.Web.Service.Context
         private readonly Action<Basics.Context.Response.IHttpResponseHeader> _ServerResponseStampHandler;
 
         private bool _HeaderFlushed;
+        private bool _Chunked;
         private string _RedirectedUrl = string.Empty;
 
         public event SessionCookieRequestedHandler SessionCookieRequested;
         public event StreamEnclosureRequestedHandler StreamEnclosureRequested;
+        public event ConcludeRequestRequestedHandler ConcludeRequestRequested;
 
         public HttpResponse(string contextId, bool keepAlive, 
             Action<Basics.Context.Response.IHttpResponseHeader> serverResponseStampHandler)
@@ -48,12 +51,19 @@ namespace Xeora.Web.Service.Context
         {
             if (this._HeaderFlushed) return;
             
+            ConcludeRequestRequested?.Invoke();
+            
             this.Header.AddOrUpdate("Date", DateTime.Now.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", CultureInfo.InvariantCulture));
 
             if (string.IsNullOrWhiteSpace(this.Header["Content-Type"]))
                 this.Header.AddOrUpdate("Content-Type", "text/html");
 
-            if (string.IsNullOrWhiteSpace(this.Header["Content-Length"]))
+            if (this._Chunked)
+            {
+                ((HttpResponseHeader) this.Header).Remove("Content-Length");
+                this.Header.AddOrUpdate("Transfer-Encoding", "chunked");
+            }
+            else if (string.IsNullOrWhiteSpace(this.Header["Content-Length"]))
                 this.Header.AddOrUpdate("Content-Length", this._ResponseOutput.Length.ToString());
 
             this.Header.AddOrUpdate("Connection", this._KeepAlive ? "keep-alive" : "close");
@@ -92,13 +102,10 @@ namespace Xeora.Web.Service.Context
             this._HeaderFlushed = true;
         }
 
-        public void ActivateStreaming()
+        public Basics.Context.Response.IHttpResponseStream OpenStreaming()
         {
             if (this.IsRedirected)
                 throw new Exception("Not possible to activate streaming when request has been already redirected!");
-            
-            if (string.IsNullOrWhiteSpace(this.Header["Content-Length"]))
-                throw new Exception("Content-Length should be defined in header to activate streaming for http response!");
 
             Net.NetworkStream streamEnclosure = null;
             StreamEnclosureRequested?.Invoke(out streamEnclosure);
@@ -106,7 +113,10 @@ namespace Xeora.Web.Service.Context
             if (streamEnclosure == null)
                 throw new Exception("Inaccessible stream enclosure to activate streaming on http response!");
             
+            this._Chunked = true;
             this.PushHeaders(streamEnclosure);
+
+            return new HttpResponseStream(streamEnclosure);
         }
         
         public void Write(string value, Encoding encoding)
@@ -117,18 +127,8 @@ namespace Xeora.Web.Service.Context
 
         public void Write(byte[] buffer, int offset, int count)
         {
-            if (this._HeaderFlushed)
-            {
-                Net.NetworkStream streamEnclosure = null;
-                StreamEnclosureRequested?.Invoke(out streamEnclosure);
-            
-                if (streamEnclosure == null)
-                    throw new Exception("Inaccessible stream enclosure to do realtime streaming on http response socket!");
-                
-                streamEnclosure.Write(buffer, offset, count);
-                
-                return;
-            }
+            if (this._Chunked)
+                throw new Exception("It is not allowed to use response write while streaming is activated!");
             
             this._ResponseOutput.Write(buffer, offset, count);
         }

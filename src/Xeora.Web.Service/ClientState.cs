@@ -58,6 +58,8 @@ namespace Xeora.Web.Service
                         });
                     ((HttpResponse) response).StreamEnclosureRequested +=
                         (out NetworkStream enclosure) => enclosure = streamEnclosure;
+                    ((HttpResponse)response).ConcludeRequestRequested +=
+                        () => ((HttpRequest)request).Conclude();
 
                     ClientState.AcquireSession(request, out Basics.Session.IHttpSession session);
                     context =
@@ -127,7 +129,11 @@ namespace Xeora.Web.Service
                 finally
                 {
                     if (xeoraHandler != null)
+                    {
+                        // Request have to be concluded before drop
+                        ((HttpRequest)context.Request).Conclude();
                         Handler.Manager.Current.Drop(xeoraHandler.HandlerId);
+                    }
                     else
                         context?.Dispose();
 

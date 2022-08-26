@@ -14,7 +14,8 @@ namespace Xeora.Web.Service.Net
         private readonly ConcurrentQueue<byte[]> _IncomeCache;
         private readonly ConcurrentStack<byte[]> _Residual;
 
-        private bool _Disposed;
+        private Action<byte[]> _FlowTarget;
+        private readonly object _FlowTargetLock = new ();
 
         public NetworkStream(ref Stream remoteStream)
         {
@@ -32,7 +33,7 @@ namespace Xeora.Web.Service.Net
             streamListenerThread.Start();
         }
 
-        private void StreamListener() 
+        private void StreamListener()
         {
             SpinWait spinWait = new SpinWait();
             byte[] buffer = 
@@ -53,21 +54,62 @@ namespace Xeora.Web.Service.Net
                     byte[] cache = 
                         new byte[rC];
                     Array.Copy(buffer, cache, cache.Length);
-
-                    this._IncomeCache.Enqueue(cache);
+                    
+                    if (!this.TryPipe(cache))
+                        this._IncomeCache.Enqueue(cache);
                 }
                 catch
                 {
-                    this._Disposed = true;
+                    this.Disposed = true;
                     return;
                 }
             } while (true);
         }
 
+        private bool TryPipeUnsafe(byte[] cache = null)
+        {
+            if (this._FlowTarget == null) return false;
+                
+            while (this._Residual.TryPop(out byte[] buffer))
+                this._FlowTarget.Invoke(buffer);
+                
+            while (this._IncomeCache.TryDequeue(out byte[] buffer))
+                this._FlowTarget.Invoke(buffer);
+                    
+            if (cache != null) this._FlowTarget.Invoke(cache);
+            return true;
+        }
+        private bool TryPipe(byte[] cache = null)
+        {
+            Monitor.Enter(this._FlowTargetLock);
+            try
+            {
+                return this.TryPipeUnsafe(cache);
+            }
+            finally
+            {
+                Monitor.Exit(this._FlowTargetLock);
+            }
+        }
+        
+        public void Pipe(Action<byte[]> callback)
+        {
+            Monitor.Enter(this._FlowTargetLock);
+            try
+            {
+                this._FlowTarget = callback;
+                this.TryPipeUnsafe();
+            }
+            finally
+            {
+                Monitor.Exit(this._FlowTargetLock);
+            }
+        }
+
         public bool Alive()
         {
             if (!this.KeepAlive) return false;
-            return !this._Disposed;
+            return !this.Disposed;
         }
         
         public override int Read(byte[] buffer, int offset, int count)
@@ -99,7 +141,7 @@ namespace Xeora.Web.Service.Net
                     this.Read(buffer, 0, buffer.Length);
                 if (count == 0)
                 {
-                    if (this._Disposed) break;
+                    if (this.Disposed) break;
                     
                     spinWait.SpinOnce();
                     continue;
@@ -168,7 +210,7 @@ namespace Xeora.Web.Service.Net
 
         public override void Write(byte[] buffer, int offset, int count) =>
             this._RemoteStream.Write(buffer, offset, count);
-
+        
         public void Return(byte[] buffer, int offset, int count)
         {
             if (count == 0)
@@ -180,7 +222,16 @@ namespace Xeora.Web.Service.Net
             this._Residual.Push(stackData);
         }
 
+        public void Throw(int byteSize)
+        {
+            byte[] thrownBytes = new byte[byteSize];
+            int thrownSize = this.Read(thrownBytes, 0, thrownBytes.Length);
+            if (thrownSize != byteSize)
+                throw new IOException("Requested thrown size is not matching with the thrown actually happened");
+        }
+
         public bool KeepAlive { get; set; }
+        public bool Disposed { get; private set; }
         public override bool CanRead => this._RemoteStream.CanRead;
         public override bool CanSeek => this._RemoteStream.CanSeek;
         public override bool CanWrite => this._RemoteStream.CanWrite;

@@ -76,8 +76,8 @@ namespace Xeora.Web.Service.Context
 
         public void Dispose()
         {
-            ((HttpResponse)this.Response).Dispose();
             ((HttpRequest)this.Request).Dispose();
+            ((HttpResponse)this.Response).Dispose();
         }
     }
 }

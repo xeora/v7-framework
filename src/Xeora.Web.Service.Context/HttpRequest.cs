@@ -27,7 +27,7 @@ namespace Xeora.Web.Service.Context
             this.QueryString = new HttpRequestQueryString(this._Header.Url);
             this.Body = new HttpRequestBody(contextId, this._Header, streamEnclosure);
 
-            return ParserResultTypes.Success;
+            return ((HttpRequestBody)this.Body).Parse();
         }
 
         public void RewritePath(string rawUrl)
@@ -36,7 +36,10 @@ namespace Xeora.Web.Service.Context
             this.QueryString = new HttpRequestQueryString(this.Header.Url);
         }
 
-        internal void Dispose() =>
+        public void Conclude() => 
+            ((HttpRequestBody)this.Body).Conclude();
+        
+        public void Dispose() =>
             ((HttpRequestBody)this.Body).Dispose();
     }
 }
