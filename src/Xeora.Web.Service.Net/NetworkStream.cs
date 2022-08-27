@@ -14,9 +14,6 @@ namespace Xeora.Web.Service.Net
         private readonly ConcurrentQueue<byte[]> _IncomeCache;
         private readonly ConcurrentStack<byte[]> _Residual;
 
-        private Action<byte[]> _FlowTarget;
-        private readonly object _FlowTargetLock = new ();
-
         public NetworkStream(ref Stream remoteStream)
         {
             this._RemoteStream = remoteStream;
@@ -55,8 +52,7 @@ namespace Xeora.Web.Service.Net
                         new byte[rC];
                     Array.Copy(buffer, cache, cache.Length);
                     
-                    if (!this.TryPipe(cache))
-                        this._IncomeCache.Enqueue(cache);
+                    this._IncomeCache.Enqueue(cache);
                 }
                 catch
                 {
@@ -64,46 +60,6 @@ namespace Xeora.Web.Service.Net
                     return;
                 }
             } while (true);
-        }
-
-        private bool TryPipeUnsafe(byte[] cache = null)
-        {
-            if (this._FlowTarget == null) return false;
-                
-            while (this._Residual.TryPop(out byte[] buffer))
-                this._FlowTarget.Invoke(buffer);
-                
-            while (this._IncomeCache.TryDequeue(out byte[] buffer))
-                this._FlowTarget.Invoke(buffer);
-                    
-            if (cache != null) this._FlowTarget.Invoke(cache);
-            return true;
-        }
-        private bool TryPipe(byte[] cache = null)
-        {
-            Monitor.Enter(this._FlowTargetLock);
-            try
-            {
-                return this.TryPipeUnsafe(cache);
-            }
-            finally
-            {
-                Monitor.Exit(this._FlowTargetLock);
-            }
-        }
-        
-        public void Pipe(Action<byte[]> callback)
-        {
-            Monitor.Enter(this._FlowTargetLock);
-            try
-            {
-                this._FlowTarget = callback;
-                this.TryPipeUnsafe();
-            }
-            finally
-            {
-                Monitor.Exit(this._FlowTargetLock);
-            }
         }
 
         public bool Alive()
