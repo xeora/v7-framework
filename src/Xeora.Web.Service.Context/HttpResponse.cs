@@ -12,6 +12,17 @@ namespace Xeora.Web.Service.Context
     public delegate void ConcludeRequestRequestedHandler();
     public class HttpResponse : Basics.Context.IHttpResponse
     {
+        private const string HTTP_VERSION_1_1 = "HTTP/1.1";
+        
+        private const string HEADER_DATE = "Date";
+        private const string HEADER_CONTENT_TYPE = "Content-Type";
+        private const string HEADER_CONTENT_LENGTH = "Content-Length";
+        private const string HEADER_TRANSFER_ENCODING = "Transfer-Encoding";
+        private const string HEADER_LOCATION = "Location";
+        private const string HEADER_KEEP_ALIVE = "Keep-Alive";
+        private const string HEADER_SET_COOKIE = "Set-Cookie";
+        private const string HEADER_CONNECTION = "Connection";
+        
         public static readonly char[] Newline = { '\r', '\n' };
 
         private readonly string _TempLocation;
@@ -53,28 +64,28 @@ namespace Xeora.Web.Service.Context
             
             ConcludeRequestRequested?.Invoke();
             
-            this.Header.AddOrUpdate("Date", DateTime.Now.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", CultureInfo.InvariantCulture));
+            this.Header.AddOrUpdate(HEADER_DATE, DateTime.Now.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", CultureInfo.InvariantCulture));
 
-            if (string.IsNullOrWhiteSpace(this.Header["Content-Type"]))
-                this.Header.AddOrUpdate("Content-Type", "text/html");
+            if (string.IsNullOrWhiteSpace(this.Header[HEADER_CONTENT_TYPE]))
+                this.Header.AddOrUpdate(HEADER_CONTENT_TYPE, "text/html");
 
             if (this._Chunked)
             {
-                ((HttpResponseHeader) this.Header).Remove("Content-Length");
-                this.Header.AddOrUpdate("Transfer-Encoding", "chunked");
+                ((HttpResponseHeader) this.Header).Remove(HEADER_CONTENT_LENGTH);
+                this.Header.AddOrUpdate(HEADER_TRANSFER_ENCODING, "chunked");
             }
-            else if (string.IsNullOrWhiteSpace(this.Header["Content-Length"]))
-                this.Header.AddOrUpdate("Content-Length", this._ResponseOutput.Length.ToString());
+            else if (string.IsNullOrWhiteSpace(this.Header[HEADER_CONTENT_LENGTH]))
+                this.Header.AddOrUpdate(HEADER_CONTENT_LENGTH, this._ResponseOutput.Length.ToString());
 
-            this.Header.AddOrUpdate("Connection", this._KeepAlive ? "keep-alive" : "close");
+            this.Header.AddOrUpdate(HEADER_CONNECTION, this._KeepAlive ? "keep-alive" : "close");
             if (this._KeepAlive)
-                this.Header.AddOrUpdate("Keep-Alive", $"timeout={streamEnclosure.ReadTimeout / 1000}");
+                this.Header.AddOrUpdate(HEADER_KEEP_ALIVE, $"timeout={streamEnclosure.ReadTimeout / 1000}");
 
             this._ServerResponseStampHandler(this.Header);
             
             StringBuilder sB = new StringBuilder();
 
-            sB.AppendFormat("HTTP/1.1 {0} {1}", this.Header.Status.Code, this.Header.Status.Message);
+            sB.Append($"{HTTP_VERSION_1_1} {this.Header.Status.Code} {this.Header.Status.Message}");
             sB.Append(Newline);
 
             foreach (string key in this.Header.Keys)
@@ -84,13 +95,13 @@ namespace Xeora.Web.Service.Context
             }
 
             string contentType = 
-                this.Header["Content-Type"];
+                this.Header[HEADER_CONTENT_TYPE];
             bool skip = string.IsNullOrEmpty(contentType) || contentType.IndexOf("text/html", StringComparison.Ordinal) == -1;
             this.Header.Cookie.AddOrUpdate(SessionCookieRequested?.Invoke(skip));
 
             foreach (string key in this.Header.Cookie.Keys)
             {
-                sB.AppendFormat("Set-Cookie: {0}", this.Header.Cookie[key]);
+                sB.Append($"{HEADER_SET_COOKIE}: {this.Header.Cookie[key]}");
                 sB.Append(Newline);
             }
 
@@ -102,7 +113,7 @@ namespace Xeora.Web.Service.Context
             this._HeaderFlushed = true;
         }
 
-        public Basics.Context.Response.IHttpResponseStream OpenStreaming()
+        public Basics.Context.Response.IHttpResponseStream OpenStreaming(long contentLength = 0)
         {
             if (this.IsRedirected)
                 throw new Exception("Not possible to activate streaming when request has been already redirected!");
@@ -113,10 +124,11 @@ namespace Xeora.Web.Service.Context
             if (streamEnclosure == null)
                 throw new Exception("Inaccessible stream enclosure to activate streaming on http response!");
             
-            this._Chunked = true;
+            this._Chunked = contentLength == 0;
+            if (!this._Chunked) this.Header.AddOrUpdate(HEADER_CONTENT_LENGTH, contentLength.ToString());
             this.PushHeaders(streamEnclosure);
 
-            return new HttpResponseStream(streamEnclosure);
+            return new HttpResponseStream(streamEnclosure, this._Chunked);
         }
         
         public void Write(string value, Encoding encoding)
@@ -140,16 +152,16 @@ namespace Xeora.Web.Service.Context
         {
             StringBuilder sB = new StringBuilder();
 
-            sB.Append("HTTP/1.1 302 Object Moved");
+            sB.Append($"{HTTP_VERSION_1_1} 302 Object Moved");
             sB.Append(Newline);
 
-            sB.AppendFormat("Date: {0}", DateTime.Now.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", CultureInfo.InvariantCulture));
+            sB.Append($"{HEADER_DATE}: {DateTime.Now.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", CultureInfo.InvariantCulture)}");
             sB.Append(Newline);
 
-            sB.AppendFormat("Location: {0}", this._RedirectedUrl);
+            sB.Append($"{HEADER_LOCATION}: {this._RedirectedUrl}");
             sB.Append(Newline);
 
-            sB.Append("Connection: close");
+            sB.Append($"{HEADER_CONNECTION}: close");
             sB.Append(Newline);
 
             this.Header.Cookie.AddOrUpdate(SessionCookieRequested?.Invoke(false));
@@ -157,7 +169,7 @@ namespace Xeora.Web.Service.Context
             // put cookies because it may contain sessionId
             foreach (string key in this.Header.Cookie.Keys)
             {
-                sB.AppendFormat("Set-Cookie: {0}", this.Header.Cookie[key]);
+                sB.Append($"{HEADER_SET_COOKIE}: {this.Header.Cookie[key]}");
                 sB.Append(Newline);
             }
             sB.Append(Newline);
