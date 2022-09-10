@@ -42,7 +42,7 @@ namespace Xeora.Web.Application.Configurations
                             xPathIter.Current?.GetAttribute("id", xPathIter.Current.BaseURI));
 
                     Enum.TryParse(
-                        xPathIter.Current?.GetAttribute("type", xPathIter.Current.BaseURI), out Basics.Domain.ServiceTypes type);
+                        xPathIter.Current?.GetAttribute("type", xPathIter.Current.BaseURI), true, out Basics.Domain.ServiceTypes type);
                     tServiceItem.ServiceType = type;
 
                     bool.TryParse(
