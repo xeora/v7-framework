@@ -25,7 +25,7 @@ namespace Xeora.Web.Handler
 
         private DomainControl _DomainControl;
 
-        internal Xeora(ref IHttpContext context, bool forceRefresh)
+        internal Xeora(IHttpContext context, bool forceRefresh)
         {
             this._ForceRefresh = forceRefresh;
 
@@ -35,7 +35,24 @@ namespace Xeora.Web.Handler
             
             // Check Url contains ApplicationRootPath (~) or SiteRootPath (¨) modifiers
             string rootPath =
-                System.Web.HttpUtility.UrlDecode(this.Context.Request.Header.Url.Raw);
+                System.Web.HttpUtility.UrlDecode(context.Request.Header.Url.Raw);
+            if (string.IsNullOrEmpty(rootPath)) return;
+
+            if (this.CheckTilde(rootPath)) return;
+
+            this.CheckHelf(rootPath);
+            // !--
+        }
+        
+        internal Xeora(IWebSocketContext context)
+        {
+            this.WebSocket = context ?? throw new Exception("Context is required!");
+            this.HandlerId = Guid.NewGuid().ToString();
+            Helpers.AssignHandlerId(this.HandlerId);
+            
+            // Check Url contains ApplicationRootPath (~) or SiteRootPath (¨) modifiers
+            string rootPath =
+                System.Web.HttpUtility.UrlDecode(context.Request.Header.Url.Raw);
             if (string.IsNullOrEmpty(rootPath)) return;
 
             if (this.CheckTilde(rootPath)) return;
@@ -74,10 +91,11 @@ namespace Xeora.Web.Handler
         }
 
         public string HandlerId { get; }
+        private IWebSocketContext WebSocket { get; }
         public IHttpContext Context { get; }
         public IDomainControl DomainControl => this._DomainControl;
 
-        public void Handle()
+        public bool Handle()
         {
             this._BeginRequestTime = DateTime.Now;
             this._SupportCompression = false;
@@ -87,8 +105,16 @@ namespace Xeora.Web.Handler
                 if (this._ForceRefresh)
                     Application.DomainControl.ClearCache();
 
-                IHttpContext context = this.Context;
-                this._DomainControl = new DomainControl(ref context);
+                this._DomainControl =
+                    this.WebSocket == null
+                        ? new DomainControl(this.Context)
+                        : new DomainControl(this.WebSocket);
+
+                if (this.WebSocket != null)
+                {
+                    this.HandleServiceRequest(); // Service Request (Template, xService, xSocket, webSocket)
+                    return true;
+                }
 
                 Basics.Enum.PageCachingTypes defaultCaching =
                     this._DomainControl.Domain.Settings.Configurations.DefaultCaching;
@@ -124,18 +150,23 @@ namespace Xeora.Web.Handler
                 if (this._DomainControl.ServiceDefinition == null)
                     this.HandleStaticFile(); // Static File that has the same level of Application folder or Domain Content File
                 else
-                    this.HandleServiceRequest(); // Service Request (Template, xService, xSocket)
+                    this.HandleServiceRequest(); // Service Request (Template, xService, xSocket, webSocket)
+
+                return true;
             }
             catch (Exception ex)
             {
+                if (this.Context == null) return false;
+                
                 this.Context.Response.Header.Status.Code = 500;
-
                 this.HandleErrorLogging(ex);
+
+                return false;
             }
             finally
             {
                 // If Redirection has been assigned, handle it
-                if (this.Context["RedirectLocation"] != null)
+                if (this.Context?["RedirectLocation"] != null)
                 {
                     if (((string)this.Context["RedirectLocation"]).IndexOf("://", StringComparison.InvariantCulture) == -1)
                     {
@@ -242,24 +273,29 @@ namespace Xeora.Web.Handler
         private void HandleServiceRequest()
         {
             if (this._DomainControl.IsAuthenticationRequired)
-                this.RedirectToAuthenticationPage(this._DomainControl.ServiceDefinition.FullPath);
-            else
             {
-                switch (this._DomainControl.ServiceType)
-                {
-                    case Basics.Domain.ServiceTypes.Template:
-                        this.HandleTemplateRequest();
+                this.RedirectToAuthenticationPage(this._DomainControl.ServiceDefinition.FullPath);
+                return;
+            }
+            
+            switch (this._DomainControl.ServiceType)
+            {
+                case Basics.Domain.ServiceTypes.Template:
+                    this.HandleTemplateRequest();
 
-                        break;
-                    case Basics.Domain.ServiceTypes.xService:
-                        this.CreateServiceResult(null);
+                    break;
+                case Basics.Domain.ServiceTypes.xService:
+                    this.CreateServiceResult(null);
 
-                        break;
-                    case Basics.Domain.ServiceTypes.xSocket:
-                        this.HandlexSocketRequest();
+                    break;
+                case Basics.Domain.ServiceTypes.xSocket:
+                    this.HandlexSocketRequest();
 
-                        break;
-                }
+                    break;
+                case Basics.Domain.ServiceTypes.WebSocket:
+                    this.HandleWebSocketRequest();
+                    
+                    break;
             }
         }
 
@@ -359,11 +395,11 @@ namespace Xeora.Web.Handler
 
             IHttpContext context = this.Context;
             SocketObject xSocketObject =
-                new SocketObject(ref context, keyValueList.ToArray());
+                new SocketObject(context, keyValueList.ToArray());
 
             bind.Parameters.Override(new [] { "xso" });
             bind.Parameters.Prepare(
-                parameter => xSocketObject
+                _ => xSocketObject
             );
 
             Basics.Execution.InvokeResult<object> invokeResult =
@@ -373,6 +409,43 @@ namespace Xeora.Web.Handler
                 throw new Exceptions.ServiceSocketException(invokeResult.Exception.ToString());
 
             if (!(invokeResult.Result is Message messageResult)) return;
+            
+            if (messageResult.Type == Message.Types.Error)
+                throw new Exceptions.ServiceSocketException(messageResult.Content);
+        }
+        
+        private void HandleWebSocketRequest()
+        {
+            // Decode Encoded Call Function to Readable
+            Basics.Execution.Bind bind =
+                this._DomainControl.GetxSocketBind();
+
+            bind.Parameters.Prepare(
+                parameter => Property.Render(null, parameter.Query).Item2
+            );
+
+            List<KeyValuePair<string, object>> keyValueList = new List<KeyValuePair<string, object>>();
+            foreach (Basics.Execution.ProcedureParameter item in bind.Parameters)
+                keyValueList.Add(new KeyValuePair<string, object>(item.Key, item.Value));
+            
+            bind.Parameters.Override(new [] { "wso", "parameters" });
+            bind.Parameters.Prepare(
+                parameter =>
+                    parameter.Key switch
+                    {
+                        "wso" => this.WebSocket,
+                        "parameters" => new WebSocketParameterCollection(keyValueList.ToArray()),
+                        _ => null
+                    }
+            );
+
+            Basics.Execution.InvokeResult<object> invokeResult =
+                Web.Manager.Executer.InvokeBind<object>(HttpMethod.GET, bind, Web.Manager.ExecuterTypes.Undefined);
+
+            if (invokeResult.Exception != null)
+                throw new Exceptions.ServiceSocketException(invokeResult.Exception.ToString());
+
+            if (invokeResult.Result is not Message messageResult) return;
             
             if (messageResult.Type == Message.Types.Error)
                 throw new Exceptions.ServiceSocketException(messageResult.Content);

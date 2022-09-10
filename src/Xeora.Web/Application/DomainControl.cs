@@ -11,6 +11,13 @@ namespace Xeora.Web.Application
 {
     public class DomainControl : Basics.IDomainControl
     {
+        private enum ControlTypes
+        {
+            Web, // template, xService, xSocket
+            Socket // WebSocket
+        }
+        
+        private readonly Basics.Context.IWebSocketContext _WebSocket;
         private readonly Basics.Context.IHttpContext _Context;
         private Basics.Domain.IDomain _Domain;
 
@@ -18,16 +25,26 @@ namespace Xeora.Web.Application
         private string _ExecuteIn;
         private string _CookieSearchKeyForLanguage;
 
-        public DomainControl(ref Basics.Context.IHttpContext context)
+        public DomainControl(Basics.Context.IHttpContext context)
         {
             this._Context = context;
+            this.ControlType = ControlTypes.Web;
+
+            this.Build();
+        }
+        
+        public DomainControl(Basics.Context.IWebSocketContext context)
+        {
+            this._WebSocket = context;
+            this.ControlType = ControlTypes.Socket;
 
             this.Build();
         }
 
         private void Build()
         {
-            CryptographyProvider.Current.Ping(this._Context.Session.SessionId);
+            if (this.ControlType == ControlTypes.Web)
+                CryptographyProvider.Current.Ping(this._Context.Session.SessionId);
             
             this.Domain = null;
 
@@ -46,7 +63,9 @@ namespace Xeora.Web.Application
 
             string languageId = string.Empty;
             Basics.Context.IHttpCookieInfo languageCookie =
-                this._Context.Request.Header.Cookie[this._CookieSearchKeyForLanguage];
+                this.ControlType == ControlTypes.Web
+                    ? this._Context.Request.Header.Cookie[this._CookieSearchKeyForLanguage]
+                    : this._WebSocket.Request.Header.Cookie[this._CookieSearchKeyForLanguage];
 
             if (languageCookie != null && !string.IsNullOrEmpty(languageCookie.Value))
                 languageId = languageCookie.Value;
@@ -57,6 +76,8 @@ namespace Xeora.Web.Application
             this.MetaRecord = new MetaRecord();
         }
 
+        private ControlTypes ControlType { get; }
+        
         public string SiteTitle { get; set; }
         public string SiteIconUrl { get; set; }
         public Basics.IMetaRecordCollection MetaRecord { get; private set; }
@@ -76,6 +97,8 @@ namespace Xeora.Web.Application
 
                 ((Domain)this.Domain).SetLanguageChangedListener(language =>
                 {
+                    if (this.ControlType != ControlTypes.Web) return;
+                    
                     Basics.Context.IHttpCookieInfo languageCookie =
                         this._Context.Request.Header.Cookie[this._CookieSearchKeyForLanguage] ?? this._Context.Response.Header.Cookie.CreateNewCookie(this._CookieSearchKeyForLanguage);
 
@@ -85,7 +108,8 @@ namespace Xeora.Web.Application
                     this._Context.Response.Header.Cookie.AddOrUpdate(languageCookie);
                 });
 
-                this.SiteTitle = this.Domain.Languages.Current.Get("SITETITLE");
+                if (this.ControlType != ControlTypes.Socket)
+                    this.SiteTitle = this.Domain.Languages.Current.Get("SITETITLE");
             }
         }
 
@@ -101,14 +125,19 @@ namespace Xeora.Web.Application
 
         private void SelectDomain(string languageId)
         {
+            Basics.Context.IUrl requestUrl =
+                this.ControlType == ControlTypes.Web
+                    ? this._Context.Request.Header.Url
+                    : this._WebSocket.Request.Header.Url;
+            
             string requestedServiceId =
-                DomainControl.GetRequestedServiceId(this._Context.Request.Header.Url);
+                DomainControl.GetRequestedServiceId(requestUrl);
 
             if (string.IsNullOrEmpty(requestedServiceId))
             {
                 this.Domain =
                     new Domain(Basics.Configurations.Xeora.Application.Main.DefaultDomain, languageId);
-                this.PrepareService(this._Context.Request.Header.Url, false);
+                this.PrepareService(requestUrl, false);
 
                 if (this.ServiceDefinition != null)
                     return;
@@ -121,7 +150,7 @@ namespace Xeora.Web.Application
             {
                 this.Domain =
                     new Domain(new [] { dI.Id }, languageId);
-                this.PrepareService(this._Context.Request.Header.Url, false);
+                this.PrepareService(requestUrl, false);
 
                 if (this.ServiceDefinition != null)
                     return;
@@ -132,7 +161,7 @@ namespace Xeora.Web.Application
             {
                 this.Domain =
                     new Domain(new [] { dI.Id }, languageId);
-                this.PrepareService(this._Context.Request.Header.Url, true);
+                this.PrepareService(requestUrl, true);
 
                 if (this.ServiceDefinition != null)
                     return;
@@ -216,28 +245,29 @@ namespace Xeora.Web.Application
                 {
                     case Basics.Domain.ServiceTypes.Template:
                         // Overrides that page does not need authentication even it has been marked as authentication required in Configuration definition
-                        if (string.Compare(this.ServiceDefinition.FullPath, cachedInstance.Settings.Configurations.AuthenticationTemplate, StringComparison.OrdinalIgnoreCase) == 0)
-                            this.IsAuthenticationRequired = false;
-                        else
+                        if (string.Compare(
+                                this.ServiceDefinition.FullPath,
+                                cachedInstance.Settings.Configurations.AuthenticationTemplate,
+                                StringComparison.OrdinalIgnoreCase) == 0)
                         {
-                            if (serviceItem.Authentication)
-                            {
-                                foreach (string authKey in serviceItem.AuthenticationKeys)
-                                {
-                                    if (this._Context.Session[authKey] != null) continue;
-                                    
-                                    this.IsAuthenticationRequired = true;
-                                    break;
-                                }
-                            }
+                            this.IsAuthenticationRequired = false;
+                            break;
+                        }
+
+                        if (!serviceItem.Authentication) break;
+                        
+                        foreach (string authKey in serviceItem.AuthenticationKeys)
+                        {
+                            if (this._Context.Session[authKey] != null) continue;
+                            
+                            this.IsAuthenticationRequired = true;
+                            break;
                         }
 
                         break;
                     case Basics.Domain.ServiceTypes.xService:
-                        this.IsAuthenticationRequired = serviceItem.Authentication;
-
-                        break;
                     case Basics.Domain.ServiceTypes.xSocket:
+                    case Basics.Domain.ServiceTypes.WebSocket:
                         this.IsAuthenticationRequired = serviceItem.Authentication;
 
                         break;
@@ -293,7 +323,7 @@ namespace Xeora.Web.Application
                 Basics.Mapping.ResolutionResult resolutionResult =
                     this.ResolveUrl(ref workingInstance, url.RelativePath);
 
-                if (resolutionResult == null || !resolutionResult.Resolved)
+                if (resolutionResult is not { Resolved: true })
                 {
                     // No Result So Check Static Definitions
                     foreach (Basics.Mapping.MappingItem mapItem in workingInstance.Settings.Mappings.Items)
@@ -307,10 +337,12 @@ namespace Xeora.Web.Application
 
                         foreach (Basics.Mapping.ResolveItem resolveItem in mapItem.ResolveEntry.ResolveItems)
                         {
-                            string medItemValue = 
-                                !string.IsNullOrEmpty(resolveItem.Id) 
-                                    ? rqMatch.Groups[resolveItem.Id].Value 
-                                    : this._Context.Request.QueryString[resolveItem.QueryStringKey];
+                            string medItemValue =
+                                !string.IsNullOrEmpty(resolveItem.Id)
+                                    ? rqMatch.Groups[resolveItem.Id].Value
+                                    : this.ControlType == ControlTypes.Web
+                                        ? this._Context.Request.QueryString[resolveItem.QueryStringKey]
+                                        : this._WebSocket.Request.QueryString[resolveItem.QueryStringKey];
 
                             resolutionResult.QueryString[resolveItem.QueryStringKey] =
                                 string.IsNullOrEmpty(medItemValue) ? resolveItem.DefaultValue : medItemValue;
@@ -320,7 +352,7 @@ namespace Xeora.Web.Application
                     }
                 }
 
-                if (resolutionResult != null && resolutionResult.Resolved)
+                if (resolutionResult is { Resolved: true })
                 {
                     this.RectifyRequestPath(resolutionResult);
 
@@ -411,7 +443,15 @@ namespace Xeora.Web.Application
                 requestUrl = string.Concat(requestUrl, "?", resolutionResult.QueryString.ToString());
 
             // Let the server understand what this Url is about...
-            this._Context.Request.RewritePath(requestUrl);
+            switch (this.ControlType)
+            {
+                case ControlTypes.Web:
+                    this._Context.Request.RewritePath(requestUrl);
+                    break;
+                case ControlTypes.Socket:
+                    this._WebSocket.Request.RewritePath(requestUrl);
+                    break;
+            }
         }
 
         public void OverrideDomain(string[] domainIdAccessTree, string languageId) =>
@@ -428,13 +468,13 @@ namespace Xeora.Web.Application
         {
             Basics.Execution.Bind rBind = null;
 
-            if (this.ServiceType == Basics.Domain.ServiceTypes.xSocket &&
+            if (this.ServiceType is Basics.Domain.ServiceTypes.xSocket or Basics.Domain.ServiceTypes.WebSocket &&
                 !string.IsNullOrEmpty(this._ExecuteIn))
                 rBind = Basics.Execution.Bind.Make(this._ExecuteIn);
 
             return rBind;
         }
-
+        
         public void RenderService(Basics.ControlResult.Message messageResult, string[] updateBlockControlIdStack)
         {
             if (this.ServiceDefinition == null)
@@ -500,7 +540,7 @@ namespace Xeora.Web.Application
             resolverBind.InstanceExecution = true;
 
             Basics.Execution.InvokeResult<Basics.Mapping.ResolutionResult> resolverInvokeResult =
-                Executer.InvokeBind<Basics.Mapping.ResolutionResult>(Basics.Helpers.Context.Request.Header.Method, resolverBind, ExecuterTypes.Undefined);
+                Executer.InvokeBind<Basics.Mapping.ResolutionResult>(this._Context.Request.Header.Method, resolverBind, ExecuterTypes.Undefined);
 
             return resolverInvokeResult.Exception == null 
                 ? resolverInvokeResult.Result 

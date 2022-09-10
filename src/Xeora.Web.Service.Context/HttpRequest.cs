@@ -19,12 +19,16 @@ namespace Xeora.Web.Service.Context
         public ParserResultTypes Build(string contextId, Net.NetworkStream streamEnclosure)
         {
             this._Header = new HttpRequestHeader(streamEnclosure);
-            
+
             ParserResultTypes parserResult = 
                 this._Header.Parse();
             if (parserResult != ParserResultTypes.Success) return parserResult;
-
+            
             this.QueryString = new HttpRequestQueryString(this._Header.Url);
+
+            if (this._Header.WebSocket)
+                return ParserResultTypes.Success;
+            
             this.Body = new HttpRequestBody(contextId, this._Header, streamEnclosure);
 
             return ((HttpRequestBody)this.Body).Parse();
@@ -36,6 +40,21 @@ namespace Xeora.Web.Service.Context
             this.QueryString = new HttpRequestQueryString(this.Header.Url);
         }
 
+        public ParserResultTypes ExportAsWebSocket(out WebSocketRequest webSocketRequest)
+        {
+            webSocketRequest = null;
+
+            WebSocketRequestHeader webSocketRequestHeader =
+                new WebSocketRequestHeader(this._Header);
+            ParserResultTypes result =
+                webSocketRequestHeader.Ensure();
+            if (result != ParserResultTypes.Success) return result;
+
+            webSocketRequest = new WebSocketRequest(this.RemoteAddr, webSocketRequestHeader, this.QueryString);
+
+            return ParserResultTypes.Success;
+        }
+        
         public void Conclude() => 
             ((HttpRequestBody)this.Body).Conclude();
         

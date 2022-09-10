@@ -6,6 +6,7 @@ namespace Xeora.Web.Service.Context
         BadRequest,
         MethodNotAllowed,
         HttpVersionNotSupported,
+        WebSocketVersionNotSupported,
         Success
     }
 }

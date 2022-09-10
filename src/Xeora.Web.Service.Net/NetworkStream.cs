@@ -205,5 +205,8 @@ namespace Xeora.Web.Service.Net
 
         public override void SetLength(long value) =>
             this._RemoteStream.SetLength(value);
+
+        public void BumpToWebSocket() =>
+            this._RemoteStream.ReadTimeout = 5 * 60 * 10000;
     }
 }

@@ -4,6 +4,7 @@
     {
         Template,
         xService,
-        xSocket
+        xSocket,
+        WebSocket
     }
 }

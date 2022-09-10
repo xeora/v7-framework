@@ -59,7 +59,7 @@ namespace Xeora.Web.Application
             translatorBind.InstanceExecution = true;
 
             Basics.Execution.InvokeResult<Basics.TranslationResult> translatorInvokeResult =
-                Manager.Executer.InvokeBind<Basics.TranslationResult>(Basics.Helpers.Context.Request.Header.Method, translatorBind, Manager.ExecuterTypes.Undefined);
+                Manager.Executer.InvokeBind<Basics.TranslationResult>(Basics.Helpers.Context?.Request.Header.Method ?? Basics.Context.Request.HttpMethod.GET, translatorBind, Manager.ExecuterTypes.Undefined);
 
             if (translatorInvokeResult.Result == null || translatorInvokeResult.Exception != null)
                 return new Basics.TranslationResult(false, string.Empty);

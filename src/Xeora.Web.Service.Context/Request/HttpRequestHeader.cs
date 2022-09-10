@@ -117,6 +117,9 @@ namespace Xeora.Web.Service.Context.Request
                                 this.ParseCookies(value);
 
                                 break;
+                            case "upgrade":
+                                this.WebSocket = string.CompareOrdinal(value, "websocket") == 0;
+                                break;
                             default:
                                 AddOrUpdate(key, value);
 
@@ -213,8 +216,11 @@ namespace Xeora.Web.Service.Context.Request
         public string ContentType { get; private set; }
         public Encoding ContentEncoding { get; private set; }
         public string Boundary { get; private set; }
-
         public Basics.Context.IHttpCookie Cookie { get; }
+
+        public bool KeepAlive => 
+            !string.IsNullOrEmpty(this["Connection"]) && this["Connection"].IndexOf("keep-alive", StringComparison.Ordinal) > -1;
+        public bool WebSocket { get; private set; }
 
         internal void ReplacePath(string rawUrl) =>
             this.Url = new Url(rawUrl);

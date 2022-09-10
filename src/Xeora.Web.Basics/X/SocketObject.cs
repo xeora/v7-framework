@@ -6,7 +6,7 @@ namespace Xeora.Web.Basics.X
     [Serializable]
     public class SocketObject
     {
-        public SocketObject(ref Context.IHttpContext context, KeyValuePair<string, object>[] parameters)
+        public SocketObject(Context.IHttpContext context, KeyValuePair<string, object>[] parameters)
         {
             this.Request = context.Request;
             this.Response = context.Response;

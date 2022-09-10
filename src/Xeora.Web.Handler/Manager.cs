@@ -42,13 +42,13 @@ namespace Xeora.Web.Handler
             }
         }
 
-        public Basics.IHandler Create(ref IHttpContext context)
+        public Basics.IHandler Create(IHttpContext context)
         {
             Monitor.Enter(this._RefreshLock);
             try 
             {
                 Basics.IHandler handler = 
-                    new Xeora(ref context, this._Refresh);
+                    new Xeora(context, this._Refresh);
                 this._Refresh = false;
 
                 this._Handlers.TryAdd(handler.HandlerId, new Container(ref handler));
@@ -59,6 +59,16 @@ namespace Xeora.Web.Handler
             {
                 Monitor.Exit(this._RefreshLock);
             }
+        }
+        
+        public Basics.IHandler Create(IWebSocketContext context) 
+        {
+            Basics.IHandler handler = 
+                new Xeora(context);
+
+            this._Handlers.TryAdd(handler.HandlerId, new Container(ref handler));
+            
+            return handler;
         }
 
         public Basics.IHandler Get(string handlerId)
@@ -87,7 +97,7 @@ namespace Xeora.Web.Handler
             if (handlerContainer.Removable)
             {
                 this._Handlers.TryRemove(handlerId, out handlerContainer);
-                handlerContainer?.Handler.Context.Dispose();
+                handlerContainer?.Handler.Context?.Dispose();
                 return;
             }
             handlerContainer.Removable = true;
