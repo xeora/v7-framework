@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <PackageId>Xeora.Web</PackageId>
     <Product>Xeora - Web Development Framework Managers</Product>
     <Company>JakPark Solutions</Company>
