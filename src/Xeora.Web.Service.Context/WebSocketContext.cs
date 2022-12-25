@@ -221,7 +221,7 @@ namespace Xeora.Web.Service.Context
                     Fin = true,
                     OpCode = OpCodes.Binary
                 };
-            frame.BuildInto(buffer, 0, buffer.Length, this._StreamEnclosure);
+            frame.BuildInto(buffer, offset, count, this._StreamEnclosure);
         }
 
         private void ReadAtLeast(byte[] buffer, int offset, int count)
