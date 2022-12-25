@@ -62,9 +62,8 @@ namespace Xeora.Web.Deployment
             {
                 contentStream = 
                     new FileStream(this._DomainFileLocation, FileMode.Open, FileAccess.Read);
-
-                MD5CryptoServiceProvider md5 = 
-                    new MD5CryptoServiceProvider();
+                
+                MD5 md5 = MD5.Create();
                 fileHash = md5.ComputeHash(contentStream);
             }
             catch (Exception)

@@ -31,7 +31,7 @@ namespace Xeora.Web
             byte[] saltBytes = {1, 2, 3, 4, 5, 6, 7, 8};
             
             Rfc2898DeriveBytes rfc = 
-                new Rfc2898DeriveBytes(cryptoBytes, saltBytes, 1000);
+                new Rfc2898DeriveBytes(cryptoBytes, saltBytes, 1000, HashAlgorithmName.SHA512);
 
             this._Aes.Key = rfc.GetBytes(this._Aes.KeySize / 8);
             this._Aes.IV = rfc.GetBytes(this._Aes.BlockSize / 8);
