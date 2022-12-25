@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Runtime.Loader;
 using System.Runtime.Serialization;
 
-namespace Xeora.Web.Service.Dss.External
+namespace Xeora.Web.Tools.Serialization
 {
     internal class Binder : SerializationBinder
     {

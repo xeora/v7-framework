@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
-using Xeora.Web.Basics;
 using Xeora.Web.Exceptions;
 
 namespace Xeora.Web.Service.Dss.External
@@ -130,7 +128,7 @@ namespace Xeora.Web.Service.Dss.External
                         if (string.CompareOrdinal(remoteKey, key) != 0)
                             throw new DssCommandException();
                         
-                        return Service.DeSerialize(remoteValueBytes);
+                        return Tools.Serialization.Binary.DeSerialize(remoteValueBytes);
                     default:
                         throw new DssCommandException();
                 }
@@ -160,7 +158,8 @@ namespace Xeora.Web.Service.Dss.External
                  * -> SET\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}\BYTE\CHARS{BYTEVALUELENGTH}\INTEGER\BYTES{INTEGERVALUELENGTH}
                  */
 
-                byte[] valueBytes = Service.Serialize(value);
+                byte[] valueBytes = 
+                    Tools.Serialization.Binary.Serialize(value) ?? Array.Empty<byte>();
                 if (valueBytes.Length > 16777000)
                     throw new OverflowException("Value is too big to store");
 
@@ -410,70 +409,6 @@ namespace Xeora.Web.Service.Dss.External
             }
         }
 
-        private static byte[] Serialize(object value)
-        {
-            if (value == null) return new byte[] { };
-            
-            Stream forStream = null;
-            try
-            {
-                forStream = new MemoryStream();
-
-                BinaryFormatter binFormatter = 
-                    new BinaryFormatter {Binder = new Binder(Helpers.Name)};
-                binFormatter.Serialize(forStream, value);
-
-                return ((MemoryStream)forStream).ToArray();
-            }
-            catch (Exception e)
-            {
-                Basics.Console.Push(
-                    "Dss Serializer Exception...", 
-                    e.Message, 
-                    e.ToString(), 
-                    false, 
-                    true,
-                    type: Basics.Console.Type.Error);
-                
-                return new byte[] { };
-            }
-            finally
-            {
-                forStream?.Dispose();
-            }
-        }
-
-        private static object DeSerialize(byte[] value)
-        {
-            if (value == null || value.Length == 0) 
-                return null;
-            
-            Stream forStream = null;
-            try
-            {
-                forStream = new MemoryStream(value);
-
-                BinaryFormatter binFormatter =
-                    new BinaryFormatter {Binder = new Binder(Helpers.Name)};
-                return binFormatter.Deserialize(forStream);
-            }
-            catch (Exception e)
-            {
-                Basics.Console.Push(
-                    "Dss Deserializer Exception...", 
-                    e.Message, 
-                    e.ToString(), 
-                    false, 
-                    true,
-                    type: Basics.Console.Type.Error);
-                
-                return null;
-            }
-            finally
-            {
-                forStream?.Dispose();
-            }
-        }
 
         public bool IsExpired => DateTime.Compare(DateTime.UtcNow, this.Expires) > 0;
 
