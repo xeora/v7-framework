@@ -115,9 +115,17 @@ namespace Xeora.Web.Service.Context.Request.IO
                         if (separatorIndex == -1) separatorIndex = eofIndex;
                     }
 
-                    int contentLength =
-                        Convert.ToInt32(content[..separatorIndex], 16);
-
+                    int contentLength;
+                    try
+                    {
+                        contentLength = 
+                            Convert.ToInt32(content[..separatorIndex], 16);
+                    }
+                    catch
+                    {
+                        return ParserResultTypes.BadRequest;
+                    }
+                    
                     eofIndex += nl;
                     this.StreamEnclosure.Return(chunkBuffer, eofIndex, bR - eofIndex);
                     
