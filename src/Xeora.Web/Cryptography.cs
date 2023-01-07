@@ -99,8 +99,17 @@ namespace Xeora.Web
                 {
                     string hex = 
                         encryptedInput.Substring(i, 2);
-                    decryptCache.WriteByte(
-                        byte.Parse(hex, System.Globalization.NumberStyles.HexNumber));
+                    
+                    bool parsed =
+                        byte.TryParse(
+                            hex, 
+                            System.Globalization.NumberStyles.HexNumber, 
+                            System.Globalization.NumberFormatInfo.CurrentInfo, 
+                            out byte parsedByte);
+                    // if not parsed, wrong/malformed request or hacking attempt
+                    if (!parsed) return string.Empty;
+                    
+                    decryptCache.WriteByte(parsedByte);
                 }
                 decryptCache.Seek(0, SeekOrigin.Begin);
 
