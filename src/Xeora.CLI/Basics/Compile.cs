@@ -265,7 +265,7 @@ namespace Xeora.CLI.Basics
 
                     if (this._Publish || !this._ExternalContent) continue;
 
-                    if (await this.CompileDomainContentForExternal(dI.DomainPath))
+                    if (!await this.CompileDomainContentForExternal(dI.DomainPath))
                         return 1;
                 }
 
