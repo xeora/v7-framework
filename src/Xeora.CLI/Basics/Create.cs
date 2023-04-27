@@ -404,7 +404,7 @@ li {
       ""physicalRoot"": ""{1}"",
       ""debugging"": true,
       ""compression"": true,
-      ""printAnalytics"": false
+      ""PrintAnalysis"": false
     }}
   }}
 }}";
