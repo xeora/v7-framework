@@ -327,6 +327,9 @@ namespace Xeora.Web.Handler
                 Basics.Execution.Bind bind =
                     Basics.Execution.Bind.Make(bindInformation);
 
+                if (bind == null)
+                    throw new Exception($"Bind information is not parsable: {bindInformation}");
+                
                 bind.Parameters.Prepare(
                     parameter => Property.Render(null, parameter.Query).Item2
                 );

@@ -133,6 +133,9 @@ namespace Xeora.Web.Service
                 () => ((HttpRequest)request).Conclude();
 
             ClientState.AcquireSession(request, out Basics.Session.IHttpSession session);
+            if (session == null) 
+                throw new Exception("Unable to acquire session. Possibly DSS connectivity issue or session is expired");
+            
             context =
                 new HttpContext(stateId, Configurations.Xeora.Service.Ssl, request, response, session,
                     ApplicationContainer.Current);
