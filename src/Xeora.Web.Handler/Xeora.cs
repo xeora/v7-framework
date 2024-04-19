@@ -309,26 +309,32 @@ namespace Xeora.Web.Handler
             if (this.Context.Request.Header.Method == HttpMethod.POST &&
                 !string.IsNullOrEmpty(encryptedBindInformation))
             {
+                string defaultTemplateRedirectUrl = Helpers.CreateUrl(
+                    false,
+                    this._DomainControl.Domain.Settings.Configurations.DefaultTemplate
+                );
+                
                 // Decode Encoded Call Function to Readable
                 string bindInformation = 
                     this._DomainControl.Cryptography.Decrypt(encryptedBindInformation);
                 if (string.IsNullOrEmpty(bindInformation))
                 {
-                    this.Context.AddOrUpdate(
-                        "RedirectLocation", 
-                        Helpers.CreateUrl(
-                            false, 
-                            this._DomainControl.Domain.Settings.Configurations.DefaultTemplate
-                        )
-                    );
+                    this.Context.AddOrUpdate("RedirectLocation", defaultTemplateRedirectUrl);
                     return;
                 }
                 
                 Basics.Execution.Bind bind =
                     Basics.Execution.Bind.Make(bindInformation);
-
                 if (bind == null)
-                    throw new Exception($"Bind information is not parsable: {bindInformation}");
+                {
+                    // Decrypted bind information may be meaningless and cause to have (null) bind object
+                    // Possible reasons;
+                    //  - Expired page may have a request with a bind information encrypted by an old encryption key
+                    //    to a refreshed session (refreshed possibly in a different tab/window)
+                    //  - Hacking attempt
+                    this.Context.AddOrUpdate("RedirectLocation", defaultTemplateRedirectUrl);
+                    return;
+                }
                 
                 bind.Parameters.Prepare(
                     parameter => Property.Render(null, parameter.Query).Item2
